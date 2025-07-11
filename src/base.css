@@ -1,0 +1,260 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@tailwind utilities;
+
+/* Section -- Root */
+:root {
+  /* Utopia Text */
+  --step--2: clamp(0.6944rem, 0.6577rem + 0.1836vw, 0.8rem);
+  --step--1: clamp(0.8333rem, 0.7754rem + 0.2899vw, 1rem);
+  --step-0: clamp(1rem, 0.913rem + 0.4348vw, 1.25rem);
+  --step-1: clamp(1.2rem, 1.0739rem + 0.6304vw, 1.5625rem);
+  --step-2: clamp(1.44rem, 1.2615rem + 0.8924vw, 1.9531rem);
+  --step-3: clamp(1.728rem, 1.4799rem + 1.2407vw, 2.4414rem);
+  --step-4: clamp(2.0736rem, 1.7334rem + 1.7011vw, 3.0518rem);
+  --step-5: clamp(2.4883rem, 2.027rem + 2.3067vw, 3.8147rem);
+  --step-6: clamp(2.986rem, 2.366rem + 3.0998vw, 4.7684rem);
+
+  /* Utopia Spacing */
+  --space-3xs-s: clamp(0.25rem, -0.0978rem + 1.7391vw, 1.25rem);
+  --space-xs-m: clamp(0.75rem, 0.3587rem + 1.9565vw, 1.875rem);
+  --space-xs-xl: clamp(0.75rem, -0.2935rem + 5.2174vw, 3.75rem);
+  --space-xs-2xl: clamp(0.75rem, -0.7283rem + 7.3913vw, 5rem);
+  --space-s-l: clamp(1rem, 0.4783rem + 2.6087vw, 2.5rem);
+  --space-s-xl: clamp(1rem, 0.0435rem + 4.7826vw, 3.75rem);
+  --space-s-2xl: clamp(1rem, -0.3913rem + 6.9565vw, 5rem);
+  --space-m-xl: clamp(1.5rem, 0.7174rem + 3.913vw, 3.75rem);
+  --space-m-2xl: clamp(1.5rem, 0.2826rem + 6.087vw, 5rem);
+}
+
+/* Section -- Layer Base */
+
+@layer base {
+  /* Section -- Typography */
+
+  h1 {
+    @apply scroll-m-20 pb-1.5 text-3xl;
+  }
+
+  h2 {
+    @apply scroll-m-20 pb-0.5 text-2xl font-semibold transition-colors;
+  }
+
+  h3 {
+    @apply scroll-m-20 text-xl py-0.5 font-semibold;
+  }
+
+  h4 {
+    @apply scroll-m-20 text-lg py-0.5 font-semibold;
+  }
+
+  h5 {
+    @apply scroll-m-20 py-0.75 font-semibold;
+  }
+
+  p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+
+  blockquote {
+    @apply mt-6 border-l-2 pl-6 italic;
+  }
+
+  /* Section -- Component Defaults */
+
+  table {
+    thead {
+      tr {
+        @apply m-0 border-t p-0; /* even:bg-muted */
+
+        th {
+          @apply border px-4 py-2 text-left font-bold
+            [&[align=center]]:text-center [&[align=right]]:text-right;
+        }
+      }
+    }
+    tbody {
+      tr {
+        @apply m-0 border-t p-0; /* even:bg-muted */
+
+        td {
+          @apply border px-4 py-2 text-left [&[align=center]]:text-center
+            [&[align=right]]:text-right;
+        }
+      }
+    }
+  }
+
+  code {
+    @apply relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm
+      font-semibold;
+  }
+}
+
+/* Section -- @theme */
+
+@theme {
+  /* Section -- Utopia Spacing */
+
+  --spacing: clamp(0.25rem, 0.2283rem + 0.1087vw, 0.3125rem);
+  --spacing-1-4: var(--space-3xs-s);
+  --spacing-3-5: var(--space-xs-m);
+  --spacing-3-7: var(--space-xs-xl);
+  --spacing-3-8: var(--space-xs-2xl);
+  --spacing-4-6: var(--space-s-l);
+  --spacing-4-7: var(--space-s-xl);
+  --spacing-4-8: var(--space-s-2xl);
+  --spacing-5-7: var(--space-m-xl);
+  --spacing-5-8: var(--space-m-2xl);
+  --spacing-largest: 77.5rem;
+
+  /* Section -- Utopia Text */
+
+  --text-xs: var(--step--2);
+  --text-sm: var(--step--1);
+  --text-base: var(--step-0);
+  --text-lg: var(--step-1);
+  --text-xl: var(--step-2);
+  --text-2xl: var(--step-3);
+  --text-3xl: var(--step-4);
+  --text-4xl: var(--step-5);
+  --text-5xl: var(--step-6);
+}
+
+/* Category -- Utilities */
+
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Section -- Flexbox */
+
+@utility flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+@utility flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility flex-between {
+  display: flex;
+  justify-content: space-between;
+}
+
+@utility flex-col-between {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@utility flex-between-center {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@utility flex-col-between-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Section -- Translate */
+
+@utility translate-x-center {
+  --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+  left: 50%;
+}
+
+@utility translate-y-center {
+  --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+  top: 50%;
+}
+
+@utility translate-center {
+  --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+  --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
+
+/* Section -- Absolute */
+
+@utility absolute-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+  --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+}
+
+@utility absolute-y-center {
+  position: absolute;
+  --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+  top: 50%;
+}
+
+@utility absolute-x-center {
+  position: absolute;
+  --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+  left: 50%;
+}
+
+/* Section -- Grid */
+
+@utility grid-quadrant {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+@utility grid-half {
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+
+@utility grid-cols-auto-fill-* {
+  grid-template-columns:
+    repeat(auto-fill, minmax(min(--value([ *]), 100%), 1fr));
+  grid-template-columns:
+    repeat(auto-fill, minmax(min(--value(--text- *), 100%), 1fr));
+  grid-template-columns:
+    repeat(
+    auto-fill,
+    minmax(min(var(--spacing) * --value(integer), 100%), 1fr)
+  );
+}
+
+@utility grid-cols-auto-fit-* {
+  grid-template-columns:
+    repeat(auto-fit, minmax(min(--value([ *]), 100%), 1fr));
+  grid-template-columns:
+    repeat(auto-fit, minmax(min(--value(--text- *), 100%), 1fr));
+  grid-template-columns:
+    repeat(
+    auto-fit,
+    minmax(min(var(--spacing) * --value(integer), 100%), 1fr)
+  );
+}

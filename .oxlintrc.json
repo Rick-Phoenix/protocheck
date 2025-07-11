@@ -1,0 +1,249 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["node", "jsdoc", "import", "unicorn", "promise"],
+  "categories": {
+    "correctness": "error",
+    "perf": "warn",
+    "suspicious": "warn"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "commonjs": true,
+    "es2024": true,
+    "node": true,
+    "shared-node-browser": true
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.cache/**",
+    "**/.moon/cache",
+    "**/*.code-workspace",
+    "**/*.env.*",
+    "**/bun.lock",
+    "**/.husky",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+    "**/bun.lockb",
+    "**/output",
+    "**/coverage",
+    "**/temp",
+    "**/.temp",
+    "**/tmp",
+    "**/.tmp",
+    "**/.history",
+    "**/.vitepress/cache",
+    "**/.nuxt",
+    "**/.next",
+    "**/.svelte-kit",
+    "**/.vercel",
+    "**/.changeset",
+    "**/.idea",
+    "**/.output",
+    "**/.vite-inspect",
+    "**/.yarn",
+    "**/vite.config.*.timestamp-*",
+    "**/CHANGELOG*.md",
+    "**/*.min.*",
+    "**/LICENSE*",
+    "**/__snapshots__",
+    "**/auto-import?(s).d.ts",
+    "**/components.d.ts"
+  ],
+  "rules": {
+    "array-callback-return": "error",
+    "default-case-last": "error",
+    "eqeqeq": ["error", "smart"],
+    "new-cap": [
+      "error",
+      {
+        "capIsNew": false,
+        "newIsCap": true,
+        "properties": true
+      }
+    ],
+    "no-alert": "error",
+    "no-array-constructor": "error",
+    "no-case-declarations": "error",
+    "no-console": "off",
+    "no-empty": [
+      "error",
+      {
+        "allowEmptyCatch": true
+      }
+    ],
+    "no-extend-native": "error",
+    "no-fallthrough": "error",
+    "no-iterator": "error",
+    "no-labels": [
+      "error",
+      {
+        "allowLoop": false,
+        "allowSwitch": false
+      }
+    ],
+    "no-await-in-loop": "off",
+    "no-lone-blocks": "error",
+    "no-multi-str": "error",
+    "no-new": "error",
+    "no-new-func": "error",
+    "no-new-wrappers": "error",
+    "no-proto": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": [
+      "error",
+      {
+        "builtinGlobals": false
+      }
+    ],
+    "no-regex-spaces": "error",
+    "no-restricted-globals": [
+      "error",
+      {
+        "message": "Use `globalThis` instead.",
+        "name": "global"
+      },
+      {
+        "message": "Use `globalThis` instead.",
+        "name": "self"
+      }
+    ],
+    "no-self-assign": [
+      "error",
+      {
+        "props": true
+      }
+    ],
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "error",
+    "no-throw-literal": "error",
+    "no-unexpected-multiline": "error",
+    "no-unneeded-ternary": [
+      "error",
+      {
+        "defaultAssignment": false
+      }
+    ],
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowShortCircuit": true,
+        "allowTaggedTemplates": true,
+        "allowTernary": true
+      }
+    ],
+    "no-unused-vars": [
+      "warn",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^[_ce(evt)f(ws)]",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^[_k(key)]",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "no-useless-call": "error",
+    "no-useless-constructor": "error",
+    "no-var": "error",
+    "prefer-exponentiation-operator": "error",
+    "promise/prefer-catch": "error",
+    "promise/no-return-in-finally": "error",
+    "promise/param-names": "off",
+    "promise/no-return-wrap": "error",
+    "promise/no-nesting": "error",
+    "promise/catch-or-return": "warn",
+    "unicorn/no-useless-promise-resolve-reject": "error",
+    "prefer-promise-reject-errors": "error",
+    "prefer-rest-params": "error",
+    "prefer-spread": "error",
+    "symbol-description": "error",
+    "unicode-bom": ["error", "never"],
+    "use-isnan": [
+      "error",
+      {
+        "enforceForIndexOf": true,
+        "enforceForSwitchCase": true
+      }
+    ],
+    "valid-typeof": [
+      "error",
+      {
+        "requireStringLiterals": true
+      }
+    ],
+    "vars-on-top": "error",
+    "yoda": ["error", "never"],
+    "node/no-exports-assign": "error",
+    "node/no-new-require": "error",
+    "import/first": "error",
+    "import/no-duplicates": "error",
+    "import/no-mutable-exports": "warn",
+    "import/no-named-default": "error",
+    "import/no-self-import": "error",
+    "import/no-webpack-loader-syntax": "error",
+    "unicorn/consistent-empty-array-spread": "error",
+    "unicorn/error-message": "error",
+    "unicorn/escape-case": "error",
+    "unicorn/new-for-builtins": "error",
+    "unicorn/no-new-buffer": "error",
+    "unicorn/number-literal-case": "off",
+    "unicorn/prefer-dom-node-text-content": "error",
+    "unicorn/prefer-includes": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-number-properties": "error",
+    "unicorn/prefer-type-error": "error",
+    "unicorn/throw-new-error": "error",
+    "unicorn/filename-case": [
+      "error",
+      {
+        "cases": { "kebabCase": true, "snakeCase": true }
+      }
+    ],
+    "unicorn/prefer-negative-index": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.?([cm])ts", "**/*.?([cm])tsx"],
+      "rules": {
+        "no-class-assign": "off",
+        "no-const-assign": "off",
+        "no-dupe-class-members": "off",
+        "no-dupe-keys": "off",
+        "no-func-assign": "off",
+        "no-import-assign": "off",
+        "no-new-native-nonconstructor": "off",
+        "no-obj-calls": "off",
+        "no-redeclare": "off",
+        "no-setter-return": "off",
+        "no-this-before-super": "off",
+        "no-unsafe-negation": "off",
+        "no-array-constructor": "off",
+        "no-unused-expressions": "off",
+        "no-unused-vars": "off",
+        "no-useless-constructor": "off"
+      }
+    },
+    {
+      "files": [
+        "**/__tests__/**/*.?([cm])[jt]s?(x)",
+        "**/*.spec.?([cm])[jt]s?(x)",
+        "**/*.test.?([cm])[jt]s?(x)",
+        "**/*.bench.?([cm])[jt]s?(x)",
+        "**/*.benchmark.?([cm])[jt]s?(x)"
+      ],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    },
+    {
+      "files": ["**/*.d.?([cm])ts"],
+      "rules": {
+        "import/no-duplicates": "off"
+      }
+    }
+  ]
+}
