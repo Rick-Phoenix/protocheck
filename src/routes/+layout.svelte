@@ -16,17 +16,18 @@
 
   const [parentRoute, childRoute] = $derived.by(() => {
     const fullRoute = pageObj.route.id;
-    console.log(fullRoute);
     if (fullRoute) {
       const routeBits = fullRoute.split("/");
       return [routeBits[1], routeBits[2]];
+    } else {
+      return [];
     }
   });
+
+  const joinUrlSegments = (...segments: string[]) =>
+    "/" + segments.join("/");
 </script>
 
-{@debug pageObj}
-{@debug parentRoute}
-{@debug childRoute}
 <ModeWatcher defaultTheme="dark" />
 <Toaster
   position="top-left"
@@ -42,15 +43,18 @@
         <Breadcrumb.List>
           {#if parentRoute}
             <Breadcrumb.Item class="hidden md:block">
-              <Breadcrumb.Link href="#" active={!childRoute}>{
+              <Breadcrumb.Link href={"/" + parentRoute} active={!childRoute}>{
                 title(parentRoute)
               }</Breadcrumb.Link>
             </Breadcrumb.Item>
           {/if}
-          {#if childRoute}
+          {#if parentRoute && childRoute}
             <Breadcrumb.Separator class="hidden md:block" />
             <Breadcrumb.Item>
-              <Breadcrumb.Page>{title(childRoute)}</Breadcrumb.Page>
+              <Breadcrumb.Link
+                href={joinUrlSegments(parentRoute, childRoute)}
+                active={!!childRoute}
+              >{title(childRoute)}</Breadcrumb.Link>
             </Breadcrumb.Item>
           {/if}
         </Breadcrumb.List>
