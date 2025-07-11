@@ -25,6 +25,9 @@
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.0.0",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/cli": "^2",
+    "@tauri-apps/plugin-opener": "^2",
     "@tsconfig/svelte": "^5.0.2",
     "@types/node": "^24.0.13",
     "@vitest/browser": "^3.2.4",
@@ -45,7 +48,9 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "@tailwindcss/oxide",
+      "esbuild",
+      "svelte-preprocess"
     ]
   }
 }
