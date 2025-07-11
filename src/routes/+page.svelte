@@ -1,45 +1,35 @@
 <script lang="ts">
-  import { GreetService } from "../../bindings/changeme";
-  import { Events } from "@wailsio/runtime";
+  import { invoke } from "@tauri-apps/api/core";
 
   let name = $state("");
-  let result = $state("Please enter your name below 👇");
-  let time = $state("Listening for Time event...");
+  let greetMsg = $state("");
 
-  const doGreet = (): void => {
-    let localName = name;
-    if (!localName) {
-      localName = "anonymous";
-    }
-    GreetService.Greet(localName).then((resultValue: string) => {
-      result = resultValue;
-    }).catch((err: any) => {
-      console.log(err);
-    });
-  };
-
-  Events.On("time", (timeValue: any) => {
-    time = timeValue.data;
-  });
+  async function greet(event: Event) {
+    event.preventDefault();
+    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+    greetMsg = await invoke("greet", { name });
+  }
 </script>
 
-<div class="flex-col-center size-full">
-  <div class="flex h-min">
-    <span data-wml-openURL="https://wails.io">
-      <img src="/wails.png" class="logo" alt="Wails logo" />
-    </span>
-    <span data-wml-openURL="https://svelte.dev">
-      <img src="/svelte.svg" class="logo svelte" alt="Svelte logo" />
-    </span>
+<main class="container">
+  <h1>Welcome to Tauri + Svelte</h1>
+
+  <div class="row">
+    <a href="https://vitejs.dev" target="_blank">
+      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
+    </a>
+    <a href="https://tauri.app" target="_blank">
+      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
+    </a>
+    <a href="https://kit.svelte.dev" target="_blank">
+      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
+    </a>
   </div>
-  <h1>Wails + Svelte</h1>
-  <div class="flex-col-center gap-3">
-    <div>{result}</div>
-    <div class="card">
-      <div class="flex gap-3">
-        <input class="input" bind:value={name} type="text" autocomplete="off" />
-        <button class="btn" onclick={doGreet}>Greet</button>
-      </div>
-    </div>
-  </div>
-</div>
+  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+
+  <form class="row" onsubmit={greet}>
+    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+    <button type="submit">Greet</button>
+  </form>
+  <p>{greetMsg}</p>
+</main>
