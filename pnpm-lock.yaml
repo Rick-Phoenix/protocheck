@@ -11,6 +11,9 @@ importers:
       mode-watcher:
         specifier: ^1.1.0
         version: 1.1.0(svelte@5.35.4)
+      radashi:
+        specifier: ^12.6.0
+        version: 12.6.0
       svelte-french-toast:
         specifier: ^1.2.0
         version: 1.2.0(svelte@5.35.4)
@@ -1095,6 +1098,10 @@ packages:
 
   quansync@0.2.10:
     resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
+
+  radashi@12.6.0:
+    resolution: {integrity: sha512-nJcpgS3La+yRlxm4bLjCcjsi1G5VeOycSo8nt5BzSEDWqSY0XNAUAwckvCa8uMHXtZqCK8fntJPXPlLve+vKhA==}
+    engines: {node: '>=16.0.0'}
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -2200,6 +2207,8 @@ snapshots:
       react-is: 17.0.2
 
   quansync@0.2.10: {}
+
+  radashi@12.6.0: {}
 
   react-is@17.0.2: {}
 

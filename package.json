@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "mode-watcher": "^1.1.0",
+    "radashi": "^12.6.0",
     "svelte-french-toast": "^1.2.0"
   },
   "devDependencies": {

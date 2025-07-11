@@ -4,6 +4,7 @@
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import Button from "./ui/button/button.svelte";
   import SidebarFooterMenu from "./sidebar-footer-menu.svelte";
+  import Switcher from "./switcher.svelte";
 
   const items = [
     {
@@ -24,7 +25,7 @@
   collapsible="icon"
 >
   <Sidebar.Header>
-    Header
+    <Switcher />
   </Sidebar.Header>
   <Sidebar.Content>
     <Sidebar.Group>

@@ -11,10 +11,10 @@
   }
 </script>
 
-<main class="container">
+<main class="p-5 size-full flex-col-center gap-4">
   <h1>Welcome to Tauri + Svelte</h1>
 
-  <div class="row">
+  <div class="flex-center gap-3">
     <a href="https://vitejs.dev" target="_blank">
       <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
     </a>
@@ -27,7 +27,7 @@
   </div>
   <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
 
-  <form class="row" onsubmit={greet}>
+  <form class="flex-center" onsubmit={greet}>
     <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
     <button type="submit">Greet</button>
   </form>

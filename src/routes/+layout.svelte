@@ -7,11 +7,26 @@
   import Separator from "$lib/components/ui/separator/separator.svelte";
   import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
   import { Toaster } from "svelte-french-toast";
+  import { page } from "$app/state";
+  import { title } from "radashi";
 
   let { children } = $props();
   let sidebarSide = $state<Side>("left");
+  const pageObj = page;
+
+  const [parentRoute, childRoute] = $derived.by(() => {
+    const fullRoute = pageObj.route.id;
+    console.log(fullRoute);
+    if (fullRoute) {
+      const routeBits = fullRoute.split("/");
+      return [routeBits[1], routeBits[2]];
+    }
+  });
 </script>
 
+{@debug pageObj}
+{@debug parentRoute}
+{@debug childRoute}
 <ModeWatcher defaultTheme="dark" />
 <Toaster
   position="top-left"
@@ -20,24 +35,27 @@
 <Sidebar.Provider bind:side={sidebarSide}>
   <AppSidebar />
   <Sidebar.Inset>
-    <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+    <header class="flex h-12 shrink-0 items-center gap-2 border-b px-4">
       <Sidebar.Trigger class="-ml-1" />
       <Separator orientation="vertical" class="mr-2 h-4" />
       <Breadcrumb.Root>
         <Breadcrumb.List>
-          <Breadcrumb.Item class="hidden md:block">
-            <Breadcrumb.Link href="#"
-            >Building Your Application</Breadcrumb.Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Separator class="hidden md:block" />
-          <Breadcrumb.Item>
-            <Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
-          </Breadcrumb.Item>
+          {#if parentRoute}
+            <Breadcrumb.Item class="hidden md:block">
+              <Breadcrumb.Link href="#" active={!childRoute}>{
+                title(parentRoute)
+              }</Breadcrumb.Link>
+            </Breadcrumb.Item>
+          {/if}
+          {#if childRoute}
+            <Breadcrumb.Separator class="hidden md:block" />
+            <Breadcrumb.Item>
+              <Breadcrumb.Page>{title(childRoute)}</Breadcrumb.Page>
+            </Breadcrumb.Item>
+          {/if}
         </Breadcrumb.List>
       </Breadcrumb.Root>
     </header>
-    <main class="p-5 size-full flex-center">
-      {@render children?.()}
-    </main>
+    {@render children?.()}
   </Sidebar.Inset>
 </Sidebar.Provider>
