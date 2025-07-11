@@ -11,9 +11,8 @@
   }
 </script>
 
-<main class="p-5 size-full flex-col-center gap-4">
+<div class="flex-col-center size-full gap-4">
   <h1>Welcome to Tauri + Svelte</h1>
-
   <div class="flex-center gap-3">
     <a href="https://vitejs.dev" target="_blank">
       <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
@@ -32,4 +31,4 @@
     <button type="submit">Greet</button>
   </form>
   <p>{greetMsg}</p>
-</main>
+</div>

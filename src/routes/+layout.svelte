@@ -60,6 +60,8 @@
         </Breadcrumb.List>
       </Breadcrumb.Root>
     </header>
-    {@render children?.()}
+    <main class="p-2 size-full">
+      {@render children?.()}
+    </main>
   </Sidebar.Inset>
 </Sidebar.Provider>

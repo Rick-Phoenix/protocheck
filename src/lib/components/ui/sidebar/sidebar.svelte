@@ -2,7 +2,6 @@
   import * as Sheet from "$lib/components/ui/sheet/index.js";
   import { cn, fcd, type WithElementRef } from "$lib/utils.js";
   import type { HTMLAttributes } from "svelte/elements";
-  import { SIDEBAR_WIDTH_MOBILE } from "./constants.js";
   import { useSidebar } from "./context.svelte.js";
 
   let {
@@ -42,7 +41,7 @@
       data-slot="sidebar"
       data-mobile="true"
       class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-      style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE}"
+      style="--sidebar-width: var(--sidebar-width-mobile)"
       side={sidebarState.side}
     >
       <Sheet.Header class="sr-only">
@@ -83,7 +82,7 @@
         "collapsible": [
           "group-data-[collapsible=offcanvas]:w-0",
           isFloatingOrInset
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
+            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+var(--sidebar-padding))]"
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
         ],
         "layout": "w-(--sidebar-width) relative bg-transparent",
@@ -100,14 +99,14 @@
         "transition":
           "transition-[left,right,width] duration-200 ease-linear",
         "collapsible": isFloatingOrInset
-          ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
+          ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+var(--sidebar-padding))]"
           : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
         "border": {
           "group-data-[side=left]:border-r group-data-[side=right]:border-l":
             !isFloatingOrInset,
         },
         "layout":
-          "w-(--sidebar-width)  fixed inset-y-0 z-10 hidden h-full p-2  md:flex",
+          "w-(--sidebar-width)  fixed inset-y-0 z-10 hidden h-full p-(--sidebar-padding)  md:flex",
       })}
       {...restProps}
     >
