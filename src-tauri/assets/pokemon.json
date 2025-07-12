@@ -1,0 +1,4372 @@
+[
+  {
+    "id": 1,
+    "name": "Bulbasaur",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 49,
+      "Defense": 49,
+      "Sp. Attack": 65,
+      "Sp. Defense": 65,
+      "Speed": 45
+    },
+    "description": "Bulbasaur can be seen napping in bright sunlight. There is a seed on its back. By soaking up the sun’s rays, the seed grows progressively larger.",
+    "evolution": {
+      "next": [
+        [
+          "2",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/001.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/001.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/001.png"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Ivysaur",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 62,
+      "Defense": 63,
+      "Sp. Attack": 80,
+      "Sp. Defense": 80,
+      "Speed": 60
+    },
+    "description": "There is a bud on this Pokémon’s back. To support its weight, Ivysaur’s legs and trunk grow thick and strong. If it starts spending more time lying in the sunlight, it’s a sign that the bud will bloom into a large flower soon.",
+    "evolution": {
+      "prev": [
+        "1",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "3",
+          "Level 32"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/002.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/002.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/002.png"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Venusaur",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 82,
+      "Defense": 83,
+      "Sp. Attack": 100,
+      "Sp. Defense": 100,
+      "Speed": 80
+    },
+    "description": "There is a large flower on Venusaur’s back. The flower is said to take on vivid colors if it gets plenty of nutrition and sunlight. The flower’s aroma soothes the emotions of people.",
+    "evolution": {
+      "prev": [
+        "2",
+        "Level 32"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/003.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/003.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/003.png"
+    }
+  },
+  {
+    "id": 4,
+    "name": "Charmander",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 39,
+      "Attack": 52,
+      "Defense": 43,
+      "Sp. Attack": 60,
+      "Sp. Defense": 50,
+      "Speed": 65
+    },
+    "description": "The flame that burns at the tip of its tail is an indication of its emotions. The flame wavers when Charmander is enjoying itself. If the Pokémon becomes enraged, the flame burns fiercely.",
+    "evolution": {
+      "next": [
+        [
+          "5",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/004.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/004.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/004.png"
+    }
+  },
+  {
+    "id": 5,
+    "name": "Charmeleon",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 58,
+      "Attack": 64,
+      "Defense": 58,
+      "Sp. Attack": 80,
+      "Sp. Defense": 65,
+      "Speed": 80
+    },
+    "description": "Charmeleon mercilessly destroys its foes using its sharp claws. If it encounters a strong foe, it turns aggressive. In this excited state, the flame at the tip of its tail flares with a bluish white color.",
+    "evolution": {
+      "prev": [
+        "4",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "6",
+          "Level 36"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/005.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/005.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/005.png"
+    }
+  },
+  {
+    "id": 6,
+    "name": "Charizard",
+    "type": [
+      "Fire",
+      "Flying"
+    ],
+    "base": {
+      "HP": 78,
+      "Attack": 84,
+      "Defense": 78,
+      "Sp. Attack": 109,
+      "Sp. Defense": 85,
+      "Speed": 100
+    },
+    "description": "Charizard flies around the sky in search of powerful opponents. It breathes fire of such great heat that it melts anything. However, it never turns its fiery breath on any opponent weaker than itself.",
+    "evolution": {
+      "prev": [
+        "5",
+        "Level 36"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/006.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/006.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/006.png"
+    }
+  },
+  {
+    "id": 7,
+    "name": "Squirtle",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 44,
+      "Attack": 48,
+      "Defense": 65,
+      "Sp. Attack": 50,
+      "Sp. Defense": 64,
+      "Speed": 43
+    },
+    "description": "Squirtle’s shell is not merely used for protection. The shell’s rounded shape and the grooves on its surface help minimize resistance in water, enabling this Pokémon to swim at high speeds.",
+    "evolution": {
+      "next": [
+        [
+          "8",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/007.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/007.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/007.png"
+    }
+  },
+  {
+    "id": 8,
+    "name": "Wartortle",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 59,
+      "Attack": 63,
+      "Defense": 80,
+      "Sp. Attack": 65,
+      "Sp. Defense": 80,
+      "Speed": 58
+    },
+    "description": "Its tail is large and covered with a rich, thick fur. The tail becomes increasingly deeper in color as Wartortle ages. The scratches on its shell are evidence of this Pokémon’s toughness as a battler.",
+    "evolution": {
+      "prev": [
+        "7",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "9",
+          "Level 36"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/008.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/008.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/008.png"
+    }
+  },
+  {
+    "id": 9,
+    "name": "Blastoise",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 79,
+      "Attack": 83,
+      "Defense": 100,
+      "Sp. Attack": 85,
+      "Sp. Defense": 105,
+      "Speed": 78
+    },
+    "description": "Blastoise has water spouts that protrude from its shell. The water spouts are very accurate. They can shoot bullets of water with enough accuracy to strike empty cans from a distance of over 160 feet.",
+    "evolution": {
+      "prev": [
+        "8",
+        "Level 36"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/009.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/009.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/009.png"
+    }
+  },
+  {
+    "id": 10,
+    "name": "Caterpie",
+    "type": [
+      "Bug"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 30,
+      "Defense": 35,
+      "Sp. Attack": 20,
+      "Sp. Defense": 20,
+      "Speed": 45
+    },
+    "description": "Its body is soft and weak. In nature, its perpetual fate is to be seen by others as food.",
+    "evolution": {
+      "next": [
+        [
+          "11",
+          "Level 7"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/010.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/010.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/010.png"
+    }
+  },
+  {
+    "id": 11,
+    "name": "Metapod",
+    "type": [
+      "Bug"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 20,
+      "Defense": 55,
+      "Sp. Attack": 25,
+      "Sp. Defense": 25,
+      "Speed": 30
+    },
+    "description": "Its hard shell doesn’t crack a bit even if Pikipek pecks at it, but it will tip over, spilling out its insides.",
+    "evolution": {
+      "prev": [
+        "10",
+        "Level 7"
+      ],
+      "next": [
+        [
+          "12",
+          "Level 10"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/011.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/011.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/011.png"
+    }
+  },
+  {
+    "id": 12,
+    "name": "Butterfree",
+    "type": [
+      "Bug",
+      "Flying"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 45,
+      "Defense": 50,
+      "Sp. Attack": 90,
+      "Sp. Defense": 80,
+      "Speed": 70
+    },
+    "description": "Nectar from pretty flowers is its favorite food. In fields of flowers, it has heated battles with Cutiefly for territory.",
+    "evolution": {
+      "prev": [
+        "11",
+        "Level 10"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/012.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/012.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/012.png"
+    }
+  },
+  {
+    "id": 13,
+    "name": "Weedle",
+    "type": [
+      "Bug",
+      "Poison"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 35,
+      "Defense": 30,
+      "Sp. Attack": 20,
+      "Sp. Defense": 20,
+      "Speed": 50
+    },
+    "description": "Weedle has an extremely acute sense of smell. It is capable of distinguishing its favorite kinds of leaves from those it dislikes just by sniffing with its big red proboscis (nose).",
+    "evolution": {
+      "next": [
+        [
+          "14",
+          "Level 7"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/013.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/013.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/013.png"
+    }
+  },
+  {
+    "id": 14,
+    "name": "Kakuna",
+    "type": [
+      "Bug",
+      "Poison"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 25,
+      "Defense": 50,
+      "Sp. Attack": 25,
+      "Sp. Defense": 25,
+      "Speed": 35
+    },
+    "description": "Kakuna remains virtually immobile as it clings to a tree. However, on the inside, it is extremely busy as it prepares for its coming evolution. This is evident from how hot the shell becomes to the touch.",
+    "evolution": {
+      "prev": [
+        "13",
+        "Level 7"
+      ],
+      "next": [
+        [
+          "15",
+          "Level 10"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/014.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/014.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/014.png"
+    }
+  },
+  {
+    "id": 15,
+    "name": "Beedrill",
+    "type": [
+      "Bug",
+      "Poison"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 90,
+      "Defense": 40,
+      "Sp. Attack": 45,
+      "Sp. Defense": 80,
+      "Speed": 75
+    },
+    "description": "Beedrill is extremely territorial. No one should ever approach its nest—this is for their own safety. If angered, they will attack in a furious swarm.",
+    "evolution": {
+      "prev": [
+        "14",
+        "Level 10"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/015.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/015.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/015.png"
+    }
+  },
+  {
+    "id": 16,
+    "name": "Pidgey",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 45,
+      "Defense": 40,
+      "Sp. Attack": 35,
+      "Sp. Defense": 35,
+      "Speed": 56
+    },
+    "description": "Pidgey has an extremely sharp sense of direction. It is capable of unerringly returning home to its nest, however far it may be removed from its familiar surroundings.",
+    "evolution": {
+      "next": [
+        [
+          "17",
+          "Level 18"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/016.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/016.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/016.png"
+    }
+  },
+  {
+    "id": 17,
+    "name": "Pidgeotto",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 63,
+      "Attack": 60,
+      "Defense": 55,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 71
+    },
+    "description": "Pidgeotto claims a large area as its own territory. This Pokémon flies around, patrolling its living space. If its territory is violated, it shows no mercy in thoroughly punishing the foe with its sharp claws.",
+    "evolution": {
+      "prev": [
+        "16",
+        "Level 18"
+      ],
+      "next": [
+        [
+          "18",
+          "Level 36"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/017.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/017.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/017.png"
+    }
+  },
+  {
+    "id": 18,
+    "name": "Pidgeot",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 83,
+      "Attack": 80,
+      "Defense": 75,
+      "Sp. Attack": 70,
+      "Sp. Defense": 70,
+      "Speed": 101
+    },
+    "description": "This Pokémon has a dazzling plumage of beautifully glossy feathers. Many Trainers are captivated by the striking beauty of the feathers on its head, compelling them to choose Pidgeot as their Pokémon.",
+    "evolution": {
+      "prev": [
+        "17",
+        "Level 36"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/018.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/018.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/018.png"
+    }
+  },
+  {
+    "id": 19,
+    "name": "Rattata",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 56,
+      "Defense": 35,
+      "Sp. Attack": 25,
+      "Sp. Defense": 35,
+      "Speed": 72
+    },
+    "description": "This Pokémon is common but hazardous. Its sharp incisors can easily cut right through hard wood.",
+    "evolution": {
+      "next": [
+        [
+          "20",
+          "Level 20"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/019.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/019.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/019.png"
+    }
+  },
+  {
+    "id": 20,
+    "name": "Raticate",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 81,
+      "Defense": 60,
+      "Sp. Attack": 50,
+      "Sp. Defense": 70,
+      "Speed": 97
+    },
+    "description": "Its whiskers are essential for maintaining its balance. No matter how friendly you are, it will get angry and bite you if you touch its whiskers.",
+    "evolution": {
+      "prev": [
+        "19",
+        "Level 20"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/020.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/020.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/020.png"
+    }
+  },
+  {
+    "id": 21,
+    "name": "Spearow",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 60,
+      "Defense": 30,
+      "Sp. Attack": 31,
+      "Sp. Defense": 31,
+      "Speed": 70
+    },
+    "description": "Due to its short wings, it can’t fly long distances. It wanders about restlessly and pecks at bug Pokémon.",
+    "evolution": {
+      "next": [
+        [
+          "22",
+          "Level 20"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/021.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/021.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/021.png"
+    }
+  },
+  {
+    "id": 22,
+    "name": "Fearow",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 90,
+      "Defense": 65,
+      "Sp. Attack": 61,
+      "Sp. Defense": 61,
+      "Speed": 100
+    },
+    "description": "In Alola, fish Pokémon are its prey. It can be seen circling above the ocean searching for food.",
+    "evolution": {
+      "prev": [
+        "21",
+        "Level 20"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/022.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/022.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/022.png"
+    }
+  },
+  {
+    "id": 23,
+    "name": "Ekans",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 60,
+      "Defense": 44,
+      "Sp. Attack": 40,
+      "Sp. Defense": 54,
+      "Speed": 55
+    },
+    "description": "The eggs of bird Pokémon are its favorite food. It swallows eggs whole, so sometimes an egg gets stuck, and Ekans faints.",
+    "evolution": {
+      "next": [
+        [
+          "24",
+          "Level 22"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/023.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/023.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/023.png"
+    }
+  },
+  {
+    "id": 24,
+    "name": "Arbok",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 95,
+      "Defense": 69,
+      "Sp. Attack": 65,
+      "Sp. Defense": 79,
+      "Speed": 80
+    },
+    "description": "After stunning its opponents with the pattern on its stomach, it quickly wraps them up in its body and waits for them to stop moving.",
+    "evolution": {
+      "prev": [
+        "23",
+        "Level 22"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/024.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/024.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/024.png"
+    }
+  },
+  {
+    "id": 25,
+    "name": "Pikachu",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 55,
+      "Defense": 40,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 90
+    },
+    "description": "While sleeping, it generates electricity in the sacs in its cheeks. If it’s not getting enough sleep, it will be able to use only weak electricity.",
+    "evolution": {
+      "prev": [
+        "172",
+        "high Friendship"
+      ],
+      "next": [
+        [
+          "26",
+          "use Thunder Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/025.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/025.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/025.png"
+    }
+  },
+  {
+    "id": 26,
+    "name": "Raichu",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 90,
+      "Defense": 55,
+      "Sp. Attack": 90,
+      "Sp. Defense": 80,
+      "Speed": 110
+    },
+    "description": "Because so many Trainers like the way Pikachu looks, you don’t see this Pokémon very often.",
+    "evolution": {
+      "prev": [
+        "25",
+        "use Thunder Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/026.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/026.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/026.png"
+    }
+  },
+  {
+    "id": 27,
+    "name": "Sandshrew",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 75,
+      "Defense": 85,
+      "Sp. Attack": 20,
+      "Sp. Defense": 30,
+      "Speed": 40
+    },
+    "description": "When its skin gets wrinkled from moisture, it heads for a volcano. It lies flat on a spot with a lot of geothermal heat and dries itself out.",
+    "evolution": {
+      "next": [
+        [
+          "28",
+          "Level 22"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/027.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/027.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/027.png"
+    }
+  },
+  {
+    "id": 28,
+    "name": "Sandslash",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 75,
+      "Attack": 100,
+      "Defense": 110,
+      "Sp. Attack": 45,
+      "Sp. Defense": 55,
+      "Speed": 65
+    },
+    "description": "Thanks to its thick claws, it’s good at climbing trees. There are plenty of Sandslash that park themselves in trees and go right to sleep.",
+    "evolution": {
+      "prev": [
+        "27",
+        "Level 22"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/028.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/028.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/028.png"
+    }
+  },
+  {
+    "id": 29,
+    "name": "Nidoran♀",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 47,
+      "Defense": 52,
+      "Sp. Attack": 40,
+      "Sp. Defense": 40,
+      "Speed": 41
+    },
+    "description": "Nidoran♀ has barbs that secrete a powerful poison. They are thought to have developed as protection for this small-bodied Pokémon. When enraged, it releases a horrible toxin from its horn.",
+    "evolution": {
+      "next": [
+        [
+          "30",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/029.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/029.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/029.png"
+    }
+  },
+  {
+    "id": 30,
+    "name": "Nidorina",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 62,
+      "Defense": 67,
+      "Sp. Attack": 55,
+      "Sp. Defense": 55,
+      "Speed": 56
+    },
+    "description": "When Nidorina are with their friends or family, they keep their barbs tucked away to prevent hurting each other. This Pokémon appears to become nervous if separated from the others.",
+    "evolution": {
+      "prev": [
+        "29",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "31",
+          "use Moon Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/030.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/030.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/030.png"
+    }
+  },
+  {
+    "id": 31,
+    "name": "Nidoqueen",
+    "type": [
+      "Poison",
+      "Ground"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 92,
+      "Defense": 87,
+      "Sp. Attack": 75,
+      "Sp. Defense": 85,
+      "Speed": 76
+    },
+    "description": "Nidoqueen’s body is encased in extremely hard scales. It is adept at sending foes flying with harsh tackles. This Pokémon is at its strongest when it is defending its young.",
+    "evolution": {
+      "prev": [
+        "30",
+        "use Moon Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/031.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/031.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/031.png"
+    }
+  },
+  {
+    "id": 32,
+    "name": "Nidoran♂",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 46,
+      "Attack": 57,
+      "Defense": 40,
+      "Sp. Attack": 40,
+      "Sp. Defense": 40,
+      "Speed": 50
+    },
+    "description": "Nidoran♂ has developed muscles for moving its ears. Thanks to them, the ears can be freely moved in any direction. Even the slightest sound does not escape this Pokémon’s notice.",
+    "evolution": {
+      "next": [
+        [
+          "33",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/032.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/032.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/032.png"
+    }
+  },
+  {
+    "id": 33,
+    "name": "Nidorino",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 61,
+      "Attack": 72,
+      "Defense": 57,
+      "Sp. Attack": 55,
+      "Sp. Defense": 55,
+      "Speed": 65
+    },
+    "description": "Nidorino has a horn that is harder than a diamond. If it senses a hostile presence, all the barbs on its back bristle up at once, and it challenges the foe with all its might.",
+    "evolution": {
+      "prev": [
+        "32",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "34",
+          "use Moon Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/033.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/033.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/033.png"
+    }
+  },
+  {
+    "id": 34,
+    "name": "Nidoking",
+    "type": [
+      "Poison",
+      "Ground"
+    ],
+    "base": {
+      "HP": 81,
+      "Attack": 102,
+      "Defense": 77,
+      "Sp. Attack": 85,
+      "Sp. Defense": 75,
+      "Speed": 85
+    },
+    "description": "Nidoking’s thick tail packs enormously destructive power. With one swing, it can topple a metal transmission tower. Once this Pokémon goes on a rampage, there is no stopping it.",
+    "evolution": {
+      "prev": [
+        "33",
+        "use Moon Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/034.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/034.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/034.png"
+    }
+  },
+  {
+    "id": 35,
+    "name": "Clefairy",
+    "type": [
+      "Fairy"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 45,
+      "Defense": 48,
+      "Sp. Attack": 60,
+      "Sp. Defense": 65,
+      "Speed": 35
+    },
+    "description": "Bathed in moonlight, its wings glow faintly. Without even flapping, Clefairy rises into the air, where it dances around.",
+    "evolution": {
+      "prev": [
+        "173",
+        "high Friendship"
+      ],
+      "next": [
+        [
+          "36",
+          "use Moon Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/035.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/035.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/035.png"
+    }
+  },
+  {
+    "id": 36,
+    "name": "Clefable",
+    "type": [
+      "Fairy"
+    ],
+    "base": {
+      "HP": 95,
+      "Attack": 70,
+      "Defense": 73,
+      "Sp. Attack": 95,
+      "Sp. Defense": 90,
+      "Speed": 60
+    },
+    "description": "Some scientists believe that it gazes intently at the sky on nights with a full moon because it’s homesick.",
+    "evolution": {
+      "prev": [
+        "35",
+        "use Moon Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/036.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/036.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/036.png"
+    }
+  },
+  {
+    "id": 37,
+    "name": "Vulpix",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 38,
+      "Attack": 41,
+      "Defense": 40,
+      "Sp. Attack": 50,
+      "Sp. Defense": 65,
+      "Speed": 65
+    },
+    "description": "It manipulates balls of fire to catch its prey. If you raise one from when it’s young, it will grow close to you like a puppy Pokémon.",
+    "evolution": {
+      "next": [
+        [
+          "38",
+          "use Fire Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/037.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/037.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/037.png"
+    }
+  },
+  {
+    "id": 38,
+    "name": "Ninetales",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 73,
+      "Attack": 76,
+      "Defense": 75,
+      "Sp. Attack": 81,
+      "Sp. Defense": 100,
+      "Speed": 100
+    },
+    "description": "The flickering flames it spews from its mouth leave its opponents hypnotized. Then, this extremely intelligent Pokémon attacks.",
+    "evolution": {
+      "prev": [
+        "37",
+        "use Fire Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/038.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/038.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/038.png"
+    }
+  },
+  {
+    "id": 39,
+    "name": "Jigglypuff",
+    "type": [
+      "Normal",
+      "Fairy"
+    ],
+    "base": {
+      "HP": 115,
+      "Attack": 45,
+      "Defense": 20,
+      "Sp. Attack": 45,
+      "Sp. Defense": 25,
+      "Speed": 20
+    },
+    "description": "The songs they sing are totally different depending on the region they live in. Some even sound like they’re shouting!",
+    "evolution": {
+      "prev": [
+        "174",
+        "high Friendship"
+      ],
+      "next": [
+        [
+          "40",
+          "use Moon Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/039.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/039.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/039.png"
+    }
+  },
+  {
+    "id": 40,
+    "name": "Wigglytuff",
+    "type": [
+      "Normal",
+      "Fairy"
+    ],
+    "base": {
+      "HP": 140,
+      "Attack": 70,
+      "Defense": 45,
+      "Sp. Attack": 85,
+      "Sp. Defense": 50,
+      "Speed": 45
+    },
+    "description": "When it gets angry, it inhales with all its might, and its body gradually inflates. Sometimes they can grow 20 times larger!",
+    "evolution": {
+      "prev": [
+        "39",
+        "use Moon Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/040.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/040.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/040.png"
+    }
+  },
+  {
+    "id": 41,
+    "name": "Zubat",
+    "type": [
+      "Poison",
+      "Flying"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 45,
+      "Defense": 35,
+      "Sp. Attack": 30,
+      "Sp. Defense": 40,
+      "Speed": 55
+    },
+    "description": "Their skin is so thin that they’ll be burned if sunlight hits them. When it gets cold out, they gather together to warm one another’s bodies.",
+    "evolution": {
+      "next": [
+        [
+          "42",
+          "Level 22"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/041.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/041.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/041.png"
+    }
+  },
+  {
+    "id": 42,
+    "name": "Golbat",
+    "type": [
+      "Poison",
+      "Flying"
+    ],
+    "base": {
+      "HP": 75,
+      "Attack": 80,
+      "Defense": 70,
+      "Sp. Attack": 65,
+      "Sp. Defense": 75,
+      "Speed": 90
+    },
+    "description": "They can suck down over 10 ounces of blood in one go. They have been known to drink so much blood that they can no longer fly.",
+    "evolution": {
+      "prev": [
+        "41",
+        "Level 22"
+      ],
+      "next": [
+        [
+          "169",
+          "high Friendship"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/042.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/042.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/042.png"
+    }
+  },
+  {
+    "id": 43,
+    "name": "Oddish",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 50,
+      "Defense": 55,
+      "Sp. Attack": 75,
+      "Sp. Defense": 65,
+      "Speed": 30
+    },
+    "description": "Oddish searches for fertile, nutrient-rich soil, then plants itself. During the daytime, while it is planted, this Pokémon’s feet are thought to change shape and become similar to the roots of trees.",
+    "evolution": {
+      "next": [
+        [
+          "44",
+          "Level 21"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/043.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/043.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/043.png"
+    }
+  },
+  {
+    "id": 44,
+    "name": "Gloom",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 65,
+      "Defense": 70,
+      "Sp. Attack": 85,
+      "Sp. Defense": 75,
+      "Speed": 40
+    },
+    "description": "From its mouth Gloom drips honey that smells absolutely horrible. Apparently, it loves the horrid stench. It sniffs the noxious fumes and then drools even more of its honey.",
+    "evolution": {
+      "prev": [
+        "43",
+        "Level 21"
+      ],
+      "next": [
+        [
+          "45",
+          "use Leaf Stone"
+        ],
+        [
+          "182",
+          "use Sun Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/044.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/044.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/044.png"
+    }
+  },
+  {
+    "id": 45,
+    "name": "Vileplume",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 75,
+      "Attack": 80,
+      "Defense": 85,
+      "Sp. Attack": 110,
+      "Sp. Defense": 90,
+      "Speed": 50
+    },
+    "description": "Vileplume has the world’s largest petals. They are used to attract prey that are then doused with toxic spores. Once the prey are immobilized, this Pokémon catches and devours them.",
+    "evolution": {
+      "prev": [
+        "44",
+        "use Leaf Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/045.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/045.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/045.png"
+    }
+  },
+  {
+    "id": 46,
+    "name": "Paras",
+    "type": [
+      "Bug",
+      "Grass"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 70,
+      "Defense": 55,
+      "Sp. Attack": 45,
+      "Sp. Defense": 55,
+      "Speed": 25
+    },
+    "description": "The mushrooms, known as tochukaso, are controlling the bug. Even if the bug bugs the mushrooms, they tell it to bug off.",
+    "evolution": {
+      "next": [
+        [
+          "47",
+          "Level 24"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/046.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/046.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/046.png"
+    }
+  },
+  {
+    "id": 47,
+    "name": "Parasect",
+    "type": [
+      "Bug",
+      "Grass"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 95,
+      "Defense": 80,
+      "Sp. Attack": 60,
+      "Sp. Defense": 80,
+      "Speed": 30
+    },
+    "description": "Its poisonous spores are also used in traditional medicine. Apparently, spores produced in Alola are not of very good quality.",
+    "evolution": {
+      "prev": [
+        "46",
+        "Level 24"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/047.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/047.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/047.png"
+    }
+  },
+  {
+    "id": 48,
+    "name": "Venonat",
+    "type": [
+      "Bug",
+      "Poison"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 55,
+      "Defense": 50,
+      "Sp. Attack": 40,
+      "Sp. Defense": 55,
+      "Speed": 45
+    },
+    "description": "Venonat is said to have evolved with a coat of thin, stiff hair that covers its entire body for protection. It possesses large eyes that never fail to spot even minuscule prey.",
+    "evolution": {
+      "next": [
+        [
+          "49",
+          "Level 31"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/048.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/048.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/048.png"
+    }
+  },
+  {
+    "id": 49,
+    "name": "Venomoth",
+    "type": [
+      "Bug",
+      "Poison"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 65,
+      "Defense": 60,
+      "Sp. Attack": 90,
+      "Sp. Defense": 75,
+      "Speed": 90
+    },
+    "description": "Venomoth is nocturnal—it is a Pokémon that only becomes active at night. Its favorite prey are small insects that gather around streetlights, attracted by the light in the darkness.",
+    "evolution": {
+      "prev": [
+        "48",
+        "Level 31"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/049.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/049.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/049.png"
+    }
+  },
+  {
+    "id": 50,
+    "name": "Diglett",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 10,
+      "Attack": 55,
+      "Defense": 25,
+      "Sp. Attack": 35,
+      "Sp. Defense": 45,
+      "Speed": 95
+    },
+    "description": "Around their crops, farmers plant the kind of tree that Diglett like to eat as a way of getting Diglett to plow the fields for them.",
+    "evolution": {
+      "next": [
+        [
+          "51",
+          "Level 26"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/050.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/050.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/050.png"
+    }
+  },
+  {
+    "id": 51,
+    "name": "Dugtrio",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 100,
+      "Defense": 50,
+      "Sp. Attack": 50,
+      "Sp. Defense": 70,
+      "Speed": 120
+    },
+    "description": "Dugtrio’s heads are sleek and smooth and incredibly hard. It can dig through any soil with its headbutts.",
+    "evolution": {
+      "prev": [
+        "50",
+        "Level 26"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/051.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/051.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/051.png"
+    }
+  },
+  {
+    "id": 52,
+    "name": "Meowth",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 45,
+      "Defense": 35,
+      "Sp. Attack": 40,
+      "Sp. Defense": 40,
+      "Speed": 90
+    },
+    "description": "It loves coins, so if you give it one, you can make friends with Meowth easily. But it’s fickle, so you can’t count on that friendship lasting.",
+    "evolution": {
+      "next": [
+        [
+          "53",
+          "Level 28"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/052.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/052.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/052.png"
+    }
+  },
+  {
+    "id": 53,
+    "name": "Persian",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 70,
+      "Defense": 60,
+      "Sp. Attack": 65,
+      "Sp. Defense": 65,
+      "Speed": 115
+    },
+    "description": "This Pokémon is popular with rich people. It’s also targeted by hunters who are after the jewel in its forehead.",
+    "evolution": {
+      "prev": [
+        "52",
+        "Level 28"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/053.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/053.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/053.png"
+    }
+  },
+  {
+    "id": 54,
+    "name": "Psyduck",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 52,
+      "Defense": 48,
+      "Sp. Attack": 65,
+      "Sp. Defense": 50,
+      "Speed": 55
+    },
+    "description": "It has been found that its brain cells are 10 times more active when Psyduck is experiencing a headache.",
+    "evolution": {
+      "next": [
+        [
+          "55",
+          "Level 33"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/054.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/054.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/054.png"
+    }
+  },
+  {
+    "id": 55,
+    "name": "Golduck",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 82,
+      "Defense": 78,
+      "Sp. Attack": 95,
+      "Sp. Defense": 80,
+      "Speed": 85
+    },
+    "description": "A professional swimmer, it can continue swimming for two days straight by waving its long tail skillfully.",
+    "evolution": {
+      "prev": [
+        "54",
+        "Level 33"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/055.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/055.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/055.png"
+    }
+  },
+  {
+    "id": 56,
+    "name": "Mankey",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 80,
+      "Defense": 35,
+      "Sp. Attack": 35,
+      "Sp. Defense": 45,
+      "Speed": 70
+    },
+    "description": "If one gets angry, all the others around it will get angry, so silence is a rare visitor in a troop of Mankey.",
+    "evolution": {
+      "next": [
+        [
+          "57",
+          "Level 28"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/056.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/056.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/056.png"
+    }
+  },
+  {
+    "id": 57,
+    "name": "Primeape",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 105,
+      "Defense": 60,
+      "Sp. Attack": 60,
+      "Sp. Defense": 70,
+      "Speed": 95
+    },
+    "description": "The blood vessels in its brain are sturdier than those of other Pokémon, so it can stay healthy despite its constant raging.",
+    "evolution": {
+      "prev": [
+        "56",
+        "Level 28"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/057.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/057.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/057.png"
+    }
+  },
+  {
+    "id": 58,
+    "name": "Growlithe",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 70,
+      "Defense": 45,
+      "Sp. Attack": 70,
+      "Sp. Defense": 50,
+      "Speed": 60
+    },
+    "description": "It has lived alongside humans since ages ago. Its bones have been found in excavations of ruins from the Stone Age.",
+    "evolution": {
+      "next": [
+        [
+          "59",
+          "use Fire Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/058.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/058.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/058.png"
+    }
+  },
+  {
+    "id": 59,
+    "name": "Arcanine",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 110,
+      "Defense": 80,
+      "Sp. Attack": 100,
+      "Sp. Defense": 80,
+      "Speed": 95
+    },
+    "description": "There are so many old tales about them that they’re called legendary Pokémon, but there are way more of them around than you’d expect.",
+    "evolution": {
+      "prev": [
+        "58",
+        "use Fire Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/059.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/059.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/059.png"
+    }
+  },
+  {
+    "id": 60,
+    "name": "Poliwag",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 50,
+      "Defense": 40,
+      "Sp. Attack": 40,
+      "Sp. Defense": 40,
+      "Speed": 90
+    },
+    "description": "The direction of the swirl on their stomachs differs depending on where they live. Poliwag aficionados can tell them apart at a glance.",
+    "evolution": {
+      "next": [
+        [
+          "61",
+          "Level 25"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/060.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/060.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/060.png"
+    }
+  },
+  {
+    "id": 61,
+    "name": "Poliwhirl",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 65,
+      "Defense": 65,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 90
+    },
+    "description": "Its health suffers when its skin dries out, so be sure to moisturize it diligently.",
+    "evolution": {
+      "prev": [
+        "60",
+        "Level 25"
+      ],
+      "next": [
+        [
+          "62",
+          "use Water Stone"
+        ],
+        [
+          "186",
+          "trade holding Kings Rock"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/061.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/061.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/061.png"
+    }
+  },
+  {
+    "id": 62,
+    "name": "Poliwrath",
+    "type": [
+      "Water",
+      "Fighting"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 95,
+      "Defense": 95,
+      "Sp. Attack": 70,
+      "Sp. Defense": 90,
+      "Speed": 70
+    },
+    "description": "The muscles it has developed through swimming are thick and powerful. When it lands a square punch, it can turn huge boulders to dust.",
+    "evolution": {
+      "prev": [
+        "61",
+        "use Water Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/062.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/062.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/062.png"
+    }
+  },
+  {
+    "id": 63,
+    "name": "Abra",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 25,
+      "Attack": 20,
+      "Defense": 15,
+      "Sp. Attack": 105,
+      "Sp. Defense": 55,
+      "Speed": 90
+    },
+    "description": "It can read others’ minds and will teleport away when danger approaches. You must clear your mind if you want to catch it.",
+    "evolution": {
+      "next": [
+        [
+          "64",
+          "Level 16"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/063.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/063.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/063.png"
+    }
+  },
+  {
+    "id": 64,
+    "name": "Kadabra",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 35,
+      "Defense": 30,
+      "Sp. Attack": 120,
+      "Sp. Defense": 70,
+      "Speed": 105
+    },
+    "description": "It possesses strong mental capabilities, but its psychic powers are halved when it’s not holding a silver spoon.",
+    "evolution": {
+      "prev": [
+        "63",
+        "Level 16"
+      ],
+      "next": [
+        [
+          "65",
+          "Trade"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/064.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/064.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/064.png"
+    }
+  },
+  {
+    "id": 65,
+    "name": "Alakazam",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 50,
+      "Defense": 45,
+      "Sp. Attack": 135,
+      "Sp. Defense": 95,
+      "Speed": 120
+    },
+    "description": "If it trusts someone deeply, it will let them have one of its spoons. Anything you eat with that spoon is apparently delicious.",
+    "evolution": {
+      "prev": [
+        "64",
+        "Trade"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/065.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/065.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/065.png"
+    }
+  },
+  {
+    "id": 66,
+    "name": "Machop",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 80,
+      "Defense": 50,
+      "Sp. Attack": 35,
+      "Sp. Defense": 35,
+      "Speed": 35
+    },
+    "description": "It likes food that’s highly nutritious because its instincts drive it to build muscle efficiently.",
+    "evolution": {
+      "next": [
+        [
+          "67",
+          "Level 28"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/066.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/066.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/066.png"
+    }
+  },
+  {
+    "id": 67,
+    "name": "Machoke",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 100,
+      "Defense": 70,
+      "Sp. Attack": 50,
+      "Sp. Defense": 60,
+      "Speed": 45
+    },
+    "description": "A popular motif for sculptures, its incredibly well-developed muscles have captured the imagination of many an artist.",
+    "evolution": {
+      "prev": [
+        "66",
+        "Level 28"
+      ],
+      "next": [
+        [
+          "68",
+          "Trade"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/067.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/067.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/067.png"
+    }
+  },
+  {
+    "id": 68,
+    "name": "Machamp",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 130,
+      "Defense": 80,
+      "Sp. Attack": 65,
+      "Sp. Defense": 85,
+      "Speed": 55
+    },
+    "description": "With four arms, it can attack and defend simultaneously. It’s said to have mastered every martial art in the world.",
+    "evolution": {
+      "prev": [
+        "67",
+        "Trade"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/068.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/068.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/068.png"
+    }
+  },
+  {
+    "id": 69,
+    "name": "Bellsprout",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 75,
+      "Defense": 35,
+      "Sp. Attack": 70,
+      "Sp. Defense": 30,
+      "Speed": 40
+    },
+    "description": "Bellsprout’s thin and flexible body lets it bend and sway to avoid any attack, however strong it may be. From its mouth, this Pokémon spits a corrosive fluid that melts even iron.",
+    "evolution": {
+      "next": [
+        [
+          "70",
+          "Level 21"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/069.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/069.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/069.png"
+    }
+  },
+  {
+    "id": 70,
+    "name": "Weepinbell",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 90,
+      "Defense": 50,
+      "Sp. Attack": 85,
+      "Sp. Defense": 45,
+      "Speed": 55
+    },
+    "description": "Weepinbell has a large hook on its rear end. At night, the Pokémon hooks on to a tree branch and goes to sleep. If it moves around in its sleep, it may wake up to find itself on the ground.",
+    "evolution": {
+      "prev": [
+        "69",
+        "Level 21"
+      ],
+      "next": [
+        [
+          "71",
+          "use Leaf Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/070.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/070.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/070.png"
+    }
+  },
+  {
+    "id": 71,
+    "name": "Victreebel",
+    "type": [
+      "Grass",
+      "Poison"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 105,
+      "Defense": 65,
+      "Sp. Attack": 100,
+      "Sp. Defense": 70,
+      "Speed": 70
+    },
+    "description": "Victreebel has a long vine that extends from its head. This vine is waved and flicked about as if it were an animal to attract prey. When an unsuspecting prey draws near, this Pokémon swallows it whole.",
+    "evolution": {
+      "prev": [
+        "70",
+        "use Leaf Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/071.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/071.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/071.png"
+    }
+  },
+  {
+    "id": 72,
+    "name": "Tentacool",
+    "type": [
+      "Water",
+      "Poison"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 40,
+      "Defense": 35,
+      "Sp. Attack": 50,
+      "Sp. Defense": 100,
+      "Speed": 70
+    },
+    "description": "Its body is 99% water. The remaining 1% contains the organ that makes its poison.",
+    "evolution": {
+      "next": [
+        [
+          "73",
+          "Level 30"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/072.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/072.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/072.png"
+    }
+  },
+  {
+    "id": 73,
+    "name": "Tentacruel",
+    "type": [
+      "Water",
+      "Poison"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 70,
+      "Defense": 65,
+      "Sp. Attack": 80,
+      "Sp. Defense": 120,
+      "Speed": 100
+    },
+    "description": "It communicates with others of its kind by lighting up the red orbs on its head. When the orbs are blinking, it’s a warning sign.",
+    "evolution": {
+      "prev": [
+        "72",
+        "Level 30"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/073.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/073.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/073.png"
+    }
+  },
+  {
+    "id": 74,
+    "name": "Geodude",
+    "type": [
+      "Rock",
+      "Ground"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 80,
+      "Defense": 100,
+      "Sp. Attack": 30,
+      "Sp. Defense": 30,
+      "Speed": 20
+    },
+    "description": "It uses both hands to climb precipitous cliffs. People who see it in action have been known to take up bouldering.",
+    "evolution": {
+      "next": [
+        [
+          "75",
+          "Level 25"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/074.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/074.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/074.png"
+    }
+  },
+  {
+    "id": 75,
+    "name": "Graveler",
+    "type": [
+      "Rock",
+      "Ground"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 95,
+      "Defense": 115,
+      "Sp. Attack": 45,
+      "Sp. Defense": 45,
+      "Speed": 35
+    },
+    "description": "It travels by rolling down cliffs. If it falls into a river, it will explode with its last gasp.",
+    "evolution": {
+      "prev": [
+        "74",
+        "Level 25"
+      ],
+      "next": [
+        [
+          "76",
+          "Trade"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/075.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/075.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/075.png"
+    }
+  },
+  {
+    "id": 76,
+    "name": "Golem",
+    "type": [
+      "Rock",
+      "Ground"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 120,
+      "Defense": 130,
+      "Sp. Attack": 55,
+      "Sp. Defense": 65,
+      "Speed": 45
+    },
+    "description": "It detonates its own body. The power from that explosion can propel it up steep mountain paths with amazing speed.",
+    "evolution": {
+      "prev": [
+        "75",
+        "Trade"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/076.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/076.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/076.png"
+    }
+  },
+  {
+    "id": 77,
+    "name": "Ponyta",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 85,
+      "Defense": 55,
+      "Sp. Attack": 65,
+      "Sp. Defense": 65,
+      "Speed": 90
+    },
+    "description": "Ponyta is very weak at birth. It can barely stand up. This Pokémon becomes stronger by stumbling and falling to keep up with its parent.",
+    "evolution": {
+      "next": [
+        [
+          "78",
+          "Level 40"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/077.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/077.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/077.png"
+    }
+  },
+  {
+    "id": 78,
+    "name": "Rapidash",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 100,
+      "Defense": 70,
+      "Sp. Attack": 80,
+      "Sp. Defense": 80,
+      "Speed": 105
+    },
+    "description": "Rapidash usually can be seen casually cantering in the fields and plains. However, when this Pokémon turns serious, its fiery manes flare and blaze as it gallops its way up to 150 mph.",
+    "evolution": {
+      "prev": [
+        "77",
+        "Level 40"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/078.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/078.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/078.png"
+    }
+  },
+  {
+    "id": 79,
+    "name": "Slowpoke",
+    "type": [
+      "Water",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 65,
+      "Defense": 65,
+      "Sp. Attack": 40,
+      "Sp. Defense": 40,
+      "Speed": 15
+    },
+    "description": "Although their tails, which fall off naturally, can easily be found lying around, they’re a precious ingredient for cooking.",
+    "evolution": {
+      "next": [
+        [
+          "80",
+          "Level 37"
+        ],
+        [
+          "199",
+          "trade holding Kings Rock"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/079.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/079.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/079.png"
+    }
+  },
+  {
+    "id": 80,
+    "name": "Slowbro",
+    "type": [
+      "Water",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 95,
+      "Attack": 75,
+      "Defense": 110,
+      "Sp. Attack": 100,
+      "Sp. Defense": 80,
+      "Speed": 30
+    },
+    "description": "Shellder, in its greed to suck out more and more sweetness from Slowbro’s tail, has metamorphosed into a spiral-shaped shell.",
+    "evolution": {
+      "prev": [
+        "79",
+        "Level 37"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/080.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/080.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/080.png"
+    }
+  },
+  {
+    "id": 81,
+    "name": "Magnemite",
+    "type": [
+      "Electric",
+      "Steel"
+    ],
+    "base": {
+      "HP": 25,
+      "Attack": 35,
+      "Defense": 70,
+      "Sp. Attack": 95,
+      "Sp. Defense": 55,
+      "Speed": 45
+    },
+    "description": "Perhaps because electrical lines are often buried these days, the number of Magnemite attacks on power plants has increased.",
+    "evolution": {
+      "next": [
+        [
+          "82",
+          "Level 30"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/081.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/081.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/081.png"
+    }
+  },
+  {
+    "id": 82,
+    "name": "Magneton",
+    "type": [
+      "Electric",
+      "Steel"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 60,
+      "Defense": 95,
+      "Sp. Attack": 120,
+      "Sp. Defense": 70,
+      "Speed": 70
+    },
+    "description": "When rain clouds form, many Magneton gather in high places to wait for lightning to strike.",
+    "evolution": {
+      "prev": [
+        "81",
+        "Level 30"
+      ],
+      "next": [
+        [
+          "462",
+          "level up in a Magnetic Field area"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/082.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/082.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/082.png"
+    }
+  },
+  {
+    "id": 83,
+    "name": "Farfetch'd",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 52,
+      "Attack": 90,
+      "Defense": 55,
+      "Sp. Attack": 58,
+      "Sp. Defense": 62,
+      "Speed": 60
+    },
+    "description": "Farfetch’d is always seen with a stalk from a plant of some sort. Apparently, there are good stalks and bad stalks. This Pokémon has been known to fight with others over stalks.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/083.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/083.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/083.png"
+    }
+  },
+  {
+    "id": 84,
+    "name": "Doduo",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 85,
+      "Defense": 45,
+      "Sp. Attack": 35,
+      "Sp. Defense": 35,
+      "Speed": 75
+    },
+    "description": "Doduo’s two heads contain completely identical brains. A scientific study reported that on rare occasions, there will be examples of this Pokémon possessing different sets of brains.",
+    "evolution": {
+      "next": [
+        [
+          "85",
+          "Level 31"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/084.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/084.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/084.png"
+    }
+  },
+  {
+    "id": 85,
+    "name": "Dodrio",
+    "type": [
+      "Normal",
+      "Flying"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 110,
+      "Defense": 70,
+      "Sp. Attack": 60,
+      "Sp. Defense": 60,
+      "Speed": 110
+    },
+    "description": "Apparently, the heads aren’t the only parts of the body that Dodrio has three of. It has three sets of hearts and lungs as well, so it is capable of running long distances without rest.",
+    "evolution": {
+      "prev": [
+        "84",
+        "Level 31"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/085.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/085.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/085.png"
+    }
+  },
+  {
+    "id": 86,
+    "name": "Seel",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 45,
+      "Defense": 55,
+      "Sp. Attack": 45,
+      "Sp. Defense": 70,
+      "Speed": 45
+    },
+    "description": "Thanks to its thick fat, cold seas don’t bother it at all, but it gets tired pretty easily in warm waters.",
+    "evolution": {
+      "next": [
+        [
+          "87",
+          "Level 34"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/086.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/086.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/086.png"
+    }
+  },
+  {
+    "id": 87,
+    "name": "Dewgong",
+    "type": [
+      "Water",
+      "Ice"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 70,
+      "Defense": 80,
+      "Sp. Attack": 70,
+      "Sp. Defense": 95,
+      "Speed": 70
+    },
+    "description": "It sunbathes on the beach after meals. The rise in its body temperature helps its digestion.",
+    "evolution": {
+      "prev": [
+        "86",
+        "Level 34"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/087.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/087.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/087.png"
+    }
+  },
+  {
+    "id": 88,
+    "name": "Grimer",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 80,
+      "Defense": 50,
+      "Sp. Attack": 40,
+      "Sp. Defense": 50,
+      "Speed": 25
+    },
+    "description": "The wastewater coming from factories is clean these days, so Grimer have nothing to eat. They’re said to be on the verge of extinction.",
+    "evolution": {
+      "next": [
+        [
+          "89",
+          "Level 38"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/088.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/088.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/088.png"
+    }
+  },
+  {
+    "id": 89,
+    "name": "Muk",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 105,
+      "Attack": 105,
+      "Defense": 75,
+      "Sp. Attack": 65,
+      "Sp. Defense": 100,
+      "Speed": 50
+    },
+    "description": "Because they scatter germs everywhere, they’ve long been targeted for extermination, leading to a steep decline in their population.",
+    "evolution": {
+      "prev": [
+        "88",
+        "Level 38"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/089.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/089.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/089.png"
+    }
+  },
+  {
+    "id": 90,
+    "name": "Shellder",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 65,
+      "Defense": 100,
+      "Sp. Attack": 45,
+      "Sp. Defense": 25,
+      "Speed": 40
+    },
+    "description": "Even when its shell is closed, its tongue still hangs out. If you give its tongue a good yank, the shock will cause Shellder to open its shell.",
+    "evolution": {
+      "next": [
+        [
+          "91",
+          "use Water Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/090.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/090.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/090.png"
+    }
+  },
+  {
+    "id": 91,
+    "name": "Cloyster",
+    "type": [
+      "Water",
+      "Ice"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 95,
+      "Defense": 180,
+      "Sp. Attack": 85,
+      "Sp. Defense": 45,
+      "Speed": 70
+    },
+    "description": "Slowpoke tails are its favorite food. It has even been known to come up on land to look for Slowpoke from time to time.",
+    "evolution": {
+      "prev": [
+        "90",
+        "use Water Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/091.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/091.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/091.png"
+    }
+  },
+  {
+    "id": 92,
+    "name": "Gastly",
+    "type": [
+      "Ghost",
+      "Poison"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 35,
+      "Defense": 30,
+      "Sp. Attack": 100,
+      "Sp. Defense": 35,
+      "Speed": 80
+    },
+    "description": "Poisonous gas comprises 95% of its body. It’s said that the remaining 5% is made up of the souls of those who died from the gas.",
+    "evolution": {
+      "next": [
+        [
+          "93",
+          "Level 25"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/092.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/092.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/092.png"
+    }
+  },
+  {
+    "id": 93,
+    "name": "Haunter",
+    "type": [
+      "Ghost",
+      "Poison"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 50,
+      "Defense": 45,
+      "Sp. Attack": 115,
+      "Sp. Defense": 55,
+      "Speed": 95
+    },
+    "description": "It’s dangerous to go outside alone on nights when you’re feeling sad. Haunter will catch you, and you won’t be able to go back home.",
+    "evolution": {
+      "prev": [
+        "92",
+        "Level 25"
+      ],
+      "next": [
+        [
+          "94",
+          "Trade"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/093.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/093.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/093.png"
+    }
+  },
+  {
+    "id": 94,
+    "name": "Gengar",
+    "type": [
+      "Ghost",
+      "Poison"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 65,
+      "Defense": 60,
+      "Sp. Attack": 130,
+      "Sp. Defense": 75,
+      "Speed": 110
+    },
+    "description": "Even your home isn’t safe. Gengar will lurk in whatever dark corner of a room it can find and wait for its chance to catch its prey.",
+    "evolution": {
+      "prev": [
+        "93",
+        "Trade"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/094.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/094.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/094.png"
+    }
+  },
+  {
+    "id": 95,
+    "name": "Onix",
+    "type": [
+      "Rock",
+      "Ground"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 45,
+      "Defense": 160,
+      "Sp. Attack": 30,
+      "Sp. Defense": 45,
+      "Speed": 70
+    },
+    "description": "Onix has a magnet in its brain. It acts as a compass so that this Pokémon does not lose direction while it is tunneling. As it grows older, its body becomes increasingly rounder and smoother.",
+    "evolution": {
+      "next": [
+        [
+          "208",
+          "trade holding Metal Coat"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/095.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/095.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/095.png"
+    }
+  },
+  {
+    "id": 96,
+    "name": "Drowzee",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 48,
+      "Defense": 45,
+      "Sp. Attack": 43,
+      "Sp. Defense": 90,
+      "Speed": 42
+    },
+    "description": "It puts its prey to sleep and devours their dreams. It seems that bad dreams taste sour, so Drowzee doesn’t particularly like eating them.",
+    "evolution": {
+      "next": [
+        [
+          "97",
+          "Level 26"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/096.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/096.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/096.png"
+    }
+  },
+  {
+    "id": 97,
+    "name": "Hypno",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 85,
+      "Attack": 73,
+      "Defense": 70,
+      "Sp. Attack": 73,
+      "Sp. Defense": 115,
+      "Speed": 67
+    },
+    "description": "There are some Hypno that assist doctors with patients who can’t sleep at night in hospitals.",
+    "evolution": {
+      "prev": [
+        "96",
+        "Level 26"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/097.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/097.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/097.png"
+    }
+  },
+  {
+    "id": 98,
+    "name": "Krabby",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 105,
+      "Defense": 90,
+      "Sp. Attack": 25,
+      "Sp. Defense": 25,
+      "Speed": 50
+    },
+    "description": "Krabby live on beaches, burrowed inside holes dug into the sand. On sandy beaches with little in the way of food, these Pokémon can be seen squabbling with each other over territory.",
+    "evolution": {
+      "next": [
+        [
+          "99",
+          "Level 28"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/098.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/098.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/098.png"
+    }
+  },
+  {
+    "id": 99,
+    "name": "Kingler",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 130,
+      "Defense": 115,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 75
+    },
+    "description": "Kingler has an enormous, oversized claw. It waves this huge claw in the air to communicate with others. However, because the claw is so heavy, the Pokémon quickly tires.",
+    "evolution": {
+      "prev": [
+        "98",
+        "Level 28"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/099.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/099.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/099.png"
+    }
+  },
+  {
+    "id": 100,
+    "name": "Voltorb",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 30,
+      "Defense": 50,
+      "Sp. Attack": 55,
+      "Sp. Defense": 55,
+      "Speed": 100
+    },
+    "description": "Voltorb is extremely sensitive—it explodes at the slightest of shocks. It is rumored that it was first created when a Poké Ball was exposed to a powerful pulse of energy.",
+    "evolution": {
+      "next": [
+        [
+          "101",
+          "Level 30"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/100.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/100.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/100.png"
+    }
+  },
+  {
+    "id": 101,
+    "name": "Electrode",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 50,
+      "Defense": 70,
+      "Sp. Attack": 80,
+      "Sp. Defense": 80,
+      "Speed": 150
+    },
+    "description": "One of Electrode’s characteristics is its attraction to electricity. It is a problematical Pokémon that congregates mostly at electrical power plants to feed on electricity that has just been generated.",
+    "evolution": {
+      "prev": [
+        "100",
+        "Level 30"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/101.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/101.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/101.png"
+    }
+  },
+  {
+    "id": 102,
+    "name": "Exeggcute",
+    "type": [
+      "Grass",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 40,
+      "Defense": 80,
+      "Sp. Attack": 60,
+      "Sp. Defense": 45,
+      "Speed": 40
+    },
+    "description": "Although they are the same size as other Exeggcute, the ones produced in Alola are quite heavy. Their shells are packed full.",
+    "evolution": {
+      "next": [
+        [
+          "103",
+          "use Leaf Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/102.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/102.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/102.png"
+    }
+  },
+  {
+    "id": 103,
+    "name": "Exeggutor",
+    "type": [
+      "Grass",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 95,
+      "Attack": 95,
+      "Defense": 85,
+      "Sp. Attack": 125,
+      "Sp. Defense": 75,
+      "Speed": 55
+    },
+    "description": "Each of its three heads has its own thoughts. When they want to go in different directions, Exeggutor becomes unable to move.",
+    "evolution": {
+      "prev": [
+        "102",
+        "use Leaf Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/103.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/103.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/103.png"
+    }
+  },
+  {
+    "id": 104,
+    "name": "Cubone",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 50,
+      "Defense": 95,
+      "Sp. Attack": 40,
+      "Sp. Defense": 50,
+      "Speed": 35
+    },
+    "description": "It wears its mother’s skull on its head, so no one knows what its bare face looks like. However, it’s clear that it’s always crying.",
+    "evolution": {
+      "next": [
+        [
+          "105",
+          "Level 28"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/104.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/104.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/104.png"
+    }
+  },
+  {
+    "id": 105,
+    "name": "Marowak",
+    "type": [
+      "Ground"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 80,
+      "Defense": 110,
+      "Sp. Attack": 50,
+      "Sp. Defense": 80,
+      "Speed": 45
+    },
+    "description": "They thump their bones rhythmically to communicate among themselves. There are nearly 50 different rhythmic patterns.",
+    "evolution": {
+      "prev": [
+        "104",
+        "Level 28"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/105.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/105.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/105.png"
+    }
+  },
+  {
+    "id": 106,
+    "name": "Hitmonlee",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 120,
+      "Defense": 53,
+      "Sp. Attack": 35,
+      "Sp. Defense": 110,
+      "Speed": 87
+    },
+    "description": "Hitmonlee’s legs freely contract and stretch. Using these springlike legs, it bowls over foes with devastating kicks. After battle, it rubs down its legs and loosens the muscles to overcome fatigue.",
+    "evolution": {
+      "prev": [
+        "236",
+        "Level 20, Attack > Defense"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/106.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/106.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/106.png"
+    }
+  },
+  {
+    "id": 107,
+    "name": "Hitmonchan",
+    "type": [
+      "Fighting"
+    ],
+    "base": {
+      "HP": 50,
+      "Attack": 105,
+      "Defense": 79,
+      "Sp. Attack": 35,
+      "Sp. Defense": 110,
+      "Speed": 76
+    },
+    "description": "Hitmonchan is said to possess the spirit of a boxer who had been working toward a world championship. This Pokémon has an indomitable spirit and will never give up in the face of adversity.",
+    "evolution": {
+      "prev": [
+        "236",
+        "Level 20, Attack < Defense"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/107.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/107.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/107.png"
+    }
+  },
+  {
+    "id": 108,
+    "name": "Lickitung",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 55,
+      "Defense": 75,
+      "Sp. Attack": 60,
+      "Sp. Defense": 75,
+      "Speed": 30
+    },
+    "description": "It licks filth clean with its tongue. Whatever it licks always stinks afterward, so whether it’s really clean is...questionable.",
+    "evolution": {
+      "next": [
+        [
+          "463",
+          "after Rollout learned"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/108.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/108.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/108.png"
+    }
+  },
+  {
+    "id": 109,
+    "name": "Koffing",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 65,
+      "Defense": 95,
+      "Sp. Attack": 60,
+      "Sp. Defense": 45,
+      "Speed": 35
+    },
+    "description": "Koffing embodies toxic substances. It mixes the toxins with raw garbage to set off a chemical reaction that results in a terribly powerful poison gas. The higher the temperature, the more gas is concocted by this Pokémon.",
+    "evolution": {
+      "next": [
+        [
+          "110",
+          "Level 35"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/109.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/109.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/109.png"
+    }
+  },
+  {
+    "id": 110,
+    "name": "Weezing",
+    "type": [
+      "Poison"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 90,
+      "Defense": 120,
+      "Sp. Attack": 85,
+      "Sp. Defense": 70,
+      "Speed": 60
+    },
+    "description": "Weezing alternately shrinks and inflates its twin bodies to mix together toxic gases inside. The more the gases are mixed, the more powerful the toxins become. The Pokémon also becomes more putrid.",
+    "evolution": {
+      "prev": [
+        "109",
+        "Level 35"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/110.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/110.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/110.png"
+    }
+  },
+  {
+    "id": 111,
+    "name": "Rhyhorn",
+    "type": [
+      "Ground",
+      "Rock"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 85,
+      "Defense": 95,
+      "Sp. Attack": 30,
+      "Sp. Defense": 30,
+      "Speed": 25
+    },
+    "description": "Rhyhorn’s brain is very small. It is so dense, while on a run it forgets why it started running in the first place. It apparently remembers sometimes if it demolishes something.",
+    "evolution": {
+      "next": [
+        [
+          "112",
+          "Level 42"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/111.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/111.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/111.png"
+    }
+  },
+  {
+    "id": 112,
+    "name": "Rhydon",
+    "type": [
+      "Ground",
+      "Rock"
+    ],
+    "base": {
+      "HP": 105,
+      "Attack": 130,
+      "Defense": 120,
+      "Sp. Attack": 45,
+      "Sp. Defense": 45,
+      "Speed": 40
+    },
+    "description": "Rhydon has a horn that serves as a drill. It is used for destroying rocks and boulders. This Pokémon occasionally rams into streams of magma, but the armor-like hide prevents it from feeling the heat.",
+    "evolution": {
+      "prev": [
+        "111",
+        "Level 42"
+      ],
+      "next": [
+        [
+          "464",
+          "trade holding Protector"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/112.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/112.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/112.png"
+    }
+  },
+  {
+    "id": 113,
+    "name": "Chansey",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 250,
+      "Attack": 5,
+      "Defense": 5,
+      "Sp. Attack": 35,
+      "Sp. Defense": 105,
+      "Speed": 50
+    },
+    "description": "Because the eggs on their bellies have been overharvested by people in the past, the Chansey population remains very small.",
+    "evolution": {
+      "prev": [
+        "440",
+        "hold Oval Stone, Daytime"
+      ],
+      "next": [
+        [
+          "242",
+          "high Friendship"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/113.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/113.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/113.png"
+    }
+  },
+  {
+    "id": 114,
+    "name": "Tangela",
+    "type": [
+      "Grass"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 55,
+      "Defense": 115,
+      "Sp. Attack": 100,
+      "Sp. Defense": 40,
+      "Speed": 60
+    },
+    "description": "Tangela’s vines snap off easily if they are grabbed. This happens without pain, allowing it to make a quick getaway. The lost vines are replaced by newly grown vines the very next day.",
+    "evolution": {
+      "next": [
+        [
+          "465",
+          "after Ancient Power learned"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/114.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/114.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/114.png"
+    }
+  },
+  {
+    "id": 115,
+    "name": "Kangaskhan",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 105,
+      "Attack": 95,
+      "Defense": 80,
+      "Sp. Attack": 40,
+      "Sp. Defense": 80,
+      "Speed": 90
+    },
+    "description": "You shouldn’t get close to the child when it’s playing outside its mother’s pouch. Its mother is always nearby watching over it.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/115.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/115.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/115.png"
+    }
+  },
+  {
+    "id": 116,
+    "name": "Horsea",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 40,
+      "Defense": 70,
+      "Sp. Attack": 70,
+      "Sp. Defense": 25,
+      "Speed": 60
+    },
+    "description": "If Horsea senses danger, it will reflexively spray a dense black ink from its mouth and try to escape. This Pokémon swims by cleverly flapping the fin on its back.",
+    "evolution": {
+      "next": [
+        [
+          "117",
+          "Level 32"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/116.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/116.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/116.png"
+    }
+  },
+  {
+    "id": 117,
+    "name": "Seadra",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 65,
+      "Defense": 95,
+      "Sp. Attack": 95,
+      "Sp. Defense": 45,
+      "Speed": 85
+    },
+    "description": "Seadra generates whirlpools by spinning its body. The whirlpools are strong enough to swallow even fishing boats. This Pokémon weakens prey with these currents, then swallows it whole.",
+    "evolution": {
+      "prev": [
+        "116",
+        "Level 32"
+      ],
+      "next": [
+        [
+          "230",
+          "trade holding Dragon Scale"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/117.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/117.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/117.png"
+    }
+  },
+  {
+    "id": 118,
+    "name": "Goldeen",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 45,
+      "Attack": 67,
+      "Defense": 60,
+      "Sp. Attack": 35,
+      "Sp. Defense": 50,
+      "Speed": 63
+    },
+    "description": "The way it swims along fluttering its dress-like fins has earned it the name “princess of the water.”",
+    "evolution": {
+      "next": [
+        [
+          "119",
+          "Level 33"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/118.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/118.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/118.png"
+    }
+  },
+  {
+    "id": 119,
+    "name": "Seaking",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 92,
+      "Defense": 65,
+      "Sp. Attack": 65,
+      "Sp. Defense": 80,
+      "Speed": 68
+    },
+    "description": "To attract females, males dance on the river’s floor. The females gather around the male that dances most gracefully.",
+    "evolution": {
+      "prev": [
+        "118",
+        "Level 33"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/119.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/119.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/119.png"
+    }
+  },
+  {
+    "id": 120,
+    "name": "Staryu",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 45,
+      "Defense": 55,
+      "Sp. Attack": 70,
+      "Sp. Defense": 55,
+      "Speed": 85
+    },
+    "description": "No number of injuries can bother Staryu. Its amazing regenerative powers return it to its previous state in half a day!",
+    "evolution": {
+      "next": [
+        [
+          "121",
+          "use Water Stone"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/120.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/120.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/120.png"
+    }
+  },
+  {
+    "id": 121,
+    "name": "Starmie",
+    "type": [
+      "Water",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 75,
+      "Defense": 85,
+      "Sp. Attack": 100,
+      "Sp. Defense": 85,
+      "Speed": 115
+    },
+    "description": "It rotates its geometrically shaped body to swim through the water. It always seems to be sending out mysterious radio waves.",
+    "evolution": {
+      "prev": [
+        "120",
+        "use Water Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/121.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/121.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/121.png"
+    }
+  },
+  {
+    "id": 122,
+    "name": "Mr. Mime",
+    "type": [
+      "Psychic",
+      "Fairy"
+    ],
+    "base": {
+      "HP": 40,
+      "Attack": 45,
+      "Defense": 65,
+      "Sp. Attack": 100,
+      "Sp. Defense": 120,
+      "Speed": 90
+    },
+    "description": "It creates invisible walls with its pantomiming. If you don’t act impressed, it will attack you with a double slap!",
+    "evolution": {
+      "prev": [
+        "439",
+        "after Mimic learned"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/122.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/122.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/122.png"
+    }
+  },
+  {
+    "id": 123,
+    "name": "Scyther",
+    "type": [
+      "Bug",
+      "Flying"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 110,
+      "Defense": 80,
+      "Sp. Attack": 55,
+      "Sp. Defense": 80,
+      "Speed": 105
+    },
+    "description": "Some call it a ninja. Its movements— imperceptibly quick—are sufficient to cleave the air in two. It’s very popular in Alola.",
+    "evolution": {
+      "next": [
+        [
+          "212",
+          "trade holding Metal Coat"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/123.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/123.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/123.png"
+    }
+  },
+  {
+    "id": 124,
+    "name": "Jynx",
+    "type": [
+      "Ice",
+      "Psychic"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 50,
+      "Defense": 35,
+      "Sp. Attack": 115,
+      "Sp. Defense": 95,
+      "Speed": 95
+    },
+    "description": "Its strange cries sound like human language. There are some musicians who compose songs for Jynx to sing.",
+    "evolution": {
+      "prev": [
+        "238",
+        "Level 30"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/124.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/124.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/124.png"
+    }
+  },
+  {
+    "id": 125,
+    "name": "Electabuzz",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 83,
+      "Defense": 57,
+      "Sp. Attack": 95,
+      "Sp. Defense": 85,
+      "Speed": 105
+    },
+    "description": "While it’s often blamed for power outages, the truth is the cause of outages is more often an error on the part of the electric company.",
+    "evolution": {
+      "prev": [
+        "239",
+        "Level 30"
+      ],
+      "next": [
+        [
+          "466",
+          "trade holding Electirizer"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/125.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/125.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/125.png"
+    }
+  },
+  {
+    "id": 126,
+    "name": "Magmar",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 95,
+      "Defense": 57,
+      "Sp. Attack": 100,
+      "Sp. Defense": 85,
+      "Speed": 93
+    },
+    "description": "The hotter the place, the better they feel. Magmar in Alola are said to be hardier than those in other areas.",
+    "evolution": {
+      "prev": [
+        "240",
+        "Level 30"
+      ],
+      "next": [
+        [
+          "467",
+          "trade holding Magmarizer"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/126.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/126.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/126.png"
+    }
+  },
+  {
+    "id": 127,
+    "name": "Pinsir",
+    "type": [
+      "Bug"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 125,
+      "Defense": 100,
+      "Sp. Attack": 55,
+      "Sp. Defense": 70,
+      "Speed": 85
+    },
+    "description": "Although it’s tough, it can’t handle cold well. When night falls, it buries itself in leafage and sleeps.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/127.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/127.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/127.png"
+    }
+  },
+  {
+    "id": 128,
+    "name": "Tauros",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 75,
+      "Attack": 100,
+      "Defense": 95,
+      "Sp. Attack": 40,
+      "Sp. Defense": 70,
+      "Speed": 110
+    },
+    "description": "The climate seems to be related to the reason Tauros in Alola are a little calmer than those in other regions.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/128.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/128.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/128.png"
+    }
+  },
+  {
+    "id": 129,
+    "name": "Magikarp",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 20,
+      "Attack": 10,
+      "Defense": 55,
+      "Sp. Attack": 15,
+      "Sp. Defense": 20,
+      "Speed": 80
+    },
+    "description": "Thanks to their strong hold on life, dirty water doesn’t bother them at all. They live in waters all over the world!",
+    "evolution": {
+      "next": [
+        [
+          "130",
+          "Level 20"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/129.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/129.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/129.png"
+    }
+  },
+  {
+    "id": 130,
+    "name": "Gyarados",
+    "type": [
+      "Water",
+      "Flying"
+    ],
+    "base": {
+      "HP": 95,
+      "Attack": 125,
+      "Defense": 79,
+      "Sp. Attack": 60,
+      "Sp. Defense": 100,
+      "Speed": 81
+    },
+    "description": "The energy from evolution stimulated its brain cells strongly, causing it to become very ferocious.",
+    "evolution": {
+      "prev": [
+        "129",
+        "Level 20"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/130.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/130.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/130.png"
+    }
+  },
+  {
+    "id": 131,
+    "name": "Lapras",
+    "type": [
+      "Water",
+      "Ice"
+    ],
+    "base": {
+      "HP": 130,
+      "Attack": 85,
+      "Defense": 80,
+      "Sp. Attack": 85,
+      "Sp. Defense": 95,
+      "Speed": 60
+    },
+    "description": "They’ve been so cherished that there’s now an overabundance. The fish Pokémon population has declined in waters with too many Lapras.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/131.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/131.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/131.png"
+    }
+  },
+  {
+    "id": 132,
+    "name": "Ditto",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 48,
+      "Attack": 48,
+      "Defense": 48,
+      "Sp. Attack": 48,
+      "Sp. Defense": 48,
+      "Speed": 48
+    },
+    "description": "It transforms into whatever it sees. If the thing it’s transforming into isn’t right in front of it, Ditto relies on its memory—so sometimes it fails.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/132.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/132.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/132.png"
+    }
+  },
+  {
+    "id": 133,
+    "name": "Eevee",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 55,
+      "Attack": 55,
+      "Defense": 50,
+      "Sp. Attack": 45,
+      "Sp. Defense": 65,
+      "Speed": 55
+    },
+    "description": "Its genes are easily influenced by its surroundings. Even its face starts to look like that of its Trainer.",
+    "evolution": {
+      "next": [
+        [
+          "134",
+          "use Water Stone"
+        ],
+        [
+          "135",
+          "use Thunder Stone"
+        ],
+        [
+          "136",
+          "use Fire Stone"
+        ],
+        [
+          "196",
+          "high Friendship, Daytime"
+        ],
+        [
+          "197",
+          "high Friendship, Nighttime"
+        ],
+        [
+          "470",
+          "level up near a Mossy Rock"
+        ],
+        [
+          "471",
+          "level up near an Icy Rock"
+        ],
+        [
+          "700",
+          "High Affection and knowing Fairy move"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/133.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/133.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/133.png"
+    }
+  },
+  {
+    "id": 134,
+    "name": "Vaporeon",
+    "type": [
+      "Water"
+    ],
+    "base": {
+      "HP": 130,
+      "Attack": 65,
+      "Defense": 60,
+      "Sp. Attack": 110,
+      "Sp. Defense": 95,
+      "Speed": 65
+    },
+    "description": "It detects nearby moisture with its fin. When its fin begins trembling rapidly, that means rain will fall in a few hours.",
+    "evolution": {
+      "prev": [
+        "133",
+        "use Water Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/134.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/134.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/134.png"
+    }
+  },
+  {
+    "id": 135,
+    "name": "Jolteon",
+    "type": [
+      "Electric"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 65,
+      "Defense": 60,
+      "Sp. Attack": 110,
+      "Sp. Defense": 95,
+      "Speed": 130
+    },
+    "description": "Its fur stands on end, becoming like needles it fires at enemies. Once they’re weakened, it finishes them off with a 10,000 volt shock.",
+    "evolution": {
+      "prev": [
+        "133",
+        "use Thunder Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/135.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/135.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/135.png"
+    }
+  },
+  {
+    "id": 136,
+    "name": "Flareon",
+    "type": [
+      "Fire"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 130,
+      "Defense": 60,
+      "Sp. Attack": 95,
+      "Sp. Defense": 110,
+      "Speed": 65
+    },
+    "description": "The flame chamber inside its body ignites when Flareon gets agitated, reaching temperatures of up to 1,650 degrees Fahrenheit.",
+    "evolution": {
+      "prev": [
+        "133",
+        "use Fire Stone"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/136.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/136.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/136.png"
+    }
+  },
+  {
+    "id": 137,
+    "name": "Porygon",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 65,
+      "Attack": 60,
+      "Defense": 70,
+      "Sp. Attack": 85,
+      "Sp. Defense": 75,
+      "Speed": 40
+    },
+    "description": "It was built 20 years ago by scientists who dreamed of exploring space. Their dreams have yet to come true.",
+    "evolution": {
+      "next": [
+        [
+          "233",
+          "trade holding Upgrade"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/137.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/137.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/137.png"
+    }
+  },
+  {
+    "id": 138,
+    "name": "Omanyte",
+    "type": [
+      "Rock",
+      "Water"
+    ],
+    "base": {
+      "HP": 35,
+      "Attack": 40,
+      "Defense": 100,
+      "Sp. Attack": 90,
+      "Sp. Defense": 55,
+      "Speed": 35
+    },
+    "description": "It was restored from an ancient fossil. Those Helix Fossils are excavated from areas that were once oceans long, long ago.",
+    "evolution": {
+      "next": [
+        [
+          "139",
+          "Level 40"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/138.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/138.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/138.png"
+    }
+  },
+  {
+    "id": 139,
+    "name": "Omastar",
+    "type": [
+      "Rock",
+      "Water"
+    ],
+    "base": {
+      "HP": 70,
+      "Attack": 60,
+      "Defense": 125,
+      "Sp. Attack": 115,
+      "Sp. Defense": 70,
+      "Speed": 55
+    },
+    "description": "It wraps its prey in its tentacles to immobilize them and then finishes them off with its sharp fangs.",
+    "evolution": {
+      "prev": [
+        "138",
+        "Level 40"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/139.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/139.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/139.png"
+    }
+  },
+  {
+    "id": 140,
+    "name": "Kabuto",
+    "type": [
+      "Rock",
+      "Water"
+    ],
+    "base": {
+      "HP": 30,
+      "Attack": 80,
+      "Defense": 90,
+      "Sp. Attack": 55,
+      "Sp. Defense": 45,
+      "Speed": 55
+    },
+    "description": "This Pokémon became extinct everywhere, except in a few areas. It protects itself with its hard shell.",
+    "evolution": {
+      "next": [
+        [
+          "141",
+          "Level 40"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/140.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/140.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/140.png"
+    }
+  },
+  {
+    "id": 141,
+    "name": "Kabutops",
+    "type": [
+      "Rock",
+      "Water"
+    ],
+    "base": {
+      "HP": 60,
+      "Attack": 115,
+      "Defense": 105,
+      "Sp. Attack": 65,
+      "Sp. Defense": 70,
+      "Speed": 80
+    },
+    "description": "It swims at speeds of roughly 29 knots, quickly closing in on its prey and slashing into them with its scythes to finish them off.",
+    "evolution": {
+      "prev": [
+        "140",
+        "Level 40"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/141.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/141.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/141.png"
+    }
+  },
+  {
+    "id": 142,
+    "name": "Aerodactyl",
+    "type": [
+      "Rock",
+      "Flying"
+    ],
+    "base": {
+      "HP": 80,
+      "Attack": 105,
+      "Defense": 65,
+      "Sp. Attack": 60,
+      "Sp. Defense": 75,
+      "Speed": 130
+    },
+    "description": "It flew through the open skies over the ancient continent as if they were its own. When it touched ground, its walk was weak and slow.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/142.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/142.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/142.png"
+    }
+  },
+  {
+    "id": 143,
+    "name": "Snorlax",
+    "type": [
+      "Normal"
+    ],
+    "base": {
+      "HP": 160,
+      "Attack": 110,
+      "Defense": 65,
+      "Sp. Attack": 65,
+      "Sp. Defense": 110,
+      "Speed": 30
+    },
+    "description": "It has no interest in anything other than eating. Even if you climb up on its stomach while it’s napping, it doesn’t seem to mind at all!",
+    "evolution": {
+      "prev": [
+        "446",
+        "high Friendship"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/143.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/143.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/143.png"
+    }
+  },
+  {
+    "id": 144,
+    "name": "Articuno",
+    "type": [
+      "Ice",
+      "Flying"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 85,
+      "Defense": 100,
+      "Sp. Attack": 95,
+      "Sp. Defense": 125,
+      "Speed": 85
+    },
+    "description": "Articuno is a legendary bird Pokémon that can control ice. The flapping of its wings chills the air. As a result, it is said that when this Pokémon flies, snow will fall.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/144.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/144.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/144.png"
+    }
+  },
+  {
+    "id": 145,
+    "name": "Zapdos",
+    "type": [
+      "Electric",
+      "Flying"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 90,
+      "Defense": 85,
+      "Sp. Attack": 125,
+      "Sp. Defense": 90,
+      "Speed": 100
+    },
+    "description": "Zapdos is a legendary bird Pokémon that has the ability to control electricity. It usually lives in thunderclouds. The Pokémon gains power if it is stricken by lightning bolts.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/145.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/145.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/145.png"
+    }
+  },
+  {
+    "id": 146,
+    "name": "Moltres",
+    "type": [
+      "Fire",
+      "Flying"
+    ],
+    "base": {
+      "HP": 90,
+      "Attack": 100,
+      "Defense": 90,
+      "Sp. Attack": 125,
+      "Sp. Defense": 85,
+      "Speed": 90
+    },
+    "description": "Moltres is a legendary bird Pokémon that has the ability to control fire. If this Pokémon is injured, it is said to dip its body in the molten magma of a volcano to burn and heal itself.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/146.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/146.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/146.png"
+    }
+  },
+  {
+    "id": 147,
+    "name": "Dratini",
+    "type": [
+      "Dragon"
+    ],
+    "base": {
+      "HP": 41,
+      "Attack": 64,
+      "Defense": 45,
+      "Sp. Attack": 50,
+      "Sp. Defense": 50,
+      "Speed": 50
+    },
+    "description": "It sheds its skin—almost on a daily basis—and grows larger. Its skin is soft just after it’s been shed.",
+    "evolution": {
+      "next": [
+        [
+          "148",
+          "Level 30"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/147.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/147.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/147.png"
+    }
+  },
+  {
+    "id": 148,
+    "name": "Dragonair",
+    "type": [
+      "Dragon"
+    ],
+    "base": {
+      "HP": 61,
+      "Attack": 84,
+      "Defense": 65,
+      "Sp. Attack": 70,
+      "Sp. Defense": 70,
+      "Speed": 70
+    },
+    "description": "Some say that if you see it at the start of the year, flying through the sky and twisting its body, you’ll be healthy all year long.",
+    "evolution": {
+      "prev": [
+        "147",
+        "Level 30"
+      ],
+      "next": [
+        [
+          "149",
+          "Level 55"
+        ]
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/148.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/148.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/148.png"
+    }
+  },
+  {
+    "id": 149,
+    "name": "Dragonite",
+    "type": [
+      "Dragon",
+      "Flying"
+    ],
+    "base": {
+      "HP": 91,
+      "Attack": 134,
+      "Defense": 95,
+      "Sp. Attack": 100,
+      "Sp. Defense": 100,
+      "Speed": 80
+    },
+    "description": "You’ll often hear tales of this kindhearted Pokémon rescuing people or Pokémon that are drowning.",
+    "evolution": {
+      "prev": [
+        "148",
+        "Level 55"
+      ]
+    },
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/149.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/149.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/149.png"
+    }
+  },
+  {
+    "id": 150,
+    "name": "Mewtwo",
+    "type": [
+      "Psychic"
+    ],
+    "base": {
+      "HP": 106,
+      "Attack": 110,
+      "Defense": 90,
+      "Sp. Attack": 154,
+      "Sp. Defense": 90,
+      "Speed": 130
+    },
+    "description": "Mewtwo is a Pokémon that was created by genetic manipulation. However, even though the scientific power of humans created this Pokémon’s body, they failed to endow Mewtwo with a compassionate heart.",
+    "evolution": {},
+    "image": {
+      "sprite": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/sprites/150.png",
+      "thumbnail": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/thumbnails/150.png",
+      "hires": "https://raw.githubusercontent.com/Purukitto/pokemon-data.json/master/images/pokedex/hires/150.png"
+    }
+  }
+]
