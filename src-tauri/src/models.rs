@@ -45,7 +45,7 @@ pub struct ImageData {
 
 // DB MODELS
 
-#[derive(Queryable, Selectable, Insertable)]
+#[derive(Queryable, Selectable, Insertable, AsChangeset)]
 #[diesel(table_name = pokemons)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct DbPokemon {
