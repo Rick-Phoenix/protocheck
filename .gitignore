@@ -19,7 +19,6 @@ build/**
 
 # Wails
 build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
-bin
 generated
 output
 bindings

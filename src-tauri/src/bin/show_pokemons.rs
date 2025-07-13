@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           .returning(ImageDataFromDb::as_returning())
           .get_result(conn)?;
 
-        let pok_data = DbPokemon {
+        let mut pok_data = DbPokemon {
           id: p.id,
           name: p.name,
           description: p.description.clone(),
@@ -73,6 +73,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           base_stats_id: inserted_stats.id,
           next_evolution_id: None,
           prev_evolution_id: None,
+        };
+
+        if let Some(next_evolution) = p.evolution.next {
+          let next_ev_id_str = &next_evolution[0][0];
+          let next_ev_id = next_ev_id_str.parse::<i32>()?;
+
+          pok_data.next_evolution_id = Some(next_ev_id);
+        };
+
+        if let Some(prev_evolution) = p.evolution.prev {
+          let prev_ev_id_str = &prev_evolution[0];
+          let prev_ev_id = prev_ev_id_str.parse::<i32>()?;
+
+          pok_data.prev_evolution_id = Some(prev_ev_id);
         };
 
         diesel::insert_into(pokemons::table)
