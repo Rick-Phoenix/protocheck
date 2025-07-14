@@ -16,18 +16,7 @@ pub fn load_pokemons_from_json(
   Ok(pokemons)
 }
 
-// evolutions
-// if let Some(next_evolution) = p.evolution.next {
-//   let next_ev_id_str = &next_evolution[0][0];
-//   let next_ev_id = next_ev_id_str.parse::<i32>()?;
-//
-//   diesel::update(pokemons::table)
-//     .filter(pokemons::id.eq(p.id))
-//     .set(pokemons::next_evolution_id.eq(next_ev_id))
-//     .execute(conn)?;
-// };
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn insert_pokemons() -> Result<(), Box<dyn std::error::Error + 'static>> {
   let json_file_path = "data/pokemon.json";
 
   match load_pokemons_from_json(json_file_path) {
@@ -38,7 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       use self::schema::types::dsl::*;
 
       for p in pokemons_data {
-        let new_stats = NewBaseStats {
+        let new_stats = BaseStat {
+          id: 0,
           hp: p.base.hp,
           attack: p.base.attack,
           defense: p.base.defense,
@@ -48,24 +38,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           pokemon_id: p.id,
         };
 
-        let inserted_stats: BaseStatsFromDb = diesel::insert_into(base_stats::table)
+        let inserted_stats: BaseStat = diesel::insert_into(base_stats::table)
           .values(&new_stats)
-          .returning(BaseStatsFromDb::as_returning())
+          .returning(BaseStat::as_returning())
           .get_result(conn)?;
 
-        let new_image_data = NewImageData {
+        let new_image_data = ImageData {
+          id: 0,
           sprite: p.image.sprite,
           pokemon_id: p.id,
           thumbnail: p.image.thumbnail,
           hires: p.image.hires,
         };
 
-        let inserted_img_data: ImageDataFromDb = diesel::insert_into(image_data::table)
+        let inserted_img_data: ImageData = diesel::insert_into(image_data::table)
           .values(&new_image_data)
-          .returning(ImageDataFromDb::as_returning())
+          .returning(ImageData::as_returning())
           .get_result(conn)?;
 
-        let mut pok_data = DbPokemon {
+        let mut pok_data = Pokemon {
           id: p.id,
           name: p.name,
           description: p.description.clone(),
@@ -96,22 +87,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for type_name in &p.types {
           let type_id: i32 = {
-            let existing_type: Option<TypeFromDb> = types
+            let existing_type: Option<Type> = types
               .filter(name.eq(type_name))
-              .select(TypeFromDb::as_select())
+              .select(Type::as_select())
               .first(conn)
               .optional()?;
 
             if let Some(t) = existing_type {
               t.id
             } else {
-              let new_type = NewType {
+              let new_type = Type {
+                id: 0,
                 name: type_name.clone(),
               };
 
-              let inserted_type: TypeFromDb = diesel::insert_into(types)
+              let inserted_type: Type = diesel::insert_into(types)
                 .values(&new_type)
-                .returning(TypeFromDb::as_returning())
+                .returning(Type::as_returning())
                 .get_result(conn)?;
 
               inserted_type.id
@@ -134,5 +126,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
   };
 
+  Ok(())
+}
+
+fn main() -> Result<(), Box<(dyn std::error::Error + 'static)>> {
+  insert_pokemons()?;
   Ok(())
 }

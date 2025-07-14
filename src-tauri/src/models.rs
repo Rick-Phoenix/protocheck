@@ -11,7 +11,7 @@ pub struct JsonPokemon {
   pub base: BaseStats,
   pub description: String,
   pub evolution: EvolutionData,
-  pub image: ImageData,
+  pub image: ImageDataJson,
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +37,7 @@ pub struct EvolutionData {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ImageData {
+pub struct ImageDataJson {
   pub sprite: String,
   pub thumbnail: String,
   pub hires: String,
@@ -45,10 +45,43 @@ pub struct ImageData {
 
 // DB MODELS
 
-#[derive(Queryable, Selectable, Insertable, AsChangeset)]
-#[diesel(table_name = pokemons)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct DbPokemon {
+#[derive(Queryable, Identifiable, Associations, Insertable, Selectable)]
+#[diesel(belongs_to(Pokemon))]
+pub struct BaseStat {
+  #[diesel(skip_insertion)]
+  pub id: i32,
+  pub hp: i32,
+  pub attack: i32,
+  pub defense: i32,
+  pub special_attack: i32,
+  pub special_defense: i32,
+  pub speed: i32,
+  pub pokemon_id: i32,
+}
+
+#[derive(Queryable, Identifiable, Associations, Insertable, Selectable)]
+#[diesel(table_name = image_data)]
+#[diesel(belongs_to(Pokemon))]
+pub struct ImageData {
+  #[diesel(skip_insertion)]
+  pub id: i32,
+  pub sprite: String,
+  pub thumbnail: String,
+  pub hires: String,
+  pub pokemon_id: i32,
+}
+
+#[derive(Queryable, Identifiable, Associations, Insertable)]
+#[diesel(belongs_to(Pokemon))]
+#[diesel(belongs_to(Type))]
+#[diesel(primary_key(pokemon_id, type_id))]
+pub struct PokemonType {
+  pub pokemon_id: i32,
+  pub type_id: i32,
+}
+
+#[derive(Queryable, Selectable, Identifiable, Insertable)]
+pub struct Pokemon {
   pub id: i32,
   pub name: String,
   pub next_evolution_id: Option<i32>,
@@ -58,68 +91,9 @@ pub struct DbPokemon {
   pub base_stats_id: i32,
 }
 
-#[derive(Insertable)]
-#[diesel(table_name = base_stats)]
-pub struct NewBaseStats {
-  pub hp: i32,
-  pub attack: i32,
-  pub defense: i32,
-  pub special_attack: i32,
-  pub special_defense: i32,
-  pub speed: i32,
-  pub pokemon_id: i32,
-}
-
-#[derive(Queryable, Selectable)]
-#[diesel(table_name = base_stats)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct BaseStatsFromDb {
-  pub id: i32,
-  pub hp: i32,
-  pub attack: i32,
-  pub defense: i32,
-  pub special_attack: i32,
-  pub special_defense: i32,
-  pub speed: i32,
-  pub pokemon_id: i32,
-}
-
-#[derive(Queryable, Selectable)]
-#[diesel(table_name = image_data)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct ImageDataFromDb {
-  pub id: i32,
-  pub sprite: String,
-  pub thumbnail: String,
-  pub hires: String,
-  pub pokemon_id: i32,
-}
-
-#[derive(Insertable)]
-#[diesel(table_name = image_data)]
-pub struct NewImageData {
-  pub sprite: String,
-  pub thumbnail: String,
-  pub hires: String,
-  pub pokemon_id: i32,
-}
-
-#[derive(Insertable)]
-#[diesel(table_name = types)]
-pub struct NewType {
-  pub name: String,
-}
-
-#[derive(Queryable, Selectable)]
-#[diesel(table_name = types)]
-pub struct TypeFromDb {
-  pub id: i32,
-  pub name: String,
-}
-
 #[derive(Queryable, Selectable, Insertable)]
-#[diesel(table_name = pokemon_types)]
-pub struct PokemonType {
-  pub pokemon_id: i32,
-  pub type_id: i32,
+pub struct Type {
+  #[diesel(skip_insertion)]
+  pub id: i32,
+  pub name: String,
 }

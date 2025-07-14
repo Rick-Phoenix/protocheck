@@ -30,9 +30,10 @@ diesel = { version = "2.2.12", features = [
 ] }
 
 [[bin]]
-name = "show_pokemons"            # The name of your binary executable
-path = "src/bin/show_pokemons.rs" # The path to your binary's source file
-# Add your *local* library crate as a dependency for this binary
-dependencies = [
-  "tauri-app-lib", # <-- **THIS IS THE CRITICAL LINE**
-]
+name = "show_pokemons"
+path = "src/bin/show_pokemons.rs"
+dependencies = ["tauri-app-lib"]
+
+[profile.dev]
+opt-level = 0
+debug = 0
