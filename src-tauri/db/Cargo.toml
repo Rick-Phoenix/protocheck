@@ -1,0 +1,24 @@
+[package]
+name = "db"
+version = "0.1.0"
+description = "Core database logic and models for the Tauri app"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "db"
+create-type = ["rlib"]
+
+[dependencies]
+dotenvy = "0.15.7"
+diesel = { version = "2.2.12", features = [
+  "postgres",
+  "sqlite",
+  "returning_clauses_for_sqlite_3_35",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bin]]
+name = "show_pokemons"
+path = "src/bin/show_pokemons.rs"

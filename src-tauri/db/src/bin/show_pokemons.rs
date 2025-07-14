@@ -1,12 +1,12 @@
-use self::schema::pokemons;
-use self::schema::types::dsl::*;
+use db::establish_connection;
+use db::models::*;
+use db::schema::base_stats::{self};
+use db::schema::pokemons;
+use db::schema::types::dsl::*;
+use db::schema::{image_data, pokemon_types};
 use diesel::prelude::*;
 use serde_json;
 use std::fs;
-use tauri_app_lib::models::*;
-use tauri_app_lib::schema::base_stats::{self};
-use tauri_app_lib::schema::{image_data, pokemon_types};
-use tauri_app_lib::*;
 
 type AppResult<T> = Result<T, Box<dyn std::error::Error + 'static>>;
 
@@ -25,7 +25,7 @@ fn insert_pokemons() -> AppResult<()> {
 
   match load_pokemons_from_json(json_file_path) {
     Ok(pokemons_data) => {
-      let conn = &mut establish_connection();
+      let conn = &mut db::establish_connection();
 
       for p in pokemons_data {
         let new_stats = BaseStat {
@@ -133,7 +133,7 @@ fn insert_pokemons() -> AppResult<()> {
 fn select_pokemon() -> AppResult<()> {
   let conn = &mut establish_connection();
   let poke_data: Pokemon = pokemons::table
-    .filter(pokemons::id.eq(1))
+    .filter(pokemons::id.eq(2))
     .select(Pokemon::as_select())
     .get_result(conn)?;
   println!("Pokemon data: {:#?}", poke_data);
