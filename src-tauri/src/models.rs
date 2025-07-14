@@ -45,7 +45,7 @@ pub struct ImageDataJson {
 
 // DB MODELS
 
-#[derive(Queryable, Identifiable, Associations, Insertable, Selectable)]
+#[derive(Queryable, Identifiable, Associations, Insertable, Selectable, Debug)]
 #[diesel(belongs_to(Pokemon))]
 pub struct BaseStat {
   #[diesel(skip_insertion)]
@@ -59,7 +59,7 @@ pub struct BaseStat {
   pub pokemon_id: i32,
 }
 
-#[derive(Queryable, Identifiable, Associations, Insertable, Selectable)]
+#[derive(Queryable, Identifiable, Associations, Insertable, Selectable, Debug)]
 #[diesel(table_name = image_data)]
 #[diesel(belongs_to(Pokemon))]
 pub struct ImageData {
@@ -80,7 +80,7 @@ pub struct PokemonType {
   pub type_id: i32,
 }
 
-#[derive(Queryable, Selectable, Identifiable, Insertable)]
+#[derive(Queryable, Selectable, Debug, Identifiable, Insertable)]
 pub struct Pokemon {
   pub id: i32,
   pub name: String,
@@ -91,7 +91,7 @@ pub struct Pokemon {
   pub base_stats_id: i32,
 }
 
-#[derive(Queryable, Selectable, Insertable)]
+#[derive(Queryable, Selectable, Debug, Insertable)]
 pub struct Type {
   #[diesel(skip_insertion)]
   pub id: i32,
