@@ -42,6 +42,6 @@ CREATE TABLE pokemon_types (
 pokemon_id integer NOT NULL,
 type_id integer NOT NULL,
 FOREIGN KEY (pokemon_id) REFERENCES pokemons (id),
-FOREIGN KEY (type_id) REFERENCES TYPES (id),
+FOREIGN KEY (type_id) REFERENCES types (id),
 PRIMARY KEY (pokemon_id, type_id)
 ) ;
