@@ -1,8 +1,10 @@
+#![allow(dead_code)]
+
 use db::establish_connection;
 use db::models::*;
 use db::schema::base_stats::{self};
 use db::schema::pokemons;
-use db::schema::types::dsl::*;
+use db::schema::types;
 use db::schema::{image_data, pokemon_types};
 use diesel::prelude::*;
 use serde_json;
@@ -88,8 +90,8 @@ fn insert_pokemons() -> AppResult<()> {
 
         for type_name in &p.types {
           let type_id: i32 = {
-            let existing_type: Option<Type> = types
-              .filter(name.eq(type_name))
+            let existing_type: Option<Type> = types::table
+              .filter(types::name.eq(type_name))
               .select(Type::as_select())
               .first(conn)
               .optional()?;
@@ -102,7 +104,7 @@ fn insert_pokemons() -> AppResult<()> {
                 name: type_name.clone(),
               };
 
-              let inserted_type: Type = diesel::insert_into(types)
+              let inserted_type: Type = diesel::insert_into(types::table)
                 .values(&new_type)
                 .returning(Type::as_returning())
                 .get_result(conn)?;
@@ -130,6 +132,14 @@ fn insert_pokemons() -> AppResult<()> {
   Ok(())
 }
 
+#[derive(Debug)]
+struct PokeData {
+  pub pokemon: Pokemon,
+  pub images: ImageData,
+  pub stats: BaseStat,
+  pub types: Vec<String>,
+}
+
 fn select_pokemon() -> AppResult<()> {
   let conn = &mut establish_connection();
   let poke_data: Pokemon = pokemons::table
@@ -142,10 +152,29 @@ fn select_pokemon() -> AppResult<()> {
     .select(BaseStat::as_select())
     .get_result(conn)?;
   println!("Base Stats: {:#?}", base_stats);
+  let img_data = ImageData::belonging_to(&poke_data)
+    .select(ImageData::as_select())
+    .get_result(conn)?;
+
+  println!("Image data: {:#?}", img_data);
+  let poke_types = PokemonType::belonging_to(&poke_data)
+    .inner_join(types::table)
+    .select(types::name)
+    .load::<String>(conn)?;
+  println!("Types: {:#?}", poke_types);
+
+  let complete_data = PokeData {
+    pokemon: poke_data,
+    stats: base_stats,
+    types: poke_types,
+    images: img_data,
+  };
+  println!("Complete data: {:#?}", complete_data);
   Ok(())
 }
 
 fn main() -> AppResult<()> {
+  // insert_pokemons()?;
   select_pokemon()?;
   Ok(())
 }

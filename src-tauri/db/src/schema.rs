@@ -50,6 +50,7 @@ diesel::table! {
 }
 
 diesel::joinable!(pokemon_types -> pokemons (pokemon_id));
+diesel::joinable!(pokemon_types -> types (type_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     base_stats,
