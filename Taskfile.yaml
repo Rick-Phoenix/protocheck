@@ -1,12 +1,21 @@
 version: "3"
 
+vars:
+  db_dir: src-tauri/db
+
 tasks:
-  build:
-    dir: src-tauri/db
+  query:
+    dir: "{{ .db_dir }}"
     cmd: cargo run --bin show_pokemons
   runmig:
-    dir: src-tauri/db
+    dir: "{{ .db_dir }}"
     cmd: diesel migration run
   revmig:
-    dir: src-tauri/db
+    dir: "{{ .db_dir }}"
     cmd: diesel migration revert
+  schema:
+    dir: "{{ .db_dir }}"
+    cmd: diesel print-schema > src/schema.rs
+  ext:
+    dir: "{{ .db_dir }}"
+    cmd: diesel_ext -m -s 'src/schema.rs' -d Queryable Insertable Selectable Associations Identifiable > 'models2.rs'
