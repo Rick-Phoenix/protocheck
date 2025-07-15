@@ -10,6 +10,20 @@ const config = {
       pages: "dist",
     }),
   },
+  // csp: {
+  //   mode: "auto",
+  //   directives: {
+  //     "default-src": ["'self'"],
+  //     "script-src": ["'self'"],
+  //     "style-src": ["'self' 'unsafe-inline'"],
+  //     "img-src": ["'self'", "data:"],
+  //     "connect-src": ["'self'"],
+  //     "font-src": ["'self'"],
+  //     "object-src": ["'none'"],
+  //     "base-uri": ["'self'"],
+  //     "form-action": ["'self'"],
+  //   },
+  // },
   vitePlugin: {
     dynamicCompileOptions: (data) => {
       if (data.filename.includes("node_modules")) {
