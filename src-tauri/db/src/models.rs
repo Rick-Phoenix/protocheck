@@ -1,13 +1,13 @@
 use crate::schema::*;
 use diesel::prelude::*;
-use macro_impl::macros::debug_print_fields;
-use macro_impl::macros::Hello;
+use macro_impl::macros::ProtoMessage;
 use serde::Deserialize;
 
 // DB MODELS
 
-#[debug_print_fields]
-#[derive(Queryable, Selectable, Debug, Identifiable, Insertable, Hello)]
+#[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
+#[reserved_ranges(1 to 8)]
+// #[reserved_nrs(1, 2, 3, 4, 5, 6, 7)]
 pub struct Pokemon {
   pub id: i32,
   pub name: String,
@@ -15,6 +15,7 @@ pub struct Pokemon {
   pub prev_evolution_id: Option<i32>,
   pub description: String,
   pub image_data_id: i32,
+  #[field_nr(100)]
   pub base_stats_id: i32,
 }
 
