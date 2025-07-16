@@ -6,7 +6,7 @@ use serde::Deserialize;
 // DB MODELS
 
 #[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
-#[reserved_ranges(1 to 8)]
+#[reserved_ranges(1 to 5, 8 to 12)]
 // #[reserved_nrs(1, 2, 3, 4, 5, 6, 7)]
 pub struct Pokemon {
   pub id: i32,
