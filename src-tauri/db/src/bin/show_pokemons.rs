@@ -146,22 +146,18 @@ fn select_pokemon() -> AppResult<()> {
     .filter(pokemons::id.eq(2))
     .select(Pokemon::as_select())
     .get_result(conn)?;
-  println!("Pokemon data: {:#?}", poke_data);
 
   let base_stats = BaseStat::belonging_to(&poke_data)
     .select(BaseStat::as_select())
     .get_result(conn)?;
-  println!("Base Stats: {:#?}", base_stats);
   let img_data = ImageData::belonging_to(&poke_data)
     .select(ImageData::as_select())
     .get_result(conn)?;
 
-  println!("Image data: {:#?}", img_data);
   let poke_types = PokemonType::belonging_to(&poke_data)
     .inner_join(types::table)
     .select(types::name)
     .load::<String>(conn)?;
-  println!("Types: {:#?}", poke_types);
 
   let complete_data = PokeData {
     pokemon: poke_data,
@@ -173,8 +169,32 @@ fn select_pokemon() -> AppResult<()> {
   Ok(())
 }
 
+fn complex_queries() -> AppResult<()> {
+  let conn = &mut establish_connection();
+  let pokemon_with_types = pokemon_types::table
+    .inner_join(types::table)
+    .inner_join(pokemons::table);
+
+  let grass_pokemons = pokemon_with_types
+    .filter(types::name.eq("Grass"))
+    .select(pokemons::name)
+    .limit(5)
+    .load::<String>(conn)?;
+  println!("Grass pokemons: {:#?}", grass_pokemons);
+
+  let fire_pokemons = pokemon_with_types
+    .filter(types::name.eq("Fire"))
+    .select(pokemons::name)
+    .limit(5)
+    .load::<String>(conn)?;
+  println!("Fire pokemons: {:#?}", fire_pokemons);
+
+  Ok(())
+}
+
 fn main() -> AppResult<()> {
   // insert_pokemons()?;
-  select_pokemon()?;
+  // select_pokemon()?;
+  complex_queries()?;
   Ok(())
 }
