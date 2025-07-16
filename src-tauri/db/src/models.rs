@@ -1,8 +1,22 @@
 use crate::schema::*;
 use diesel::prelude::*;
+use macro_impl::macros::debug_print_fields;
+use macro_impl::macros::Hello;
 use serde::Deserialize;
 
 // DB MODELS
+
+#[debug_print_fields]
+#[derive(Queryable, Selectable, Debug, Identifiable, Insertable, Hello)]
+pub struct Pokemon {
+  pub id: i32,
+  pub name: String,
+  pub next_evolution_id: Option<i32>,
+  pub prev_evolution_id: Option<i32>,
+  pub description: String,
+  pub image_data_id: i32,
+  pub base_stats_id: i32,
+}
 
 #[derive(Queryable, Identifiable, Associations, Insertable, Selectable, Debug)]
 #[diesel(belongs_to(Pokemon))]
@@ -38,17 +52,6 @@ pub struct ImageData {
 pub struct PokemonType {
   pub pokemon_id: i32,
   pub type_id: i32,
-}
-
-#[derive(Queryable, Selectable, Debug, Identifiable, Insertable)]
-pub struct Pokemon {
-  pub id: i32,
-  pub name: String,
-  pub next_evolution_id: Option<i32>,
-  pub prev_evolution_id: Option<i32>,
-  pub description: String,
-  pub image_data_id: i32,
-  pub base_stats_id: i32,
 }
 
 #[derive(Queryable, Selectable, Debug, Insertable, Identifiable)]

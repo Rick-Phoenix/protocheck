@@ -1,0 +1,9 @@
+[package]
+name = "macro_impl"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+
+[dependencies]
+pr_macro = { path = "../pr_macro/" }

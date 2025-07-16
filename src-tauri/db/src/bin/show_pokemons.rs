@@ -7,6 +7,7 @@ use db::schema::pokemons;
 use db::schema::types;
 use db::schema::{image_data, pokemon_types};
 use diesel::prelude::*;
+use macro_impl::Hello;
 use serde_json;
 use std::fs;
 
@@ -143,9 +144,12 @@ struct PokeData {
 fn select_pokemon() -> AppResult<()> {
   let conn = &mut establish_connection();
   let poke_data: Pokemon = pokemons::table
-    .filter(pokemons::id.eq(2))
+    .filter(pokemons::id.eq(1))
     .select(Pokemon::as_select())
     .get_result(conn)?;
+
+  poke_data.debug_print();
+  poke_data.hello();
 
   let base_stats = BaseStat::belonging_to(&poke_data)
     .select(BaseStat::as_select())
@@ -194,7 +198,7 @@ fn complex_queries() -> AppResult<()> {
 
 fn main() -> AppResult<()> {
   // insert_pokemons()?;
-  // select_pokemon()?;
-  complex_queries()?;
+  select_pokemon()?;
+  // complex_queries()?;
   Ok(())
 }
