@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
+use syn::parenthesized;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
 use syn::punctuated::Punctuated;
@@ -73,7 +74,7 @@ impl Parse for RangesAttribute {
 
 #[proc_macro_derive(
   ProtoMessage,
-  attributes(field_nr, reserved_nrs, reserved_ranges, reserved_names)
+  attributes(field_nr, reserved_nrs, reserved_ranges, reserved_names, protoschema)
 )]
 pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
   // DeriveInput is a special syn struct designed for parsing `#[derive]` input.
@@ -118,37 +119,33 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           }
         }
       }
-      if attr.path().is_ident("reserved_ranges") {
-        match attr.parse_args_with(RangesAttribute::parse) {
-          Ok(parsed_attr) => {
+      if attr.path().is_ident("protoschema") {
+        match attr.parse_nested_meta(|meta| {
+          if meta.path.is_ident("reserved_ranges") {
+            let content;
+
+            parenthesized!(content in meta.input);
+            let parsed_attr = content.parse::<RangesAttribute>()?;
             for range in parsed_attr.ranges {
-              let start_val = match range.start.base10_parse::<i32>() {
-                Ok(val) => val,
-                Err(e) => {
-                  return syn::Error::new_spanned(
-                    &range.start,
-                    format!("Invalid start number: {}", e),
-                  )
-                  .to_compile_error()
-                  .into()
-                }
-              };
-              let end_val = match range.end.base10_parse::<i32>() {
-                Ok(val) => val,
-                Err(e) => {
-                  return syn::Error::new_spanned(&range.end, format!("Invalid end number: {}", e))
-                    .to_compile_error()
-                    .into()
-                }
-              };
+              let start_val = range.start.base10_parse::<i32>()?;
+              let end_val = range.end.base10_parse::<i32>()?;
 
               for n in start_val..=end_val {
                 reserved_nums.insert(n);
               }
             }
-          }
+          } else {
+            return Err(meta.error(format!(
+              "unrecognized `protoschema` argument `{}`",
+              meta.path.to_token_stream()
+            )));
+          };
+
+          Ok(())
+        }) {
           Err(e) => return e.to_compile_error().into(),
-        }
+          _ => {}
+        };
       }
     }
     if let syn::Fields::Named(fields_named) = &data_struct.fields {
