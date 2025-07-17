@@ -7,15 +7,15 @@ use serde::Deserialize;
 
 #[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
 #[protoschema(reserved_ranges(1 to 5, 8 to 12))]
-// #[reserved_nrs(1, 2, 3, 4, 5, 6, 7)]
 pub struct Pokemon {
   pub id: i32,
   pub name: String,
   pub next_evolution_id: Option<i32>,
   pub prev_evolution_id: Option<i32>,
   pub description: String,
+  #[protoschema(proto_type = something)]
   pub image_data_id: i32,
-  #[field_nr(100)]
+  #[field_num(100)]
   pub base_stats_id: i32,
 }
 

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub mod macros {
   pub use pr_macro::*;
 }
@@ -8,5 +10,13 @@ pub trait ProtoMessage {
 
 #[derive(Debug)]
 pub struct MessageData {
-  pub fields: Vec<(i32, String, String)>,
+  pub fields: HashMap<String, ProtoField>,
+}
+
+#[derive(Debug)]
+pub struct ProtoField {
+  pub field_num: i32,
+  pub name: String,
+  pub rust_type: String,
+  pub proto_type: String,
 }

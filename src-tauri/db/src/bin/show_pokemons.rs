@@ -7,7 +7,7 @@ use db::schema::pokemons;
 use db::schema::types;
 use db::schema::{image_data, pokemon_types};
 use diesel::prelude::*;
-use macro_impl::Hello;
+use macro_impl::ProtoMessage;
 use serde_json;
 use std::fs;
 
@@ -148,9 +148,6 @@ fn select_pokemon() -> AppResult<()> {
     .select(Pokemon::as_select())
     .get_result(conn)?;
 
-  poke_data.debug_print();
-  poke_data.hello();
-
   let base_stats = BaseStat::belonging_to(&poke_data)
     .select(BaseStat::as_select())
     .get_result(conn)?;
@@ -170,6 +167,18 @@ fn select_pokemon() -> AppResult<()> {
     images: img_data,
   };
   println!("Complete data: {:#?}", complete_data);
+  Ok(())
+}
+
+fn test_macro() -> AppResult<()> {
+  let conn = &mut establish_connection();
+  let poke_data: Pokemon = pokemons::table
+    .filter(pokemons::id.eq(1))
+    .select(Pokemon::as_select())
+    .get_result(conn)?;
+
+  let fields = poke_data.get_fields();
+  println!("Fields: {:#?}", fields);
   Ok(())
 }
 
@@ -198,7 +207,8 @@ fn complex_queries() -> AppResult<()> {
 
 fn main() -> AppResult<()> {
   // insert_pokemons()?;
-  select_pokemon()?;
+  // select_pokemon()?;
   // complex_queries()?;
+  test_macro()?;
   Ok(())
 }

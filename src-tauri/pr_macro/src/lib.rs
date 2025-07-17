@@ -5,11 +5,11 @@ use quote::{quote, ToTokens};
 use syn::parenthesized;
 use syn::parse::Parse;
 use syn::parse::ParseStream;
+use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 use syn::LitInt;
 use syn::LitStr;
 use syn::Token;
-use syn::{parse_macro_input, Type};
 
 struct NumbersAttribute {
   numbers: Punctuated<LitInt, Token![,]>,
@@ -74,7 +74,7 @@ impl Parse for RangesAttribute {
 
 #[proc_macro_derive(
   ProtoMessage,
-  attributes(field_nr, reserved_nrs, reserved_ranges, reserved_names, protoschema)
+  attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
 )]
 pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
   // DeriveInput is a special syn struct designed for parsing `#[derive]` input.
@@ -84,7 +84,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
   let name = &input_ast.ident;
 
   let mut field_info = Vec::new();
-  let mut field_nr = 1;
+  let mut field_index = 1;
 
   let mut reserved_nums: HashSet<i32> = HashSet::new();
   let mut reserved_names: Vec<String> = Vec::new();
@@ -101,7 +101,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           Err(e) => return e.to_compile_error().into(),
         }
       }
-      if attr.path().is_ident("reserved_nrs") {
+      if attr.path().is_ident("reserved_nums") {
         match attr.parse_args_with(NumbersAttribute::parse) {
           Ok(parsed_numbers) => {
             for int_lit in parsed_numbers.numbers {
@@ -150,19 +150,19 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     }
     if let syn::Fields::Named(fields_named) = &data_struct.fields {
       for field in &fields_named.named {
-        let mut field_num = field_nr;
+        let mut field_num = field_index;
         let mut increase_nr = true;
+        let mut skip_field = false;
         let field_name_ident = field
           .ident
           .as_ref()
           .expect("Named fields must have an identifier");
 
-        let field_type: &Type = &field.ty;
-
-        let field_type_str = field_type.to_token_stream().to_string();
+        let field_type = field.ty.to_token_stream().to_string();
+        let mut proto_type = field_type.clone();
 
         for attr in &field.attrs {
-          if attr.path().is_ident("field_nr") {
+          if attr.path().is_ident("field_num") {
             match attr.parse_args::<LitInt>() {
               Ok(lit_int) => match lit_int.base10_parse::<i32>() {
                 Ok(num) => {
@@ -178,7 +178,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
                   return syn::Error::new_spanned(
                     attr,
                     format!(
-                      "Invalid 'field_nr' value: expected an integer, got parsing error: {}",
+                      "Invalid 'field_num' value: expected an integer, got parsing error: {}",
                       e
                     ),
                   )
@@ -188,25 +188,62 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
               },
               Err(e) => {
                 return syn::Error::new_spanned(
-                                    attr,
-                                    format!("Invalid 'field_nr' attribute: expected `#[field_nr = NUMBER]`, got parsing error: {}", e)
-                                ).to_compile_error().into();
+                  attr,
+                  format!("Invalid 'field_num' attribute: {}", e),
+                )
+                .to_compile_error()
+                .into();
               }
+            };
+          } else if attr.path().is_ident("protoschema") {
+            match attr.parse_nested_meta(|meta| {
+              if meta.path.is_ident("ignore") {
+                skip_field = true;
+              } else if meta.path.is_ident("proto_type") {
+                if meta.input.peek(Token![=]) {
+                  let value_stream = meta.value()?;
+                  let parsed_proto_type: syn::Path = value_stream.parse()?;
+                  proto_type = parsed_proto_type.to_token_stream().to_string();
+                }
+              } else {
+                return Err(meta.error(format!(
+                  "unrecognized `protoschema` argument `{}`",
+                  meta.path.to_token_stream()
+                )));
+              };
+
+              Ok(())
+            }) {
+              Err(e) => return e.to_compile_error().into(),
+              _ => {}
             };
           };
         }
 
-        while reserved_nums.contains(&field_num) {
-          field_num = field_num + 1;
-          field_nr = field_nr + 1;
+        if skip_field {
+          continue;
         }
 
-        field_info.push(quote! {
-          (#field_num, stringify!(#field_name_ident).to_string(), #field_type_str.to_string())
-        });
+        while reserved_nums.contains(&field_num) {
+          field_num = field_num + 1;
+          field_index = field_index + 1;
+        }
+
+        field_info.push(quote! (
+          (
+            stringify!(#field_name_ident).to_string(),
+
+            macro_impl::ProtoField {
+              field_num: #field_num,
+              name: stringify!(#field_name_ident).to_string(),
+              rust_type: #field_type.to_string(),
+              proto_type: #proto_type.to_string(),
+            }
+          )
+        ));
 
         if increase_nr {
-          field_nr = field_nr + 1;
+          field_index = field_index + 1;
         }
       }
     };
@@ -218,7 +255,9 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     impl #impl_generics macro_impl::ProtoMessage for #name #ty_generics #where_clause {
       fn get_fields(&self) -> macro_impl::MessageData {
         macro_impl::MessageData {
-          fields: vec![#(#field_info),*],
+          fields: vec![ #(#field_info),* ]
+          .into_iter()
+          .collect::<std::collections::HashMap<String, macro_impl::ProtoField>>(),
         }
       }
     }
