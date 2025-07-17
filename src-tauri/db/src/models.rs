@@ -6,13 +6,10 @@ use serde::Deserialize;
 // DB MODELS
 
 #[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
-#[protoschema(reserved_ranges(1 to 5, 8 to 12))]
-#[reserved_names(name1, name2)]
-#[protoschema(message_name = PokemonMsg)]
 #[protoschema(config = {
-  field1 = "something",
-  field2 = 3,
-  other_field = true,
+  message_name = PokemonMsg,
+  reserved_ranges = [1 to 5, 8 to 12],
+  reserved_names = [name1, name2],
 })]
 pub struct Pokemon {
   pub id: i32,
