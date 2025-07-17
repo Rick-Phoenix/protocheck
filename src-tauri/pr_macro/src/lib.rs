@@ -477,6 +477,10 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           reserved_names: vec![ #(#reserved_names.to_string()),* ],
         }
       }
+
+      fn get_name(&self) -> &str {
+        #message_name
+      }
     }
   };
 

@@ -38,6 +38,7 @@ pub mod macros {
 pub trait ProtoMessage {
   fn data(&self) -> MessageData;
   fn fields(&self) -> HashMap<String, ProtoField>;
+  fn get_name(&self) -> &str;
 }
 
 #[derive(Debug)]
