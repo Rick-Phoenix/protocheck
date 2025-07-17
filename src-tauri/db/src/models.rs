@@ -7,6 +7,13 @@ use serde::Deserialize;
 
 #[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
 #[protoschema(reserved_ranges(1 to 5, 8 to 12))]
+#[reserved_names(name1, name2)]
+#[protoschema(message_name = PokemonMsg)]
+#[protoschema(config = {
+  field1 = "something",
+  field2 = 3,
+  other_field = true,
+})]
 pub struct Pokemon {
   pub id: i32,
   pub name: String,
@@ -14,6 +21,14 @@ pub struct Pokemon {
   pub prev_evolution_id: Option<i32>,
   pub description: String,
   #[protoschema(proto_type = something)]
+  #[rustfmt::skip]
+  #[protoschema(options = { 
+    something = 2,
+    deprecated = true,
+    field = "something",
+    list = [ 1, 2, 3 ],
+    nested = { keys: { string: { required: true } } },
+  })]
   pub image_data_id: i32,
   #[field_num(100)]
   pub base_stats_id: i32,

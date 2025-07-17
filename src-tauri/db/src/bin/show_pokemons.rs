@@ -177,7 +177,7 @@ fn test_macro() -> AppResult<()> {
     .select(Pokemon::as_select())
     .get_result(conn)?;
 
-  let fields = poke_data.get_fields();
+  let fields = poke_data.data();
   println!("Fields: {:#?}", fields);
   Ok(())
 }

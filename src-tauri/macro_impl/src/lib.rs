@@ -5,12 +5,17 @@ pub mod macros {
 }
 
 pub trait ProtoMessage {
-  fn get_fields(&self) -> MessageData;
+  fn data(&self) -> MessageData;
+  fn fields(&self) -> HashMap<String, ProtoField>;
 }
 
 #[derive(Debug)]
 pub struct MessageData {
+  pub name: String,
   pub fields: HashMap<String, ProtoField>,
+  pub reserved_nums: Vec<i32>,
+  pub reserved_ranges: Vec<(i32, i32)>,
+  pub reserved_names: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -19,4 +24,5 @@ pub struct ProtoField {
   pub name: String,
   pub rust_type: String,
   pub proto_type: String,
+  pub options: Option<String>,
 }

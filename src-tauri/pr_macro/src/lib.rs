@@ -1,6 +1,10 @@
 use std::collections::HashSet;
+use syn::braced;
+use syn::Ident;
+use syn::LitStr;
 
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
 use syn::parenthesized;
 use syn::parse::Parse;
@@ -8,8 +12,67 @@ use syn::parse::ParseStream;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 use syn::LitInt;
-use syn::LitStr;
 use syn::Token;
+
+#[derive(Default, Debug)]
+struct ConfigValues {
+  pub field1: String,
+  pub field2: i32,
+  pub other_field: Option<bool>,
+}
+
+struct MyMacroConfig {
+  pub values: ConfigValues,
+}
+
+impl Parse for MyMacroConfig {
+  fn parse(input: ParseStream) -> syn::Result<Self> {
+    let mut values = ConfigValues::default();
+
+    while !input.is_empty() {
+      let key_ident: Ident = input.parse()?;
+
+      // 2. Parse the `=` token
+      input.parse::<Token![=]>()?;
+
+      let key_string = key_ident.to_string();
+      match key_string.as_str() {
+        "field1" => {
+          let lit_str: LitStr = input.parse()?;
+          values.field1 = lit_str.value();
+        }
+        "field2" => {
+          let lit_int: LitInt = input.parse()?;
+          values.field2 = lit_int.base10_parse::<i32>()?;
+        }
+        "other_field" => {
+          let lit_bool = input.parse::<syn::LitBool>()?;
+          values.other_field = Some(lit_bool.value());
+        }
+        _ => {
+          return Err(syn::Error::new_spanned(
+            key_ident,
+            format!("unrecognized configuration key {}", key_string),
+          ));
+        }
+      }
+
+      if !input.is_empty() {
+        input.parse::<Token![,]>()?;
+      }
+    }
+
+    if !input.is_empty() {
+      input.parse::<Token![,]>()?;
+    }
+
+    if !input.is_empty() {
+      return Err(input.error("expected trailing comma or end of input"));
+    }
+
+    Ok(MyMacroConfig { values })
+  }
+}
 
 struct NumbersAttribute {
   numbers: Punctuated<LitInt, Token![,]>,
@@ -24,7 +87,7 @@ impl Parse for NumbersAttribute {
 }
 
 struct StringsAttribute {
-  strings: Punctuated<LitStr, Token![,]>,
+  strings: Punctuated<Ident, Token![,]>,
 }
 
 impl Parse for StringsAttribute {
@@ -81,31 +144,25 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
 
   let input_ast = parse_macro_input!(input as syn::DeriveInput);
 
-  let name = &input_ast.ident;
+  let struct_name = &input_ast.ident;
 
   let mut field_info = Vec::new();
   let mut field_index = 1;
 
+  let mut message_name = struct_name.clone().to_string();
   let mut reserved_nums: HashSet<i32> = HashSet::new();
+  let mut reserved_nums_original: Vec<i32> = Vec::new();
+  let mut reserved_ranges: Vec<(i32, i32)> = Vec::new();
   let mut reserved_names: Vec<String> = Vec::new();
 
   if let syn::Data::Struct(data_struct) = &input_ast.data {
     for attr in input_ast.attrs {
-      if attr.path().is_ident("reserved_names") {
-        match attr.parse_args_with(StringsAttribute::parse) {
-          Ok(parsed_strings) => {
-            for str in parsed_strings.strings {
-              reserved_names.push(str.value());
-            }
-          }
-          Err(e) => return e.to_compile_error().into(),
-        }
-      }
       if attr.path().is_ident("reserved_nums") {
         match attr.parse_args_with(NumbersAttribute::parse) {
           Ok(parsed_numbers) => {
             for int_lit in parsed_numbers.numbers {
               if let Ok(num) = int_lit.base10_parse::<i32>() {
+                reserved_nums_original.push(num);
                 reserved_nums.insert(num);
               } else {
                 return syn::Error::new_spanned(int_lit, "Expected an integer literal")
@@ -121,6 +178,9 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
       }
       if attr.path().is_ident("protoschema") {
         match attr.parse_nested_meta(|meta| {
+          if meta.input.peek(syn::token::Paren) {
+            println!("Got it")
+          }
           if meta.path.is_ident("reserved_ranges") {
             let content;
 
@@ -133,6 +193,27 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
               for n in start_val..=end_val {
                 reserved_nums.insert(n);
               }
+
+              reserved_ranges.push((start_val, end_val));
+            }
+          } else if meta.path.is_ident("reserved_names") {
+            let content;
+
+            parenthesized!(content in meta.input);
+            let parsed_strings = content.parse::<StringsAttribute>()?;
+            for str in parsed_strings.strings {
+              reserved_names.push(str.to_string());
+            }
+          } else if meta.input.peek(Token![=]) {
+            let value_tokens = meta.value()?;
+            if meta.path.is_ident("message_name") {
+              let parsed_name: syn::Path = value_tokens.parse()?;
+              message_name = parsed_name.to_token_stream().to_string();
+            } else if meta.path.is_ident("config") {
+              let content;
+              braced!(content in value_tokens);
+              let parsed_config: MyMacroConfig = syn::parse2(content.parse()?)?;
+              println!("{:#?}", parsed_config.values);
             }
           } else {
             return Err(meta.error(format!(
@@ -151,6 +232,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     if let syn::Fields::Named(fields_named) = &data_struct.fields {
       for field in &fields_named.named {
         let mut field_num = field_index;
+        let mut options: Option<proc_macro2::TokenStream> = None;
         let mut increase_nr = true;
         let mut skip_field = false;
         let field_name_ident = field
@@ -205,6 +287,13 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
                   let parsed_proto_type: syn::Path = value_stream.parse()?;
                   proto_type = parsed_proto_type.to_token_stream().to_string();
                 }
+              } else if meta.path.is_ident("options") {
+                if meta.input.peek(Token![=]) {
+                  let value = meta.value()?;
+                  let content;
+                  braced!(content in value);
+                  options = Some(content.parse::<proc_macro2::TokenStream>()?);
+                }
               } else {
                 return Err(meta.error(format!(
                   "unrecognized `protoschema` argument `{}`",
@@ -229,6 +318,16 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           field_index = field_index + 1;
         }
 
+        let parsed_options = match &options {
+          Some(tokens) => {
+            let tokens_string = tokens.to_string();
+            quote! { Some(format!("[{}]", #tokens_string)) }
+          }
+          None => {
+            quote! { None }
+          }
+        };
+
         field_info.push(quote! (
           (
             stringify!(#field_name_ident).to_string(),
@@ -238,7 +337,8 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
               name: stringify!(#field_name_ident).to_string(),
               rust_type: #field_type.to_string(),
               proto_type: #proto_type.to_string(),
-            }
+              options: #parsed_options,
+            },
           )
         ));
 
@@ -251,17 +351,34 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
 
   let (impl_generics, ty_generics, where_clause) = input_ast.generics.split_for_impl();
 
+  let ranges_tokens: Vec<TokenStream2> = reserved_ranges
+    .into_iter()
+    .map(|(a, b)| {
+      quote! { (#a, #b) }
+    })
+    .collect();
+
   let output = quote! {
-    impl #impl_generics macro_impl::ProtoMessage for #name #ty_generics #where_clause {
-      fn get_fields(&self) -> macro_impl::MessageData {
-        macro_impl::MessageData {
-          fields: vec![ #(#field_info),* ]
+    impl #impl_generics macro_impl::ProtoMessage for #struct_name #ty_generics #where_clause {
+      fn fields(&self) -> std::collections::HashMap<String, macro_impl::ProtoField> {
+        vec![ #(#field_info),* ]
           .into_iter()
-          .collect::<std::collections::HashMap<String, macro_impl::ProtoField>>(),
+          .collect::<std::collections::HashMap<String, macro_impl::ProtoField>>()
+      }
+
+      fn data(&self) -> macro_impl::MessageData {
+        macro_impl::MessageData {
+          name: #message_name.to_string(),
+          fields: self.fields(),
+          reserved_nums: vec![ #(#reserved_nums_original),* ],
+          reserved_ranges: vec![ #(#ranges_tokens),* ],
+          reserved_names: vec![ #(#reserved_names.to_string()),* ],
         }
       }
     }
   };
+
+  eprintln!("{}", output.to_string());
 
   output.into()
 }
