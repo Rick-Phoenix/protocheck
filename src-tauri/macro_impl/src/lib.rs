@@ -2,6 +2,37 @@ use std::collections::HashMap;
 
 pub mod macros {
   pub use pr_macro::*;
+
+  #[macro_export]
+  macro_rules! reserved_numbers {
+    () => {
+        String::new()
+    };
+
+    ($num:literal, $($rest:tt)*) => {{
+        let mut s = String::new();
+        s.push_str(stringify!($num));
+        s.push_str(", ");
+        s.push_str(&$crate::reserved_numbers!($($rest)*));
+        s
+    }};
+
+    ($start:literal to $end:literal, $($rest:tt)*) => {{
+        let mut s = String::new();
+        s.push_str(stringify!($start to $end));
+        s.push_str(", ");
+        s.push_str(&$crate::reserved_numbers!($($rest)*));
+        s
+    }};
+
+    ($num:literal) => {
+        stringify!($num).to_string()
+    };
+
+    ($start:literal to $end:literal) => {
+        stringify!($start to $end).to_string()
+    };
+}
 }
 
 pub trait ProtoMessage {
