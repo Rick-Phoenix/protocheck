@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::collections::HashSet;
 use syn::braced;
 use syn::bracketed;
@@ -12,6 +13,35 @@ use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 use syn::LitInt;
 use syn::Token;
+use syn::Type;
+use syn::TypePath;
+
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+  static ref RUST_TO_PROTO_MAP: HashMap<String, String> = {
+    let mut type_map = HashMap::new();
+
+    type_map.insert("String".to_string(), "string".to_string());
+    type_map.insert("bool".to_string(), "bool".to_string());
+    type_map.insert("f32".to_string(), "float".to_string());
+    type_map.insert("f64".to_string(), "double".to_string());
+
+    type_map.insert("i8".to_string(), "int32".to_string());
+    type_map.insert("u8".to_string(), "uint32".to_string());
+    type_map.insert("i16".to_string(), "int32".to_string());
+    type_map.insert("u16".to_string(), "uint32".to_string());
+    type_map.insert("i32".to_string(), "int32".to_string());
+    type_map.insert("u32".to_string(), "uint32".to_string());
+    type_map.insert("i64".to_string(), "int64".to_string());
+    type_map.insert("u64".to_string(), "uint64".to_string());
+    type_map.insert("isize".to_string(), "int64".to_string());
+    type_map.insert("usize".to_string(), "uint64".to_string());
+
+    type_map
+  };
+}
 
 #[derive(Default, Debug)]
 struct ConfigValues {
@@ -43,7 +73,10 @@ impl Parse for MacroConfig {
           values.message_name = parsed_name.to_token_stream().to_string();
         }
         "reserved_nums" => {
-          let parsed_nums = input.parse::<NumbersAttribute>()?;
+          let content;
+
+          bracketed!(content in input);
+          let parsed_nums = content.parse::<NumbersAttribute>()?;
           for int_lit in parsed_nums.numbers {
             if let Ok(num) = int_lit.base10_parse::<i32>() {
               values.reserved_nums.push(num);
@@ -169,6 +202,88 @@ impl Parse for RangesAttribute {
   }
 }
 
+#[derive(Default)]
+struct ProtoTypeInfo {
+  pub proto_type: String,
+  pub is_repeated: bool,
+  pub is_optional: bool,
+}
+
+fn get_proto_type_info(ty: &Type) -> ProtoTypeInfo {
+  let mut info = ProtoTypeInfo::default();
+  let mut base_type = String::default();
+  let mut first_arg = String::default();
+  let mut second_arg = String::default();
+  let mut i = 0;
+
+  // 1. Ensure the type is a TypePath (e.g., `std::collections::Vec`, `Option`, `i32`)
+  if let Type::Path(TypePath { path, .. }) = ty {
+    // 2. Get the last segment of the path (e.g., `Vec` from `std::collections::Vec`)
+    if let Some(segment) = path.segments.last() {
+      base_type = segment.ident.to_string();
+
+      // 3. Check for angle bracketed arguments (generics like `<T>` or `<K, V>`)
+      if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+        for arg in &args.args {
+          if let syn::GenericArgument::Type(ty_arg) = arg {
+            let segment = ty_arg.to_token_stream().to_string();
+            match i {
+              0 => first_arg = segment,
+              1 => second_arg = segment,
+              _ => {}
+            }
+
+            if i >= 1 {
+              break;
+            }
+          }
+
+          i = i + 1
+        }
+      }
+    }
+  }
+
+  let inner_type = get_proto_type(&first_arg).unwrap_or(first_arg);
+
+  let base_t: &str = &base_type;
+  match base_t {
+    "Option" => {
+      info.is_optional = true;
+      info.proto_type = inner_type;
+    }
+    "Vec" => {
+      info.is_repeated = true;
+      if inner_type == "u8" {
+        info.proto_type = "bytes".to_string();
+      } else {
+        info.proto_type = inner_type;
+      }
+    }
+    "HashMap" => {
+      let values_type = get_proto_type(&second_arg).unwrap_or(second_arg);
+      info.proto_type = format!("map<{}, {}>", inner_type, values_type);
+    }
+    other => match RUST_TO_PROTO_MAP.get(other) {
+      Some(ty) => {
+        info.proto_type = ty.to_string();
+      }
+      None => {
+        info.proto_type = other.to_string();
+      }
+    },
+  };
+
+  info
+}
+
+fn get_proto_type(rust_type: &str) -> Option<String> {
+  match RUST_TO_PROTO_MAP.get(rust_type) {
+    Some(ty) => Some(ty.clone()),
+    None => None,
+  }
+}
+
 #[proc_macro_derive(
   ProtoMessage,
   attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
@@ -180,8 +295,8 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
 
   let struct_name = &input_ast.ident;
 
-  let mut field_info = Vec::new();
-  let mut field_index = 1;
+  let mut fields_info = Vec::new();
+  let mut fields_index = 1;
 
   let mut config = MacroConfig::default();
 
@@ -192,8 +307,8 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           if meta.input.peek(syn::token::Paren) {
             println!("Got it")
           }
-          if meta.path.is_ident("config") {
-            if meta.input.peek(Token![=]) {
+          if meta.input.peek(Token![=]) {
+            if meta.path.is_ident("config") {
               let content;
               let value_tokens = meta.value()?;
               braced!(content in value_tokens);
@@ -216,56 +331,40 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     }
     if let syn::Fields::Named(fields_named) = &data_struct.fields {
       for field in &fields_named.named {
-        let mut field_num = field_index;
+        let mut field_num = fields_index;
         let mut options: Option<proc_macro2::TokenStream> = None;
-        let mut increase_nr = true;
+        let mut is_index = true;
         let mut skip_field = false;
         let field_name_ident = field
           .ident
           .as_ref()
           .expect("Named fields must have an identifier");
 
-        let field_type = field.ty.to_token_stream().to_string();
-        let mut proto_type = field_type.clone();
+        let field_type = &field.ty;
+
+        let field_type_full = field_type.to_token_stream().to_string();
+
+        let ProtoTypeInfo {
+          mut proto_type,
+          is_repeated,
+          is_optional,
+        } = get_proto_type_info(field_type);
 
         for attr in &field.attrs {
-          if attr.path().is_ident("field_num") {
-            match attr.parse_args::<LitInt>() {
-              Ok(lit_int) => match lit_int.base10_parse::<i32>() {
-                Ok(num) => {
-                  if num != field_num {
-                    field_num = num;
-                    config.values.reserved_nums_set.insert(num);
-                    increase_nr = false;
-                  }
-
-                  break;
-                }
-                Err(e) => {
-                  return syn::Error::new_spanned(
-                    attr,
-                    format!(
-                      "Invalid 'field_num' value: expected an integer, got parsing error: {}",
-                      e
-                    ),
-                  )
-                  .to_compile_error()
-                  .into();
-                }
-              },
-              Err(e) => {
-                return syn::Error::new_spanned(
-                  attr,
-                  format!("Invalid 'field_num' attribute: {}", e),
-                )
-                .to_compile_error()
-                .into();
-              }
-            };
-          } else if attr.path().is_ident("protoschema") {
+          if attr.path().is_ident("protoschema") {
             match attr.parse_nested_meta(|meta| {
               if meta.path.is_ident("ignore") {
                 skip_field = true;
+              } else if meta.path.is_ident("field_num") {
+                if meta.input.peek(Token![=]) {
+                  let value_tokens = meta.value()?;
+                  let parsed_int = value_tokens.parse::<LitInt>()?;
+                  let num = parsed_int.base10_parse::<i32>()?;
+                  if num != field_num {
+                    field_num = num;
+                    is_index = false;
+                  }
+                }
               } else if meta.path.is_ident("proto_type") {
                 if meta.input.peek(Token![=]) {
                   let value_stream = meta.value()?;
@@ -298,10 +397,14 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           continue;
         }
 
-        while config.values.reserved_nums_set.contains(&field_num) {
-          field_num = field_num + 1;
-          field_index = field_index + 1;
+        if is_index {
+          while config.values.reserved_nums_set.contains(&field_num) {
+            field_num = field_num + 1;
+            fields_index = fields_index + 1;
+          }
         }
+
+        config.values.reserved_nums_set.insert(field_num);
 
         let parsed_options = match &options {
           Some(tokens) => {
@@ -313,22 +416,24 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
           }
         };
 
-        field_info.push(quote! (
+        fields_info.push(quote! (
           (
             stringify!(#field_name_ident).to_string(),
 
             macro_impl::ProtoField {
               field_num: #field_num,
               name: stringify!(#field_name_ident).to_string(),
-              rust_type: #field_type.to_string(),
+              rust_type: #field_type_full.to_string(),
               proto_type: #proto_type.to_string(),
               options: #parsed_options,
+              repeated: #is_repeated,
+              optional: #is_optional,
             },
           )
         ));
 
-        if increase_nr {
-          field_index = field_index + 1;
+        if is_index {
+          fields_index = fields_index + 1;
         }
       }
     };
@@ -358,7 +463,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
   let output = quote! {
     impl #impl_generics macro_impl::ProtoMessage for #struct_name #ty_generics #where_clause {
       fn fields(&self) -> std::collections::HashMap<String, macro_impl::ProtoField> {
-        vec![ #(#field_info),* ]
+        vec![ #(#fields_info),* ]
           .into_iter()
           .collect::<std::collections::HashMap<String, macro_impl::ProtoField>>()
       }

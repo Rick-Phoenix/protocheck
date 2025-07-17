@@ -25,4 +25,6 @@ pub struct ProtoField {
   pub rust_type: String,
   pub proto_type: String,
   pub options: Option<String>,
+  pub repeated: bool,
+  pub optional: bool,
 }

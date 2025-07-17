@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::schema::*;
 use diesel::prelude::*;
 use macro_impl::macros::ProtoMessage;
@@ -5,11 +7,21 @@ use serde::Deserialize;
 
 // DB MODELS
 
+#[derive(ProtoMessage)]
+pub struct Test {
+  pub items: Vec<i32>,
+  pub map: HashMap<i32, Pokemon>,
+  pub optional: Option<i32>,
+  pub invalid: Option<Vec<String>>,
+}
+
 #[derive(Queryable, Selectable, Debug, Identifiable, Insertable, ProtoMessage)]
+#[rustfmt::skip]
 #[protoschema(config = {
   message_name = PokemonMsg,
   reserved_ranges = [1 to 5, 8 to 12],
   reserved_names = [name1, name2],
+  reserved_nums = [15,20],
 })]
 pub struct Pokemon {
   pub id: i32,
@@ -27,7 +39,7 @@ pub struct Pokemon {
     nested = { keys: { string: { required: true } } },
   })]
   pub image_data_id: i32,
-  #[field_num(100)]
+  #[protoschema(field_num = 100)]
   pub base_stats_id: i32,
 }
 
