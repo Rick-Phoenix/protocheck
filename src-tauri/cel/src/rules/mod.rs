@@ -12,7 +12,9 @@ use prost_reflect::{DescriptorPool, ExtensionDescriptor, MessageDescriptor, Valu
 
 pub mod bool_rules;
 pub mod bytes_rules;
+pub mod enum_rules;
 pub mod numeric_rules;
+pub mod repeated_rules;
 pub mod string_rules;
 
 #[derive(Debug, Clone)]
@@ -69,12 +71,18 @@ lazy_static! {
 }
 
 pub fn get_field_rules(
-  pool: &DescriptorPool,
   rules_type: &validate::field_rules::Type,
 ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   match rules_type {
     field_rules::Type::String(string_rules) => string_rules::get_string_rules(string_rules),
-    field_rules::Type::Int64(int64_rules) => numeric_rules::get_numeric_rules::<i64>(int64_rules),
+    field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(int64_rules),
+    field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(int32_rules),
+    field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(bytes_rules),
+    field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(bool_rules),
+    field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(enum_rules),
+    field_rules::Type::Repeated(repeated_rules) => {
+      repeated_rules::get_repeated_rules(repeated_rules)
+    }
     _ => Ok(Vec::new()),
   }
 }

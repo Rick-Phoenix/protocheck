@@ -3,7 +3,7 @@ use super::CelRule;
 use crate::buf::validate::BoolRules;
 use crate::rules::CelRuleValue;
 
-pub fn get_bool_rules(bool_rules: BoolRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
+pub fn get_bool_rules(bool_rules: &BoolRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   let mut rules: Vec<CelRule> = Vec::new();
 
   if bool_rules.r#const.is_some() {
