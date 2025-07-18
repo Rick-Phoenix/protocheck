@@ -7,7 +7,6 @@ use db::schema::pokemons;
 use db::schema::types;
 use db::schema::{image_data, pokemon_types};
 use diesel::prelude::*;
-use macro_impl::reserved_numbers;
 use macro_impl::ProtoMessage;
 use serde_json;
 use std::fs;
@@ -171,7 +170,7 @@ fn select_pokemon() -> AppResult<()> {
   Ok(())
 }
 
-fn complex_queries() -> AppResult<()> {
+fn specific_queries() -> AppResult<()> {
   let conn = &mut establish_connection();
   let pokemon_with_types = pokemon_types::table
     .inner_join(types::table)
@@ -203,13 +202,6 @@ fn test_macro() -> AppResult<()> {
 
   let fields = poke_data.data();
   println!("Fields: {:#?}", fields);
-
-  println!(
-    "Reserved nrs: {}",
-    reserved_numbers![ 1 to 5, 9, 8, 15, 20 to 25 ]
-  );
-
-  println!("{}", poke_data.get_name());
 
   Ok(())
 }

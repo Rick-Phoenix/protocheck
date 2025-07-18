@@ -289,8 +289,6 @@ fn get_proto_type(rust_type: &str) -> Option<String> {
   attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
 )]
 pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
-  // DeriveInput is a special syn struct designed for parsing `#[derive]` input.
-
   let input_ast = parse_macro_input!(input as syn::DeriveInput);
 
   let struct_name = &input_ast.ident;
@@ -304,13 +302,10 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     for attr in input_ast.attrs {
       if attr.path().is_ident("protoschema") {
         match attr.parse_nested_meta(|meta| {
-          if meta.input.peek(syn::token::Paren) {
-            println!("Got it")
-          }
           if meta.input.peek(Token![=]) {
+            let content;
+            let value_tokens = meta.value()?;
             if meta.path.is_ident("config") {
-              let content;
-              let value_tokens = meta.value()?;
               braced!(content in value_tokens);
               let parsed_config: MacroConfig = syn::parse2(content.parse()?)?;
               config = parsed_config;
@@ -335,10 +330,11 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
         let mut options: Option<proc_macro2::TokenStream> = None;
         let mut is_index = true;
         let mut skip_field = false;
-        let field_name_ident = field
+        let field_name = field
           .ident
           .as_ref()
-          .expect("Named fields must have an identifier");
+          .expect("Named fields must have an identifier")
+          .to_string();
 
         let field_type = &field.ty;
 
@@ -355,27 +351,21 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
             match attr.parse_nested_meta(|meta| {
               if meta.path.is_ident("ignore") {
                 skip_field = true;
-              } else if meta.path.is_ident("field_num") {
-                if meta.input.peek(Token![=]) {
-                  let value_tokens = meta.value()?;
+              } else if meta.input.peek(Token![=]) {
+                let value_tokens = meta.value()?;
+                if meta.path.is_ident("field_num") {
                   let parsed_int = value_tokens.parse::<LitInt>()?;
                   let num = parsed_int.base10_parse::<i32>()?;
                   if num != field_num {
                     field_num = num;
                     is_index = false;
                   }
-                }
-              } else if meta.path.is_ident("proto_type") {
-                if meta.input.peek(Token![=]) {
-                  let value_stream = meta.value()?;
-                  let parsed_proto_type: syn::Path = value_stream.parse()?;
+                } else if meta.path.is_ident("proto_type") {
+                  let parsed_proto_type: syn::Path = value_tokens.parse()?;
                   proto_type = parsed_proto_type.to_token_stream().to_string();
-                }
-              } else if meta.path.is_ident("options") {
-                if meta.input.peek(Token![=]) {
-                  let value = meta.value()?;
+                } else if meta.path.is_ident("options") {
                   let content;
-                  braced!(content in value);
+                  braced!(content in value_tokens);
                   options = Some(content.parse::<proc_macro2::TokenStream>()?);
                 }
               } else {
@@ -418,11 +408,11 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
 
         fields_info.push(quote! (
           (
-            stringify!(#field_name_ident).to_string(),
+            #field_name.to_string(),
 
             macro_impl::ProtoField {
               field_num: #field_num,
-              name: stringify!(#field_name_ident).to_string(),
+              name: #field_name.to_string(),
               rust_type: #field_type_full.to_string(),
               proto_type: #proto_type.to_string(),
               options: #parsed_options,

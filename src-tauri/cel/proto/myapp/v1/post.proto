@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package myapp.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+message Post {
+  int64 id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 author_id = 3;
+  string title = 4 [
+    (buf.validate.field).required = true,
+    (buf.validate.field).string.max_len = 64,
+    (buf.validate.field).string.min_len = 5
+  ];
+  optional string content = 5;
+  int64 subreddit_id = 6;
+}
+
+message GetPostRequest {
+  int64 id = 1;
+}
+
+message GetPostResponse {
+  Post post = 1;
+}
+
+message UpdatePostRequest {
+  Post post = 1;
+  google.protobuf.FieldMask field_mask = 2;
+}
+
+service PostService {
+  rpc GetPost(GetPostRequest) returns (GetPostResponse);
+  rpc UpdatePost(UpdatePostRequest) returns (google.protobuf.Empty);
+}

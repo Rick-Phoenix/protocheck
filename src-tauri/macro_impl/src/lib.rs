@@ -60,3 +60,5 @@ pub struct ProtoField {
   pub repeated: bool,
   pub optional: bool,
 }
+
+impl ProtoField {}

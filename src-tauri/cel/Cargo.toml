@@ -1,0 +1,21 @@
+[package]
+name = "cel-test"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+prost = "0.14.1"
+bytes = "1"
+cel-interpreter = "0.9.1"
+prost-types = "0.14.1"
+serde = { version = "1", features = ["derive"] }
+prost-reflect = "0.16.0"
+prost-reflect-build = "0.16.0"
+
+[build-dependencies]
+prost-build = "0.14.1"
+prost-types = "0.14.1"
+prost = "0.14.1"
+prost-reflect = "0.16.0"
+prost-reflect-build = "0.16.0"
