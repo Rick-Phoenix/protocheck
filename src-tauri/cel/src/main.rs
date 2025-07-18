@@ -1,6 +1,7 @@
 use bytes::Bytes;
 use prost::Message;
 use prost_reflect::{DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value};
+use regex::Regex;
 
 use crate::buf::validate::{FieldRules, PredefinedRules};
 
@@ -35,10 +36,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let field_options = field_desc.options();
 
-    let field_rules = field_options.get_extension(&field_ext_descriptor);
+    let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
-    if let Value::Message(field_rules_msg) = field_rules.as_ref() {
+    if let Value::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice())?;
+
+      let is_required = field_rules.required();
 
       if let Some(rules_type) = field_rules.r#type {
         let rules = get_field_rules(&pool, &rules_type);
@@ -78,7 +81,10 @@ fn get_rule(
     }
   };
 
-  return Err(Box::new(CustomError(format!("Rule not found"))));
+  return Err(Box::new(CustomError(format!(
+    "rule {}.{} not found",
+    rule_category, rule_name
+  ))));
 }
 
 #[derive(Debug, Clone)]
@@ -98,6 +104,7 @@ pub enum CelRuleValue {
   F32(f32),
   F64(f64),
   String(String),
+  Regex(Box<Regex>),
   Bytes(Vec<u8>),
   RepeatedString(Vec<String>),
   RepeatedU64(Vec<u64>),
@@ -121,6 +128,42 @@ fn get_field_rules(
       let string_rules_desc = pool
         .get_message_by_name("buf.validate.StringRules")
         .ok_or("StringRules message not found")?;
+
+      if string_rules.pattern.is_some() {
+        let pattern_value = string_rules.pattern.clone().unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "pattern",
+        )?;
+
+        let compiled_regex = Regex::new(&pattern_value)?;
+        rules.push(CelRule {
+          id: "string.pattern".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::Regex(Box::new(compiled_regex)),
+        });
+      }
+
+      if string_rules.len.is_some() {
+        let len_value = string_rules.len.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "len",
+        )?;
+        rules.push(CelRule {
+          id: "string.len".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(len_value),
+        });
+      }
 
       if string_rules.max_len.is_some() {
         let max_len_value = string_rules.max_len.unwrap();
@@ -153,6 +196,74 @@ fn get_field_rules(
           message: message.to_string(),
           expression: expression.to_string(),
           value: CelRuleValue::U64(min_len_value),
+        });
+      }
+
+      if string_rules.len_bytes.is_some() {
+        let len_bytes_value = string_rules.len_bytes.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "len_bytes",
+        )?;
+        rules.push(CelRule {
+          id: "string.len_bytes".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(len_bytes_value),
+        });
+      }
+
+      if string_rules.min_bytes.is_some() {
+        let min_bytes_value = string_rules.min_bytes.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "min_bytes",
+        )?;
+        rules.push(CelRule {
+          id: "string.min_bytes".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(min_bytes_value),
+        });
+      }
+
+      if string_rules.max_bytes.is_some() {
+        let max_bytes_value = string_rules.max_bytes.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "max_bytes",
+        )?;
+        rules.push(CelRule {
+          id: "string.max_bytes".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(max_bytes_value),
+        });
+      }
+
+      if string_rules.r#const.is_some() {
+        let const_value = string_rules.r#const.clone().unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "const",
+        )?;
+        rules.push(CelRule {
+          id: "string.const".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::String(const_value),
         });
       }
     }
