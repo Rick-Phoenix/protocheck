@@ -6,6 +6,7 @@ edition = "2024"
 
 [dependencies]
 prost = "0.14.1"
+num-traits = "0.2.19"
 bytes = "1"
 cel-interpreter = "0.9.1"
 prost-types = "0.14.1"

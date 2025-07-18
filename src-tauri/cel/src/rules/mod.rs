@@ -1,10 +1,16 @@
 use regex::Regex;
 
 use crate::buf::validate;
+use crate::buf::validate::field_rules;
+use crate::buf::validate::Int32Rules;
+use crate::buf::validate::Int64Rules;
 use crate::buf::validate::PredefinedRules;
 use prost::Message;
 use prost_reflect::{DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value};
 
+pub mod bool_rules;
+pub mod bytes_rules;
+pub mod numeric_rules;
 pub mod string_rules;
 
 #[derive(Debug, Clone)]
@@ -27,11 +33,18 @@ pub enum CelRuleValue {
   Regex(Box<Regex>),
   Bytes(Vec<u8>),
   RepeatedString(Vec<String>),
+  RepeatedBytes(Vec<Vec<u8>>),
   RepeatedU64(Vec<u64>),
+  RepeatedI64(Vec<i64>),
   RepeatedI32(Vec<i32>),
   RepeatedF32(Vec<f32>),
   RepeatedF64(Vec<f64>),
   Unspecified,
+}
+
+pub enum NumericRules {
+  Int64(Int64Rules),
+  Int32(Int32Rules),
 }
 
 pub fn get_field_rules(
@@ -39,8 +52,9 @@ pub fn get_field_rules(
   rules_type: &validate::field_rules::Type,
 ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   match rules_type {
-    validate::field_rules::Type::String(string_rules) => {
-      string_rules::get_string_rules(pool, string_rules)
+    field_rules::Type::String(string_rules) => string_rules::get_string_rules(pool, string_rules),
+    field_rules::Type::Int64(int64_rules) => {
+      numeric_rules::get_numeric_rules::<Int64Rules, i64>(pool, int64_rules, "int64")
     }
     _ => Ok(Vec::new()),
   }
