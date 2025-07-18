@@ -15,6 +15,7 @@ pub fn get_bytes_rules(
     rules.push(CelRule {
       id: "bytes.const".to_string(),
       message: "".to_string(),
+      // Different for bytes
       expression: "this != getField(rules, 'const') ? 'value must be %x'.format([getField(rules, 'const')]) : ''".to_string(),
       value: CelRuleValue::Bytes(const_value),
     });
@@ -110,6 +111,7 @@ pub fn get_bytes_rules(
     rules.push(CelRule {
       id: "bytes.in".to_string(),
       message: "".to_string(),
+      // Different for bytes
       expression: "getField(rules, 'in').size() > 0 && !(this in getField(rules, 'in')) ? 'value must be in list %s'.format([getField(rules, 'in')]) : ''".to_string(),
       value: CelRuleValue::RepeatedBytes(in_value),
     });
@@ -117,13 +119,11 @@ pub fn get_bytes_rules(
 
   if bytes_rules.not_in.len() > 0 {
     let not_in_value = bytes_rules.not_in.clone();
-
+    let (expression, message) = super::COMMON_RULES.get("not_in").unwrap();
     rules.push(CelRule {
       id: "bytes.not_in".to_string(),
-      message: "".to_string(),
-      expression:
-        "this in rules.not_in ? 'value must not be in list %s'.format([rules.not_in]) : ''"
-          .to_string(),
+      message: message.to_string(),
+      expression: expression.to_string(),
       value: CelRuleValue::RepeatedBytes(not_in_value),
     });
   }

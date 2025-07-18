@@ -14,6 +14,7 @@ serde = { version = "1", features = ["derive"] }
 prost-reflect = "0.16.0"
 prost-reflect-build = "0.16.0"
 regex = "1.x"
+lazy_static = "1.4"
 
 [build-dependencies]
 prost-build = "0.14.1"

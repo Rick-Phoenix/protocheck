@@ -5,6 +5,9 @@ use prost_reflect::{DescriptorPool, Value};
 
 use crate::buf::validate::FieldRules;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod myapp {
   pub mod v1 {
     include!(concat!(env!("OUT_DIR"), "/myapp.v1.rs"));

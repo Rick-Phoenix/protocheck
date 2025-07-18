@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use regex::Regex;
 
 use crate::buf::validate;
@@ -47,15 +49,32 @@ pub enum NumericRules {
   Int32(Int32Rules),
 }
 
+lazy_static! {
+  static ref COMMON_RULES: HashMap<String, (String, String)> = {
+    let mut rules: HashMap<String, (String, String)> = HashMap::new();
+
+    rules.insert("in".to_string(), ("!(this in getField(rules, 'in')) ? 'value must be in list %s'.format([getField(rules, 'in')]) : ''".to_string(), "".to_string()));
+    rules.insert(
+      "not_in".to_string(),
+      (
+        "this in rules.not_in ? 'value must not be in list %s'.format([rules.not_in]) : ''"
+          .to_string(),
+        "".to_string(),
+      ),
+    );
+    rules.insert("const".to_string(), ("this != getField(rules, 'const') ? 'value must equal %s'.format([getField(rules, 'const')]) : ''".to_string(), "".to_string()));
+
+    rules
+  };
+}
+
 pub fn get_field_rules(
   pool: &DescriptorPool,
   rules_type: &validate::field_rules::Type,
 ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   match rules_type {
-    field_rules::Type::String(string_rules) => string_rules::get_string_rules(pool, string_rules),
-    field_rules::Type::Int64(int64_rules) => {
-      numeric_rules::get_numeric_rules::<Int64Rules, i64>(pool, int64_rules, "int64")
-    }
+    field_rules::Type::String(string_rules) => string_rules::get_string_rules(string_rules),
+    field_rules::Type::Int64(int64_rules) => numeric_rules::get_numeric_rules::<i64>(int64_rules),
     _ => Ok(Vec::new()),
   }
 }

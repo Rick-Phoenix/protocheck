@@ -1,7 +1,23 @@
+use std::collections::HashMap;
+
 use super::CelRule;
 
 use crate::{buf::validate::Int64Rules, rules::CelRuleValue};
 use crate::buf::validate::int64_rules;
+
+lazy_static! {
+  static ref NUMERIC_RULES: HashMap<String, (String,String)> = {
+    let mut rules_map: HashMap<String, (String,String)> = HashMap::new();
+
+    rules_map.insert("const".to_string(), ("this != getField(rules, 'const') ? 'value must equal %s'.format([getField(rules, 'const')]) : ''".to_string(), "".to_string()));
+    rules_map.insert("lt".to_string(), ("!has(rules.gte) && !has(rules.gt) && this >= rules.lt ? 'value must be less than %s'.format([rules.lt]) : ''".to_string(), "".to_string()));
+    rules_map.insert("lte".to_string(), ("!has(rules.gte) && !has(rules.gt) && this > rules.lte ? 'value must be less than or equal to %s'.format([rules.lte]) : ''".to_string(), "".to_string()));
+    rules_map.insert("gt".to_string(), ("!has(rules.lt) && !has(rules.lte) && this <= rules.gt ? 'value must be greater than %s'.format([rules.gt]) : ''".to_string(), "".to_string()));
+    rules_map.insert("gte".to_string(), ("!has(rules.lt) && !has(rules.lte) && this < rules.gte ? 'value must be greater than or equal to %s'.format([rules.gte]) : ''".to_string(), "".to_string()));
+
+    rules_map
+  };
+}
 
 pub fn get_int_rules(
   numeric_rules: Int64Rules,
