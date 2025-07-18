@@ -1,10 +1,9 @@
 use bytes::Bytes;
 use prost::Message;
-use prost_reflect::{DescriptorPool, Value};
+use prost_reflect::{DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value};
 
-use crate::buf::validate::{FieldRules, PredefinedRules}; // Make sure `bytes` crate is in your Cargo.toml
+use crate::buf::validate::{FieldRules, PredefinedRules};
 
-// Import generated types, though we'll primarily use reflection for this task
 mod myapp {
   pub mod v1 {
     include!(concat!(env!("OUT_DIR"), "/myapp.v1.rs"));
@@ -17,11 +16,9 @@ mod buf {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  // Load the compiled descriptor set
   let descriptor_set_bytes = Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET")?)?);
   let pool = DescriptorPool::decode(descriptor_set_bytes)?;
 
-  // Get the descriptor for the `User` message from your `user.proto`
   let user_desc = pool
     .get_message_by_name("myapp.v1.User")
     .ok_or("User message not found")?;
@@ -36,73 +33,142 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let field_name = field_desc.name();
     println!("\nField: {}", field_name);
 
-    // Get the FieldOptions for the current field
     let field_options = field_desc.options();
 
     let field_rules = field_options.get_extension(&field_ext_descriptor);
 
     if let Value::Message(field_rules_msg) = field_rules.as_ref() {
-      println!("  Found buf.validate.field extension.");
-
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice())?;
 
-      if let Some(type_oneof) = field_rules.r#type {
-        match type_oneof {
-          buf::validate::field_rules::Type::String(string_rules) => {
-            println!("    Found String Rules:");
-            if string_rules.max_len.is_some() {
-              println!(
-                "      max_len rule is set to: {}",
-                string_rules.max_len.unwrap()
-              );
-            }
-
-            let string_rules_desc = pool
-              .get_message_by_name("buf.validate.StringRules")
-              .ok_or("StringRules message not found")?;
-
-            let max_len_desc = string_rules_desc
-              .get_field_by_name("max_len")
-              .ok_or("max_len descriptor not found")?;
-
-            let max_len_options = max_len_desc.options();
-
-            let predefined_descriptor = pool
-              .get_extension_by_name("buf.validate.predefined")
-              .ok_or("buf.validate.predefined not found")?;
-
-            if let Value::Message(predefined_dynamic_msg) = max_len_options
-              .get_extension(&predefined_descriptor)
-              .as_ref()
-            {
-              let predefined_rules =
-                PredefinedRules::decode(predefined_dynamic_msg.encode_to_vec().as_slice())?;
-
-              for rule in predefined_rules.cel {
-                if rule.id() == "string.max_len" {
-                  println!("        String_max_len: {}", rule.expression());
-                }
-              }
-            } else {
-              println!(
-                "        No predefined rules extension found on string.max_len field descriptor"
-              )
-            }
-          }
-          _ => {}
-        }
-      }
-
-      if !field_rules.cel.is_empty() {
-        println!("    Custom Field CEL Rules:");
-        for rule in field_rules.cel {
-          println!("      ID: {}", rule.id());
-          println!("      Message: {}", rule.message());
-          println!("      Expression: `{}`", rule.expression());
-        }
+      if let Some(rules_type) = field_rules.r#type {
+        let rules = get_field_rules(&pool, &rules_type);
+        println!("Rules: {:#?}", rules);
       }
     }
   }
 
   Ok(())
 }
+
+fn get_rule(
+  predefined_descriptor: &ExtensionDescriptor,
+  rules_descriptor: &MessageDescriptor,
+  rule_category: &str,
+  rule_name: &str,
+) -> Result<(String, String), Box<dyn std::error::Error>> {
+  let rule_field_descriptor = rules_descriptor
+    .get_field_by_name(rule_name)
+    .ok_or(format!(
+      "rule descriptor for rule `{}` not found",
+      rule_name
+    ))?;
+
+  let rule_options = rule_field_descriptor.options();
+
+  if let Value::Message(predefined_dynamic_msg) =
+    rule_options.get_extension(&predefined_descriptor).as_ref()
+  {
+    let predefined_rules =
+      PredefinedRules::decode(predefined_dynamic_msg.encode_to_vec().as_slice())?;
+
+    for rule in predefined_rules.cel {
+      if rule.id() == format!("{}.{}", rule_category, rule_name) {
+        return Ok((rule.expression().to_string(), rule.message().to_string()));
+      }
+    }
+  };
+
+  return Err(Box::new(CustomError(format!("Rule not found"))));
+}
+
+#[derive(Debug, Clone)]
+struct CelRule {
+  id: String,
+  message: String,
+  expression: String,
+  value: CelRuleValue,
+}
+
+#[derive(Debug, Clone)]
+pub enum CelRuleValue {
+  Bool(bool),
+  U64(u64),
+  I32(i32),
+  I64(i64),
+  F32(f32),
+  F64(f64),
+  String(String),
+  Bytes(Vec<u8>),
+  RepeatedString(Vec<String>),
+  RepeatedU64(Vec<u64>),
+  RepeatedI32(Vec<i32>),
+  RepeatedF32(Vec<f32>),
+  RepeatedF64(Vec<f64>),
+  Unspecified, // Or a better default/error handling for when a value isn't set.
+}
+
+fn get_field_rules(
+  pool: &DescriptorPool,
+  rules_type: &buf::validate::field_rules::Type,
+) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
+  let mut rules: Vec<CelRule> = Vec::new();
+  let predefined_descriptor = pool
+    .get_extension_by_name("buf.validate.predefined")
+    .ok_or("buf.validate.predefined not found")?;
+  match rules_type {
+    buf::validate::field_rules::Type::String(string_rules) => {
+      let rule_category = "string";
+      let string_rules_desc = pool
+        .get_message_by_name("buf.validate.StringRules")
+        .ok_or("StringRules message not found")?;
+
+      if string_rules.max_len.is_some() {
+        let max_len_value = string_rules.max_len.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "max_len",
+        )?;
+        rules.push(CelRule {
+          id: "string.max_len".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(max_len_value),
+        });
+      }
+
+      if string_rules.min_len.is_some() {
+        let min_len_value = string_rules.min_len.unwrap();
+
+        let (expression, message) = get_rule(
+          &predefined_descriptor,
+          &string_rules_desc,
+          rule_category,
+          "min_len",
+        )?;
+        rules.push(CelRule {
+          id: "string.min_len".to_string(),
+          message: message.to_string(),
+          expression: expression.to_string(),
+          value: CelRuleValue::U64(min_len_value),
+        });
+      }
+    }
+    _ => {}
+  };
+
+  Ok(rules)
+}
+
+#[derive(Debug)]
+struct CustomError(String);
+
+impl std::fmt::Display for CustomError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}
+
+impl std::error::Error for CustomError {}
