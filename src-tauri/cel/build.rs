@@ -12,7 +12,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .file_descriptor_set_path(descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     .compile_well_known_types()
-    .extern_path(".google", "::google")
     .out_dir(out_dir.clone());
 
   let proto_include_paths = &["proto", "proto_deps"];
@@ -31,7 +30,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     proto_include_paths,
   )?;
 
-  // Output the path to the descriptor set so it can be included in the binary
   println!(
     "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",
     descriptor_path.display()

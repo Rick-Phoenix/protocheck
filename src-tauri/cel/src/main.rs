@@ -1,4 +1,4 @@
-#[allow(clippy::all, dead_code, unused)]
+#![allow(clippy::all, dead_code, unused)]
 use crate::{
   buf::validate::{MessageOneofRule, MessageRules, OneofRules},
   myapp::v1::{Post, User},
@@ -22,6 +22,11 @@ mod myapp {
 mod buf {
   pub mod validate {
     include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
+  }
+}
+mod google {
+  pub mod protobuf {
+    include!(concat!(env!("OUT_DIR"), "/google.protobuf.rs"));
   }
 }
 
@@ -117,12 +122,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
   }
 
-  // let user = User {
-  //   created_at: None,
-  //   id: Some(1),
-  //   name: "Me".to_string(),
-  //   posts: Vec::<Post>::new(),
-  // };
+  let user = User {
+    created_at: None,
+    id: 1,
+    name: "Me".to_string(),
+    posts: Vec::<Post>::new(),
+  };
 
   Ok(())
 }
@@ -131,17 +136,18 @@ pub trait WithValidator {
   fn validate(&self) -> bool;
 }
 
-// impl WithValidator for User {
-//   fn validate(&self) -> bool {
-//     let program = Program::compile("this.name == 'nonme'").unwrap();
-//     let mut context = Context::default();
-//
-//     context.add_variable("this", self).unwrap();
-//
-//     let value = program.execute(&context).unwrap();
-//     cel_interpreter::Value::Bool(value)
-//   }
-// }
+impl WithValidator for User {
+  fn validate(&self) -> bool {
+    let program = Program::compile("this.name == 'nonme'").unwrap();
+    let mut context = Context::default();
+
+    context.add_variable("this", self).unwrap();
+
+    let value = program.execute(&context).unwrap();
+
+    cel_interpreter::Value::Bool(value)
+  }
+}
 
 use cel_interpreter::{Context, Program};
 use serde::{Deserialize, Serialize};

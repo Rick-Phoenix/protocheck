@@ -1,8 +1,8 @@
 #[allow(clippy::all, dead_code, unused_variables, unused_imports)]
 use std::collections::HashMap;
 
-use prost_types::Duration;
-use prost_types::Timestamp;
+use google::protobuf::Duration;
+use google::protobuf::Timestamp;
 use regex::Regex;
 
 use crate::buf::validate;
@@ -12,6 +12,7 @@ use crate::buf::validate::Int32Rules;
 use crate::buf::validate::Int64Rules;
 use crate::buf::validate::PredefinedRules;
 use crate::buf::validate::Rule;
+use crate::google;
 use prost::Message;
 use prost_reflect::{ExtensionDescriptor, MessageDescriptor, Value};
 
