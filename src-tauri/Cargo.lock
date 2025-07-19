@@ -498,7 +498,6 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-reflect",
- "prost-types",
  "regex",
  "serde",
 ]
