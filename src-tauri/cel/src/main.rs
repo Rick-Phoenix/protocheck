@@ -46,10 +46,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
       let is_required = field_rules.required();
 
-      if let Some(rules_type) = field_rules.r#type {
-        let rules = get_field_rules(&rules_type);
-        println!("Rules: {:#?}", rules);
-      }
+      let rules = get_field_rules(&field_rules);
+      println!("Rules: {:#?}", rules);
     }
   }
 

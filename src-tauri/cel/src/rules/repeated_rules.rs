@@ -41,7 +41,14 @@ pub fn get_repeated_rules(
 
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
-    let items_rules = get_field_rules(items_rules_descriptor)?;
+    let items_rules: Vec<CelRule> = get_field_rules(&items_rules_descriptor)?
+      .into_iter()
+      .map(|mut rule| {
+        rule.id = format!("repeated.items.{}", rule.id);
+        rule
+      })
+      .collect();
+    rules.extend(items_rules);
   }
 
   Ok(rules)

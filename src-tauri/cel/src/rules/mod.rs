@@ -1,21 +1,28 @@
 use std::collections::HashMap;
 
+use prost_types::Duration;
+use prost_types::Timestamp;
 use regex::Regex;
 
 use crate::buf::validate;
 use crate::buf::validate::field_rules;
+use crate::buf::validate::FieldRules;
 use crate::buf::validate::Int32Rules;
 use crate::buf::validate::Int64Rules;
 use crate::buf::validate::PredefinedRules;
 use prost::Message;
-use prost_reflect::{DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value};
+use prost_reflect::{ExtensionDescriptor, MessageDescriptor, Value};
 
+pub mod any_rules;
 pub mod bool_rules;
 pub mod bytes_rules;
+pub mod duration_rules;
 pub mod enum_rules;
+pub mod map_rules;
 pub mod numeric_rules;
 pub mod repeated_rules;
 pub mod string_rules;
+pub mod timestamp_rules;
 
 #[derive(Debug, Clone)]
 pub struct CelRule {
@@ -43,6 +50,9 @@ pub enum CelRuleValue {
   RepeatedI32(Vec<i32>),
   RepeatedF32(Vec<f32>),
   RepeatedF64(Vec<f64>),
+  RepeatedDuration(Vec<Duration>),
+  Duration(Duration),
+  Timestamp(Timestamp),
   Unspecified,
 }
 
@@ -71,19 +81,27 @@ lazy_static! {
 }
 
 pub fn get_field_rules(
-  rules_type: &validate::field_rules::Type,
+  field_rules: &FieldRules,
 ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
-  match rules_type {
-    field_rules::Type::String(string_rules) => string_rules::get_string_rules(string_rules),
-    field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(int64_rules),
-    field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(int32_rules),
-    field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(bytes_rules),
-    field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(bool_rules),
-    field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(enum_rules),
-    field_rules::Type::Repeated(repeated_rules) => {
-      repeated_rules::get_repeated_rules(repeated_rules)
+  if let Some(rules_type) = field_rules.r#type.clone() {
+    match rules_type {
+      field_rules::Type::String(string_rules) => string_rules::get_string_rules(&string_rules),
+      field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
+      field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
+      field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
+      field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
+      field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
+      field_rules::Type::Repeated(repeated_rules) => {
+        repeated_rules::get_repeated_rules(&repeated_rules)
+      }
+      field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
+      field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
+      field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
+      field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
+      _ => Ok(Vec::new()),
     }
-    _ => Ok(Vec::new()),
+  } else {
+    Ok(Vec::new())
   }
 }
 
