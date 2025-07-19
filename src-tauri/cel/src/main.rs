@@ -117,12 +117,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
   }
 
-  let user = User {
-    created_at: None,
-    id: Some(1),
-    name: "Me".to_string(),
-    posts: Vec::<Post>::new(),
-  };
+  // let user = User {
+  //   created_at: None,
+  //   id: Some(1),
+  //   name: "Me".to_string(),
+  //   posts: Vec::<Post>::new(),
+  // };
 
   Ok(())
 }
@@ -131,17 +131,17 @@ pub trait WithValidator {
   fn validate(&self) -> bool;
 }
 
-impl WithValidator for User {
-  fn validate(&self) -> bool {
-    let program = Program::compile("this.name == 'nonme'").unwrap();
-    let mut context = Context::default();
-
-    context.add_variable("this", self).unwrap();
-
-    let value = program.execute(&context).unwrap();
-    cel_interpreter::Value::Bool(value)
-  }
-}
+// impl WithValidator for User {
+//   fn validate(&self) -> bool {
+//     let program = Program::compile("this.name == 'nonme'").unwrap();
+//     let mut context = Context::default();
+//
+//     context.add_variable("this", self).unwrap();
+//
+//     let value = program.execute(&context).unwrap();
+//     cel_interpreter::Value::Bool(value)
+//   }
+// }
 
 use cel_interpreter::{Context, Program};
 use serde::{Deserialize, Serialize};
