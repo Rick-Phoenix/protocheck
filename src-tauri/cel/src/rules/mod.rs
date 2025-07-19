@@ -1,3 +1,4 @@
+#[allow(clippy::all, dead_code, unused_variables, unused_imports)]
 use std::collections::HashMap;
 
 use prost_types::Duration;
@@ -10,6 +11,7 @@ use crate::buf::validate::FieldRules;
 use crate::buf::validate::Int32Rules;
 use crate::buf::validate::Int64Rules;
 use crate::buf::validate::PredefinedRules;
+use crate::buf::validate::Rule;
 use prost::Message;
 use prost_reflect::{ExtensionDescriptor, MessageDescriptor, Value};
 
@@ -56,9 +58,10 @@ pub enum CelRuleValue {
   Unspecified,
 }
 
-pub enum NumericRules {
-  Int64(Int64Rules),
-  Int32(Int32Rules),
+pub struct FieldValidationRules {
+  pub cel_rules: Vec<Rule>,
+  pub rules: Vec<CelRule>,
+  pub required: bool,
 }
 
 lazy_static! {
