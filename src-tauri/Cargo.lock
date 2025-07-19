@@ -498,7 +498,6 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-reflect",
- "prost-reflect-build",
  "prost-types",
  "regex",
  "serde",
@@ -2621,6 +2620,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
+name = "ordered-float"
+version = "2.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "ordered-stream"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3098,30 +3106,11 @@ version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e6b545c556471033fc1099868fca468bff8cf034f7bb9153b445f24d00aa28d"
 dependencies = [
+ "base64 0.22.1",
  "prost",
- "prost-reflect-derive",
  "prost-types",
-]
-
-[[package]]
-name = "prost-reflect-build"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8214ae2c30bbac390db0134d08300e770ef89b6d4e5abf855e8d300eded87e28"
-dependencies = [
- "prost-build",
- "prost-reflect",
-]
-
-[[package]]
-name = "prost-reflect-derive"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b6d90e29fa6c0d13c2c19ba5e4b3fb0efbf5975d27bcf4e260b7b15455bcabe"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
+ "serde",
+ "serde-value",
 ]
 
 [[package]]
@@ -3499,6 +3488,16 @@ dependencies = [
  "erased-serde",
  "serde",
  "typeid",
+]
+
+[[package]]
+name = "serde-value"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
+dependencies = [
+ "ordered-float",
+ "serde",
 ]
 
 [[package]]
