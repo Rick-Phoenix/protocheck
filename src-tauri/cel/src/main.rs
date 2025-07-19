@@ -1,3 +1,4 @@
+#[allow(clippy::all, dead_code, unused)]
 use crate::{
   buf::validate::{MessageOneofRule, MessageRules, OneofRules},
   myapp::v1::{Post, User},
@@ -130,17 +131,17 @@ pub trait WithValidator {
   fn validate(&self) -> bool;
 }
 
-// impl WithValidator for User {
-//   fn validate(&self) -> bool {
-//     let program = Program::compile("this.name == 'nonme'").unwrap();
-//     let mut context = Context::default();
-//
-//     context.add_variable("this", self).unwrap();
-//
-//     let value = program.execute(&context).unwrap();
-//     cel_interpreter::Value::Bool(value)
-//   }
-// }
+impl WithValidator for User {
+  fn validate(&self) -> bool {
+    let program = Program::compile("this.name == 'nonme'").unwrap();
+    let mut context = Context::default();
+
+    context.add_variable("this", self).unwrap();
+
+    let value = program.execute(&context).unwrap();
+    cel_interpreter::Value::Bool(value)
+  }
+}
 
 use cel_interpreter::{Context, Program};
 use serde::{Deserialize, Serialize};

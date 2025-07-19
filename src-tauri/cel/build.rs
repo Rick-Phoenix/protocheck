@@ -10,6 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut config = Config::new();
   config
     .file_descriptor_set_path(descriptor_path.clone())
+    .type_attribute(".", "#[derive(serde::Serialize)]")
     .out_dir(out_dir.clone());
 
   let proto_include_paths = &["proto", "proto_deps"];
