@@ -11,6 +11,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   config
     .file_descriptor_set_path(descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .compile_well_known_types()
+    .extern_path(".google", "::google")
     .out_dir(out_dir.clone());
 
   let proto_include_paths = &["proto", "proto_deps"];
