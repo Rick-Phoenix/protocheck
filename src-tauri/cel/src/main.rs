@@ -129,6 +129,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     posts: Vec::<Post>::new(),
   };
 
+  println!("{:?}", user.validate());
+
   Ok(())
 }
 
@@ -138,14 +140,19 @@ pub trait WithValidator {
 
 impl WithValidator for User {
   fn validate(&self) -> bool {
-    let program = Program::compile("this.name == 'nonme'").unwrap();
+    let program = Program::compile("this.name == 'Me'").unwrap();
     let mut context = Context::default();
 
     context.add_variable("this", self).unwrap();
 
     let value = program.execute(&context).unwrap();
 
-    cel_interpreter::Value::Bool(value)
+    match value {
+      cel_interpreter::Value::Bool(val) => val,
+      _ => {
+        panic!("Expected a boolean")
+      }
+    }
   }
 }
 
