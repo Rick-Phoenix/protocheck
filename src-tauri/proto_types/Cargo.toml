@@ -1,10 +1,7 @@
 [package]
-name = "pr_macro"
+name = "proto_types"
 version = "0.1.0"
 edition = "2024"
-
-[lib]
-proc-macro = true
 
 [dependencies]
 prost = "0.14.1"
@@ -16,7 +13,6 @@ quote = "1.0"
 proc-macro2 = "1.0"
 bytes = "1"
 regex = "1"
-proto_types = { path = "../proto_types/" }
 
 [build-dependencies]
 prost-build = "0.14.1"

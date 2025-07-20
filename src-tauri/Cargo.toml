@@ -1,7 +1,7 @@
 
 
 [workspace]
-members = ["tauri_main", "db", "pr_macro", "macro_impl", "cel"]
+members = ["tauri_main", "db", "pr_macro", "macro_impl", "cel", "proto_types"]
 resolver = "2"
 
 [profile.dev]

@@ -15,16 +15,9 @@ pub trait WithValidator {
   fn validate(&self) -> Result<(), Violations>;
 }
 
-pub struct FieldData {
-  pub name: String,
-  pub tag: i32,
-  pub is_repeated: bool,
-  pub is_map: bool,
-}
-
 pub mod strings {
   use crate::validators::{
-    buf::validate::{field_path_element::Subscript, FieldPath, FieldPathElement, Violation},
+    buf::validate::{FieldPath, FieldPathElement, Violation},
     google::protobuf::field_descriptor_proto::Type as ProtoTypes,
   };
 
@@ -35,12 +28,17 @@ pub mod strings {
     max_len: usize,
   ) -> Result<(), Violation> {
     let check = value.chars().count() < max_len;
+    let plural_suffix = if max_len > 1 {
+      format!("s")
+    } else {
+      format!("")
+    };
     if !check {
       let violation = Violation {
         rule_id: Some("string.max_len".to_string()),
         message: Some(format!(
-          "{} cannot be longer than {} characters",
-          field_name, max_len
+          "{} cannot be longer than {} character{}",
+          field_name, max_len, plural_suffix
         )),
         for_key: Some(false),
         field: Some(FieldPath {
@@ -54,14 +52,24 @@ pub mod strings {
           }],
         }),
         rule: Some(FieldPath {
-          elements: vec![FieldPathElement {
-            key_type: Some(0),
-            field_type: Some(0),
-            value_type: Some(0),
-            field_name: Some("".to_string()),
-            field_number: Some(1),
-            subscript: Some(Subscript::BoolKey(true)),
-          }],
+          elements: vec![
+            FieldPathElement {
+              field_name: Some("string".to_string()),
+              field_number: Some(14),
+              field_type: Some(ProtoTypes::Message as i32),
+              subscript: None,
+              key_type: None,
+              value_type: None,
+            },
+            FieldPathElement {
+              field_name: Some("max_len".to_string()),
+              field_number: Some(3),
+              field_type: Some(ProtoTypes::Uint64 as i32),
+              key_type: None,
+              value_type: None,
+              subscript: None,
+            },
+          ],
         }),
       };
       return Err(violation);

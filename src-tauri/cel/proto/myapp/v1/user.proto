@@ -11,7 +11,7 @@ import "myapp/v1/post.proto";
 message User {
   string name = 1 [
     (buf.validate.field).required = true,
-    (buf.validate.field).string.max_len = 32,
+    (buf.validate.field).string.max_len = 1,
     (buf.validate.field).string.min_len = 2
   ];
   int64 id = 2;

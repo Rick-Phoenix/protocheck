@@ -9,6 +9,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value,
 };
+use proto_types::FieldData;
 
 use syn::DeriveInput;
 
@@ -118,14 +119,13 @@ static DUMMY_VIOLATION: LazyLock<Violation> = LazyLock::new(|| {
 });
 
 pub fn get_field_rules(
-  field_name: &str,
-  field_tag: u32,
+  field_data: FieldData,
   field_rules: &FieldRules,
 ) -> Result<Vec<TokenStream2>, Box<dyn std::error::Error>> {
   if let Some(rules_type) = field_rules.r#type.clone() {
     match rules_type {
       field_rules::Type::String(string_rules) => {
-        string_rules::get_string_rules(field_name, field_tag, &string_rules)
+        string_rules::get_string_rules(field_data, &string_rules)
       }
       // field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
       // field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
@@ -200,11 +200,6 @@ mod google {
   pub mod protobuf {
     include!(concat!(env!("OUT_DIR"), "/google.protobuf.rs"));
   }
-}
-
-pub(crate) struct ValidationData {
-  pub field: String,
-  pub tokens: TokenStream,
 }
 
 pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>, syn::Error> {
@@ -294,7 +289,15 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
         let cel_rules = field_rules.cel.clone();
       }
 
-      let rules = get_field_rules(field_name, field_desc.number(), &field_rules).unwrap();
+      let field_data = FieldData {
+        name: field_name.to_string(),
+        tag: field_desc.number(),
+        is_required,
+        is_repeated,
+        is_map,
+      };
+
+      let rules = get_field_rules(field_data, &field_rules).unwrap();
       validation_data.extend(rules);
       // println!("Rules: {:#?}", rules);
     }

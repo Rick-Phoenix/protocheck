@@ -24,7 +24,7 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
   let validator_tokens = extract_validators(_ast).unwrap();
 
   quote! {
-      #original_input_as_proc_macro2
+    #original_input_as_proc_macro2
 
     impl macro_impl::validators::WithValidator for User {
       fn validate(&self) -> Result<(), macro_impl::validators::buf::validate::Violations> {
