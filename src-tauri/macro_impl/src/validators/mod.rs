@@ -19,7 +19,7 @@ pub mod strings {
   use proto_types::FieldData;
 
   use crate::validators::{
-    buf::validate::{FieldPath, FieldPathElement, Violation},
+    buf::validate::{field_path_element::Subscript, FieldPath, FieldPathElement, Violation},
     google::protobuf::field_descriptor_proto::Type as ProtoTypes,
   };
 
@@ -30,6 +30,7 @@ pub mod strings {
     } else {
       format!("")
     };
+
     if !check {
       let violation = Violation {
         rule_id: Some("string.max_len".to_string()),

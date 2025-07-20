@@ -2,6 +2,8 @@ use super::CelRule;
 use super::CelRuleValue;
 use crate::validator::buf::validate;
 use crate::validator::buf::validate::StringRules;
+use proc_macro2::Ident;
+use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use proto_types::FieldData;
 use quote::quote;
@@ -16,11 +18,13 @@ pub fn get_string_rules(
   if string_rules.max_len.is_some() {
     let max_len_value = string_rules.max_len.unwrap() as usize;
 
-    let rule_tokens = quote! {
-      match macro_impl::validators::strings::max_len(#field_data, &self.name, #max_len_value) {
-        Ok(_) => {},
-        Err(v) => violations.push(v),
-      };
+    let rule_tokens = {
+      quote! {
+        match macro_impl::validators::strings::max_len(#field_data, &self.name, #max_len_value) {
+          Ok(_) => {},
+          Err(v) => violations.push(v),
+        };
+      }
     };
 
     rules.push(rule_tokens);

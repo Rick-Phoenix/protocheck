@@ -5,7 +5,7 @@ use buf::validate::{
   PredefinedRules, Rule, Violation,
 };
 use bytes::Bytes;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value,
 };
@@ -132,9 +132,9 @@ pub fn get_field_rules(
       // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
       // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
       // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
-      // field_rules::Type::Repeated(repeated_rules) => {
-      //   repeated_rules::get_repeated_rules(&repeated_rules)
-      // }
+      field_rules::Type::Repeated(repeated_rules) => {
+        repeated_rules::get_repeated_rules(field_data, &repeated_rules)
+      }
       // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
       // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
       // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),

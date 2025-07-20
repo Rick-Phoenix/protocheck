@@ -23,6 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     id: 1,
     name: "Me".to_string(),
     posts: Vec::<Post>::new(),
+    value: vec!["me".to_string()],
   };
 
   let result = user.validate();
