@@ -2159,6 +2159,9 @@ name = "macro_impl"
 version = "0.1.0"
 dependencies = [
  "pr_macro",
+ "prost",
+ "prost-build",
+ "serde",
 ]
 
 [[package]]
@@ -2967,7 +2970,6 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "cel-interpreter",
- "lazy_static",
  "proc-macro2",
  "prost",
  "prost-build",

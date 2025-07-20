@@ -6,4 +6,9 @@ edition = "2024"
 [lib]
 
 [dependencies]
+prost = "0.14.1"
+serde = { version = "1", features = ["derive"] }
 pr_macro = { path = "../pr_macro/" }
+
+[build-dependencies]
+prost-build = "0.14.1"

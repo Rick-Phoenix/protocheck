@@ -1,23 +1,21 @@
-use buf::validate::field_rules;
+#![allow(clippy::all, dead_code, unused)]
 use buf::validate::{
-  FieldRules, Ignore, Int64Rules, MessageRules, OneofRules, PredefinedRules, Rule,
+  field_rules, FieldRules, Ignore, MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
 use bytes::Bytes;
-use prost_reflect::prost::Message;
-use prost_reflect::DescriptorPool;
-use prost_reflect::Value;
+use prost_reflect::{
+  prost::Message, DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value,
+};
 
 use syn::DeriveInput;
 
 use proc_macro::TokenStream;
 
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
-use google::protobuf::Duration;
-use google::protobuf::Timestamp;
+use google::protobuf::{Duration, Timestamp};
 use regex::Regex;
-
-use prost_reflect::{ExtensionDescriptor, MessageDescriptor};
 
 pub mod any_rules;
 pub mod bool_rules;
@@ -68,24 +66,22 @@ pub struct FieldValidationRules {
   pub required: bool,
 }
 
-lazy_static! {
-  static ref COMMON_RULES: HashMap<String, (String, String)> = {
-    let mut rules: HashMap<String, (String, String)> = HashMap::new();
+static COMMON_RULES: LazyLock<HashMap<String, (String, String)>> = LazyLock::new(|| {
+  let mut rules: HashMap<String, (String, String)> = HashMap::new();
 
-    rules.insert("in".to_string(), ("!(this in getField(rules, 'in')) ? 'value must be in list %s'.format([getField(rules, 'in')]) : ''".to_string(), "".to_string()));
-    rules.insert(
-      "not_in".to_string(),
-      (
-        "this in rules.not_in ? 'value must not be in list %s'.format([rules.not_in]) : ''"
-          .to_string(),
-        "".to_string(),
-      ),
-    );
-    rules.insert("const".to_string(), ("this != getField(rules, 'const') ? 'value must equal %s'.format([getField(rules, 'const')]) : ''".to_string(), "".to_string()));
+  rules.insert("in".to_string(), ("!(this in getField(rules, 'in')) ? 'value must be in list %s'.format([getField(rules, 'in')]) : ''".to_string(), "".to_string()));
+  rules.insert(
+    "not_in".to_string(),
+    (
+      "this in rules.not_in ? 'value must not be in list %s'.format([rules.not_in]) : ''"
+        .to_string(),
+      "".to_string(),
+    ),
+  );
+  rules.insert("const".to_string(), ("this != getField(rules, 'const') ? 'value must equal %s'.format([getField(rules, 'const')]) : ''".to_string(), "".to_string()));
 
-    rules
-  };
-}
+  rules
+});
 
 pub fn get_field_rules(
   field_rules: &FieldRules,
@@ -200,8 +196,6 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationDat
     .ok_or("buf.validate.oneof extension not found in descriptor pool")
     .unwrap();
 
-  println!("--- User Message Validation Rules ---");
-
   let message_options = user_desc.options();
 
   let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
@@ -233,7 +227,7 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationDat
 
   for field_desc in user_desc.fields() {
     let field_name = field_desc.name();
-    println!("\nField: {}", field_name);
+    // println!("\nField: {}", field_name);
 
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
@@ -263,7 +257,7 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationDat
       }
 
       let rules = get_field_rules(&field_rules);
-      println!("Rules: {:#?}", rules);
+      // println!("Rules: {:#?}", rules);
     }
   }
 

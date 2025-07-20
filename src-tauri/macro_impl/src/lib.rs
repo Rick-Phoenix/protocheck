@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+pub mod validators;
+
 pub mod macros {
   pub use pr_macro::*;
 
@@ -59,10 +61,6 @@ pub struct ProtoField {
   pub options: Option<String>,
   pub repeated: bool,
   pub optional: bool,
-}
-
-pub trait WithValidator {
-  fn validate(&self) -> bool;
 }
 
 impl ProtoField {}
