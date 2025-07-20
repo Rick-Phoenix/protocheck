@@ -15,14 +15,26 @@ pub trait WithValidator {
   fn validate(&self) -> Result<(), Violation>;
 }
 
+pub struct FieldData {
+  pub name: String,
+  pub tag: i32,
+  pub is_repeated: bool,
+  pub is_map: bool,
+}
+
 pub mod strings {
   use crate::validators::{
     buf::validate::{field_path_element::Subscript, FieldPath, FieldPathElement, Violation},
     google::protobuf::field_descriptor_proto::Type as ProtoTypes,
   };
 
-  pub fn max_len(string: &String, max_len: usize) -> Result<(), Violation> {
-    let check = string.chars().count() < max_len;
+  pub fn max_len(
+    field_name: String,
+    field_tag: u32,
+    value: &String,
+    max_len: usize,
+  ) -> Result<(), Violation> {
+    let check = value.chars().count() < max_len;
     if !check {
       let violation = Violation {
         rule_id: Some("string.max_len".to_string()),
@@ -31,10 +43,10 @@ pub mod strings {
         field: Some(FieldPath {
           elements: vec![FieldPathElement {
             field_type: Some(ProtoTypes::String.into()),
-            field_name: Some("".to_string()),
+            field_name: Some(field_name),
             key_type: None,
             value_type: None,
-            field_number: Some(1),
+            field_number: Some(field_tag as i32),
             subscript: None,
           }],
         }),

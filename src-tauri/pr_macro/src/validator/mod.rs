@@ -1,8 +1,11 @@
 #![allow(clippy::all, dead_code, unused)]
+use crate::validator::buf::validate::field_path_element::Subscript;
 use buf::validate::{
-  field_rules, FieldRules, Ignore, MessageRules, OneofRules, PredefinedRules, Rule, Violation,
+  field_rules, FieldPath, FieldPathElement, FieldRules, Ignore, MessageRules, OneofRules,
+  PredefinedRules, Rule, Violation,
 };
 use bytes::Bytes;
+use proc_macro2::TokenStream as TokenStream2;
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value,
 };
@@ -83,24 +86,59 @@ static COMMON_RULES: LazyLock<HashMap<String, (String, String)>> = LazyLock::new
   rules
 });
 
+use google::protobuf::field_descriptor_proto::Type as ProtoTypes;
+
+static DUMMY_VIOLATION: LazyLock<Violation> = LazyLock::new(|| {
+  let violation = Violation {
+    rule_id: Some("example".to_string()),
+    message: Some(format!("example")),
+    for_key: Some(false),
+    field: Some(FieldPath {
+      elements: vec![FieldPathElement {
+        field_type: Some(ProtoTypes::String.into()),
+        field_name: Some("example".to_string()),
+        key_type: None,
+        value_type: None,
+        field_number: Some(1),
+        subscript: None,
+      }],
+    }),
+    rule: Some(FieldPath {
+      elements: vec![FieldPathElement {
+        key_type: Some(0),
+        field_type: Some(0),
+        value_type: Some(0),
+        field_name: Some("".to_string()),
+        field_number: Some(1),
+        subscript: Some(Subscript::BoolKey(true)),
+      }],
+    }),
+  };
+  violation
+});
+
 pub fn get_field_rules(
+  field_name: &str,
+  field_tag: u32,
   field_rules: &FieldRules,
-) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
+) -> Result<Vec<TokenStream2>, Box<dyn std::error::Error>> {
   if let Some(rules_type) = field_rules.r#type.clone() {
     match rules_type {
-      field_rules::Type::String(string_rules) => string_rules::get_string_rules(&string_rules),
-      field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
-      field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
-      field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
-      field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
-      field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
-      field_rules::Type::Repeated(repeated_rules) => {
-        repeated_rules::get_repeated_rules(&repeated_rules)
+      field_rules::Type::String(string_rules) => {
+        string_rules::get_string_rules(field_name, field_tag, &string_rules)
       }
-      field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
-      field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
-      field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
-      field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
+      // field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
+      // field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
+      // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
+      // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
+      // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
+      // field_rules::Type::Repeated(repeated_rules) => {
+      //   repeated_rules::get_repeated_rules(&repeated_rules)
+      // }
+      // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
+      // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
+      // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
+      // field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
       _ => Ok(Vec::new()),
     }
   } else {
@@ -169,8 +207,8 @@ pub(crate) struct ValidationData {
   pub tokens: TokenStream,
 }
 
-pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationData>, syn::Error> {
-  let mut validation_data: Vec<ValidationData> = Vec::new();
+pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>, syn::Error> {
+  let mut validation_data: Vec<TokenStream2> = Vec::new();
   let range = input_tokens.ident;
   let struct_name = range.to_string();
   let descriptor_set_bytes =
@@ -256,7 +294,8 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationDat
         let cel_rules = field_rules.cel.clone();
       }
 
-      let rules = get_field_rules(&field_rules);
+      let rules = get_field_rules(field_name, field_desc.number(), &field_rules).unwrap();
+      validation_data.extend(rules);
       // println!("Rules: {:#?}", rules);
     }
   }

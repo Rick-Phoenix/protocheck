@@ -21,31 +21,15 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
-  extract_validators(_ast);
+  let validator_tokens = extract_validators(_ast).unwrap();
 
   quote! {
       #original_input_as_proc_macro2
 
     impl macro_impl::validators::WithValidator for User {
       fn validate(&self) -> Result<(), macro_impl::validators::buf::validate::Violation> {
-        let check = macro_impl::validators::strings::max_len(&self.name, 1);
-        match check {
-          Ok(_) => Ok(()),
-          Err(v) => Err(v)
-        }
-        // let program = cel_interpreter::Program::compile("this.name == 'Me'").unwrap();
-        // let mut context = cel_interpreter::Context::default();
-        //
-        // context.add_variable("this", self).unwrap();
-        //
-        // let value = program.execute(&context).unwrap();
-        //
-        // match value {
-        //   cel_interpreter::Value::Bool(val) => val,
-        //   _ => {
-        //     panic!("Expected a boolean")
-        //   }
-        // }
+        #(#validator_tokens)*
+        Ok(())
       }
     }
   }
