@@ -6,17 +6,18 @@ edition = "2024"
 [lib]
 proc-macro = true
 
+
 [dependencies]
-prost = "0.14.1"
-serde = { version = "1", features = ["derive"] }
-prost-reflect = { version = "0.16.0", features = ["serde"] }
-cel-interpreter = "0.9.1"
-syn = { version = "2.0", features = ["full", "extra-traits"] }
-quote = "1.0"
-proc-macro2 = "1.0"
-bytes = "1"
-regex = "1"
+prost = { workspace = true }
+serde = { workspace = true }
+prost-reflect = { workspace = true }
+cel-interpreter = { workspace = true }
+syn = { workspace = true }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }
+bytes = { workspace = true }
+regex = { workspace = true }
 proto_types = { path = "../proto_types/" }
 
 [build-dependencies]
-prost-build = "0.14.1"
+prost-build = { workspace = true }

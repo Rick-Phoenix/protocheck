@@ -5,13 +5,13 @@ edition = "2024"
 
 
 [dependencies]
-prost = "0.14.1"
-serde = { version = "1", features = ["derive"] }
-cel-interpreter = "0.9.1"
-bytes = "1"
-regex = "1.x"
+prost = { workspace = true }
+serde = { workspace = true }
+cel-interpreter = { workspace = true }
+bytes = { workspace = true }
+regex = { workspace = true }
 macro_impl = { path = "../macro_impl/" }
 proto_types = { path = "../proto_types/" }
 
 [build-dependencies]
-prost-build = "0.14.1"
+prost-build = { workspace = true }
