@@ -1,4 +1,4 @@
-use crate::validators::buf::validate::Violation;
+use crate::validators::buf::validate::Violations;
 
 pub mod buf {
   pub mod validate {
@@ -12,7 +12,7 @@ mod google {
 }
 
 pub trait WithValidator {
-  fn validate(&self) -> Result<(), Violation>;
+  fn validate(&self) -> Result<(), Violations>;
 }
 
 pub struct FieldData {
@@ -38,7 +38,10 @@ pub mod strings {
     if !check {
       let violation = Violation {
         rule_id: Some("string.max_len".to_string()),
-        message: Some(format!("cannot be longer than {} characters", max_len)),
+        message: Some(format!(
+          "{} cannot be longer than {} characters",
+          field_name, max_len
+        )),
         for_key: Some(false),
         field: Some(FieldPath {
           elements: vec![FieldPathElement {

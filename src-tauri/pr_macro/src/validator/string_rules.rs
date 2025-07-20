@@ -17,7 +17,10 @@ pub fn get_string_rules(
     let max_len_value = string_rules.max_len.unwrap();
 
     let rule_tokens = quote! {
-      macro_impl::validators::strings::max_len(#field_name.to_string(), #field_tag, &self.name, 1)?;
+      match macro_impl::validators::strings::max_len(#field_name.to_string(), #field_tag, &self.name, 1) {
+        Ok(_) => {},
+        Err(v) => violations.push(v),
+      };
     };
 
     rules.push(rule_tokens);
