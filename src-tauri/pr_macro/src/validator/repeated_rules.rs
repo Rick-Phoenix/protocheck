@@ -12,18 +12,11 @@ pub fn get_repeated_rules(
 ) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
   let mut rules: Vec<TokenStream> = Vec::new();
 
-  // if repeated_rules.items.is_some() {
-  //   let items_rules_descriptor = repeated_rules.items.clone().unwrap();
-  //   let items_rules: Vec<CelRule> =
-  //     get_field_rules(field_name, field_tag, &items_rules_descriptor)?
-  //       .into_iter()
-  //       .map(|mut rule| {
-  //         rule.id = format!("repeated.items.{}", rule.id);
-  //         rule
-  //       })
-  //       .collect();
-  //   rules.extend(items_rules);
-  // }
+  if repeated_rules.items.is_some() {
+    let items_rules_descriptor = repeated_rules.items.clone().unwrap();
+    let items_rules = get_field_rules(field_data, &items_rules_descriptor)?;
+    rules.extend(items_rules);
+  }
 
   // if repeated_rules.min_items.is_some() {
   //   let min_items_value = repeated_rules.min_items.unwrap();

@@ -12,13 +12,12 @@ pub fn get_string_rules(
   string_rules: &StringRules,
 ) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
   let mut rules: Vec<TokenStream> = Vec::new();
-  let FieldData { name, tag, .. } = field_data;
 
   if string_rules.max_len.is_some() {
     let max_len_value = string_rules.max_len.unwrap() as usize;
 
     let rule_tokens = quote! {
-      match macro_impl::validators::strings::max_len(#name.to_string(), #tag, &self.name, #max_len_value) {
+      match macro_impl::validators::strings::max_len(#field_data, &self.name, #max_len_value) {
         Ok(_) => {},
         Err(v) => violations.push(v),
       };

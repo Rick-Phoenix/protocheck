@@ -496,6 +496,7 @@ dependencies = [
  "macro_impl",
  "prost",
  "prost-build",
+ "proto_types",
  "regex",
  "serde",
 ]

@@ -16,17 +16,14 @@ pub trait WithValidator {
 }
 
 pub mod strings {
+  use proto_types::FieldData;
+
   use crate::validators::{
     buf::validate::{FieldPath, FieldPathElement, Violation},
     google::protobuf::field_descriptor_proto::Type as ProtoTypes,
   };
 
-  pub fn max_len(
-    field_name: String,
-    field_tag: u32,
-    value: &String,
-    max_len: usize,
-  ) -> Result<(), Violation> {
+  pub fn max_len(field_data: FieldData, value: &String, max_len: usize) -> Result<(), Violation> {
     let check = value.chars().count() < max_len;
     let plural_suffix = if max_len > 1 {
       format!("s")
@@ -38,16 +35,16 @@ pub mod strings {
         rule_id: Some("string.max_len".to_string()),
         message: Some(format!(
           "{} cannot be longer than {} character{}",
-          field_name, max_len, plural_suffix
+          field_data.name, max_len, plural_suffix
         )),
         for_key: Some(false),
         field: Some(FieldPath {
           elements: vec![FieldPathElement {
             field_type: Some(ProtoTypes::String.into()),
-            field_name: Some(field_name),
+            field_name: Some(field_data.name),
             key_type: None,
             value_type: None,
-            field_number: Some(field_tag as i32),
+            field_number: Some(field_data.tag as i32),
             subscript: None,
           }],
         }),
