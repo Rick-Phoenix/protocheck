@@ -61,4 +61,8 @@ pub struct ProtoField {
   pub optional: bool,
 }
 
+pub trait WithValidator {
+  fn validate(&self) -> bool;
+}
+
 impl ProtoField {}

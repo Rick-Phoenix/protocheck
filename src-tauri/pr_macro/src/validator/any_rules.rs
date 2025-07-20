@@ -1,6 +1,6 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::rules::validate::AnyRules;
+use crate::validator::buf::validate::AnyRules;
 
 pub fn get_any_rules(any_rules: &AnyRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   let mut rules: Vec<CelRule> = Vec::new();

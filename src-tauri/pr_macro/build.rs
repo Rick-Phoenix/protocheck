@@ -14,7 +14,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   config
     .file_descriptor_set_path(descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .type_attribute(".myapp.v1.User", "#[macro_impl::macros::protobuf_validate]")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 
@@ -29,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       "proto_deps/google/protobuf/timestamp.proto",
       "proto_deps/google/protobuf/empty.proto",
       "proto_deps/google/protobuf/field_mask.proto",
-      "proto/myapp/v1/post.proto",
+      // "proto/myapp/v1/post.proto",
     ],
     proto_include_paths,
   )?;

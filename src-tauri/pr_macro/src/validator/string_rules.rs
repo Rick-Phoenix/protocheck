@@ -1,9 +1,8 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::buf::validate;
+use crate::validator::buf::validate;
+use crate::validator::buf::validate::StringRules;
 use regex::Regex;
-
-use crate::buf::validate::StringRules;
 
 pub fn get_string_rules(
   string_rules: &StringRules,

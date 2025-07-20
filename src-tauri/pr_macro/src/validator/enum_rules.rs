@@ -1,7 +1,7 @@
 use super::CelRule;
 
-use crate::buf::validate::EnumRules;
-use crate::rules::CelRuleValue;
+use crate::validator::buf::validate::EnumRules;
+use crate::validator::CelRuleValue;
 
 pub fn get_enum_rules(enum_rules: &EnumRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   let mut rules: Vec<CelRule> = Vec::new();

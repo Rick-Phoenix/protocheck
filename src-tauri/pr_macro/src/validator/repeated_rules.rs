@@ -1,7 +1,7 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::buf::validate::RepeatedRules;
-use crate::rules::get_field_rules;
+use crate::validator::buf::validate::RepeatedRules;
+use crate::validator::get_field_rules;
 
 pub fn get_repeated_rules(
   repeated_rules: &RepeatedRules,

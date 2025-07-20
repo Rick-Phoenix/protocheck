@@ -1,8 +1,5 @@
-use crate::buf::validate::duration_rules;
-use crate::{
-  buf::validate::DurationRules,
-  rules::{CelRule, CelRuleValue},
-};
+use crate::validator::buf::validate::duration_rules;
+use crate::validator::{buf::validate::DurationRules, CelRule, CelRuleValue};
 
 pub fn get_duration_rules(
   dur_rules: &DurationRules,

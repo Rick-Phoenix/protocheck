@@ -1,11 +1,11 @@
-use crate::rules::Int32Rules;
 use std::collections::HashMap;
 
 use super::CelRule;
 
-use crate::buf::validate::int32_rules;
-use crate::buf::validate::int64_rules;
-use crate::{buf::validate::Int64Rules, rules::CelRuleValue};
+use crate::validator::{
+  buf::validate::{int32_rules, int64_rules, Int32Rules, Int64Rules},
+  CelRuleValue,
+};
 
 lazy_static! {
   static ref NUMERIC_RULES: HashMap<String, (String, String)> = {

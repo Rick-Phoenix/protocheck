@@ -1,7 +1,7 @@
 use super::CelRule;
+use crate::validator::CelRuleValue;
 
-use crate::buf::validate::BoolRules;
-use crate::rules::CelRuleValue;
+use crate::validator::buf::validate::BoolRules;
 
 pub fn get_bool_rules(bool_rules: &BoolRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   let mut rules: Vec<CelRule> = Vec::new();

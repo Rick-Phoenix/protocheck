@@ -1,5 +1,5 @@
-use crate::buf::validate::{timestamp_rules, TimestampRules};
-use crate::rules::{CelRule, CelRuleValue};
+use crate::validator::buf::validate::{timestamp_rules, TimestampRules};
+use crate::validator::{CelRule, CelRuleValue};
 
 pub fn get_timestamp_rules(
   time_rules: &TimestampRules,

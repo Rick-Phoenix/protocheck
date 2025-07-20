@@ -1,7 +1,7 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::buf::validate;
-use crate::buf::validate::BytesRules;
+use crate::validator::buf::validate;
+use crate::validator::buf::validate::BytesRules;
 use regex::Regex;
 
 pub fn get_bytes_rules(

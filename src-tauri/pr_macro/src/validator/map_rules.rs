@@ -1,7 +1,7 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::buf::validate::MapRules;
-use crate::rules::get_field_rules;
+use crate::validator::buf::validate::MapRules;
+use crate::validator::get_field_rules;
 
 pub fn get_map_rules(map_rules: &MapRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
   let mut rules: Vec<CelRule> = Vec::new();

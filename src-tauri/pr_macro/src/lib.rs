@@ -1,7 +1,10 @@
+use bytes::Bytes;
+use prost_reflect::DescriptorPool;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syn::braced;
 use syn::bracketed;
+use syn::DeriveInput;
 use syn::Ident;
 
 use proc_macro::TokenStream;
@@ -15,6 +18,10 @@ use syn::LitInt;
 use syn::Token;
 use syn::Type;
 use syn::TypePath;
+
+use crate::validator::extract_validators;
+
+mod validator;
 
 #[macro_use]
 extern crate lazy_static;
@@ -41,6 +48,44 @@ lazy_static! {
 
     type_map
   };
+}
+
+#[proc_macro_attribute]
+pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
+  let _ = args;
+
+  let input_clone = input.clone();
+  let _ast = parse_macro_input!(input_clone as DeriveInput);
+
+  let struct_name = _ast.ident.to_string();
+  println!("{}", struct_name.to_string());
+
+  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
+
+  extract_validators(_ast);
+
+  quote! {
+      #original_input_as_proc_macro2
+
+    impl macro_impl::WithValidator for User {
+      fn validate(&self) -> bool {
+        let program = cel_interpreter::Program::compile("this.name == 'Me'").unwrap();
+        let mut context = cel_interpreter::Context::default();
+
+        context.add_variable("this", self).unwrap();
+
+        let value = program.execute(&context).unwrap();
+
+        match value {
+          cel_interpreter::Value::Bool(val) => val,
+          _ => {
+            panic!("Expected a boolean")
+          }
+        }
+      }
+    }
+  }
+  .into()
 }
 
 #[derive(Default, Debug)]
@@ -474,7 +519,7 @@ pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
     }
   };
 
-  eprintln!("{}", output.to_string());
+  // eprintln!("{}", output.to_string());
 
   output.into()
 }

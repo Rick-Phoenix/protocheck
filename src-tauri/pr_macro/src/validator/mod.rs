@@ -1,20 +1,23 @@
-#[allow(clippy::all, dead_code, unused_variables, unused_imports)]
+use buf::validate::field_rules;
+use buf::validate::{
+  FieldRules, Ignore, Int64Rules, MessageRules, OneofRules, PredefinedRules, Rule,
+};
+use bytes::Bytes;
+use prost_reflect::prost::Message;
+use prost_reflect::DescriptorPool;
+use prost_reflect::Value;
+
+use syn::DeriveInput;
+
+use proc_macro::TokenStream;
+
 use std::collections::HashMap;
 
 use google::protobuf::Duration;
 use google::protobuf::Timestamp;
 use regex::Regex;
 
-use crate::buf::validate;
-use crate::buf::validate::field_rules;
-use crate::buf::validate::FieldRules;
-use crate::buf::validate::Int32Rules;
-use crate::buf::validate::Int64Rules;
-use crate::buf::validate::PredefinedRules;
-use crate::buf::validate::Rule;
-use crate::google;
-use prost::Message;
-use prost_reflect::{ExtensionDescriptor, MessageDescriptor, Value};
+use prost_reflect::{ExtensionDescriptor, MessageDescriptor};
 
 pub mod any_rules;
 pub mod bool_rules;
@@ -152,4 +155,117 @@ fn get_rule(
     "rule {}.{} not found",
     rule_category, rule_name
   ))));
+}
+
+mod buf {
+  pub mod validate {
+    include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
+  }
+}
+mod google {
+  pub mod protobuf {
+    include!(concat!(env!("OUT_DIR"), "/google.protobuf.rs"));
+  }
+}
+
+pub(crate) struct ValidationData {
+  pub field: String,
+  pub tokens: TokenStream,
+}
+
+pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<ValidationData>, syn::Error> {
+  let mut validation_data: Vec<ValidationData> = Vec::new();
+  let range = input_tokens.ident;
+  let struct_name = range.to_string();
+  let descriptor_set_bytes =
+    Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
+  let pool = DescriptorPool::decode(descriptor_set_bytes).unwrap();
+
+  let user_desc = pool
+    .get_message_by_name("myapp.v1.User")
+    .ok_or(syn::Error::new_spanned(range, "User message not found"))?;
+
+  let field_ext_descriptor = pool
+    .get_extension_by_name("buf.validate.field")
+    .ok_or("buf.validate.field extension not found in descriptor pool")
+    .unwrap();
+
+  let message_ext_descriptor = pool
+    .get_extension_by_name("buf.validate.message")
+    .ok_or("buf.validate.message extension not found in descriptor pool")
+    .unwrap();
+
+  let oneof_ext_descriptor = pool
+    .get_extension_by_name("buf.validate.oneof")
+    .ok_or("buf.validate.oneof extension not found in descriptor pool")
+    .unwrap();
+
+  println!("--- User Message Validation Rules ---");
+
+  let message_options = user_desc.options();
+
+  let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
+
+  if let Value::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
+    let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
+
+    if message_rules.cel.len() > 0 {
+      let message_cel_rules = message_rules.cel.clone();
+    }
+
+    if message_rules.oneof.len() > 0 {
+      let message_oneof_rules = message_rules.oneof;
+    }
+  }
+
+  for oneof in user_desc.oneofs() {
+    if let Value::Message(oneof_rules_msg) = oneof
+      .options()
+      .get_extension(&oneof_ext_descriptor)
+      .as_ref()
+    {
+      let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
+      if oneof_rules.required() {
+        //
+      }
+    }
+  }
+
+  for field_desc in user_desc.fields() {
+    let field_name = field_desc.name();
+    println!("\nField: {}", field_name);
+
+    let is_repeated = field_desc.is_list();
+    let is_map = field_desc.is_map();
+
+    let is_optional = field_desc.supports_presence();
+
+    let field_options = field_desc.options();
+
+    let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
+
+    if let Value::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
+      let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
+      let mut ignore_val: Option<Ignore> = None;
+
+      if field_rules.ignore.is_some() {
+        match field_rules.ignore() {
+          Ignore::Always => continue,
+          Ignore::IfZeroValue => ignore_val = Some(Ignore::IfZeroValue),
+          Ignore::Unspecified => ignore_val = Some(Ignore::Unspecified),
+        }
+      }
+
+      let is_required = field_rules.required();
+
+      if field_rules.cel.len() > 0 {
+        let cel_rules = field_rules.cel.clone();
+      }
+
+      let rules = get_field_rules(&field_rules);
+      println!("Rules: {:#?}", rules);
+    }
+  }
+
+  Ok(validation_data)
 }
