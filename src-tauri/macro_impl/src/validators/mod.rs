@@ -23,13 +23,20 @@ pub mod strings {
     google::protobuf::field_descriptor_proto::Type as ProtoTypes,
   };
 
-  pub fn max_len(field_data: FieldData, value: &String, max_len: usize) -> Result<(), Violation> {
+  pub fn max_len(
+    index: usize,
+    field_data: FieldData,
+    value: &str,
+    max_len: usize,
+  ) -> Result<(), Violation> {
     let check = value.chars().count() < max_len;
     let plural_suffix = if max_len > 1 {
       format!("s")
     } else {
       format!("")
     };
+
+    println!("INDEX ====================== {}", index);
 
     if !check {
       let violation = Violation {

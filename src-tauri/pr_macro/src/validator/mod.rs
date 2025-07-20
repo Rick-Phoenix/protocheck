@@ -119,13 +119,14 @@ static DUMMY_VIOLATION: LazyLock<Violation> = LazyLock::new(|| {
 });
 
 pub fn get_field_rules(
+  index_item_idents: Option<(&Ident, &Ident)>,
   field_data: FieldData,
   field_rules: &FieldRules,
 ) -> Result<Vec<TokenStream2>, Box<dyn std::error::Error>> {
   if let Some(rules_type) = field_rules.r#type.clone() {
     match rules_type {
       field_rules::Type::String(string_rules) => {
-        string_rules::get_string_rules(field_data, &string_rules)
+        string_rules::get_string_rules(index_item_idents, field_data, &string_rules)
       }
       // field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
       // field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
@@ -297,7 +298,7 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
         is_map,
       };
 
-      let rules = get_field_rules(field_data, &field_rules).unwrap();
+      let rules = get_field_rules(None, field_data, &field_rules).unwrap();
       validation_data.extend(rules);
       // println!("Rules: {:#?}", rules);
     }

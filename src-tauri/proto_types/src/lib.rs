@@ -29,3 +29,16 @@ impl ToTokens for FieldData {
     });
   }
 }
+
+#[macro_export]
+macro_rules! wrap_loop {
+  ($collection_exrp:expr,
+  $idx_name:ident,
+  $item_name:ident,
+  {$($inner_logic:tt)* }
+) => {
+  for ($idx_name, $item_name) in $collection_exrp.iter().enumerate() {
+    $($inner_logic)*
+  }
+}
+}
