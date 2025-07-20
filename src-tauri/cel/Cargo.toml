@@ -6,15 +6,11 @@ edition = "2024"
 
 [dependencies]
 prost = "0.14.1"
-prost-reflect = { version = "0.16.0", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 cel-interpreter = "0.9.1"
-num-traits = "0.2.19"
 bytes = "1"
 regex = "1.x"
-lazy_static = "1.4"
 macro_impl = { path = "../macro_impl/" }
 
 [build-dependencies]
 prost-build = "0.14.1"
-regex = "1.x"

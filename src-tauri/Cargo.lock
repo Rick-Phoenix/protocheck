@@ -493,12 +493,9 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "cel-interpreter",
- "lazy_static",
  "macro_impl",
- "num-traits",
  "prost",
  "prost-build",
- "prost-reflect",
  "regex",
  "serde",
 ]
