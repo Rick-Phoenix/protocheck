@@ -5,13 +5,15 @@ use proto_types::{
   google::protobuf::field_descriptor_proto::Type as ProtoTypes,
 };
 
-pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(), Violation> {
+pub fn max_len(field_data: &FieldData, value: &str, max_len: usize) -> Result<(), Violation> {
   let check = value.chars().count() < max_len;
   let plural_suffix = if max_len > 1 {
     format!("s")
   } else {
     format!("")
   };
+
+  println!("{:#?}", field_data.subscript);
 
   if !check {
     let mut elements = field_data.parent_elements.clone();
@@ -21,7 +23,7 @@ pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(),
       key_type: None,
       value_type: None,
       field_number: Some(field_data.tag as i32),
-      subscript: field_data.subscript,
+      subscript: field_data.subscript.clone(),
     });
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),

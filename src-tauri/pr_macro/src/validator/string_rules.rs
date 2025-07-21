@@ -4,6 +4,7 @@ use proc_macro2::Ident;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use proto_types::buf::validate;
+use proto_types::buf::validate::field_path_element::Subscript;
 use proto_types::buf::validate::StringRules;
 use proto_types::FieldData;
 use quote::quote;
@@ -24,10 +25,13 @@ pub fn get_string_rules(
     if field_data.is_repeated {
       let idx = Ident::new("idx", Span::call_site());
       let item = Ident::new("item", Span::call_site());
+      let clone = field_data.clone();
 
       let expr = quote! {
+        let mut field_data = #clone;
         for (#idx, #item) in self.#field_ident.iter().enumerate() {
-          match macro_impl::validators::strings::max_len(#field_data, #item, #max_len_value) {
+          field_data.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(idx as u64));
+          match macro_impl::validators::strings::max_len(&field_data, #item, #max_len_value) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };
@@ -37,7 +41,7 @@ pub fn get_string_rules(
       rules.push(expr);
     } else {
       let expr = quote! {
-        match macro_impl::validators::strings::max_len(#field_data, &self.#field_ident, #max_len_value) {
+        match macro_impl::validators::strings::max_len(&#field_data, &self.#field_ident, #max_len_value) {
           Ok(_) => {},
           Err(v) => violations.push(v),
         };
