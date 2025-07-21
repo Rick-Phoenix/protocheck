@@ -212,12 +212,13 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
     Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
   let pool = DescriptorPool::decode(descriptor_set_bytes).unwrap();
 
-  let user_desc = pool
-    .get_message_by_name(format!("myapp.v1.{}", struct_name).as_str())
-    .ok_or(syn::Error::new_spanned(
-      range,
-      format!("{} message not found", struct_name).as_str(),
-    ))?;
+  let message = pool.get_message_by_name(format!("myapp.v1.{}", struct_name).as_str());
+
+  if !message.is_some() {
+    return Ok(validation_data);
+  };
+
+  let user_desc = message.unwrap();
 
   let field_ext_descriptor = pool
     .get_extension_by_name("buf.validate.field")
@@ -266,12 +267,13 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
   for field_desc in user_desc.fields() {
     let field_name = field_desc.name();
 
-    if let Kind::Message(_) = field_desc.kind() {
-      println!("\nField: {}", field_name);
+    if let Kind::Message(field_message_type) = field_desc.kind() {
+      let name = field_message_type.name();
+      println!("{}", name);
       continue;
     }
 
-    if struct_name != "User" {
+    if struct_name != "User" && struct_name != "Post" {
       let parent_message = field_desc.parent_message();
       return Ok(validation_data);
     }

@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       "proto_deps/google/protobuf/timestamp.proto",
       "proto_deps/google/protobuf/empty.proto",
       "proto_deps/google/protobuf/field_mask.proto",
-      "proto/myapp/v1/post.proto",
+      // "proto/myapp/v1/post.proto",
     ],
     proto_include_paths,
   )?;
