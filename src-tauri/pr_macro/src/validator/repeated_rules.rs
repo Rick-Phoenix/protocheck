@@ -20,6 +20,8 @@ pub fn get_repeated_rules(
     let mut item_field_data = field_data.clone();
     item_field_data.is_repeated = true;
 
+    // println!("FIELD_DATA {:#?}", field_data);
+
     let rules_for_single_item = get_field_rules(item_field_data, &items_rules_descriptor)?;
 
     templates.extend(rules_for_single_item);

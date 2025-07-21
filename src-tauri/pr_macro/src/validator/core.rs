@@ -126,7 +126,7 @@ pub fn extract_validators(
   }
 
   for field_desc in user_desc.fields() {
-    println!("{}", user_desc.name());
+    // println!("{}", user_desc.name());
     let field_name = field_desc.name();
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
@@ -141,7 +141,7 @@ pub fn extract_validators(
 
     if let Kind::Message(field_message_type) = field_desc.kind() {
       if field_desc.name() != "posts" {
-        println!("{}", field_desc.name());
+        // println!("{}", field_desc.name());
         continue;
       }
       let template = ValidatorCallTemplate {
@@ -160,7 +160,7 @@ pub fn extract_validators(
           is_repeated: is_repeated,
         },
       };
-      println!("{:#?}", template);
+      // println!("{:#?}", template);
       validation_data.push(template);
       continue;
     }

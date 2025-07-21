@@ -16,15 +16,7 @@ pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(),
   println!("{:#?}", field_data.subscript);
 
   if !check {
-    let mut elements = field_data.parent_elements.clone();
-    elements.push(FieldPathElement {
-      field_type: Some(ProtoTypes::String.into()),
-      field_name: Some(field_data.name.clone()),
-      key_type: None,
-      value_type: None,
-      field_number: Some(field_data.tag as i32),
-      subscript: field_data.subscript.clone(),
-    });
+    let elements = field_data.parent_elements.clone();
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),
       message: Some(format!(

@@ -232,22 +232,18 @@ impl ToTokens for ValidatorCallTemplate {
         is_optional,
         is_repeated,
       } => {
-        // This branch generates the recursive calls for nested messages.
-
-        // Create the FieldPathElement for *this nested message field*.
         let current_nested_field_element = quote! {
             proto_types::buf::validate::FieldPathElement {
                 field_name: Some(#field_name_str.to_string()),
                 field_number: Some(#field_tag as i32),
                 field_type: Some(#field_proto_type_val),
-                key_type: None, // You might need to get this from schema for map keys
-                value_type: None, // You might need to get this from schema for map values
-                subscript: None, // Subscript for repeated items will be added inside the loop
+                key_type: None,
+                value_type: None,
+                subscript: None,
             }
         };
 
         if *is_repeated {
-          // Vec<NestedMessage>
           let item_ident = Ident::new("item", Span::call_site());
           let index_ident = Ident::new("idx", Span::call_site());
 
@@ -256,7 +252,7 @@ impl ToTokens for ValidatorCallTemplate {
                             let mut nested_item_element = #current_nested_field_element;
                             nested_item_element.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64));
 
-                            #parent_messages_ident.push(nested_item_element); // Push this specific item's element
+                            #parent_messages_ident.push(nested_item_element); 
                             #item_ident.nested_validate(#parent_messages_ident, #violations_ident); // Recurse
                             #parent_messages_ident.pop(); // Pop after the call
                         }
