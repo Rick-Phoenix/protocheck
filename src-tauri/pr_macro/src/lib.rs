@@ -23,7 +23,7 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
-  let validator_tokens = extract_validators(_ast).unwrap();
+  let validator_call_templates = extract_validators(_ast).unwrap();
 
   let output = quote! {
     #original_input_as_proc_macro2
@@ -31,23 +31,29 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
     impl macro_impl::validators::WithValidator for #struct_ident {
       fn validate(&self) -> Result<(), proto_types::buf::validate::Violations> {
         let mut violations: Vec<proto_types::buf::validate::Violation> = Vec::new();
-        #(#validator_tokens)*
+        let mut parent_messages: Vec<proto_types::buf::validate::FieldPathElement> = Vec::new();
+
+        self.nested_validate(&mut parent_messages, &mut violations);
+
         if violations.len() > 0 {
           return Err(proto_types::buf::validate::Violations { violations });
         }
         Ok(())
       }
 
-      fn nested_validate(&self, parent_messages: &mut Vec<proto_types::buf::validate::FieldPathElement>, violations: &mut Vec<proto_types::buf::validate::Violation>) -> Result<(), proto_types::buf::validate::Violations> {
-        if violations.len() > 0 {
-          return Err(proto_types::buf::validate::Violations { violations });
-        }
-        Ok(())
+      fn nested_validate(
+        &self,
+        parent_messages: &mut Vec<proto_types::buf::validate::FieldPathElement>,
+        violations: &mut Vec<proto_types::buf::validate::Violation>,
+      ) {
+
+        #(#validator_call_templates)*
+
       }
     }
   };
 
-  eprintln!("{}", output);
+  // eprintln!("{}", output);
 
   output.into()
 }

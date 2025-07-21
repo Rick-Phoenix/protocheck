@@ -9,7 +9,7 @@ use proto_types::buf::validate::{
   field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
   MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
-use proto_types::FieldData;
+use proto_types::{FieldData, ValidatorCallTemplate};
 use quote::quote;
 
 use syn::DeriveInput;
@@ -25,7 +25,7 @@ use regex::Regex;
 pub fn get_field_rules(
   field_data: FieldData,
   field_rules: &FieldRules,
-) -> Result<Vec<TokenStream2>, Box<dyn std::error::Error>> {
+) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
   if let Some(rules_type) = field_rules.r#type.clone() {
     match rules_type {
       field_rules::Type::String(string_rules) => {
@@ -36,9 +36,9 @@ pub fn get_field_rules(
       // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
       // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
       // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
-      field_rules::Type::Repeated(repeated_rules) => {
-        repeated_rules::get_repeated_rules(field_data, &repeated_rules)
-      }
+      // field_rules::Type::Repeated(repeated_rules) => {
+      //   repeated_rules::get_repeated_rules(field_data, &repeated_rules)
+      // }
       // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
       // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
       // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
@@ -50,8 +50,10 @@ pub fn get_field_rules(
   }
 }
 
-pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>, syn::Error> {
-  let mut validation_data: Vec<TokenStream2> = Vec::new();
+pub fn extract_validators(
+  input_tokens: DeriveInput,
+) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
+  let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
   let range = input_tokens.ident;
   let struct_name = range.to_string();
 
@@ -124,32 +126,32 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
     let field_name = field_desc.name();
     let is_repeated = field_desc.is_list();
 
-    println!("{}", field_name.to_string());
-    println!("{:#?}", field_desc.kind());
+    // println!("{}", field_name.to_string());
+    // println!("{:#?}", field_desc.kind());
 
     if let Kind::Message(field_message_type) = field_desc.kind() {
-      let name = field_message_type.name();
-      if name == "Post" {
-        let validator = if !is_repeated {
-          quote! {
-            match &self.posts.validate() {
-              Ok(_) => {},
-              Err(v) => violations.extend(v.violations),
-            };
-          }
-        } else {
-          quote! {
-            for item in self.posts.iter() {
-              match item.validate() {
-                Ok(_) => {},
-                Err(v) => violations.extend(v.violations),
-              };
-            }
-          }
-        };
-        validation_data.push(validator);
-      }
-      continue;
+      // let name = field_message_type.name();
+      // if name == "Post" {
+      //   let validator = if !is_repeated {
+      //     quote! {
+      //       match &self.posts.validate() {
+      //         Ok(_) => {},
+      //         Err(v) => violations.extend(v.violations),
+      //       };
+      //     }
+      //   } else {
+      //     quote! {
+      //       for item in self.posts.iter() {
+      //         match item.validate() {
+      //           Ok(_) => {},
+      //           Err(v) => violations.extend(v.violations),
+      //         };
+      //       }
+      //     }
+      //   };
+      //   validation_data.push(validator);
+      // }
+      // continue;
     }
 
     let is_map = field_desc.is_map();

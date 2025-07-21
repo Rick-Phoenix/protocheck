@@ -1,5 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::FieldData;
+use proto_types::ValidatorCallTemplate;
 use quote::quote;
 
 use super::CelRule;
@@ -10,57 +11,19 @@ use proto_types::buf::validate::RepeatedRules;
 pub fn get_repeated_rules(
   field_data: FieldData,
   repeated_rules: &RepeatedRules,
-) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
-  let mut rules: Vec<TokenStream> = Vec::new();
-  let field_name = field_data.name.clone();
+) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
+  let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
 
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
-    let rules_for_single_item = get_field_rules(field_data.clone(), &items_rules_descriptor)?;
 
-    rules.extend(rules_for_single_item);
+    let mut item_field_data = field_data.clone();
+    item_field_data.is_repeated = false;
+
+    let rules_for_single_item = get_field_rules(item_field_data, &items_rules_descriptor)?;
+
+    templates.extend(rules_for_single_item);
   }
 
-  // if rules.len() > 0 {
-  //   let validator = quote! {
-  //     for (#index, _) in self.#field_name_ident.iter().enumerate() {
-  //       #(#rules)*
-  //     }
-  //   };
-  //
-  //   rules.push(validator);
-  // }
-
-  // if repeated_rules.min_items.is_some() {
-  //   let min_items_value = repeated_rules.min_items.unwrap();
-  //
-  //   rules.push(CelRule {
-  //     id: "repeated.min_items".to_string(),
-  //     message: "".to_string(),
-  //     expression: "uint(this.size()) < rules.min_items ? 'value must contain at least %d item(s)'.format([rules.min_items]) : ''".to_string(),
-  //     value: CelRuleValue::U64(min_items_value),
-  //   });
-  // }
-  //
-  // if repeated_rules.max_items.is_some() {
-  //   let max_items_value = repeated_rules.max_items.unwrap();
-  //
-  //   rules.push(CelRule {
-  //     id: "repeated.max_items".to_string(),
-  //     message: "".to_string(),
-  //     expression: "uint(this.size()) > rules.max_items ? 'value must contain no more than %s item(s)'.format([rules.max_items]) : ''".to_string(),
-  //     value: CelRuleValue::U64(max_items_value),
-  //   });
-  // }
-  //
-  // if repeated_rules.unique.is_some() {
-  //   rules.push(CelRule {
-  //     id: "repeated.unique".to_string(),
-  //     message: "".to_string(),
-  //     expression: "!rules.unique || this.unique()".to_string(),
-  //     value: CelRuleValue::Bool(true),
-  //   });
-  // }
-
-  Ok(rules)
+  Ok(templates)
 }

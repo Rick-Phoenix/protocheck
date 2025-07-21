@@ -8,49 +8,29 @@ use proto_types::buf::validate::field_path_element::Subscript;
 use proto_types::buf::validate::StringRules;
 use proto_types::FieldData;
 use quote::quote;
+use quote::ToTokens;
 use regex::Regex;
+
+use proto_types::ValidatorCallTemplate;
 
 pub fn get_string_rules(
   field_data: FieldData,
-  string_rules: &StringRules,
-) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
-  let mut rules: Vec<TokenStream> = Vec::new();
-
-  let field_name = field_data.name.clone();
-  let field_ident = Ident::new(&field_name, Span::call_site());
+  string_rules: &proto_types::buf::validate::StringRules,
+) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
+  let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
 
   if string_rules.max_len.is_some() {
     let max_len_value = string_rules.max_len.unwrap() as usize;
 
-    if field_data.is_repeated {
-      let idx = Ident::new("idx", Span::call_site());
-      let item = Ident::new("item", Span::call_site());
-      let clone = field_data.clone();
-
-      let expr = quote! {
-        let mut field_data = #clone;
-        for (#idx, #item) in self.#field_ident.iter().enumerate() {
-          field_data.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(idx as u64));
-          match macro_impl::validators::strings::max_len(&field_data, #item, #max_len_value) {
-            Ok(_) => {},
-            Err(v) => violations.push(v),
-          };
-        };
-      };
-
-      rules.push(expr);
-    } else {
-      let expr = quote! {
-        match macro_impl::validators::strings::max_len(&#field_data, &self.#field_ident, #max_len_value) {
-          Ok(_) => {},
-          Err(v) => violations.push(v),
-        };
-      };
-      rules.push(expr);
-    }
+    templates.push(ValidatorCallTemplate {
+      validator_path: quote! { macro_impl::validators::strings::max_len },
+      target_value_tokens: max_len_value.into_token_stream(),
+      base_field_data: field_data.clone(),
+      violation_rule_id: "string.max_len".to_string(),
+    });
   }
 
-  Ok(rules)
+  Ok(templates)
 }
 
 // pub fn get_string_rules(
