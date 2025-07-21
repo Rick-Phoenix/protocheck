@@ -158,7 +158,6 @@ impl ToTokens for ValidatorCallTemplate {
       GeneratedCodeKind::FieldRule => {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
-        let violation_rule_id_str = self.violation_rule_id.as_ref().unwrap();
 
         let current_field_path_element_common = quote! {
             field_name: Some(#field_name_str.to_string()),
@@ -173,59 +172,57 @@ impl ToTokens for ValidatorCallTemplate {
           let index_ident = Ident::new("idx", Span::call_site());
 
           tokens.extend(quote! {
-                        for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-                            let mut current_item_parent_elements = #parent_messages_ident.clone();
-                            let current_field_path_element = proto_types::buf::validate::FieldPathElement {
-                                #current_field_path_element_common
-                                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-                            };
-                            current_item_parent_elements.push(current_field_path_element);
+            for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
+              let mut current_item_parent_elements = #parent_messages_ident.clone();
+              let current_field_path_element = proto_types::buf::validate::FieldPathElement {
+                #current_field_path_element_common
+                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
+              };
+              current_item_parent_elements.push(current_field_path_element);
 
-                            let item_field_data = proto_types::FieldData {
-                                name: #field_name_str.to_string(),
-                                tag: #field_tag,
-                                is_repeated: false,
-                                is_map: false,
-                                is_required: #field_is_required,
-                                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-                                parent_elements: current_item_parent_elements,
-                            };
-                            match #validator(item_field_data, #item_ident, #target) {
-                                Ok(_) => {},
-                                Err(mut v) => {
-                                    v.rule_id = Some(#violation_rule_id_str.to_string());
-                                   #violations_ident.push(v);
-                                },
-                            };
-                        }
-                    });
+              let item_field_data = proto_types::FieldData {
+                name: #field_name_str.to_string(),
+                tag: #field_tag,
+                is_repeated: false,
+                is_map: false,
+                is_required: #field_is_required,
+                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
+                parent_elements: current_item_parent_elements,
+              };
+              match #validator(item_field_data, #item_ident, #target) {
+                Ok(_) => {},
+                Err(v) => {
+                   #violations_ident.push(v);
+                },
+              };
+            }
+          });
         } else {
           tokens.extend(quote! {
-                        let mut current_field_parent_elements = #parent_messages_ident.clone();
-                        let current_field_path_element = proto_types::buf::validate::FieldPathElement {
-                            #current_field_path_element_common
-                            subscript: None,
-                        };
-                        current_field_parent_elements.push(current_field_path_element);
+            let mut current_field_parent_elements = #parent_messages_ident.clone();
+            let current_field_path_element = proto_types::buf::validate::FieldPathElement {
+              #current_field_path_element_common
+              subscript: None,
+            };
+            current_field_parent_elements.push(current_field_path_element);
 
-                        let field_data_for_call = proto_types::FieldData {
-                            name: #field_name_str.to_string(),
-                            tag: #field_tag,
-                            is_repeated: false,
-                            is_map: false,
-                            is_required: #field_is_required,
-                            subscript: None,
-                            parent_elements: current_field_parent_elements,
-                        };
+            let field_data_for_call = proto_types::FieldData {
+              name: #field_name_str.to_string(),
+              tag: #field_tag,
+              is_repeated: false,
+              is_map: false,
+              is_required: #field_is_required,
+              subscript: None,
+              parent_elements: current_field_parent_elements,
+            };
 
-                        match #validator(field_data_for_call, &self.#field_rust_ident, #target) {
-                            Ok(_) => {},
-                            Err(mut v) => {
-                            v.rule_id = Some(#violation_rule_id_str.to_string());
-                                #violations_ident.push(v);
-                            },
-                        };
-                    });
+            match #validator(field_data_for_call, &self.#field_rust_ident, #target) {
+              Ok(_) => {},
+              Err(v) => {
+                #violations_ident.push(v);
+              },
+            };
+        });
         }
       }
       GeneratedCodeKind::NestedMessageRecursion {
@@ -233,14 +230,14 @@ impl ToTokens for ValidatorCallTemplate {
         is_repeated,
       } => {
         let current_nested_field_element = quote! {
-            proto_types::buf::validate::FieldPathElement {
-                field_name: Some(#field_name_str.to_string()),
-                field_number: Some(#field_tag as i32),
-                field_type: Some(#field_proto_type_val),
-                key_type: None,
-                value_type: None,
-                subscript: None,
-            }
+          proto_types::buf::validate::FieldPathElement {
+            field_name: Some(#field_name_str.to_string()),
+            field_number: Some(#field_tag as i32),
+            field_type: Some(#field_proto_type_val),
+            key_type: None,
+            value_type: None,
+            subscript: None,
+          }
         };
 
         if *is_repeated {
@@ -248,30 +245,28 @@ impl ToTokens for ValidatorCallTemplate {
           let index_ident = Ident::new("idx", Span::call_site());
 
           tokens.extend(quote! {
-                        for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-                            let mut nested_item_element = #current_nested_field_element;
-                            nested_item_element.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64));
+            for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
+              let mut nested_item_element = #current_nested_field_element;
+              nested_item_element.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64));
 
-                            #parent_messages_ident.push(nested_item_element); 
-                            #item_ident.nested_validate(#parent_messages_ident, #violations_ident); // Recurse
-                            #parent_messages_ident.pop(); // Pop after the call
-                        }
-                    });
+              #parent_messages_ident.push(nested_item_element); 
+              #item_ident.nested_validate(#parent_messages_ident, #violations_ident); 
+              #parent_messages_ident.pop(); 
+            }
+          });
         } else if *is_optional {
-          // Option<NestedMessage>
           tokens.extend(quote! {
-              if let Some(nested_msg_instance) = &self.#field_rust_ident {
-                  #parent_messages_ident.push(#current_nested_field_element); // Push this field's element
-                  nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident); // Recurse
-                  #parent_messages_ident.pop(); // Pop after the call
-              }
+            if let Some(nested_msg_instance) = &self.#field_rust_ident {
+              #parent_messages_ident.push(#current_nested_field_element); 
+              nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident); 
+              #parent_messages_ident.pop(); 
+            }
           });
         } else {
-          // Direct NestedMessage
           tokens.extend(quote! {
-              #parent_messages_ident.push(#current_nested_field_element); // Push this field's element
-              self.#field_rust_ident.nested_validate(#parent_messages_ident, #violations_ident); // Recurse
-              #parent_messages_ident.pop(); // Pop after the call
+            #parent_messages_ident.push(#current_nested_field_element);
+            self.#field_rust_ident.nested_validate(#parent_messages_ident, #violations_ident);
+            #parent_messages_ident.pop();
           });
         }
       }
