@@ -2,6 +2,7 @@
 use crate::validator::{repeated_rules, string_rules};
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
+use prost_reflect::prost_types::Type;
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
 };
@@ -9,6 +10,7 @@ use proto_types::buf::validate::{
   field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
   MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
+use proto_types::GeneratedCodeKind;
 use proto_types::{FieldData, ValidatorCallTemplate};
 use quote::quote;
 
@@ -125,11 +127,37 @@ pub fn extract_validators(
   for field_desc in user_desc.fields() {
     let field_name = field_desc.name();
     let is_repeated = field_desc.is_list();
+    let is_map = field_desc.is_map();
+
+    let is_optional = field_desc.supports_presence();
+
+    let field_rust_ident = field_desc.json_name(); // Or derive from proto name
+    let field_tag = field_desc.number();
 
     // println!("{}", field_name.to_string());
     // println!("{:#?}", field_desc.kind());
 
     if let Kind::Message(field_message_type) = field_desc.kind() {
+      if field_desc.name() != "posts" {
+        continue;
+      }
+      validation_data.push(ValidatorCallTemplate {
+        validator_path: None,
+        target_value_tokens: None,
+        violation_rule_id: None,
+        field_rust_ident_str: field_name.to_string(),
+        field_tag: field_tag,
+        field_proto_name: field_name.to_string(),
+        field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::String,
+        field_is_repeated: is_repeated,
+        field_is_map: is_map,
+        field_is_required: false,
+        kind: GeneratedCodeKind::NestedMessageRecursion {
+          is_optional: true,
+          is_repeated: is_repeated,
+        },
+      });
+      continue;
       // let name = field_message_type.name();
       // if name == "Post" {
       //   let validator = if !is_repeated {
@@ -153,10 +181,6 @@ pub fn extract_validators(
       // }
       // continue;
     }
-
-    let is_map = field_desc.is_map();
-
-    let is_optional = field_desc.supports_presence();
 
     let field_options = field_desc.options();
 
@@ -182,7 +206,7 @@ pub fn extract_validators(
 
       let field_data = FieldData {
         name: field_name.to_string(),
-        tag: field_desc.number(),
+        tag: field_tag,
         is_required,
         is_repeated,
         is_map,
