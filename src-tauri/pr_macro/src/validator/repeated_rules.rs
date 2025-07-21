@@ -5,7 +5,7 @@ use quote::quote;
 use super::CelRule;
 use super::CelRuleValue;
 use crate::validator::buf::validate::RepeatedRules;
-use crate::validator::get_field_rules;
+use crate::validator::core::get_field_rules;
 
 pub fn get_repeated_rules(
   field_data: FieldData,

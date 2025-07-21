@@ -18,8 +18,6 @@ pub fn max_len(
     format!("")
   };
 
-  println!("INDEX ====================== {}", index);
-
   if !check {
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),

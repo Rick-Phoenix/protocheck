@@ -4,7 +4,7 @@ use syn::parse_macro_input;
 use syn::DeriveInput;
 
 use crate::protogen::parse_proto_message;
-use crate::validator::extract_validators;
+use crate::validator::core::extract_validators;
 
 mod protogen;
 mod validator;
