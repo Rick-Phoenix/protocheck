@@ -194,7 +194,7 @@ pub fn extract_validators(
         is_repeated,
         is_map,
         subscript: None,
-        parent_elements: Vec::new(),
+        parent_elements: &Vec::new(),
       };
 
       let rules = get_field_rules(field_data, &field_rules).unwrap();

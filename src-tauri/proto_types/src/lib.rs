@@ -20,44 +20,44 @@ pub mod google {
 }
 
 #[derive(Clone, Debug)]
-pub struct FieldData {
+pub struct FieldData<'a> {
   pub name: String,
   pub tag: u32,
   pub is_repeated: bool,
   pub is_map: bool,
   pub is_required: bool,
   pub subscript: Option<Subscript>,
-  pub parent_elements: Vec<FieldPathElement>,
+  pub parent_elements: &'a [FieldPathElement],
 }
 
-impl ToTokens for FieldData {
-  fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-    let name = &self.name;
-    let tag = self.tag;
-    let is_repeated = self.is_repeated;
-    let is_map = self.is_map;
-    let is_required = self.is_required;
-    let subscript = &self.subscript;
-    let parent_elements = &self.parent_elements;
-
-    let subscript_expr = match subscript {
-      Some(s) => quote! { ::core::option::Option::Some(#s) },
-      None => quote! { ::core::option::Option::None },
-    };
-
-    tokens.extend(quote! {
-        proto_types::FieldData {
-            name: #name.to_string(),
-            tag: #tag,
-            is_repeated: #is_repeated,
-            is_map: #is_map,
-            is_required: #is_required,
-            subscript: #subscript_expr,
-            parent_elements: vec![#(#parent_elements),*],
-        }
-    });
-  }
-}
+// impl ToTokens for FieldData {
+//   fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+//     let name = &self.name;
+//     let tag = self.tag;
+//     let is_repeated = self.is_repeated;
+//     let is_map = self.is_map;
+//     let is_required = self.is_required;
+//     let subscript = &self.subscript;
+//     let parent_elements = &self.parent_elements;
+//
+//     let subscript_expr = match subscript {
+//       Some(s) => quote! { ::core::option::Option::Some(#s) },
+//       None => quote! { ::core::option::Option::None },
+//     };
+//
+//     tokens.extend(quote! {
+//         proto_types::FieldData {
+//             name: #name.to_string(),
+//             tag: #tag,
+//             is_repeated: #is_repeated,
+//             is_map: #is_map,
+//             is_required: #is_required,
+//             subscript: #subscript_expr,
+//             parent_elements: vec![#(#parent_elements),*],
+//         }
+//     });
+//   }
+// }
 
 impl ToTokens for FieldPathElement {
   fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -172,14 +172,8 @@ impl ToTokens for ValidatorCallTemplate {
           let index_ident = Ident::new("idx", Span::call_site());
 
           tokens.extend(quote! {
+            let current_item_parent_elements = #parent_messages_ident.clone();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-              let mut current_item_parent_elements = #parent_messages_ident.clone();
-              let current_field_path_element = proto_types::buf::validate::FieldPathElement {
-                #current_field_path_element_common
-                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-              };
-              current_item_parent_elements.push(current_field_path_element);
-
               let item_field_data = proto_types::FieldData {
                 name: #field_name_str.to_string(),
                 tag: #field_tag,
@@ -187,7 +181,7 @@ impl ToTokens for ValidatorCallTemplate {
                 is_map: false,
                 is_required: #field_is_required,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-                parent_elements: current_item_parent_elements,
+                parent_elements: current_item_parent_elements.as_slice(),
               };
               match #validator(item_field_data, #item_ident, #target) {
                 Ok(_) => {},
@@ -199,12 +193,7 @@ impl ToTokens for ValidatorCallTemplate {
           });
         } else {
           tokens.extend(quote! {
-            let mut current_field_parent_elements = #parent_messages_ident.clone();
-            let current_field_path_element = proto_types::buf::validate::FieldPathElement {
-              #current_field_path_element_common
-              subscript: None,
-            };
-            current_field_parent_elements.push(current_field_path_element);
+            let current_field_parent_elements = #parent_messages_ident.as_slice();
 
             let field_data_for_call = proto_types::FieldData {
               name: #field_name_str.to_string(),
