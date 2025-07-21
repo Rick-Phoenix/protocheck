@@ -118,6 +118,7 @@ impl ToTokens for Subscript {
   }
 }
 
+#[derive(Debug)]
 pub enum GeneratedCodeKind {
   FieldRule,
   NestedMessageRecursion {
@@ -126,6 +127,7 @@ pub enum GeneratedCodeKind {
   },
 }
 
+#[derive(Debug)]
 pub struct ValidatorCallTemplate {
   pub validator_path: Option<TokenStream>,
   pub target_value_tokens: Option<TokenStream>,
@@ -186,7 +188,7 @@ impl ToTokens for ValidatorCallTemplate {
                                 is_map: false,
                                 is_required: #field_is_required,
                                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-                                parent_elements: item_field_data_parent_elements,
+                                parent_elements: current_item_parent_elements,
                             };
                             match #validator(item_field_data, #item_ident, #target) {
                                 Ok(_) => {},

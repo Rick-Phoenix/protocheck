@@ -38,9 +38,9 @@ pub fn get_field_rules(
       // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
       // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
       // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(&enum_rules),
-      // field_rules::Type::Repeated(repeated_rules) => {
-      //   repeated_rules::get_repeated_rules(field_data, &repeated_rules)
-      // }
+      field_rules::Type::Repeated(repeated_rules) => {
+        repeated_rules::get_repeated_rules(field_data, &repeated_rules)
+      }
       // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
       // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
       // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
@@ -72,6 +72,7 @@ pub fn extract_validators(
   } else {
     "".to_string()
   };
+
   let message = pool.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
 
   if !message.is_some() {
@@ -125,6 +126,7 @@ pub fn extract_validators(
   }
 
   for field_desc in user_desc.fields() {
+    println!("{}", user_desc.name());
     let field_name = field_desc.name();
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
@@ -139,16 +141,17 @@ pub fn extract_validators(
 
     if let Kind::Message(field_message_type) = field_desc.kind() {
       if field_desc.name() != "posts" {
+        println!("{}", field_desc.name());
         continue;
       }
-      validation_data.push(ValidatorCallTemplate {
+      let template = ValidatorCallTemplate {
         validator_path: None,
         target_value_tokens: None,
         violation_rule_id: None,
         field_rust_ident_str: field_name.to_string(),
         field_tag: field_tag,
         field_proto_name: field_name.to_string(),
-        field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::String,
+        field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
         field_is_repeated: is_repeated,
         field_is_map: is_map,
         field_is_required: false,
@@ -156,30 +159,10 @@ pub fn extract_validators(
           is_optional: true,
           is_repeated: is_repeated,
         },
-      });
+      };
+      println!("{:#?}", template);
+      validation_data.push(template);
       continue;
-      // let name = field_message_type.name();
-      // if name == "Post" {
-      //   let validator = if !is_repeated {
-      //     quote! {
-      //       match &self.posts.validate() {
-      //         Ok(_) => {},
-      //         Err(v) => violations.extend(v.violations),
-      //       };
-      //     }
-      //   } else {
-      //     quote! {
-      //       for item in self.posts.iter() {
-      //         match item.validate() {
-      //           Ok(_) => {},
-      //           Err(v) => violations.extend(v.violations),
-      //         };
-      //       }
-      //     }
-      //   };
-      //   validation_data.push(validator);
-      // }
-      // continue;
     }
 
     let field_options = field_desc.options();
