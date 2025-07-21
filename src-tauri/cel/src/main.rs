@@ -1,3 +1,4 @@
+use crate::myapp::v1::user::Post;
 use crate::myapp::v1::User;
 use macro_impl::validators::WithValidator;
 
@@ -12,7 +13,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     created_at: None,
     id: 1,
     name: "Me".to_string(),
-    value: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+    value: vec![],
+    posts: vec![Post {
+      tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+    }],
   };
 
   let result = user.validate();

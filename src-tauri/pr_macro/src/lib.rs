@@ -40,7 +40,7 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
     }
   };
 
-  // eprintln!("{}", output);
+  eprintln!("{}", output);
 
   output.into()
 }

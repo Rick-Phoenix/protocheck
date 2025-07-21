@@ -10,6 +10,7 @@ use proto_types::buf::validate::{
   MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
 use proto_types::FieldData;
+use quote::quote;
 
 use syn::DeriveInput;
 
@@ -54,11 +55,20 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
   let range = input_tokens.ident;
   let struct_name = range.to_string();
 
+  // println!("{}", struct_name.to_string());
+
   let descriptor_set_bytes =
     Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
   let pool = DescriptorPool::decode(descriptor_set_bytes).unwrap();
 
-  let message = pool.get_message_by_name(format!("myapp.v1.{}", struct_name).as_str());
+  let message_name = if struct_name == "User" {
+    "User".to_string()
+  } else if struct_name == "Post" {
+    "User.Post".to_string()
+  } else {
+    "".to_string()
+  };
+  let message = pool.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
 
   if !message.is_some() {
     return Ok(validation_data);
@@ -112,18 +122,36 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
 
   for field_desc in user_desc.fields() {
     let field_name = field_desc.name();
+    let is_repeated = field_desc.is_list();
+
+    println!("{}", field_name.to_string());
+    println!("{:#?}", field_desc.kind());
 
     if let Kind::Message(field_message_type) = field_desc.kind() {
       let name = field_message_type.name();
+      if name == "Post" {
+        let validator = if !is_repeated {
+          quote! {
+            match &self.posts.validate() {
+              Ok(_) => {},
+              Err(v) => violations.extend(v.violations),
+            };
+          }
+        } else {
+          quote! {
+            for item in self.posts.iter() {
+              match item.validate() {
+                Ok(_) => {},
+                Err(v) => violations.extend(v.violations),
+              };
+            }
+          }
+        };
+        validation_data.push(validator);
+      }
       continue;
     }
 
-    if struct_name != "User" && struct_name != "Post" {
-      let parent_message = field_desc.parent_message();
-      return Ok(validation_data);
-    }
-
-    let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
 
     let is_optional = field_desc.supports_presence();
