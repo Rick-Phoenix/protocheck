@@ -7,7 +7,7 @@ use buf::validate::{
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::{
-  prost::Message, DescriptorPool, ExtensionDescriptor, MessageDescriptor, Value,
+  prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
 };
 use proto_types::FieldData;
 
@@ -207,13 +207,17 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
   let mut validation_data: Vec<TokenStream2> = Vec::new();
   let range = input_tokens.ident;
   let struct_name = range.to_string();
+
   let descriptor_set_bytes =
     Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
   let pool = DescriptorPool::decode(descriptor_set_bytes).unwrap();
 
   let user_desc = pool
-    .get_message_by_name("myapp.v1.User")
-    .ok_or(syn::Error::new_spanned(range, "User message not found"))?;
+    .get_message_by_name(format!("myapp.v1.{}", struct_name).as_str())
+    .ok_or(syn::Error::new_spanned(
+      range,
+      format!("{} message not found", struct_name).as_str(),
+    ))?;
 
   let field_ext_descriptor = pool
     .get_extension_by_name("buf.validate.field")
@@ -261,7 +265,16 @@ pub fn extract_validators(input_tokens: DeriveInput) -> Result<Vec<TokenStream2>
 
   for field_desc in user_desc.fields() {
     let field_name = field_desc.name();
-    // println!("\nField: {}", field_name);
+
+    if let Kind::Message(_) = field_desc.kind() {
+      println!("\nField: {}", field_name);
+      continue;
+    }
+
+    if struct_name != "User" {
+      let parent_message = field_desc.parent_message();
+      return Ok(validation_data);
+    }
 
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();

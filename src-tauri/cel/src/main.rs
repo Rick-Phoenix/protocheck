@@ -1,4 +1,5 @@
-use crate::myapp::v1::{Post, User};
+use crate::myapp::v1::user::Post;
+use crate::myapp::v1::User;
 use macro_impl::validators::WithValidator;
 
 mod myapp {

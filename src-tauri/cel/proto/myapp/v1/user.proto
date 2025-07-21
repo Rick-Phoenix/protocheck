@@ -6,9 +6,13 @@ import "buf/validate/validate.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
-import "myapp/v1/post.proto";
 
 message User {
+  message Post {
+    repeated string tag = 1 [(buf.validate.field).repeated.items = {
+      string: {max_len: 1}
+    }];
+  }
   string name = 1 [
     (buf.validate.field).required = true,
     (buf.validate.field).string.max_len = 1,
