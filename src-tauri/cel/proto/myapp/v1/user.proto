@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 
 message User {
   message Post {
-    repeated string tag = 1 [(buf.validate.field).repeated.items = {
+    repeated string tags = 1 [(buf.validate.field).repeated.items = {
       string: {max_len: 1}
     }];
   }
