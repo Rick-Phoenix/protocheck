@@ -13,35 +13,12 @@ pub fn get_repeated_rules(
 ) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
   let mut rules: Vec<TokenStream> = Vec::new();
   let field_name = field_data.name.clone();
-  let field_name_ident = Ident::new(&field_name, Span::call_site());
-
-  let index_ident = Ident::new("index", Span::call_site());
-  let item_ident = Ident::new("item", Span::call_site());
-
-  let mut item_validation_tokens: Vec<TokenStream> = Vec::new();
 
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
-    let rules_for_single_item = get_field_rules(
-      Some((&index_ident, &item_ident)),
-      field_data.clone(),
-      &items_rules_descriptor,
-    )?;
+    let rules_for_single_item = get_field_rules(field_data.clone(), &items_rules_descriptor)?;
 
-    item_validation_tokens.extend(rules_for_single_item);
-  }
-
-  let all_item_rules = quote! {
-    #(#item_validation_tokens)*
-  };
-
-  if !item_validation_tokens.is_empty() {
-    let validator = quote! {
-      proto_types::wrap_loop! (self.#field_name_ident, #index_ident, #item_ident, {
-        #all_item_rules
-      });
-    };
-    rules.push(validator);
+    rules.extend(rules_for_single_item);
   }
 
   // if rules.len() > 0 {

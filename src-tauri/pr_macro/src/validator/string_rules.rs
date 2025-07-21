@@ -10,35 +10,40 @@ use quote::quote;
 use regex::Regex;
 
 pub fn get_string_rules(
-  index_item_idents: Option<(&Ident, &Ident)>,
   field_data: FieldData,
   string_rules: &StringRules,
 ) -> Result<Vec<TokenStream>, Box<dyn std::error::Error>> {
   let mut rules: Vec<TokenStream> = Vec::new();
 
+  let field_name = field_data.name.clone();
+  let field_ident = Ident::new(&field_name, Span::call_site());
+
   if string_rules.max_len.is_some() {
     let max_len_value = string_rules.max_len.unwrap() as usize;
 
-    let (idx_val, val_to_validate) = if let Some((idx_ident, item_ident)) = index_item_idents {
-      (
-        quote! { #idx_ident as usize },
-        quote! { #item_ident.as_str() },
-      )
-    } else {
-      let field_name_ident = Ident::new(&field_data.name, Span::call_site());
-      (quote! { 0 }, quote! { &self.#field_name_ident.as_str() })
-    };
+    if field_data.is_repeated {
+      let idx = Ident::new("idx", Span::call_site());
+      let item = Ident::new("item", Span::call_site());
 
-    let rule_tokens = {
-      quote! {
-        match macro_impl::validators::strings::max_len(#idx_val, #field_data, #val_to_validate, #max_len_value) {
+      let expr = quote! {
+        for (#idx, #item) in self.#field_ident.iter().enumerate() {
+          match macro_impl::validators::strings::max_len(#field_data, #item, #max_len_value) {
+            Ok(_) => {},
+            Err(v) => violations.push(v),
+          };
+        };
+      };
+
+      rules.push(expr);
+    } else {
+      let expr = quote! {
+        match macro_impl::validators::strings::max_len(#field_data, &self.#field_ident, #max_len_value) {
           Ok(_) => {},
           Err(v) => violations.push(v),
         };
-      }
-    };
-
-    rules.push(rule_tokens);
+      };
+      rules.push(expr);
+    }
   }
 
   Ok(rules)
