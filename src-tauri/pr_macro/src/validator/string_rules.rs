@@ -7,6 +7,7 @@ use proto_types::buf::validate;
 use proto_types::buf::validate::field_path_element::Subscript;
 use proto_types::buf::validate::StringRules;
 use proto_types::FieldData;
+use proto_types::GeneratedCodeKind;
 use quote::quote;
 use quote::ToTokens;
 use regex::Regex;
@@ -23,10 +24,18 @@ pub fn get_string_rules(
     let max_len_value = string_rules.max_len.unwrap() as usize;
 
     templates.push(ValidatorCallTemplate {
-      validator_path: quote! { macro_impl::validators::strings::max_len },
-      target_value_tokens: max_len_value.into_token_stream(),
-      base_field_data: field_data.clone(),
-      violation_rule_id: "string.max_len".to_string(),
+      validator_path: Some(quote! { macro_impl::validators::strings::max_len }),
+      target_value_tokens: Some(max_len_value.into_token_stream()),
+      violation_rule_id: Some("string.max_len".to_string()),
+
+      field_rust_ident_str: field_data.name.clone(),
+      field_tag: field_data.tag,
+      field_proto_name: field_data.name.clone(),
+      field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::String,
+      field_is_repeated: field_data.is_repeated,
+      field_is_map: field_data.is_map,
+      field_is_required: field_data.is_required,
+      kind: GeneratedCodeKind::FieldRule,
     });
   }
 
