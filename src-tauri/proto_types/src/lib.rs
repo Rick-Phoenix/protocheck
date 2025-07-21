@@ -159,20 +159,12 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        let current_field_path_element_common = quote! {
-            field_name: Some(#field_name_str.to_string()),
-            field_number: Some(#field_tag as i32),
-            field_type: Some(#field_proto_type_val),
-            key_type: None,
-            value_type: None,
-        };
-
         if self.field_is_repeated {
           let item_ident = Ident::new("item", Span::call_site());
           let index_ident = Ident::new("idx", Span::call_site());
 
           tokens.extend(quote! {
-            let current_item_parent_elements = #parent_messages_ident.clone();
+            let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let item_field_data = proto_types::FieldData {
                 name: #field_name_str.to_string(),
@@ -181,7 +173,7 @@ impl ToTokens for ValidatorCallTemplate {
                 is_map: false,
                 is_required: #field_is_required,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
-                parent_elements: current_item_parent_elements.as_slice(),
+                parent_elements: current_item_parent_elements,
               };
               match #validator(item_field_data, #item_ident, #target) {
                 Ok(_) => {},
