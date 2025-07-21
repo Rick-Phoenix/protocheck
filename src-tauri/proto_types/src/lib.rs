@@ -193,7 +193,7 @@ impl ToTokens for ValidatorCallTemplate {
                             match #validator(item_field_data, #item_ident, #target) {
                                 Ok(_) => {},
                                 Err(mut v) => {
-                                   v.rule_id = Some(format!("{}.{}", #violation_rule_id_str, v.rule_id.unwrap_or_default()));
+                                    v.rule_id = Some(#violation_rule_id_str.to_string());
                                    #violations_ident.push(v);
                                 },
                             };
@@ -221,7 +221,7 @@ impl ToTokens for ValidatorCallTemplate {
                         match #validator(field_data_for_call, &self.#field_rust_ident, #target) {
                             Ok(_) => {},
                             Err(mut v) => {
-                                v.rule_id = Some(format!("{}.{}", #violation_rule_id_str, v.rule_id.unwrap_or_default()));
+                            v.rule_id = Some(#violation_rule_id_str.to_string());
                                 #violations_ident.push(v);
                             },
                         };

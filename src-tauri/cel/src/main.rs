@@ -14,9 +14,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     id: 1,
     name: "M".to_string(),
     value: vec![],
-    posts: vec![Post {
-      tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
-    }],
+    posts: vec![
+      Post {
+        tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+      },
+      Post {
+        tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+      },
+    ],
   };
 
   let result = user.validate();
