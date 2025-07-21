@@ -1,15 +1,4 @@
-use crate::validators::buf::validate::Violations;
-
-pub mod buf {
-  pub mod validate {
-    include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
-  }
-}
-mod google {
-  pub mod protobuf {
-    include!(concat!(env!("OUT_DIR"), "/google.protobuf.rs"));
-  }
-}
+use proto_types::buf::validate::Violations;
 
 pub trait WithValidator {
   fn validate(&self) -> Result<(), Violations>;

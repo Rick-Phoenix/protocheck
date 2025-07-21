@@ -29,11 +29,11 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
     #original_input_as_proc_macro2
 
     impl macro_impl::validators::WithValidator for #struct_ident {
-      fn validate(&self) -> Result<(), macro_impl::validators::buf::validate::Violations> {
-        let mut violations: Vec<macro_impl::validators::buf::validate::Violation> = Vec::new();
+      fn validate(&self) -> Result<(), proto_types::buf::validate::Violations> {
+        let mut violations: Vec<proto_types::buf::validate::Violation> = Vec::new();
         #(#validator_tokens)*
         if violations.len() > 0 {
-          return Err(macro_impl::validators::buf::validate::Violations { violations });
+          return Err(proto_types::buf::validate::Violations { violations });
         }
         Ok(())
       }

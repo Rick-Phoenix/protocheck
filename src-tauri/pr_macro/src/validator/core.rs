@@ -1,13 +1,13 @@
 #![allow(clippy::all, dead_code, unused)]
-use crate::validator::buf::validate::{
-  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-  MessageRules, OneofRules, PredefinedRules, Rule, Violation,
-};
 use crate::validator::{repeated_rules, string_rules};
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
+};
+use proto_types::buf::validate::{
+  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
+  MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
 use proto_types::FieldData;
 
@@ -18,7 +18,7 @@ use proc_macro::TokenStream;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use crate::validator::google::protobuf::{Duration, Timestamp};
+use proto_types::google::protobuf::{Duration, Timestamp};
 use regex::Regex;
 
 pub fn get_field_rules(

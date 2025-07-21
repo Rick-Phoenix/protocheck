@@ -1,6 +1,6 @@
 use proto_types::FieldData;
 
-use crate::validators::{
+use proto_types::{
   buf::validate::{field_path_element::Subscript, FieldPath, FieldPathElement, Violation},
   google::protobuf::field_descriptor_proto::Type as ProtoTypes,
 };

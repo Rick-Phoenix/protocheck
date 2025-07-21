@@ -17,16 +17,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 
-  let proto_include_paths = &["proto", "proto_deps"];
+  let proto_include_paths = &["proto"];
 
   config.compile_protos(
     &[
-      "proto_deps/buf/validate/validate.proto",
-      "proto_deps/google/protobuf/descriptor.proto",
-      "proto_deps/google/protobuf/duration.proto",
-      "proto_deps/google/protobuf/timestamp.proto",
-      "proto_deps/google/protobuf/empty.proto",
-      "proto_deps/google/protobuf/field_mask.proto",
+      "proto/buf/validate/validate.proto",
+      "proto/google/protobuf/descriptor.proto",
+      "proto/google/protobuf/duration.proto",
+      "proto/google/protobuf/timestamp.proto",
+      "proto/google/protobuf/empty.proto",
+      "proto/google/protobuf/field_mask.proto",
     ],
     proto_include_paths,
   )?;

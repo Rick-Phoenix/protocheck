@@ -1,13 +1,15 @@
 #![allow(clippy::all, dead_code, unused)]
-use crate::validator::buf::validate::field_path_element::Subscript;
-use buf::validate::{
-  field_rules, FieldPath, FieldPathElement, FieldRules, Ignore, MessageRules, OneofRules,
-  PredefinedRules, Rule, Violation,
-};
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::{
   prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
+};
+use proto_types::buf::validate::{
+  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
+  MessageRules, OneofRules, PredefinedRules, Rule, Violation,
+};
+use proto_types::google::protobuf::{
+  field_descriptor_proto::Type as ProtoTypes, Duration, Timestamp,
 };
 use proto_types::FieldData;
 
@@ -18,7 +20,6 @@ use proc_macro::TokenStream;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use google::protobuf::{Duration, Timestamp};
 use regex::Regex;
 
 pub mod any_rules;
@@ -87,8 +88,6 @@ static COMMON_RULES: LazyLock<HashMap<String, (String, String)>> = LazyLock::new
 
   rules
 });
-
-use google::protobuf::field_descriptor_proto::Type as ProtoTypes;
 
 static DUMMY_VIOLATION: LazyLock<Violation> = LazyLock::new(|| {
   let violation = Violation {
@@ -162,15 +161,4 @@ fn get_rule(
     "rule {}.{} not found",
     rule_category, rule_name
   ))));
-}
-
-mod buf {
-  pub mod validate {
-    include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
-  }
-}
-mod google {
-  pub mod protobuf {
-    include!(concat!(env!("OUT_DIR"), "/google.protobuf.rs"));
-  }
 }

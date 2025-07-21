@@ -1,10 +1,10 @@
 use super::CelRule;
 use super::CelRuleValue;
-use crate::validator::buf::validate;
-use crate::validator::buf::validate::StringRules;
 use proc_macro2::Ident;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
+use proto_types::buf::validate;
+use proto_types::buf::validate::StringRules;
 use proto_types::FieldData;
 use quote::quote;
 use regex::Regex;
