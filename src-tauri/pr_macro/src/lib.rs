@@ -37,6 +37,13 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
         }
         Ok(())
       }
+
+      fn nested_validate(&self, parent_messages: &mut Vec<proto_types::buf::validate::FieldPathElement>, violations: &mut Vec<proto_types::buf::validate::Violation>) -> Result<(), proto_types::buf::validate::Violations> {
+        if violations.len() > 0 {
+          return Err(proto_types::buf::validate::Violations { violations });
+        }
+        Ok(())
+      }
     }
   };
 
