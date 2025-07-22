@@ -6,7 +6,6 @@ use google::protobuf::field_descriptor_proto::Type as ProtoType;
 use crate::buf::validate::field_path_element::Subscript;
 use crate::buf::validate::FieldPathElement;
 use crate::buf::validate::Ignore;
-use crate::impls::option_to_tokens;
 
 pub mod macros;
 pub mod impls;
@@ -97,16 +96,13 @@ pub struct ValidatorCallTemplate {
 
 impl ToTokens for ValidatorCallTemplate {
   fn to_tokens(&self, tokens: &mut TokenStream) {
-    let field_name_str = &self.field_data.proto_name;
+    let field_proto_name = &self.field_data.proto_name;
     let field_tag = self.field_data.tag;
-    let field_proto_type_val = self.field_data.proto_type as i32;
-    let field_is_required = self.field_data.is_required;
+    let field_proto_type = self.field_data.proto_type as i32;
     let field_is_optional = self.field_data.is_optional;
     let is_for_key = self.field_data.is_for_key;
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
-    let proto_type = self.field_data.proto_type;
-    let ignore = option_to_tokens(&self.field_data.ignore);
 
     let field_rust_ident = Ident::new(&self.field_data.rust_name, Span::call_site());
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
@@ -115,6 +111,8 @@ impl ToTokens for ValidatorCallTemplate {
     let index_ident = Ident::new("idx", Span::call_site());
     let key_ident = Ident::new("key", Span::call_site());
     let val_ident = Ident::new("val", Span::call_site());
+
+    let field_data = self.field_data.clone();
 
     match &self.kind {
       GeneratedCodeKind::FieldRule => {
@@ -125,20 +123,7 @@ impl ToTokens for ValidatorCallTemplate {
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-              let field_data = proto_types::FieldData {
-                rust_name: #field_name_str.to_string(),
-                proto_name: #field_name_str.to_string(),
-                proto_type: #proto_type,
-                tag: #field_tag,
-                is_repeated: true,
-                is_map: false,
-                is_optional: false,
-                is_required: #field_is_required,
-                is_for_key: false,
-                key_type: None,
-                value_type: None,
-                ignore: #ignore,
-              };
+              let field_data = #field_data;
               let field_context = proto_types::FieldContext {
                 field_data,
                 parent_elements: current_item_parent_elements,
@@ -168,20 +153,7 @@ impl ToTokens for ValidatorCallTemplate {
           tokens.extend(quote! {
             let current_field_parent_elements = #parent_messages_ident.as_slice();
 
-            let field_data = proto_types::FieldData {
-              rust_name: #field_name_str.to_string(),
-              proto_name: #field_name_str.to_string(),
-              proto_type: #proto_type,
-              tag: #field_tag,
-              is_repeated: false,
-              is_map: true,
-              is_required: #field_is_required,
-              is_optional: false,
-              is_for_key: #is_for_key,
-              key_type: Some(#key_type), 
-              value_type: Some(#value_type),
-              ignore: #ignore,
-            };
+            let field_data = #field_data;
 
             let field_context = proto_types::FieldContext {
               field_data,
@@ -205,20 +177,7 @@ impl ToTokens for ValidatorCallTemplate {
           tokens.extend(quote! {
             let current_field_parent_elements = #parent_messages_ident.as_slice();
 
-            let field_data = proto_types::FieldData {
-              rust_name: #field_name_str.to_string(),
-              proto_name: #field_name_str.to_string(),
-              proto_type: #proto_type,
-              tag: #field_tag,
-              is_repeated: false,
-              is_map: false,
-              is_required: #field_is_required,
-              is_optional: false,
-              is_for_key: false,
-              key_type: None, 
-              value_type: None,
-              ignore: #ignore,
-            };
+            let field_data = #field_data;
 
             let field_context = proto_types::FieldContext {
               field_data,
@@ -238,9 +197,9 @@ impl ToTokens for ValidatorCallTemplate {
       GeneratedCodeKind::NestedMessageRecursion  => {
         let current_nested_field_element = quote! {
           proto_types::buf::validate::FieldPathElement {
-            field_name: Some(#field_name_str.to_string()),
+            field_name: Some(#field_proto_name.to_string()),
             field_number: Some(#field_tag as i32),
-            field_type: Some(#field_proto_type_val),
+            field_type: Some(#field_proto_type),
             key_type: None,
             value_type: None,
             subscript: None,
@@ -275,15 +234,7 @@ impl ToTokens for ValidatorCallTemplate {
         }
       },
       GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
-        let map_rust_ident = Ident::new(&self.field_data.rust_name, Span::call_site()); 
-        let map_field_name_str = &self.field_data.proto_name;
-        let map_field_tag = self.field_data.tag;
-        let map_field_proto_type_val = self.field_data.proto_type as i32; 
-
-        let map_key_type_enum = self.field_data.key_type;
-        let map_value_type_enum = self.field_data.value_type; 
-
-        let key_subscript_gen_tokens = if let Some(key_type_enum) = map_key_type_enum {
+        let key_subscript_gen_tokens = if let Some(key_type_enum) = key_type {
             generate_key_subscript(key_type_enum, &key_ident)
         } else {
            quote! {compile_error!("Map key type is missing during macro expansion.")} 
@@ -293,13 +244,13 @@ impl ToTokens for ValidatorCallTemplate {
         tokens.extend(quote! {
           #(#map_level_rules)* 
 
-          for (#key_ident, #val_ident) in self.#map_rust_ident.iter() {
+          for (#key_ident, #val_ident) in self.#field_rust_ident.iter() {
             let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
-              field_name: Some(#map_field_name_str.to_string()),
-              field_number: Some(#map_field_tag as i32),
-              field_type: Some(#map_field_proto_type_val),
-              key_type: Some(#map_key_type_enum as i32),
-              value_type: Some(#map_value_type_enum as i32),
+              field_name: Some(#field_proto_name.to_string()),
+              field_number: Some(#field_tag as i32),
+              field_type: Some(#field_proto_type),
+              key_type: Some(#key_type as i32),
+              value_type: Some(#value_type as i32),
               subscript: Some(#key_subscript_gen_tokens),
             };
             #parent_messages_ident.push(map_entry_field_path_element);
