@@ -181,13 +181,13 @@ impl ToTokens for ValidatorCallTemplate {
                 name: #field_name_str.to_string(),
                 tag: #field_tag,
                 is_repeated: false,
-                is_map: false,
+                is_map: true,
                 is_required: #field_is_required,
                 subscript: None,
                 parent_elements: current_field_parent_elements,
                 for_key: true,
-                key_type: None, 
-                value_type: None,
+                key_type: Some(#key_type), 
+                value_type: Some(#value_type),
               };
 
               match #validator(field_data_for_call, #index_ident, #target) {
@@ -205,13 +205,13 @@ impl ToTokens for ValidatorCallTemplate {
                 name: #field_name_str.to_string(),
                 tag: #field_tag,
                 is_repeated: false,
-                is_map: false,
+                is_map: true,
                 is_required: #field_is_required,
                 subscript: None,
                 parent_elements: current_field_parent_elements,
                 for_key: false,
-                key_type: None, 
-                value_type: None,
+                key_type: Some(#key_type), 
+                value_type: Some(#value_type),
               };
 
               match #validator(field_data_for_call, #item_ident, #target) {

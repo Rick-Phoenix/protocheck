@@ -12,7 +12,7 @@ use proto_types::buf::validate::{
   field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
   MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
-use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoTypes;
+use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
 use proto_types::GeneratedCodeKind;
 use proto_types::{FieldData, ValidatorCallTemplate};
 use quote::{quote, ToTokens};
@@ -146,46 +146,34 @@ pub fn extract_validators(
 
     let field_options = field_desc.options();
 
-    let (mut map_key_type, mut map_value_type) = (None, None);
-
-    if is_map {
-      if let Kind::Message(map_entry_message_desc) = field_desc.kind() {
-        if let Some(key_field_desc) = map_entry_message_desc.get_field_by_name("key") {
-          map_key_type = Some(convert_kind_to_proto_type(key_field_desc.kind()));
-          // println!("{:#?}", map_key_type);
+    if let Kind::Message(field_message_type) = field_desc.kind() {
+      if !is_map {
+        if field_desc.name() != "posts" {
+          // println!("{}", field_desc.name());
+          continue;
         }
-        if let Some(value_field_desc) = map_entry_message_desc.get_field_by_name("value") {
-          map_value_type = Some(convert_kind_to_proto_type(value_field_desc.kind()));
-          // println!("{:#?}", map_value_type);
-        }
-      }
-      // continue;
-    } else if let Kind::Message(field_message_type) = field_desc.kind() {
-      if field_desc.name() != "posts" {
-        // println!("{}", field_desc.name());
+        let template = ValidatorCallTemplate {
+          validator_path: None,
+          target_value_tokens: None,
+          field_rust_ident_str: field_name.to_string(),
+          field_tag: field_tag,
+          field_proto_name: field_name.to_string(),
+          field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
+          field_is_repeated: is_repeated,
+          field_is_map: is_map,
+          field_is_required: false,
+          for_key: false,
+          key_type: None,
+          value_type: None,
+          kind: GeneratedCodeKind::NestedMessageRecursion {
+            is_optional: is_optional,
+            is_repeated: is_repeated,
+          },
+        };
+        // println!("{:#?}", template);
+        validation_data.push(template);
         continue;
       }
-      let template = ValidatorCallTemplate {
-        validator_path: None,
-        target_value_tokens: None,
-        field_rust_ident_str: field_name.to_string(),
-        field_tag: field_tag,
-        field_proto_name: field_name.to_string(),
-        field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
-        field_is_repeated: is_repeated,
-        field_is_map: is_map,
-        field_is_required: false,
-        for_key: false,
-        key_type: None,
-        value_type: None,
-        kind: GeneratedCodeKind::NestedMessageRecursion {
-          is_optional: is_optional,
-          is_repeated: is_repeated,
-        },
-      };
-      // println!("{:#?}", template);
-      validation_data.push(template);
-      continue;
     }
 
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
@@ -217,14 +205,14 @@ pub fn extract_validators(
         subscript: None,
         parent_elements: &Vec::new(),
         for_key: false,
-        key_type: map_key_type,
-        value_type: map_value_type,
+        key_type: None,
+        value_type: None,
       };
 
       if let Some(rules_type) = field_rules.r#type.clone() {
         let rules = match rules_type {
           field_rules::Type::Map(map_rules) => {
-            vec![parse_map_validation_templates(field_data, &field_desc, &map_rules).unwrap()]
+            vec![parse_map_validation_templates(&field_desc, &map_rules).unwrap()]
           }
           _ => get_field_rules(field_data, &field_rules).unwrap(),
         };
@@ -238,32 +226,29 @@ pub fn extract_validators(
   Ok(validation_data)
 }
 
-pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoTypes {
+pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoType {
   match kind {
-    Kind::Double => ProtoTypes::Double,
-    Kind::Float => ProtoTypes::Float,
-    Kind::Int32 => ProtoTypes::Int32,
-    Kind::Int64 => ProtoTypes::Int64,
-    Kind::Uint32 => ProtoTypes::Uint32,
-    Kind::Uint64 => ProtoTypes::Uint64,
-    Kind::Sint32 => ProtoTypes::Sint32,
-    Kind::Sint64 => ProtoTypes::Sint64,
-    Kind::Fixed32 => ProtoTypes::Fixed32,
-    Kind::Fixed64 => ProtoTypes::Fixed64,
-    Kind::Sfixed32 => ProtoTypes::Sfixed32,
-    Kind::Sfixed64 => ProtoTypes::Sfixed64,
-    Kind::Bool => ProtoTypes::Bool,
-    Kind::String => ProtoTypes::String,
-    Kind::Bytes => ProtoTypes::Bytes,
-    Kind::Message(_) => ProtoTypes::Message,
-    Kind::Enum(_) => ProtoTypes::Enum,
+    Kind::Double => ProtoType::Double,
+    Kind::Float => ProtoType::Float,
+    Kind::Int32 => ProtoType::Int32,
+    Kind::Int64 => ProtoType::Int64,
+    Kind::Uint32 => ProtoType::Uint32,
+    Kind::Uint64 => ProtoType::Uint64,
+    Kind::Sint32 => ProtoType::Sint32,
+    Kind::Sint64 => ProtoType::Sint64,
+    Kind::Fixed32 => ProtoType::Fixed32,
+    Kind::Fixed64 => ProtoType::Fixed64,
+    Kind::Sfixed32 => ProtoType::Sfixed32,
+    Kind::Sfixed64 => ProtoType::Sfixed64,
+    Kind::Bool => ProtoType::Bool,
+    Kind::String => ProtoType::String,
+    Kind::Bytes => ProtoType::Bytes,
+    Kind::Message(_) => ProtoType::Message,
+    Kind::Enum(_) => ProtoType::Enum,
   }
 }
 
 pub fn parse_map_validation_templates(
-  // FieldData representing the *map field itself*
-  map_field_data: FieldData<'_>,
-  // The FieldDescriptor for the map field, to get key/value specific descriptors
   map_field_desc: &FieldDescriptor,
   map_rules: &MapRules,
 ) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
@@ -295,6 +280,19 @@ pub fn parse_map_validation_templates(
   let key_proto_type = convert_kind_to_proto_type(key_desc.kind());
   let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
 
+  let map_field_data = FieldData {
+    name: map_field_desc.name().to_string(),
+    tag: map_field_desc.number(),
+    is_required: false,
+    is_map: true,
+    is_repeated: false,
+    for_key: false,
+    subscript: None,
+    parent_elements: &[],
+    key_type: Some(key_proto_type),
+    value_type: Some(value_proto_type),
+  };
+
   if map_rules.min_pairs.is_some() {
     let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
     map_level_rules_templates.push(ValidatorCallTemplate {
@@ -305,7 +303,7 @@ pub fn parse_map_validation_templates(
       field_rust_ident_str: map_field_data.name.clone(),
       field_proto_name: map_field_data.name.clone(),
       field_tag: map_field_data.tag,
-      field_proto_type: ProtoTypes::Message,
+      field_proto_type: ProtoType::Message,
       field_is_repeated: false,
       field_is_map: true,
       field_is_required: map_field_data.is_required,
@@ -316,19 +314,12 @@ pub fn parse_map_validation_templates(
 
   if map_rules.keys.is_some() {
     let key_rules_descriptor = map_rules.keys.clone().unwrap();
+    let is_required = key_rules_descriptor.required();
 
-    let key_field_data = FieldData {
-      name: map_field_data.name.to_string(),
-      tag: key_desc.number(),
-      is_repeated: false,
-      is_map: true,
-      is_required: map_field_data.is_required,
-      subscript: None,
-      parent_elements: &[],
-      for_key: true,
-      key_type: Some(key_proto_type),
-      value_type: None,
-    };
+    let mut key_field_data = map_field_data.clone();
+    key_field_data.is_required = is_required;
+    key_field_data.for_key = true;
+
     let generated_key_templates = get_field_rules(key_field_data, &key_rules_descriptor)?;
     key_rules_templates.extend(generated_key_templates);
   }
@@ -338,21 +329,14 @@ pub fn parse_map_validation_templates(
     value_is_message = true;
   }
 
-  if map_rules.values.is_some() && value_desc.name() == "Post" {
+  // Change it for well known types
+  if map_rules.values.is_some() && !value_is_message {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
+    let is_required = value_rules_descriptor.required();
 
-    let value_field_data = FieldData {
-      name: map_field_data.name.to_string(),
-      tag: value_desc.number(),
-      is_repeated: false,
-      is_map: true,
-      is_required: map_field_data.is_required,
-      subscript: None,
-      parent_elements: &[],
-      for_key: false,
-      key_type: None,
-      value_type: Some(value_proto_type),
-    };
+    let mut value_field_data = map_field_data.clone();
+    value_field_data.is_required = is_required;
+
     let generated_value_templates = get_field_rules(value_field_data, &value_rules_descriptor)?;
     value_rules_templates.extend(generated_value_templates);
   }
@@ -364,7 +348,7 @@ pub fn parse_map_validation_templates(
     field_rust_ident_str: map_field_data.name.clone(),
     field_proto_name: map_field_data.name.clone(),
     field_tag: map_field_data.tag,
-    field_proto_type: ProtoTypes::Message,
+    field_proto_type: ProtoType::Message,
     field_is_repeated: false,
     field_is_map: true,
     field_is_required: map_field_data.is_required,
