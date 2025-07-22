@@ -114,7 +114,7 @@ pub struct ValidatorCallTemplate {
   pub validator_path: Option<TokenStream>,
   pub target_value_tokens: Option<TokenStream>,
 
-  pub field_rust_ident_str: String,
+  pub field_rust_ident: String,
   pub field_tag: u32,
   pub field_proto_name: String,
   pub field_proto_type: ProtoType,
@@ -138,7 +138,7 @@ impl ToTokens for ValidatorCallTemplate {
     let key_type = self.key_type;
     let value_type = self.value_type;
 
-    let field_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site());
+    let field_rust_ident = Ident::new(&self.field_rust_ident, Span::call_site());
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
     let violations_ident = Ident::new("violations", Span::call_site());
     let item_ident = Ident::new("item", Span::call_site());
@@ -158,7 +158,7 @@ impl ToTokens for ValidatorCallTemplate {
               let item_field_data = proto_types::FieldData {
                 name: #field_name_str.to_string(),
                 tag: #field_tag,
-                is_repeated: false,
+                is_repeated: true,
                 is_map: false,
                 is_required: #field_is_required,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
@@ -280,7 +280,7 @@ impl ToTokens for ValidatorCallTemplate {
         }
       },
       GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
-        let map_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site()); 
+        let map_rust_ident = Ident::new(&self.field_rust_ident, Span::call_site()); 
         let map_field_name_str = &self.field_proto_name;
         let map_field_tag = self.field_tag;
         let map_field_proto_type_val = self.field_proto_type as i32; 

@@ -155,7 +155,7 @@ pub fn extract_validators(
         let template = ValidatorCallTemplate {
           validator_path: None,
           target_value_tokens: None,
-          field_rust_ident_str: field_name.to_string(),
+          field_rust_ident: field_name.to_string(),
           field_tag: field_tag,
           field_proto_name: field_name.to_string(),
           field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
@@ -203,7 +203,7 @@ pub fn extract_validators(
         is_repeated,
         is_map,
         subscript: None,
-        parent_elements: &Vec::new(),
+        parent_elements: &[],
         for_key: false,
         key_type: None,
         value_type: None,
@@ -212,7 +212,7 @@ pub fn extract_validators(
       if let Some(rules_type) = field_rules.r#type.clone() {
         let rules = match rules_type {
           field_rules::Type::Map(map_rules) => {
-            vec![parse_map_validation_templates(&field_desc, &map_rules).unwrap()]
+            vec![get_map_rules(&field_desc, &map_rules).unwrap()]
           }
           _ => get_field_rules(field_data, &field_rules).unwrap(),
         };
@@ -248,7 +248,7 @@ pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoType {
   }
 }
 
-pub fn parse_map_validation_templates(
+pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
   map_rules: &MapRules,
 ) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
@@ -300,7 +300,7 @@ pub fn parse_map_validation_templates(
       validator_path: Some(quote! { macro_impl::validators::map::min_pairs }),
       target_value_tokens: Some(min_pairs_value.into_token_stream()),
       kind: GeneratedCodeKind::FieldRule,
-      field_rust_ident_str: map_field_data.name.clone(),
+      field_rust_ident: map_field_data.name.clone(),
       field_proto_name: map_field_data.name.clone(),
       field_tag: map_field_data.tag,
       field_proto_type: ProtoType::Message,
@@ -345,7 +345,7 @@ pub fn parse_map_validation_templates(
     validator_path: None,
     for_key: false,
     target_value_tokens: None,
-    field_rust_ident_str: map_field_data.name.clone(),
+    field_rust_ident: map_field_data.name.clone(),
     field_proto_name: map_field_data.name.clone(),
     field_tag: map_field_data.tag,
     field_proto_type: ProtoType::Message,

@@ -27,7 +27,7 @@ pub fn get_string_rules(
       validator_path: Some(quote! { macro_impl::validators::strings::max_len }),
       target_value_tokens: Some(max_len_value.into_token_stream()),
 
-      field_rust_ident_str: field_data.name.clone(),
+      field_rust_ident: field_data.name.clone(),
       field_tag: field_data.tag,
       field_proto_name: field_data.name.clone(),
       field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::String,
