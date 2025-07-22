@@ -5,11 +5,7 @@ use proto_types::{
   google::protobuf::field_descriptor_proto::Type as ProtoTypes,
 };
 
-pub fn max_len<'a>(
-  field_data: FieldData<'a>,
-  value: &str,
-  max_len: usize,
-) -> Result<(), Violation> {
+pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(), Violation> {
   let check = value.chars().count() < max_len;
   let plural_suffix = if max_len > 1 {
     format!("s")

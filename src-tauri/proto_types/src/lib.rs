@@ -30,35 +30,6 @@ pub struct FieldData<'a> {
   pub parent_elements: &'a [FieldPathElement],
 }
 
-// impl ToTokens for FieldData {
-//   fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-//     let name = &self.name;
-//     let tag = self.tag;
-//     let is_repeated = self.is_repeated;
-//     let is_map = self.is_map;
-//     let is_required = self.is_required;
-//     let subscript = &self.subscript;
-//     let parent_elements = &self.parent_elements;
-//
-//     let subscript_expr = match subscript {
-//       Some(s) => quote! { ::core::option::Option::Some(#s) },
-//       None => quote! { ::core::option::Option::None },
-//     };
-//
-//     tokens.extend(quote! {
-//         proto_types::FieldData {
-//             name: #name.to_string(),
-//             tag: #tag,
-//             is_repeated: #is_repeated,
-//             is_map: #is_map,
-//             is_required: #is_required,
-//             subscript: #subscript_expr,
-//             parent_elements: vec![#(#parent_elements),*],
-//         }
-//     });
-//   }
-// }
-
 impl ToTokens for FieldPathElement {
   fn to_tokens(&self, tokens: &mut TokenStream) {
     let field_number = &self.field_number;
@@ -75,13 +46,13 @@ impl ToTokens for FieldPathElement {
 
     tokens.extend(quote! {
       proto_types::buf::validate::FieldPathElement {
-            field_number: #field_number,
-            field_name: #field_name_expr,
-            field_type: #field_type,
-            key_type: #key_type,
-            value_type: #value_type,
-            subscript: #subscript,
-        }
+        field_number: #field_number,
+        field_name: #field_name_expr,
+        field_type: #field_type,
+        key_type: #key_type,
+        value_type: #value_type,
+        subscript: #subscript,
+      }
     });
   }
 }
@@ -131,7 +102,6 @@ pub enum GeneratedCodeKind {
 pub struct ValidatorCallTemplate {
   pub validator_path: Option<TokenStream>,
   pub target_value_tokens: Option<TokenStream>,
-  pub violation_rule_id: Option<String>,
 
   pub field_rust_ident_str: String,
   pub field_tag: u32,

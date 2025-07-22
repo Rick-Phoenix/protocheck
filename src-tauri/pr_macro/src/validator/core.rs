@@ -147,7 +147,6 @@ pub fn extract_validators(
       let template = ValidatorCallTemplate {
         validator_path: None,
         target_value_tokens: None,
-        violation_rule_id: None,
         field_rust_ident_str: field_name.to_string(),
         field_tag: field_tag,
         field_proto_name: field_name.to_string(),
