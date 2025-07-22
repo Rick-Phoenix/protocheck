@@ -30,6 +30,7 @@ pub struct FieldData<'a> {
   pub is_repeated: bool,
   pub is_map: bool,
   pub is_required: bool,
+  pub is_optional: bool,
   pub subscript: Option<Subscript>,
   pub parent_elements: &'a [FieldPathElement],
   pub for_key: bool,
@@ -100,10 +101,7 @@ impl ToTokens for Subscript {
 #[derive(Debug)]
 pub enum GeneratedCodeKind {
   FieldRule,
-  NestedMessageRecursion {
-    is_optional: bool,
-    is_repeated: bool,
-  },
+  NestedMessageRecursion,
   MapValidationLoop {
     map_level_rules: Vec<ValidatorCallTemplate>,
     key_rules: Vec<ValidatorCallTemplate>,
@@ -122,6 +120,7 @@ pub struct ValidatorCallTemplate {
   pub field_proto_name: String,
   pub field_proto_type: ProtoType,
   pub field_is_repeated: bool,
+  pub field_is_optional: bool,
   pub field_is_map: bool,
   pub field_is_required: bool,
   pub for_key: bool,
@@ -138,6 +137,7 @@ impl ToTokens for ValidatorCallTemplate {
     let field_tag = self.field_tag;
     let field_proto_type_val = self.field_proto_type as i32;
     let field_is_required = self.field_is_required;
+    let field_is_optional = self.field_is_optional;
     let for_key = self.for_key;
     let key_type = self.key_type;
     let value_type = self.value_type;
@@ -165,6 +165,7 @@ impl ToTokens for ValidatorCallTemplate {
                 tag: #field_tag,
                 is_repeated: true,
                 is_map: false,
+                is_optional: false,
                 is_required: #field_is_required,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
                 parent_elements: current_item_parent_elements,
@@ -173,7 +174,7 @@ impl ToTokens for ValidatorCallTemplate {
                 value_type: None,
                 ignore: #ignore,
               };
-              match #validator(item_field_data, #item_ident, #target) {
+              match #validator(item_field_data, Some(#item_ident), #target) {
                 Ok(_) => {},
                 Err(v) => {
                    #violations_ident.push(v);
@@ -203,6 +204,7 @@ impl ToTokens for ValidatorCallTemplate {
               is_repeated: false,
               is_map: true,
               is_required: #field_is_required,
+              is_optional: false,
               subscript: Some(#key_subscript_gen_tokens),
               parent_elements: current_field_parent_elements,
               for_key: #for_key,
@@ -211,7 +213,7 @@ impl ToTokens for ValidatorCallTemplate {
               ignore: #ignore,
             };
 
-            match #validator(field_data_for_call, #data_ident, #target) {
+            match #validator(field_data_for_call, Some(#data_ident), #target) {
               Ok(_) => {},
               Err(v) => {
                 #violations_ident.push(v);
@@ -219,6 +221,11 @@ impl ToTokens for ValidatorCallTemplate {
             };
           });
         } else {
+          let field_ident = if field_is_optional {
+            quote! { &self.#field_rust_ident }
+          } else {
+            quote! { Some(&self.#field_rust_ident) }
+          };
           tokens.extend(quote! {
             let current_field_parent_elements = #parent_messages_ident.as_slice();
 
@@ -228,6 +235,7 @@ impl ToTokens for ValidatorCallTemplate {
               is_repeated: false,
               is_map: false,
               is_required: #field_is_required,
+              is_optional: false,
               subscript: None,
               parent_elements: current_field_parent_elements,
               for_key: false,
@@ -236,7 +244,7 @@ impl ToTokens for ValidatorCallTemplate {
               ignore: #ignore,
             };
 
-            match #validator(field_data_for_call, &self.#field_rust_ident, #target) {
+            match #validator(field_data_for_call, #field_ident, #target) {
               Ok(_) => {},
               Err(v) => {
                 #violations_ident.push(v);
@@ -245,10 +253,7 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       }
-      GeneratedCodeKind::NestedMessageRecursion {
-        is_optional,
-        is_repeated,
-      } => {
+      GeneratedCodeKind::NestedMessageRecursion  => {
         let current_nested_field_element = quote! {
           proto_types::buf::validate::FieldPathElement {
             field_name: Some(#field_name_str.to_string()),
@@ -260,7 +265,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         };
 
-        if *is_repeated {
+        if self.field_is_repeated {
           tokens.extend(quote! {
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let mut nested_item_element = #current_nested_field_element;
@@ -271,7 +276,7 @@ impl ToTokens for ValidatorCallTemplate {
               #parent_messages_ident.pop(); 
             }
           });
-        } else if *is_optional {
+        } else if self.field_is_optional {
           tokens.extend(quote! {
             if let Some(nested_msg_instance) = &self.#field_rust_ident {
               #parent_messages_ident.push(#current_nested_field_element); 
