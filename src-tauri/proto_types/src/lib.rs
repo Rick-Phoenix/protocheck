@@ -173,6 +173,11 @@ impl ToTokens for ValidatorCallTemplate {
             }
           });
         } else if self.field_is_map {
+          let key_subscript_gen_tokens = if let Some(key_type_enum) = key_type {
+            generate_key_subscript(key_type_enum, &index_ident)
+          } else {
+             quote! {compile_error!("Map key type is missing during macro expansion.")} 
+          };
           if for_key {
             tokens.extend(quote! {
               let current_field_parent_elements = #parent_messages_ident.as_slice();
@@ -183,7 +188,7 @@ impl ToTokens for ValidatorCallTemplate {
                 is_repeated: false,
                 is_map: true,
                 is_required: #field_is_required,
-                subscript: None,
+                subscript: Some(#key_subscript_gen_tokens),
                 parent_elements: current_field_parent_elements,
                 for_key: true,
                 key_type: Some(#key_type), 
@@ -207,7 +212,7 @@ impl ToTokens for ValidatorCallTemplate {
                 is_repeated: false,
                 is_map: true,
                 is_required: #field_is_required,
-                subscript: None,
+                subscript: Some(#key_subscript_gen_tokens),
                 parent_elements: current_field_parent_elements,
                 for_key: false,
                 key_type: Some(#key_type), 
