@@ -145,25 +145,9 @@ impl ToTokens for ValidatorCallTemplate {
           let key_ident = Ident::new("key", Span::call_site());
 
           let key_subscript_gen = if let Some(key_type_enum) = key_type {
-            match key_type_enum {
-              ProtoType::String => quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey(#key_ident.clone().into()) },
-              ProtoType::Uint64 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
-              ProtoType::Uint32 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) }, 
-              ProtoType::Int64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
-              ProtoType::Int32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) }, 
-              ProtoType::Fixed64 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
-              ProtoType::Fixed32 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
-              ProtoType::Sfixed64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
-              ProtoType::Sfixed32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
-              ProtoType::Sint64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
-              ProtoType::Sint32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
-              ProtoType::Bool => quote! { proto_types::buf::validate::field_path_element::Subscript::BoolKey(#key_ident.clone().into()) },
-              _ => {
-                  quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey(format!("invalid key type {:?}", #key_ident)) }
-              }
-            }
+            generate_key_subscript(key_type_enum, &key_ident)
         } else {
-            quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey("unknown_key_type".to_string()) }
+          quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey("unknown_key_type".to_string()) }
         };
           if for_key {
             tokens.extend(quote! {
@@ -316,3 +300,28 @@ impl ToTokens for ValidatorCallTemplate {
     }
   }
 }
+
+fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> TokenStream {
+  let subscript_path = quote! { proto_types::buf::validate::field_path_element::Subscript };
+
+  match key_proto_type {
+    ProtoType::String => quote! { #subscript_path::StringKey(#key_ident.clone().into()) },
+    ProtoType::Uint64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
+    ProtoType::Uint32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
+    ProtoType::Int64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+    ProtoType::Int32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) }, 
+    ProtoType::Fixed64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
+    ProtoType::Fixed32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
+    ProtoType::Sfixed64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+    ProtoType::Sfixed32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+    ProtoType::Sint64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+    ProtoType::Sint32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+    ProtoType::Bool => quote! { #subscript_path::BoolKey(#key_ident.clone().into()) },
+
+    _ => panic!(
+        "Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
+        key_proto_type
+    ),
+  }
+}
+
