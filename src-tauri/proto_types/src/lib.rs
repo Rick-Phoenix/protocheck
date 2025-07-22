@@ -181,55 +181,36 @@ impl ToTokens for ValidatorCallTemplate {
           } else {
              quote! {compile_error!("Map key type is missing during macro expansion.")} 
           };
-          if for_key {
-            tokens.extend(quote! {
-              let current_field_parent_elements = #parent_messages_ident.as_slice();
 
-              let field_data_for_call = proto_types::FieldData {
-                name: #field_name_str.to_string(),
-                tag: #field_tag,
-                is_repeated: false,
-                is_map: true,
-                is_required: #field_is_required,
-                subscript: Some(#key_subscript_gen_tokens),
-                parent_elements: current_field_parent_elements,
-                for_key: true,
-                key_type: Some(#key_type), 
-                value_type: Some(#value_type),
-              };
-
-              match #validator(field_data_for_call, #key_ident, #target) {
-                Ok(_) => {},
-                Err(v) => {
-                  #violations_ident.push(v);
-                },
-              };
-            });
+          let data_ident = if for_key {
+            &key_ident
           } else {
-            tokens.extend(quote! {
-              let current_field_parent_elements = #parent_messages_ident.as_slice();
+            &val_ident
+          };
 
-              let field_data_for_call = proto_types::FieldData {
-                name: #field_name_str.to_string(),
-                tag: #field_tag,
-                is_repeated: false,
-                is_map: true,
-                is_required: #field_is_required,
-                subscript: Some(#key_subscript_gen_tokens),
-                parent_elements: current_field_parent_elements,
-                for_key: false,
-                key_type: Some(#key_type), 
-                value_type: Some(#value_type),
-              };
+          tokens.extend(quote! {
+            let current_field_parent_elements = #parent_messages_ident.as_slice();
 
-              match #validator(field_data_for_call, #val_ident, #target) {
-                Ok(_) => {},
-                Err(v) => {
-                  #violations_ident.push(v);
-                },
-              };
-            });
-          }
+            let field_data_for_call = proto_types::FieldData {
+              name: #field_name_str.to_string(),
+              tag: #field_tag,
+              is_repeated: false,
+              is_map: true,
+              is_required: #field_is_required,
+              subscript: Some(#key_subscript_gen_tokens),
+              parent_elements: current_field_parent_elements,
+              for_key: #for_key,
+              key_type: Some(#key_type), 
+              value_type: Some(#value_type),
+            };
+
+            match #validator(field_data_for_call, #data_ident, #target) {
+              Ok(_) => {},
+              Err(v) => {
+                #violations_ident.push(v);
+              },
+            };
+          });
         } else {
           tokens.extend(quote! {
             let current_field_parent_elements = #parent_messages_ident.as_slice();
@@ -306,7 +287,6 @@ impl ToTokens for ValidatorCallTemplate {
 
         let map_key_type_enum = self.key_type;
         let map_value_type_enum = self.value_type; 
-
 
         let key_subscript_gen_tokens = if let Some(key_type_enum) = map_key_type_enum {
             generate_key_subscript(key_type_enum, &key_ident)
