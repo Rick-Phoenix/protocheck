@@ -130,18 +130,21 @@ pub struct ValidatorCallTemplate {
 
 impl ToTokens for ValidatorCallTemplate {
   fn to_tokens(&self, tokens: &mut TokenStream) {
-    let field_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site());
     let field_name_str = &self.field_proto_name;
     let field_tag = self.field_tag;
     let field_proto_type_val = self.field_proto_type as i32;
     let field_is_required = self.field_is_required;
-    let violations_ident = Ident::new("violations", Span::call_site());
     let for_key = self.for_key;
     let key_type = self.key_type;
     let value_type = self.value_type;
+
+    let field_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site());
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
+    let violations_ident = Ident::new("violations", Span::call_site());
     let item_ident = Ident::new("item", Span::call_site());
     let index_ident = Ident::new("idx", Span::call_site());
+    let key_ident = Ident::new("key", Span::call_site());
+    let val_ident = Ident::new("val", Span::call_site());
 
     match &self.kind {
       GeneratedCodeKind::FieldRule => {
@@ -174,7 +177,7 @@ impl ToTokens for ValidatorCallTemplate {
           });
         } else if self.field_is_map {
           let key_subscript_gen_tokens = if let Some(key_type_enum) = key_type {
-            generate_key_subscript(key_type_enum, &index_ident)
+            generate_key_subscript(key_type_enum, &key_ident)
           } else {
              quote! {compile_error!("Map key type is missing during macro expansion.")} 
           };
@@ -195,7 +198,7 @@ impl ToTokens for ValidatorCallTemplate {
                 value_type: Some(#value_type),
               };
 
-              match #validator(field_data_for_call, #index_ident, #target) {
+              match #validator(field_data_for_call, #key_ident, #target) {
                 Ok(_) => {},
                 Err(v) => {
                   #violations_ident.push(v);
@@ -219,7 +222,7 @@ impl ToTokens for ValidatorCallTemplate {
                 value_type: Some(#value_type),
               };
 
-              match #validator(field_data_for_call, #item_ident, #target) {
+              match #validator(field_data_for_call, #val_ident, #target) {
                 Ok(_) => {},
                 Err(v) => {
                   #violations_ident.push(v);
@@ -269,9 +272,6 @@ impl ToTokens for ValidatorCallTemplate {
         };
 
         if *is_repeated {
-          let item_ident = Ident::new("item", Span::call_site());
-          let index_ident = Ident::new("idx", Span::call_site());
-
           tokens.extend(quote! {
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let mut nested_item_element = #current_nested_field_element;
@@ -309,7 +309,7 @@ impl ToTokens for ValidatorCallTemplate {
 
 
         let key_subscript_gen_tokens = if let Some(key_type_enum) = map_key_type_enum {
-            generate_key_subscript(key_type_enum, &index_ident)
+            generate_key_subscript(key_type_enum, &key_ident)
         } else {
            quote! {compile_error!("Map key type is missing during macro expansion.")} 
         };
@@ -318,7 +318,7 @@ impl ToTokens for ValidatorCallTemplate {
         tokens.extend(quote! {
           #(#map_level_rules)* 
 
-          for (#index_ident, #item_ident) in self.#map_rust_ident.iter() {
+          for (#key_ident, #val_ident) in self.#map_rust_ident.iter() {
             let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
               field_name: Some(#map_field_name_str.to_string()),
               field_number: Some(#map_field_tag as i32),
@@ -332,7 +332,7 @@ impl ToTokens for ValidatorCallTemplate {
             #(#key_rules)*
 
             if #value_is_message {
-              #item_ident.nested_validate(#parent_messages_ident, #violations_ident);
+              #val_ident.nested_validate(#parent_messages_ident, #violations_ident);
             } else {
               #(#value_rules)*
             }
