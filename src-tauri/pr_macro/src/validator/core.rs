@@ -14,6 +14,7 @@ use proto_types::GeneratedCodeKind;
 use proto_types::{FieldData, ValidatorCallTemplate};
 use quote::quote;
 
+use syn::token::Continue;
 use syn::DeriveInput;
 
 use proc_macro::TokenStream;
@@ -131,6 +132,22 @@ pub fn extract_validators(
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
 
+    let (mut map_key_type, mut map_value_type) = (None, None);
+
+    if is_map {
+      if let Kind::Message(map_entry_message_desc) = field_desc.kind() {
+        if let Some(key_field_desc) = map_entry_message_desc.get_field_by_name("key") {
+          map_key_type = Some(key_field_desc.kind());
+          println!("{:#?}", map_key_type);
+        }
+        if let Some(value_field_desc) = map_entry_message_desc.get_field_by_name("value") {
+          map_value_type = Some(value_field_desc.kind());
+          println!("{:#?}", map_value_type);
+        }
+      }
+      continue;
+    }
+
     let is_optional = field_desc.supports_presence();
 
     let field_rust_ident = field_desc.json_name(); // Or derive from proto name
@@ -155,7 +172,7 @@ pub fn extract_validators(
         field_is_map: is_map,
         field_is_required: false,
         kind: GeneratedCodeKind::NestedMessageRecursion {
-          is_optional: true,
+          is_optional: is_optional,
           is_repeated: is_repeated,
         },
       };

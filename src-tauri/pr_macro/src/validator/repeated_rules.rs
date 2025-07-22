@@ -17,10 +17,7 @@ pub fn get_repeated_rules(
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
 
-    let mut item_field_data = field_data.clone();
-    item_field_data.is_repeated = true;
-
-    // println!("FIELD_DATA {:#?}", field_data);
+    let item_field_data = field_data.clone();
 
     let rules_for_single_item = get_field_rules(item_field_data, &items_rules_descriptor)?;
 

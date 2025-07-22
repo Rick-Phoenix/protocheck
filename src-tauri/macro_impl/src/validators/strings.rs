@@ -13,8 +13,6 @@ pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(),
     format!("")
   };
 
-  println!("{:#?}", field_data.subscript);
-
   if !check {
     let mut elements = field_data.parent_elements.to_vec();
     let current_elem = FieldPathElement {

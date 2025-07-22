@@ -23,6 +23,14 @@ message User {
   }];
   int64 id = 2;
   google.protobuf.Timestamp created_at = 3;
+  map<string, string> map_field = 5 [
+    (buf.validate.field).map.keys = {
+      string: {max_len: 1}
+    },
+    (buf.validate.field).map.values = {
+      string: {max_len: 1}
+    }
+  ];
   repeated Post posts = 4;
 }
 

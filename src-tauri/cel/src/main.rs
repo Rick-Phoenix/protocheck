@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::myapp::v1::user::Post;
 use crate::myapp::v1::User;
 use macro_impl::validators::WithValidator;
@@ -9,6 +11,8 @@ mod myapp {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let mut map_field: HashMap<String, String> = HashMap::new();
+  map_field.insert("aa".to_string(), "aa".to_string());
   let user = User {
     created_at: None,
     id: 1,
@@ -22,6 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
       },
     ],
+    map_field,
   };
 
   let result = user.validate();
