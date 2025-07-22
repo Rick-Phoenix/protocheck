@@ -34,6 +34,9 @@ pub fn get_string_rules(
       field_is_repeated: field_data.is_repeated,
       field_is_map: field_data.is_map,
       field_is_required: field_data.is_required,
+      for_key: field_data.for_key,
+      key_type: field_data.key_type,
+      value_type: field_data.value_type,
       kind: GeneratedCodeKind::FieldRule,
     });
   }

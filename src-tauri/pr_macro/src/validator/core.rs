@@ -1,5 +1,5 @@
 #![allow(clippy::all, dead_code, unused)]
-use crate::validator::{repeated_rules, string_rules};
+use crate::validator::{map_rules, repeated_rules, string_rules};
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::prost_types::Type;
@@ -10,6 +10,7 @@ use proto_types::buf::validate::{
   field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
   MessageRules, OneofRules, PredefinedRules, Rule, Violation,
 };
+use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoTypes;
 use proto_types::GeneratedCodeKind;
 use proto_types::{FieldData, ValidatorCallTemplate};
 use quote::quote;
@@ -42,7 +43,7 @@ pub fn get_field_rules(
       field_rules::Type::Repeated(repeated_rules) => {
         repeated_rules::get_repeated_rules(field_data, &repeated_rules)
       }
-      // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(&map_rules),
+      field_rules::Type::Map(map_rules) => map_rules::get_map_rules(field_data, &map_rules),
       // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
       // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
       // field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
@@ -128,35 +129,36 @@ pub fn extract_validators(
 
   for field_desc in user_desc.fields() {
     // println!("{}", user_desc.name());
+
     let field_name = field_desc.name();
+    // println!("{}", field_name.to_string());
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
+    // println!("{}", is_map);
+    let is_optional = field_desc.supports_presence();
+
+    let field_rust_ident = field_desc.json_name(); // Or derive from proto name
+    let field_tag = field_desc.number();
+
+    // println!("{:#?}", field_desc.kind());
+
+    let field_options = field_desc.options();
 
     let (mut map_key_type, mut map_value_type) = (None, None);
 
     if is_map {
       if let Kind::Message(map_entry_message_desc) = field_desc.kind() {
         if let Some(key_field_desc) = map_entry_message_desc.get_field_by_name("key") {
-          map_key_type = Some(key_field_desc.kind());
-          println!("{:#?}", map_key_type);
+          map_key_type = Some(convert_kind_to_proto_type(key_field_desc.kind()));
+          // println!("{:#?}", map_key_type);
         }
         if let Some(value_field_desc) = map_entry_message_desc.get_field_by_name("value") {
-          map_value_type = Some(value_field_desc.kind());
-          println!("{:#?}", map_value_type);
+          map_value_type = Some(convert_kind_to_proto_type(value_field_desc.kind()));
+          // println!("{:#?}", map_value_type);
         }
       }
-      continue;
-    }
-
-    let is_optional = field_desc.supports_presence();
-
-    let field_rust_ident = field_desc.json_name(); // Or derive from proto name
-    let field_tag = field_desc.number();
-
-    // println!("{}", field_name.to_string());
-    // println!("{:#?}", field_desc.kind());
-
-    if let Kind::Message(field_message_type) = field_desc.kind() {
+      // continue;
+    } else if let Kind::Message(field_message_type) = field_desc.kind() {
       if field_desc.name() != "posts" {
         // println!("{}", field_desc.name());
         continue;
@@ -171,6 +173,9 @@ pub fn extract_validators(
         field_is_repeated: is_repeated,
         field_is_map: is_map,
         field_is_required: false,
+        for_key: false,
+        key_type: None,
+        value_type: None,
         kind: GeneratedCodeKind::NestedMessageRecursion {
           is_optional: is_optional,
           is_repeated: is_repeated,
@@ -180,8 +185,6 @@ pub fn extract_validators(
       validation_data.push(template);
       continue;
     }
-
-    let field_options = field_desc.options();
 
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
@@ -211,6 +214,9 @@ pub fn extract_validators(
         is_map,
         subscript: None,
         parent_elements: &Vec::new(),
+        for_key: false,
+        key_type: map_key_type,
+        value_type: map_value_type,
       };
 
       let rules = get_field_rules(field_data, &field_rules).unwrap();
@@ -220,4 +226,26 @@ pub fn extract_validators(
   }
 
   Ok(validation_data)
+}
+
+pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoTypes {
+  match kind {
+    Kind::Double => ProtoTypes::Double,
+    Kind::Float => ProtoTypes::Float,
+    Kind::Int32 => ProtoTypes::Int32,
+    Kind::Int64 => ProtoTypes::Int64,
+    Kind::Uint32 => ProtoTypes::Uint32,
+    Kind::Uint64 => ProtoTypes::Uint64,
+    Kind::Sint32 => ProtoTypes::Sint32,
+    Kind::Sint64 => ProtoTypes::Sint64,
+    Kind::Fixed32 => ProtoTypes::Fixed32,
+    Kind::Fixed64 => ProtoTypes::Fixed64,
+    Kind::Sfixed32 => ProtoTypes::Sfixed32,
+    Kind::Sfixed64 => ProtoTypes::Sfixed64,
+    Kind::Bool => ProtoTypes::Bool,
+    Kind::String => ProtoTypes::String,
+    Kind::Bytes => ProtoTypes::Bytes,
+    Kind::Message(_) => ProtoTypes::Message,
+    Kind::Enum(_) => ProtoTypes::Enum,
+  }
 }

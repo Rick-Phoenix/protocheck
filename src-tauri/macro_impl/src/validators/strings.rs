@@ -18,8 +18,8 @@ pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(),
     let current_elem = FieldPathElement {
       field_type: Some(ProtoTypes::String.into()),
       field_name: Some(field_data.name.clone()),
-      key_type: None,
-      value_type: None,
+      key_type: field_data.key_type.map(|t| t as i32),
+      value_type: field_data.value_type.map(|t| t as i32),
       field_number: Some(field_data.tag as i32),
       subscript: field_data.subscript,
     };
@@ -32,7 +32,7 @@ pub fn max_len(field_data: FieldData, value: &str, max_len: usize) -> Result<(),
         max_len,
         plural_suffix
       )),
-      for_key: Some(false),
+      for_key: Some(field_data.for_key),
       field: Some(FieldPath { elements: elements }),
       rule: Some(FieldPath {
         elements: vec![

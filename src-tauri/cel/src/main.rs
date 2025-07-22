@@ -20,10 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     value: vec![],
     posts: vec![
       Post {
-        tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+        tags: vec!["m".to_string(), "m".to_string(), "m".to_string()],
       },
       Post {
-        tags: vec!["me".to_string(), "mee".to_string(), "meeee".to_string()],
+        tags: vec!["m".to_string(), "m".to_string(), "m".to_string()],
       },
     ],
     map_field,

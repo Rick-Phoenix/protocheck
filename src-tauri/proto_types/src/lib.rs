@@ -1,11 +1,13 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use quote::ToTokens;
+use google::protobuf::field_descriptor_proto::Type as ProtoType;
 
 use crate::buf::validate::field_path_element::Subscript;
 use crate::buf::validate::FieldPathElement;
 
 pub mod macros;
+pub mod impls;
 
 pub mod buf {
   pub mod validate {
@@ -28,6 +30,9 @@ pub struct FieldData<'a> {
   pub is_required: bool,
   pub subscript: Option<Subscript>,
   pub parent_elements: &'a [FieldPathElement],
+  pub for_key: bool,
+  pub key_type: Option<ProtoType>,   
+  pub value_type: Option<ProtoType>,
 }
 
 impl ToTokens for FieldPathElement {
@@ -106,10 +111,13 @@ pub struct ValidatorCallTemplate {
   pub field_rust_ident_str: String,
   pub field_tag: u32,
   pub field_proto_name: String,
-  pub field_proto_type: google::protobuf::field_descriptor_proto::Type,
+  pub field_proto_type: ProtoType,
   pub field_is_repeated: bool,
   pub field_is_map: bool,
   pub field_is_required: bool,
+  pub for_key: bool,
+  pub key_type: Option<ProtoType>,
+  pub value_type: Option<ProtoType>,
 
   pub kind: GeneratedCodeKind,
 }
@@ -122,6 +130,9 @@ impl ToTokens for ValidatorCallTemplate {
     let field_proto_type_val = self.field_proto_type as i32;
     let field_is_required = self.field_is_required;
     let violations_ident = Ident::new("violations", Span::call_site());
+    let for_key = self.for_key;
+    let key_type = self.key_type;
+    let value_type = self.value_type;
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
 
     match &self.kind {
@@ -129,7 +140,82 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        if self.field_is_repeated {
+        if self.field_is_map { 
+          let value_ident = Ident::new("value", Span::call_site());
+          let key_ident = Ident::new("key", Span::call_site());
+
+          let key_subscript_gen = if let Some(key_type_enum) = key_type {
+            match key_type_enum {
+              ProtoType::String => quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey(#key_ident.clone().into()) },
+              ProtoType::Uint64 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
+              ProtoType::Uint32 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) }, 
+              ProtoType::Int64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
+              ProtoType::Int32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) }, 
+              ProtoType::Fixed64 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
+              ProtoType::Fixed32 => quote! { proto_types::buf::validate::field_path_element::Subscript::UintKey(#key_ident.clone().into()) },
+              ProtoType::Sfixed64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
+              ProtoType::Sfixed32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
+              ProtoType::Sint64 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
+              ProtoType::Sint32 => quote! { proto_types::buf::validate::field_path_element::Subscript::IntKey(#key_ident.clone().into()) },
+              ProtoType::Bool => quote! { proto_types::buf::validate::field_path_element::Subscript::BoolKey(#key_ident.clone().into()) },
+              _ => {
+                  quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey(format!("invalid key type {:?}", #key_ident)) }
+              }
+            }
+        } else {
+            quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey("unknown_key_type".to_string()) }
+        };
+          if for_key {
+            tokens.extend(quote! {
+              let current_item_parent_elements = #parent_messages_ident.as_slice();
+              for (#key_ident, #value_ident) in self.#field_rust_ident.iter() {
+                let item_field_data = proto_types::FieldData {
+                  name: #field_name_str.to_string(),
+                  tag: #field_tag,
+                  is_repeated: false,
+                  is_map: false,
+                  is_required: #field_is_required,
+                  for_key: true,
+                  subscript: Some(#key_subscript_gen),
+                  parent_elements: current_item_parent_elements,
+                  key_type: Some(#key_type),
+                  value_type: Some(#value_type),
+                };
+                match #validator(item_field_data, #key_ident, #target) {
+                  Ok(_) => {},
+                  Err(v) => {
+                     #violations_ident.push(v);
+                  },
+                };
+              }
+            });
+          } else {
+              tokens.extend(quote! {
+              let current_item_parent_elements = #parent_messages_ident.as_slice();
+              for (#key_ident, #value_ident) in self.#field_rust_ident.iter() {
+                let item_field_data = proto_types::FieldData {
+                  name: #field_name_str.to_string(),
+                  tag: #field_tag,
+                  is_repeated: false,
+                  is_map: false,
+                  is_required: #field_is_required,
+                  subscript: Some(#key_subscript_gen),
+                  parent_elements: current_item_parent_elements,
+                  for_key: false,
+                  key_type: Some(#key_type),
+                  value_type: Some(#value_type),
+                };
+                match #validator(item_field_data, #value_ident, #target) {
+                  Ok(_) => {},
+                  Err(v) => {
+                     #violations_ident.push(v);
+                  },
+                };
+              }
+            });
+          }
+        }
+        else if self.field_is_repeated {
           let item_ident = Ident::new("item", Span::call_site());
           let index_ident = Ident::new("idx", Span::call_site());
 
@@ -144,6 +230,9 @@ impl ToTokens for ValidatorCallTemplate {
                 is_required: #field_is_required,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
                 parent_elements: current_item_parent_elements,
+                for_key: false,
+                key_type: None,
+                value_type: None,
               };
               match #validator(item_field_data, #item_ident, #target) {
                 Ok(_) => {},
@@ -165,6 +254,9 @@ impl ToTokens for ValidatorCallTemplate {
               is_required: #field_is_required,
               subscript: None,
               parent_elements: current_field_parent_elements,
+              for_key: false,
+              key_type: None, 
+              value_type: None,
             };
 
             match #validator(field_data_for_call, &self.#field_rust_ident, #target) {
