@@ -10,7 +10,7 @@ import "google/protobuf/timestamp.proto";
 message User {
   message Post {
     repeated string tags = 10 [(buf.validate.field).repeated.items = {
-      string: {max_len: 1}
+      string: {max_len: 2}
     }];
   }
   string name = 1 [
@@ -23,14 +23,9 @@ message User {
   }];
   int64 id = 2;
   google.protobuf.Timestamp created_at = 3;
-  map<string, string> map_field = 5 [
-    (buf.validate.field).map.keys = {
-      string: {max_len: 1}
-    },
-    (buf.validate.field).map.values = {
-      string: {max_len: 1}
-    }
-  ];
+  map<string, Post> map_field = 5 [(buf.validate.field).map.keys = {
+    string: {max_len: 1}
+  } /* (buf.validate.field).map.values = { */ /* string: {max_len: 1} */ /* } */];
   repeated Post posts = 4;
 }
 

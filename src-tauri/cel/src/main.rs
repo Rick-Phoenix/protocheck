@@ -11,8 +11,13 @@ mod myapp {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let mut map_field: HashMap<String, String> = HashMap::new();
-  map_field.insert("aa".to_string(), "aa".to_string());
+  let mut map_field: HashMap<String, Post> = HashMap::new();
+  map_field.insert(
+    "aa".to_string(),
+    Post {
+      tags: vec!["mee".to_string(), "mee".to_string(), "mee".to_string()],
+    },
+  );
   let user = User {
     created_at: None,
     id: 1,
