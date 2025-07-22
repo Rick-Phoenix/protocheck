@@ -145,10 +145,10 @@ impl ToTokens for ValidatorCallTemplate {
           let key_ident = Ident::new("key", Span::call_site());
 
           let key_subscript_gen = if let Some(key_type_enum) = key_type {
-            generate_key_subscript(key_type_enum, &key_ident)
-        } else {
-          quote! { proto_types::buf::validate::field_path_element::Subscript::StringKey("unknown_key_type".to_string()) }
-        };
+            generate_key_subscript(key_type_enum, &key_ident) 
+          } else {
+            quote! { compile_error!(format!("unknown key type: {:#?}", key_type)); }
+          };
           if for_key {
             tokens.extend(quote! {
               let current_item_parent_elements = #parent_messages_ident.as_slice();
@@ -318,10 +318,9 @@ fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> Token
     ProtoType::Sint32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
     ProtoType::Bool => quote! { #subscript_path::BoolKey(#key_ident.clone().into()) },
 
-    _ => panic!(
-        "Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
+    _ => quote! { compile_error!(format!("Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
         key_proto_type
-    ),
+    )) },
   }
 }
 
