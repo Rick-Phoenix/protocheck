@@ -146,36 +146,6 @@ pub fn extract_validators(
 
     let field_options = field_desc.options();
 
-    if let Kind::Message(field_message_type) = field_desc.kind() {
-      if !is_map {
-        if field_desc.name() != "posts" {
-          // println!("{}", field_desc.name());
-          continue;
-        }
-        let template = ValidatorCallTemplate {
-          validator_path: None,
-          target_value_tokens: None,
-          field_rust_ident: field_name.to_string(),
-          field_tag: field_tag,
-          field_proto_name: field_name.to_string(),
-          field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
-          field_is_repeated: is_repeated,
-          field_is_map: is_map,
-          field_is_required: false,
-          for_key: false,
-          key_type: None,
-          value_type: None,
-          kind: GeneratedCodeKind::NestedMessageRecursion {
-            is_optional: is_optional,
-            is_repeated: is_repeated,
-          },
-        };
-        // println!("{:#?}", template);
-        validation_data.push(template);
-        continue;
-      }
-    }
-
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
     if let Value::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
@@ -192,6 +162,37 @@ pub fn extract_validators(
 
       let is_required = field_rules.required();
 
+      if let Kind::Message(field_message_type) = field_desc.kind() {
+        if !is_map {
+          if field_desc.name() != "posts" {
+            // println!("{}", field_desc.name());
+            continue;
+          }
+          let template = ValidatorCallTemplate {
+            validator_path: None,
+            target_value_tokens: None,
+            field_rust_ident: field_name.to_string(),
+            field_tag: field_tag,
+            field_proto_name: field_name.to_string(),
+            field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
+            field_is_repeated: is_repeated,
+            field_is_map: is_map,
+            field_is_required: is_required,
+            for_key: false,
+            key_type: None,
+            value_type: None,
+            ignore: ignore_val,
+            kind: GeneratedCodeKind::NestedMessageRecursion {
+              is_optional: is_optional,
+              is_repeated: is_repeated,
+            },
+          };
+          // println!("{:#?}", template);
+          validation_data.push(template);
+          continue;
+        }
+      }
+
       if field_rules.cel.len() > 0 {
         let cel_rules = field_rules.cel.clone();
       }
@@ -207,12 +208,13 @@ pub fn extract_validators(
         for_key: false,
         key_type: None,
         value_type: None,
+        ignore: ignore_val,
       };
 
       if let Some(rules_type) = field_rules.r#type.clone() {
         let rules = match rules_type {
           field_rules::Type::Map(map_rules) => {
-            vec![get_map_rules(&field_desc, &map_rules).unwrap()]
+            vec![get_map_rules(&field_desc, &map_rules, ignore_val).unwrap()]
           }
           _ => get_field_rules(field_data, &field_rules).unwrap(),
         };
@@ -251,6 +253,7 @@ pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoType {
 pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
   map_rules: &MapRules,
+  ignore: Option<Ignore>,
 ) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
   let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -291,6 +294,7 @@ pub fn get_map_rules(
     parent_elements: &[],
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
+    ignore: ignore,
   };
 
   if map_rules.min_pairs.is_some() {
@@ -308,6 +312,7 @@ pub fn get_map_rules(
       field_is_map: true,
       field_is_required: map_field_data.is_required,
       key_type: Some(key_proto_type),
+      ignore: ignore,
       value_type: Some(value_proto_type),
     });
   }
@@ -319,6 +324,9 @@ pub fn get_map_rules(
     let mut key_field_data = map_field_data.clone();
     key_field_data.is_required = is_required;
     key_field_data.for_key = true;
+    if key_rules_descriptor.ignore.is_some() {
+      key_field_data.ignore = Some(key_rules_descriptor.ignore());
+    }
 
     let generated_key_templates = get_field_rules(key_field_data, &key_rules_descriptor)?;
     key_rules_templates.extend(generated_key_templates);
@@ -337,6 +345,10 @@ pub fn get_map_rules(
     let mut value_field_data = map_field_data.clone();
     value_field_data.is_required = is_required;
 
+    if value_rules_descriptor.ignore.is_some() {
+      value_field_data.ignore = Some(value_rules_descriptor.ignore());
+    }
+
     let generated_value_templates = get_field_rules(value_field_data, &value_rules_descriptor)?;
     value_rules_templates.extend(generated_value_templates);
   }
@@ -354,6 +366,7 @@ pub fn get_map_rules(
     field_is_required: map_field_data.is_required,
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
+    ignore: ignore,
     kind: GeneratedCodeKind::MapValidationLoop {
       map_level_rules: map_level_rules_templates,
       key_rules: key_rules_templates,

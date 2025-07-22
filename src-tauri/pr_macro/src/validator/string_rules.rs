@@ -37,6 +37,7 @@ pub fn get_string_rules(
       for_key: field_data.for_key,
       key_type: field_data.key_type,
       value_type: field_data.value_type,
+      ignore: field_data.ignore,
       kind: GeneratedCodeKind::FieldRule,
     });
   }

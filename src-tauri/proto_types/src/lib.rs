@@ -5,6 +5,8 @@ use google::protobuf::field_descriptor_proto::Type as ProtoType;
 
 use crate::buf::validate::field_path_element::Subscript;
 use crate::buf::validate::FieldPathElement;
+use crate::buf::validate::Ignore;
+use crate::impls::option_to_tokens;
 
 pub mod macros;
 pub mod impls;
@@ -33,6 +35,7 @@ pub struct FieldData<'a> {
   pub for_key: bool,
   pub key_type: Option<ProtoType>,   
   pub value_type: Option<ProtoType>,
+  pub ignore: Option<Ignore>,
 }
 
 impl ToTokens for FieldPathElement {
@@ -124,6 +127,7 @@ pub struct ValidatorCallTemplate {
   pub for_key: bool,
   pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
+  pub ignore: Option<Ignore>,
 
   pub kind: GeneratedCodeKind,
 }
@@ -137,6 +141,7 @@ impl ToTokens for ValidatorCallTemplate {
     let for_key = self.for_key;
     let key_type = self.key_type;
     let value_type = self.value_type;
+    let ignore = option_to_tokens(&self.ignore);
 
     let field_rust_ident = Ident::new(&self.field_rust_ident, Span::call_site());
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
@@ -166,6 +171,7 @@ impl ToTokens for ValidatorCallTemplate {
                 for_key: false,
                 key_type: None,
                 value_type: None,
+                ignore: #ignore,
               };
               match #validator(item_field_data, #item_ident, #target) {
                 Ok(_) => {},
@@ -202,6 +208,7 @@ impl ToTokens for ValidatorCallTemplate {
               for_key: #for_key,
               key_type: Some(#key_type), 
               value_type: Some(#value_type),
+              ignore: #ignore,
             };
 
             match #validator(field_data_for_call, #data_ident, #target) {
@@ -226,6 +233,7 @@ impl ToTokens for ValidatorCallTemplate {
               for_key: false,
               key_type: None, 
               value_type: None,
+              ignore: #ignore,
             };
 
             match #validator(field_data_for_call, &self.#field_rust_ident, #target) {

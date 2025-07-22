@@ -1,4 +1,5 @@
 use crate::google::protobuf::field_descriptor_proto::Type as ProtoType;
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 impl ToTokens for ProtoType {
@@ -24,6 +25,34 @@ impl ToTokens for ProtoType {
       ProtoType::Sfixed64 => tokens.extend(quote! { #path::Sfixed64 }),
       ProtoType::Sint32 => tokens.extend(quote! { #path::Sint32 }),
       ProtoType::Sint64 => tokens.extend(quote! { #path::Sint64 }),
+    }
+  }
+}
+
+use crate::buf::validate::Ignore;
+
+impl ToTokens for Ignore {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    let path = quote! { proto_types::buf::validate::Ignore };
+
+    match self {
+      Ignore::Unspecified => tokens.extend(quote! { #path::Unspecified }),
+      Ignore::IfZeroValue => tokens.extend(quote! { #path::IfZeroValue }),
+      Ignore::Always => tokens.extend(quote! { #path::Always }),
+    }
+  }
+}
+
+pub fn option_to_tokens<T>(option: &Option<T>) -> TokenStream
+where
+  T: ToTokens,
+{
+  match option {
+    Some(value) => {
+      quote! { ::core::option::Option::Some(#value) }
+    }
+    None => {
+      quote! { ::core::option::Option::None }
     }
   }
 }
