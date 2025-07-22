@@ -90,3 +90,40 @@ impl ToTokens for Subscript {
     }
   }
 }
+
+use crate::FieldData;
+
+impl ToTokens for FieldData {
+  fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    let rust_name = &self.rust_name;
+    let proto_name = &self.proto_name;
+    let tag = self.tag;
+    let is_repeated = self.is_repeated;
+    let is_map = self.is_map;
+    let is_required = self.is_required;
+    let is_optional = self.is_optional;
+    let is_for_key = self.is_for_key;
+    let proto_type = &self.proto_type;
+
+    let key_type_tokens = option_to_tokens(&self.key_type);
+    let value_type_tokens = option_to_tokens(&self.value_type);
+    let ignore_tokens = option_to_tokens(&self.ignore);
+
+    tokens.extend(quote! {
+      proto_types::FieldData {
+        rust_name: #rust_name.to_string(),
+        proto_name: #proto_name.to_string(),
+        proto_type: #proto_type,
+        tag: #tag,
+        is_repeated: #is_repeated,
+        is_map: #is_map,
+        is_required: #is_required,
+        is_optional: #is_optional,
+        is_for_key: #is_for_key,
+        key_type: #key_type_tokens,
+        value_type: #value_type_tokens,
+        ignore: #ignore_tokens,
+      }
+    });
+  }
+}

@@ -44,15 +44,15 @@ pub fn get_map_rules(
   let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
 
   let map_field_data = FieldData {
-    name: map_field_desc.name().to_string(),
+    rust_name: map_field_desc.name().to_string(),
+    proto_name: map_field_desc.name().to_string(),
+    proto_type: ProtoType::Message,
     tag: map_field_desc.number(),
     is_required: false,
     is_map: true,
     is_repeated: false,
     is_optional: false,
-    for_key: false,
-    subscript: None,
-    parent_elements: &[],
+    is_for_key: false,
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
     ignore: ignore,
@@ -61,21 +61,10 @@ pub fn get_map_rules(
   if map_rules.min_pairs.is_some() {
     let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
     map_level_rules_templates.push(ValidatorCallTemplate {
-      for_key: false,
       validator_path: Some(quote! { macro_impl::validators::map::min_pairs }),
       target_value_tokens: Some(min_pairs_value.into_token_stream()),
       kind: GeneratedCodeKind::FieldRule,
-      field_rust_ident: map_field_data.name.clone(),
-      field_proto_name: map_field_data.name.clone(),
-      field_tag: map_field_data.tag,
-      field_proto_type: ProtoType::Message,
-      field_is_repeated: false,
-      field_is_map: true,
-      field_is_required: map_field_data.is_required,
-      field_is_optional: false,
-      key_type: Some(key_proto_type),
-      ignore: ignore,
-      value_type: Some(value_proto_type),
+      field_data: map_field_data.clone(),
     });
   }
 
@@ -85,7 +74,7 @@ pub fn get_map_rules(
 
     let mut key_field_data = map_field_data.clone();
     key_field_data.is_required = is_required;
-    key_field_data.for_key = true;
+    key_field_data.is_for_key = true;
     if key_rules_descriptor.ignore.is_some() {
       key_field_data.ignore = Some(key_rules_descriptor.ignore());
     }
@@ -117,19 +106,8 @@ pub fn get_map_rules(
 
   Ok(ValidatorCallTemplate {
     validator_path: None,
-    for_key: false,
     target_value_tokens: None,
-    field_rust_ident: map_field_data.name.clone(),
-    field_proto_name: map_field_data.name.clone(),
-    field_tag: map_field_data.tag,
-    field_proto_type: ProtoType::Message,
-    field_is_repeated: false,
-    field_is_map: true,
-    field_is_required: map_field_data.is_required,
-    field_is_optional: false,
-    key_type: Some(key_proto_type),
-    value_type: Some(value_proto_type),
-    ignore: ignore,
+    field_data: map_field_data,
     kind: GeneratedCodeKind::MapValidationLoop {
       map_level_rules: map_level_rules_templates,
       key_rules: key_rules_templates,

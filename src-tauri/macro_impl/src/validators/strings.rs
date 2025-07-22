@@ -1,4 +1,4 @@
-use proto_types::FieldData;
+use proto_types::FieldContext;
 
 use proto_types::{
   buf::validate::{FieldPath, FieldPathElement, Violation},
@@ -6,7 +6,7 @@ use proto_types::{
 };
 
 pub fn max_len(
-  field_data: FieldData,
+  field_context: FieldContext,
   value: Option<&str>,
   max_len: usize,
 ) -> Result<(), Violation> {
@@ -24,25 +24,25 @@ pub fn max_len(
   };
 
   if !check {
-    let mut elements = field_data.parent_elements.to_vec();
+    let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(ProtoTypes::String.into()),
-      field_name: Some(field_data.name.clone()),
-      key_type: field_data.key_type.map(|t| t as i32),
-      value_type: field_data.value_type.map(|t| t as i32),
-      field_number: Some(field_data.tag as i32),
-      subscript: field_data.subscript,
+      field_name: Some(field_context.field_data.proto_name.clone()),
+      key_type: field_context.field_data.key_type.map(|t| t as i32),
+      value_type: field_context.field_data.value_type.map(|t| t as i32),
+      field_number: Some(field_context.field_data.tag as i32),
+      subscript: field_context.subscript,
     };
     elements.push(current_elem);
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),
       message: Some(format!(
         "{} cannot be longer than {} character{}",
-        field_data.name.clone(),
+        field_context.field_data.proto_name.clone(),
         max_len,
         plural_suffix
       )),
-      for_key: Some(field_data.for_key),
+      for_key: Some(field_context.field_data.is_for_key),
       field: Some(FieldPath { elements: elements }),
       rule: Some(FieldPath {
         elements: vec![

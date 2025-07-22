@@ -163,6 +163,21 @@ pub fn extract_validators(
 
       let is_required = field_rules.required();
 
+      let field_data = FieldData {
+        rust_name: field_name.to_string(),
+        proto_name: field_name.to_string(),
+        proto_type: convert_kind_to_proto_type(field_desc.kind()),
+        tag: field_tag,
+        is_required,
+        is_repeated,
+        is_map,
+        is_for_key: false,
+        key_type: None,
+        value_type: None,
+        ignore: ignore_val,
+        is_optional: is_optional,
+      };
+
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !is_map {
           if field_desc.name() != "posts" {
@@ -172,18 +187,7 @@ pub fn extract_validators(
           let template = ValidatorCallTemplate {
             validator_path: None,
             target_value_tokens: None,
-            field_rust_ident: field_name.to_string(),
-            field_tag: field_tag,
-            field_proto_name: field_name.to_string(),
-            field_proto_type: proto_types::google::protobuf::field_descriptor_proto::Type::Message,
-            field_is_repeated: is_repeated,
-            field_is_map: is_map,
-            field_is_required: is_required,
-            field_is_optional: is_optional,
-            for_key: false,
-            key_type: None,
-            value_type: None,
-            ignore: ignore_val,
+            field_data,
             kind: GeneratedCodeKind::NestedMessageRecursion,
           };
           // println!("{:#?}", template);
@@ -195,21 +199,6 @@ pub fn extract_validators(
       if field_rules.cel.len() > 0 {
         let cel_rules = field_rules.cel.clone();
       }
-
-      let field_data = FieldData {
-        name: field_name.to_string(),
-        tag: field_tag,
-        is_required,
-        is_repeated,
-        is_map,
-        subscript: None,
-        parent_elements: &[],
-        for_key: false,
-        key_type: None,
-        value_type: None,
-        ignore: ignore_val,
-        is_optional: is_optional,
-      };
 
       if let Some(rules_type) = field_rules.r#type.clone() {
         let rules = match rules_type {
