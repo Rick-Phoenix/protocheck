@@ -45,7 +45,7 @@ pub fn get_field_rules(
       field_rules::Type::Repeated(repeated_rules) => {
         repeated_rules::get_repeated_rules(field_data, &repeated_rules)
       }
-      field_rules::Type::Map(map_rules) => map_rules::get_map_rules(field_data, &map_rules),
+      // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(field_data, &map_rules),
       // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
       // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
       // field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
@@ -221,9 +221,17 @@ pub fn extract_validators(
         value_type: map_value_type,
       };
 
-      let rules = get_field_rules(field_data, &field_rules).unwrap();
-      validation_data.extend(rules);
-      // println!("Rules: {:#?}", rules);
+      if let Some(rules_type) = field_rules.r#type.clone() {
+        let rules = match rules_type {
+          field_rules::Type::Map(map_rules) => {
+            vec![parse_map_validation_templates(field_data, &field_desc, &map_rules).unwrap()]
+          }
+          _ => get_field_rules(field_data, &field_rules).unwrap(),
+        };
+
+        validation_data.extend(rules);
+        // println!("Rules: {:#?}", rules);
+      }
     }
   }
 
@@ -310,10 +318,10 @@ pub fn parse_map_validation_templates(
     let key_rules_descriptor = map_rules.keys.clone().unwrap();
 
     let key_field_data = FieldData {
-      name: "key".to_string(), // Name it "key" for path purposes
+      name: map_field_data.name.to_string(),
       tag: key_desc.number(),
       is_repeated: false,
-      is_map: false,
+      is_map: true,
       is_required: map_field_data.is_required,
       subscript: None,
       parent_elements: &[],
@@ -330,14 +338,14 @@ pub fn parse_map_validation_templates(
     value_is_message = true;
   }
 
-  if map_rules.values.is_some() {
+  if map_rules.values.is_some() && value_desc.name() == "Post" {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
 
     let value_field_data = FieldData {
-      name: "value".to_string(),
+      name: map_field_data.name.to_string(),
       tag: value_desc.number(),
       is_repeated: false,
-      is_map: false,
+      is_map: true,
       is_required: map_field_data.is_required,
       subscript: None,
       parent_elements: &[],

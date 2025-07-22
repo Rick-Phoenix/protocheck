@@ -140,6 +140,8 @@ impl ToTokens for ValidatorCallTemplate {
     let key_type = self.key_type;
     let value_type = self.value_type;
     let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
+    let item_ident = Ident::new("item", Span::call_site());
+    let index_ident = Ident::new("idx", Span::call_site());
 
     match &self.kind {
       GeneratedCodeKind::FieldRule => {
@@ -147,9 +149,6 @@ impl ToTokens for ValidatorCallTemplate {
         let target = self.target_value_tokens.as_ref().unwrap();
 
          if self.field_is_repeated {
-          let item_ident = Ident::new("item", Span::call_site());
-          let index_ident = Ident::new("idx", Span::call_site());
-
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
@@ -173,6 +172,56 @@ impl ToTokens for ValidatorCallTemplate {
               };
             }
           });
+        } else if self.field_is_map {
+          if for_key {
+            tokens.extend(quote! {
+              let current_field_parent_elements = #parent_messages_ident.as_slice();
+
+              let field_data_for_call = proto_types::FieldData {
+                name: #field_name_str.to_string(),
+                tag: #field_tag,
+                is_repeated: false,
+                is_map: false,
+                is_required: #field_is_required,
+                subscript: None,
+                parent_elements: current_field_parent_elements,
+                for_key: true,
+                key_type: None, 
+                value_type: None,
+              };
+
+              match #validator(field_data_for_call, #index_ident, #target) {
+                Ok(_) => {},
+                Err(v) => {
+                  #violations_ident.push(v);
+                },
+              };
+            });
+          } else {
+            tokens.extend(quote! {
+              let current_field_parent_elements = #parent_messages_ident.as_slice();
+
+              let field_data_for_call = proto_types::FieldData {
+                name: #field_name_str.to_string(),
+                tag: #field_tag,
+                is_repeated: false,
+                is_map: false,
+                is_required: #field_is_required,
+                subscript: None,
+                parent_elements: current_field_parent_elements,
+                for_key: false,
+                key_type: None, 
+                value_type: None,
+              };
+
+              match #validator(field_data_for_call, #item_ident, #target) {
+                Ok(_) => {},
+                Err(v) => {
+                  #violations_ident.push(v);
+                },
+              };
+            });
+          }
         } else {
           tokens.extend(quote! {
             let current_field_parent_elements = #parent_messages_ident.as_slice();
@@ -245,9 +294,6 @@ impl ToTokens for ValidatorCallTemplate {
         }
       },
       GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
-        let key_ident = Ident::new("key", Span::call_site());
-        let value_ident = Ident::new("value", Span::call_site());
-
         let map_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site()); 
         let map_field_name_str = &self.field_proto_name;
         let map_field_tag = self.field_tag;
@@ -258,7 +304,7 @@ impl ToTokens for ValidatorCallTemplate {
 
 
         let key_subscript_gen_tokens = if let Some(key_type_enum) = map_key_type_enum {
-            generate_key_subscript(key_type_enum, &key_ident)
+            generate_key_subscript(key_type_enum, &index_ident)
         } else {
            quote! {compile_error!("Map key type is missing during macro expansion.")} 
         };
@@ -267,13 +313,13 @@ impl ToTokens for ValidatorCallTemplate {
         tokens.extend(quote! {
           #(#map_level_rules)* 
 
-          for (#key_ident, #value_ident) in self.#map_rust_ident.iter() {
+          for (#index_ident, #item_ident) in self.#map_rust_ident.iter() {
             let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
               field_name: Some(#map_field_name_str.to_string()),
               field_number: Some(#map_field_tag as i32),
               field_type: Some(#map_field_proto_type_val),
-              key_type: #map_key_type_enum.map(|t| t as i32),
-              value_type: #map_value_type_enum.map(|t| t as i32),
+              key_type: Some(#map_key_type_enum as i32),
+              value_type: Some(#map_value_type_enum as i32),
               subscript: Some(#key_subscript_gen_tokens),
             };
             #parent_messages_ident.push(map_entry_field_path_element);
@@ -281,7 +327,7 @@ impl ToTokens for ValidatorCallTemplate {
             #(#key_rules)*
 
             if #value_is_message {
-              #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
+              #item_ident.nested_validate(#parent_messages_ident, #violations_ident);
             } else {
               #(#value_rules)*
             }
