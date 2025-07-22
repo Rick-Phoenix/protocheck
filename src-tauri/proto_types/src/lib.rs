@@ -101,6 +101,12 @@ pub enum GeneratedCodeKind {
     is_optional: bool,
     is_repeated: bool,
   },
+  MapValidationLoop {
+    map_level_rules: Vec<ValidatorCallTemplate>,
+    key_rules: Vec<ValidatorCallTemplate>,
+    value_rules: Vec<ValidatorCallTemplate>,
+    value_is_message: bool, 
+  }
 }
 
 #[derive(Debug)]
@@ -140,66 +146,7 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        if self.field_is_map { 
-          let value_ident = Ident::new("value", Span::call_site());
-          let key_ident = Ident::new("key", Span::call_site());
-
-          let key_subscript_gen = if let Some(key_type_enum) = key_type {
-            generate_key_subscript(key_type_enum, &key_ident) 
-          } else {
-            quote! { compile_error!(format!("unknown key type: {:#?}", key_type)); }
-          };
-          if for_key {
-            tokens.extend(quote! {
-              let current_item_parent_elements = #parent_messages_ident.as_slice();
-              for (#key_ident, #value_ident) in self.#field_rust_ident.iter() {
-                let item_field_data = proto_types::FieldData {
-                  name: #field_name_str.to_string(),
-                  tag: #field_tag,
-                  is_repeated: false,
-                  is_map: false,
-                  is_required: #field_is_required,
-                  for_key: true,
-                  subscript: Some(#key_subscript_gen),
-                  parent_elements: current_item_parent_elements,
-                  key_type: Some(#key_type),
-                  value_type: Some(#value_type),
-                };
-                match #validator(item_field_data, #key_ident, #target) {
-                  Ok(_) => {},
-                  Err(v) => {
-                     #violations_ident.push(v);
-                  },
-                };
-              }
-            });
-          } else {
-              tokens.extend(quote! {
-              let current_item_parent_elements = #parent_messages_ident.as_slice();
-              for (#key_ident, #value_ident) in self.#field_rust_ident.iter() {
-                let item_field_data = proto_types::FieldData {
-                  name: #field_name_str.to_string(),
-                  tag: #field_tag,
-                  is_repeated: false,
-                  is_map: false,
-                  is_required: #field_is_required,
-                  subscript: Some(#key_subscript_gen),
-                  parent_elements: current_item_parent_elements,
-                  for_key: false,
-                  key_type: Some(#key_type),
-                  value_type: Some(#value_type),
-                };
-                match #validator(item_field_data, #value_ident, #target) {
-                  Ok(_) => {},
-                  Err(v) => {
-                     #violations_ident.push(v);
-                  },
-                };
-              }
-            });
-          }
-        }
-        else if self.field_is_repeated {
+         if self.field_is_repeated {
           let item_ident = Ident::new("item", Span::call_site());
           let index_ident = Ident::new("idx", Span::call_site());
 
@@ -249,7 +196,7 @@ impl ToTokens for ValidatorCallTemplate {
                 #violations_ident.push(v);
               },
             };
-        });
+          });
         }
       }
       GeneratedCodeKind::NestedMessageRecursion {
@@ -296,7 +243,53 @@ impl ToTokens for ValidatorCallTemplate {
             #parent_messages_ident.pop();
           });
         }
-      }
+      },
+      GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
+        let key_ident = Ident::new("key", Span::call_site());
+        let value_ident = Ident::new("value", Span::call_site());
+
+        let map_rust_ident = Ident::new(&self.field_rust_ident_str, Span::call_site()); 
+        let map_field_name_str = &self.field_proto_name;
+        let map_field_tag = self.field_tag;
+        let map_field_proto_type_val = self.field_proto_type as i32; 
+
+        let map_key_type_enum = self.key_type;
+        let map_value_type_enum = self.value_type; 
+
+
+        let key_subscript_gen_tokens = if let Some(key_type_enum) = map_key_type_enum {
+            generate_key_subscript(key_type_enum, &key_ident)
+        } else {
+           quote! {compile_error!("Map key type is missing during macro expansion.")} 
+        };
+
+
+        tokens.extend(quote! {
+          #(#map_level_rules)* 
+
+          for (#key_ident, #value_ident) in self.#map_rust_ident.iter() {
+            let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
+              field_name: Some(#map_field_name_str.to_string()),
+              field_number: Some(#map_field_tag as i32),
+              field_type: Some(#map_field_proto_type_val),
+              key_type: #map_key_type_enum.map(|t| t as i32),
+              value_type: #map_value_type_enum.map(|t| t as i32),
+              subscript: Some(#key_subscript_gen_tokens),
+            };
+            #parent_messages_ident.push(map_entry_field_path_element);
+
+            #(#key_rules)*
+
+            if #value_is_message {
+              #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
+            } else {
+              #(#value_rules)*
+            }
+
+            #parent_messages_ident.pop();
+          }
+        });
+      },
     }
   }
 }
