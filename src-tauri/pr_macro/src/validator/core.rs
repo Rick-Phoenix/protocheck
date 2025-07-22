@@ -151,14 +151,10 @@ pub fn extract_validators(
 
     if let Value::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
-      let mut ignore_val: Option<Ignore> = None;
+      let ignore_val = field_rules.ignore();
 
-      if field_rules.ignore.is_some() {
-        match field_rules.ignore() {
-          Ignore::Always => continue,
-          Ignore::IfZeroValue => ignore_val = Some(Ignore::IfZeroValue),
-          Ignore::Unspecified => ignore_val = Some(Ignore::Unspecified),
-        }
+      if matches!(ignore_val, Ignore::Always) {
+        continue;
       }
 
       let is_required = field_rules.required();

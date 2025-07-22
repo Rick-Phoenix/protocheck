@@ -42,7 +42,7 @@ pub struct FieldData {
   pub key_type: Option<ProtoType>,   
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
-  pub ignore: Option<Ignore>,
+  pub ignore: Ignore,
 }
 
 impl ToTokens for FieldPathElement {

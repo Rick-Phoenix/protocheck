@@ -104,10 +104,10 @@ impl ToTokens for FieldData {
     let is_optional = self.is_optional;
     let is_for_key = self.is_for_key;
     let proto_type = &self.proto_type;
+    let ignore = &self.ignore;
 
     let key_type_tokens = option_to_tokens(&self.key_type);
     let value_type_tokens = option_to_tokens(&self.value_type);
-    let ignore_tokens = option_to_tokens(&self.ignore);
 
     tokens.extend(quote! {
       proto_types::FieldData {
@@ -122,7 +122,7 @@ impl ToTokens for FieldData {
         is_for_key: #is_for_key,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
-        ignore: #ignore_tokens,
+        ignore: #ignore,
       }
     });
   }

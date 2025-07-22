@@ -13,7 +13,7 @@ use quote::{quote, ToTokens};
 pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
   map_rules: &MapRules,
-  ignore: Option<Ignore>,
+  ignore: Ignore,
 ) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
   let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -70,17 +70,18 @@ pub fn get_map_rules(
 
   if map_rules.keys.is_some() {
     let key_rules_descriptor = map_rules.keys.clone().unwrap();
-    let is_required = key_rules_descriptor.required();
+    let ignore = key_rules_descriptor.ignore();
+    if !matches!(ignore, Ignore::Always) {
+      let is_required = key_rules_descriptor.required();
 
-    let mut key_field_data = map_field_data.clone();
-    key_field_data.is_required = is_required;
-    key_field_data.is_for_key = true;
-    if key_rules_descriptor.ignore.is_some() {
-      key_field_data.ignore = Some(key_rules_descriptor.ignore());
+      let mut key_field_data = map_field_data.clone();
+      key_field_data.is_required = is_required;
+      key_field_data.is_for_key = true;
+      key_field_data.ignore = ignore;
+
+      let generated_key_templates = get_field_rules(key_field_data, &key_rules_descriptor)?;
+      key_rules_templates.extend(generated_key_templates);
     }
-
-    let generated_key_templates = get_field_rules(key_field_data, &key_rules_descriptor)?;
-    key_rules_templates.extend(generated_key_templates);
   }
 
   let mut value_is_message = false;
@@ -91,17 +92,18 @@ pub fn get_map_rules(
   // Change it for well known types
   if map_rules.values.is_some() && !value_is_message {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
-    let is_required = value_rules_descriptor.required();
+    let ignore = value_rules_descriptor.ignore();
+    if !matches!(ignore, Ignore::Always) {
+      let is_required = value_rules_descriptor.required();
 
-    let mut value_field_data = map_field_data.clone();
-    value_field_data.is_required = is_required;
+      let mut value_field_data = map_field_data.clone();
+      value_field_data.is_required = is_required;
 
-    if value_rules_descriptor.ignore.is_some() {
-      value_field_data.ignore = Some(value_rules_descriptor.ignore());
+      value_field_data.ignore = ignore;
+
+      let generated_value_templates = get_field_rules(value_field_data, &value_rules_descriptor)?;
+      value_rules_templates.extend(generated_value_templates);
     }
-
-    let generated_value_templates = get_field_rules(value_field_data, &value_rules_descriptor)?;
-    value_rules_templates.extend(generated_value_templates);
   }
 
   Ok(ValidatorCallTemplate {
