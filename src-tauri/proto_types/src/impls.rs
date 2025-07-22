@@ -56,3 +56,37 @@ where
     }
   }
 }
+
+use crate::buf::validate::field_path_element::Subscript;
+
+impl ToTokens for Subscript {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    match self {
+      Subscript::Index(value) => {
+        tokens.extend(quote! {
+            proto_types::buf::validate::Subscript::Index(#value)
+        });
+      }
+      Subscript::BoolKey(value) => {
+        tokens.extend(quote! {
+            proto_types::buf::validate::Subscript::BoolKey(#value)
+        });
+      }
+      Subscript::IntKey(value) => {
+        tokens.extend(quote! {
+            proto_types::buf::validate::Subscript::IntKey(#value)
+        });
+      }
+      Subscript::UintKey(value) => {
+        tokens.extend(quote! {
+            proto_types::buf::validate::Subscript::UintKey(#value)
+        });
+      }
+      Subscript::StringKey(value) => {
+        tokens.extend(quote! {
+            proto_types::buf::validate::Subscript::StringKey(#value)
+        });
+      }
+    }
+  }
+}

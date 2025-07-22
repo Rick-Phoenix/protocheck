@@ -66,38 +66,6 @@ impl ToTokens for FieldPathElement {
   }
 }
 
-impl ToTokens for Subscript {
-  fn to_tokens(&self, tokens: &mut TokenStream) {
-    match self {
-      Subscript::Index(value) => {
-        tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::Index(#value)
-        });
-      }
-      Subscript::BoolKey(value) => {
-        tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::BoolKey(#value)
-        });
-      }
-      Subscript::IntKey(value) => {
-        tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::IntKey(#value)
-        });
-      }
-      Subscript::UintKey(value) => {
-        tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::UintKey(#value)
-        });
-      }
-      Subscript::StringKey(value) => {
-        tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::StringKey(#value)
-        });
-      }
-    }
-  }
-}
-
 #[derive(Debug)]
 pub enum GeneratedCodeKind {
   FieldRule,
@@ -156,7 +124,7 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-         if self.field_is_repeated {
+        if self.field_is_repeated {
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
