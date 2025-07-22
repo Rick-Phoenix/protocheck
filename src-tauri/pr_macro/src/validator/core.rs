@@ -23,7 +23,7 @@ use syn::DeriveInput;
 
 use proc_macro::TokenStream;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
 use proto_types::google::protobuf::{Duration, Timestamp};
@@ -63,8 +63,6 @@ pub fn extract_validators(
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
   let range = input_tokens.ident;
   let struct_name = range.to_string();
-
-  // println!("{}", struct_name.to_string());
 
   let descriptor_set_bytes =
     Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
@@ -130,6 +128,8 @@ pub fn extract_validators(
     }
   }
 
+  // println!("Struct Name: {}", struct_name.to_string());
+
   for field_desc in user_desc.fields() {
     // println!("{}", user_desc.name());
 
@@ -173,6 +173,18 @@ pub fn extract_validators(
         ignore: ignore_val,
         is_optional: is_optional,
       };
+
+      match field_desc.kind() {
+        Kind::Enum(enum_descriptor) => {
+          let mut enum_names: HashSet<String> = HashSet::new();
+          let mut enum_numbers: HashSet<i32> = HashSet::new();
+          for val in enum_descriptor.values() {
+            enum_names.insert(val.name().to_string());
+            enum_numbers.insert(val.number());
+          }
+        }
+        _ => {}
+      }
 
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !is_map {

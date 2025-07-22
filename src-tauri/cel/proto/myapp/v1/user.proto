@@ -8,6 +8,14 @@ import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
 message User {
+  enum test_enum {
+    option allow_alias = true;
+
+    UNSPECIFIED = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+    PASSIVE = 2;
+  }
   message Post {
     repeated string tags = 10 [(buf.validate.field).repeated.items = {
       string: {max_len: 2}
@@ -26,6 +34,7 @@ message User {
   map<string, Post> map_field = 5 [(buf.validate.field).map.keys = {
     string: {max_len: 1}
   } /* (buf.validate.field).map.values = { */ /* string: {max_len: 1} */ /* } */];
+  test_enum enum_field = 11;
   repeated Post posts = 4;
 }
 
