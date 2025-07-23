@@ -20,6 +20,7 @@ pub fn get_cel_rules(
           kind: GeneratedCodeKind::MessageCelRule {
             expression: rule.expression().to_string(),
             message: rule.message().to_string(),
+            rule_id: rule.id().to_string(),
           },
         });
       }

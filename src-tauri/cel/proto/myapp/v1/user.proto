@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 
 message User {
   option (buf.validate.message).cel = {
-    id: "someid"
+    id: "user.id.not_alfonso"
     message: "somemessage"
     expression: "this.name == 'alfonso'"
   };
@@ -37,7 +37,7 @@ message User {
     (buf.validate.field).string.max_len = 1,
     (buf.validate.field).string.min_len = 2,
     (buf.validate.field).cel = {
-      id: "field_cel"
+      id: "name.not_alfonso"
       message: "field_validation"
       expression: "this == 'alfonso'"
     }

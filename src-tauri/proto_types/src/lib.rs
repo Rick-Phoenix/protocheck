@@ -87,10 +87,12 @@ pub enum GeneratedCodeKind {
   FieldCelRule {
     expression: String,
     message: String,
+    rule_id: String,
   }, 
   MessageCelRule {
     expression: String,
     message: String,
+    rule_id: String,
   }
 }
 
@@ -125,7 +127,7 @@ impl ToTokens for ValidatorCallTemplate {
     let field_data = self.field_data.clone();
 
     match &self.kind {
-      GeneratedCodeKind::FieldCelRule { expression, message } => {
+      GeneratedCodeKind::FieldCelRule { expression, message, rule_id } => {
         let static_field_program_ident = Ident::new(&format!("__CEL_FIELD_PROGRAM_{}_{}", self.field_data.rust_name, expression.chars().filter(|c| c.is_alphanumeric()).take(10).collect::<String>()), Span::call_site());
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
@@ -137,7 +139,7 @@ impl ToTokens for ValidatorCallTemplate {
           let mut context = cel_interpreter::Context::default();
           context.add_variable("this", &self.#field_rust_ident).expect("Failed to add 'this' to the cel program");
 
-          match macro_impl::validators::cel::validate_cel(program, context, #message.to_string()) {
+          match macro_impl::validators::cel::validate_cel(program, context, #message.to_string(), #rule_id.to_string()) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };
@@ -313,7 +315,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       },
-      GeneratedCodeKind::MessageCelRule { expression, message } => {
+      GeneratedCodeKind::MessageCelRule { expression, message, rule_id } => {
         let static_program_ident = Ident::new(&format!("__CEL_MESSAGE_PROGRAM_{}_{}", self.field_data.rust_name, expression.chars().filter(|c| c.is_alphanumeric()).take(10).collect::<String>()), Span::call_site());
 
         tokens.extend(quote! {
@@ -336,7 +338,7 @@ impl ToTokens for ValidatorCallTemplate {
             parent_elements: current_field_parent_elements,
           };
 
-          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string()) {
+          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string()) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };

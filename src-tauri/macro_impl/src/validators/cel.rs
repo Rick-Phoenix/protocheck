@@ -10,6 +10,7 @@ pub fn validate_cel(
   program: &'static Program,
   cel_context: Context,
   message: String,
+  rule_id: String,
 ) -> Result<(), Violation> {
   let result = program.execute(&cel_context);
 
@@ -21,7 +22,7 @@ pub fn validate_cel(
         } else {
           let mut elements = field_context.parent_elements.to_vec();
           let current_elem = FieldPathElement {
-            field_type: Some(ProtoType::String.into()), // Change
+            field_type: Some(field_context.field_data.proto_type as i32), // Change
             field_name: Some(field_context.field_data.proto_name.clone()),
             key_type: field_context.field_data.key_type.map(|t| t as i32),
             value_type: field_context.field_data.value_type.map(|t| t as i32),
@@ -31,8 +32,8 @@ pub fn validate_cel(
           elements.push(current_elem);
           Err(Violation {
             message: Some(message),
-            rule_id: None, // change
-            rule: None,    // change
+            rule_id: Some(rule_id),
+            rule: None, // change
             field: Some(FieldPath { elements }),
             for_key: Some(field_context.field_data.is_for_key),
           })
