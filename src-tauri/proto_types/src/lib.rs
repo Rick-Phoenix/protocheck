@@ -42,6 +42,7 @@ pub struct FieldData {
   pub key_type: Option<ProtoType>,   
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
+  pub enum_full_name: Option<String>,
   pub ignore: Ignore,
 }
 

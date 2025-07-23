@@ -34,7 +34,7 @@ message User {
   map<string, Post> map_field = 5 [(buf.validate.field).map.keys = {
     string: {max_len: 1}
   } /* (buf.validate.field).map.values = { */ /* string: {max_len: 1} */ /* } */];
-  test_enum enum_field = 11;
+  test_enum enum_field = 11 [(buf.validate.field).enum.defined_only = true];
   repeated Post posts = 4;
 }
 

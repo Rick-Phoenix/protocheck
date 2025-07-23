@@ -57,6 +57,17 @@ where
   }
 }
 
+pub fn option_string_to_tokens(option: &Option<String>) -> TokenStream {
+  match option {
+    Some(val) => {
+      quote! { Some(#val.to_string()) }
+    }
+    None => {
+      quote! { None }
+    }
+  }
+}
+
 use crate::buf::validate::field_path_element::Subscript;
 
 impl ToTokens for Subscript {
@@ -106,6 +117,7 @@ impl ToTokens for FieldData {
     let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
+    let enum_tokens = option_string_to_tokens(&self.enum_full_name);
     let key_type_tokens = option_to_tokens(&self.key_type);
     let value_type_tokens = option_to_tokens(&self.value_type);
 
@@ -122,6 +134,7 @@ impl ToTokens for FieldData {
         is_for_key: #is_for_key,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
+        enum_full_name: #enum_tokens,
         ignore: #ignore,
       }
     });

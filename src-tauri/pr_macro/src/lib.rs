@@ -7,7 +7,7 @@ use syn::{parse_macro_input, DeriveInput, punctuated::Punctuated, LitStr, Token}
 use proc_macro2::{Ident,Span};
 
 use crate::protogen::parse_proto_message;
-use crate::validator::core::extract_validators;
+use crate::validator::extract_validators::extract_validators;
 
 mod protogen;
 mod validator;
@@ -29,7 +29,7 @@ pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
     };
 
     if should_include {
-      println!("Full Name: {}", full_name);
+      // println!("Full Name: {}", full_name);
       let static_name_str = format!("__VALID_{}_VALUES", full_name.replace('.', "_").to_uppercase());
       let static_ident = Ident::new(&static_name_str, Span::call_site());
 

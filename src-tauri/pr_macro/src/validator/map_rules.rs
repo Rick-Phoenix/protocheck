@@ -55,6 +55,7 @@ pub fn get_map_rules(
     is_for_key: false,
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
+    enum_full_name: None,
     ignore: ignore,
   };
 

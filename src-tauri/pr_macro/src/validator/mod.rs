@@ -28,6 +28,7 @@ pub mod bytes_rules;
 pub mod core;
 pub mod duration_rules;
 pub mod enum_rules;
+pub mod extract_validators;
 pub mod map_rules;
 pub mod numeric_rules;
 pub mod pool_loader;

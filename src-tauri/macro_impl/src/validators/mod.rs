@@ -9,4 +9,5 @@ pub trait WithValidator {
   ) -> ();
 }
 
+pub mod enums;
 pub mod strings;

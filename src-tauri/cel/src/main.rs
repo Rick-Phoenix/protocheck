@@ -1,8 +1,8 @@
-use crate::myapp::v1::user::TestEnum;
 use std::collections::HashMap;
 
 use crate::myapp::v1::user::Post;
 use crate::myapp::v1::User;
+use cel_test::*;
 use macro_impl::validators::WithValidator;
 
 mod myapp {
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       },
     ],
     map_field,
-    enum_field: TestEnum::Active.into(),
+    enum_field: 31,
   };
 
   let result = user.validate();
