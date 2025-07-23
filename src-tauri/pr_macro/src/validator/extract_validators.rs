@@ -1,10 +1,13 @@
+use std::collections::HashSet;
+
 use crate::validator::{
   core::{convert_kind_to_proto_type, get_field_rules},
-  enum_rules, map_rules,
-  map_rules::get_map_rules,
+  enum_rules::{self, get_enum_rules},
+  map_rules::{self, get_map_rules},
   pool_loader::DESCRIPTOR_POOL,
   repeated_rules, string_rules,
 };
+use proc_macro::Span;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use prost_reflect::FieldDescriptor;
 use prost_reflect::{
@@ -25,7 +28,7 @@ pub fn extract_validators(
   input_tokens: DeriveInput,
 ) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
-  let range = input_tokens.ident;
+  let range = &input_tokens.ident;
   let struct_name = range.to_string();
 
   let message_name = if struct_name == "User" {
@@ -116,14 +119,9 @@ pub fn extract_validators(
 
       let is_required = field_rules.required();
 
-      let enum_full_name = match field_desc.kind() {
-        Kind::Enum(enum_descriptor) => Some(enum_descriptor.full_name().to_string()),
-        _ => None,
-      };
-
       // println!("Enum Name: {:?}", enum_full_name);
 
-      let field_data = FieldData {
+      let mut field_data = FieldData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         proto_type: convert_kind_to_proto_type(field_desc.kind()),
@@ -135,7 +133,7 @@ pub fn extract_validators(
         key_type: None,
         value_type: None,
         ignore: ignore_val,
-        enum_full_name,
+        enum_full_name: None,
         is_optional,
       };
 
@@ -166,6 +164,20 @@ pub fn extract_validators(
           field_rules::Type::Map(map_rules) => {
             vec![get_map_rules(&field_desc, &map_rules, ignore_val).unwrap()]
           }
+          field_rules::Type::Enum(enum_rules) => match field_desc.kind() {
+            Kind::Enum(enum_descriptor) => {
+              field_data.enum_full_name = Some(enum_descriptor.full_name().to_string());
+              let enum_values: HashSet<i32> =
+                enum_descriptor.values().map(|e| e.number()).collect();
+              get_enum_rules(field_data, &enum_rules, enum_values).unwrap()
+            }
+            _ => {
+              return Err(syn::Error::new_spanned(
+                input_tokens,
+                "Found enum rules on a non-enum field.",
+              ))
+            }
+          },
           _ => get_field_rules(field_data, &field_rules).unwrap(),
         };
 

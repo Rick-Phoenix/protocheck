@@ -43,7 +43,7 @@ pub fn get_field_rules(
       // field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
       // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
       // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
-      field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(field_data, &enum_rules),
+      // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(field_data, &enum_rules),
       field_rules::Type::Repeated(repeated_rules) => {
         repeated_rules::get_repeated_rules(field_data, &repeated_rules)
       }

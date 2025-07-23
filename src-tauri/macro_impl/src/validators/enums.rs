@@ -16,6 +16,11 @@ pub fn defined_only(
     return Ok(());
   };
 
+  let enum_name = field_context
+    .field_data
+    .enum_full_name
+    .unwrap_or("missing_name".to_string());
+
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
@@ -31,8 +36,9 @@ pub fn defined_only(
     let violation = Violation {
       rule_id: Some("enum.defined_only".to_string()),
       message: Some(format!(
-        "{} must be a defined value",
+        "{} must be a defined value of {}",
         field_context.field_data.proto_name.clone(),
+        enum_name,
       )),
       for_key: Some(field_context.field_data.is_for_key),
       field: Some(FieldPath { elements: elements }),
@@ -40,7 +46,7 @@ pub fn defined_only(
         elements: vec![
           FieldPathElement {
             field_name: Some("enum".to_string()),
-            field_number: Some(15),
+            field_number: Some(16),
             field_type: Some(ProtoTypes::Message as i32),
             subscript: None,
             key_type: None,
@@ -48,7 +54,7 @@ pub fn defined_only(
           },
           FieldPathElement {
             field_name: Some("defined_only".to_string()),
-            field_number: Some(1),
+            field_number: Some(2),
             field_type: Some(ProtoTypes::Bool as i32),
             key_type: None,
             value_type: None,
