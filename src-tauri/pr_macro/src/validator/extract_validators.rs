@@ -72,8 +72,11 @@ pub fn extract_validators(
 
     if message_rules.cel.len() > 0 {
       let message_cel_rules = message_rules.cel.clone();
+      let mut field_data = FieldData::default();
+      field_data.rust_name = "test".to_string();
+      field_data.proto_name = "test".to_string();
       validation_data
-        .extend(get_cel_rules(message_cel_rules).expect("Failed to get the cel rules"));
+        .extend(get_cel_rules(field_data, message_cel_rules).expect("Failed to get the cel rules"));
     }
   }
 
@@ -178,6 +181,9 @@ pub fn extract_validators(
 
       if field_rules.cel.len() > 0 {
         let cel_rules = field_rules.cel.clone();
+        validation_data.extend(
+          get_cel_rules(field_data.clone(), cel_rules).expect("Failed to get field cel rules"),
+        );
       }
 
       if let Some(rules_type) = field_rules.r#type.clone() {

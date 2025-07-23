@@ -84,7 +84,11 @@ pub enum GeneratedCodeKind {
     value_is_message: bool, 
   },
   OneofRule, 
-  CelRule {
+  FieldCelRule {
+    expression: String,
+    message: String,
+  }, 
+  MessageCelRule {
     expression: String,
     message: String,
   }
@@ -121,6 +125,24 @@ impl ToTokens for ValidatorCallTemplate {
     let field_data = self.field_data.clone();
 
     match &self.kind {
+      GeneratedCodeKind::FieldCelRule { expression, message } => {
+        let static_field_program_ident = Ident::new(&format!("__CEL_FIELD_PROGRAM_{}_{}", self.field_data.rust_name, expression.chars().filter(|c| c.is_alphanumeric()).take(10).collect::<String>()), Span::call_site());
+        tokens.extend(quote! {
+          #[allow(non_upper_case_globals)]
+          static #static_field_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
+            cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
+          });
+
+          let program = &#static_field_program_ident;
+          let mut context = cel_interpreter::Context::default();
+          context.add_variable("this", &self.#field_rust_ident).expect("Failed to add 'this' to the cel program");
+
+          match macro_impl::validators::cel::validate_cel(program, context, #message.to_string()) {
+            Ok(_) => {},
+            Err(v) => violations.push(v),
+          };
+        });
+      },
       GeneratedCodeKind::FieldRule => {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
@@ -291,19 +313,30 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       },
-      GeneratedCodeKind::CelRule { expression, message } => {
+      GeneratedCodeKind::MessageCelRule { expression, message } => {
         let static_program_ident = Ident::new(&format!("__CEL_MESSAGE_PROGRAM_{}_{}", self.field_data.rust_name, expression.chars().filter(|c| c.is_alphanumeric()).take(10).collect::<String>()), Span::call_site());
+
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
           static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
             cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
           });
 
-          let program = &#static_program_ident;
-          let mut context = cel_interpreter::Context::default();
-          context.add_variable("this", &self).expect("Failed to add 'this' to the cel program");
+          let current_field_parent_elements = #parent_messages_ident.as_slice();
 
-          match macro_impl::validators::cel::validate_cel(program, context, #message.to_string()) {
+          let program = &#static_program_ident;
+          let mut cel_context = cel_interpreter::Context::default();
+          cel_context.add_variable("this", &self).expect("Failed to add 'this' to the cel program");
+
+          let field_data = #field_data;
+
+          let field_context = proto_types::FieldContext {
+            field_data,
+            subscript: None, 
+            parent_elements: current_field_parent_elements,
+          };
+
+          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string()) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };
