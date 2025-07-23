@@ -10,4 +10,5 @@ pub trait WithValidator {
 }
 
 pub mod enums;
+pub mod oneofs;
 pub mod strings;

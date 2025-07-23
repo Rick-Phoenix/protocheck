@@ -82,7 +82,8 @@ pub enum GeneratedCodeKind {
     key_rules: Vec<ValidatorCallTemplate>,
     value_rules: Vec<ValidatorCallTemplate>,
     value_is_message: bool, 
-  }
+  },
+  OneofRule
 }
 
 #[derive(Debug)]
@@ -268,6 +269,24 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       },
+      GeneratedCodeKind::OneofRule => {
+        tokens.extend(quote! {
+          if !&self.#field_rust_ident.is_some() {
+            let current_field_parent_elements = #parent_messages_ident.as_slice();
+
+            let field_data = #field_data;
+
+            let field_context = proto_types::FieldContext {
+              field_data,
+              parent_elements: current_field_parent_elements,
+              subscript: None,
+            };
+
+            let violation = macro_impl::validators::oneofs::required(field_context);
+            #violations_ident.push(violation);
+          }
+        });
+      }
     }
   }
 }

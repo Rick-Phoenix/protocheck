@@ -79,6 +79,7 @@ pub fn extract_validators(
   }
 
   for oneof in user_desc.oneofs() {
+    println!("{:?}", oneof.name());
     if let Value::Message(oneof_rules_msg) = oneof
       .options()
       .get_extension(&oneof_ext_descriptor)
@@ -86,7 +87,28 @@ pub fn extract_validators(
     {
       let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
       if oneof_rules.required() {
-        //
+        let name = oneof.name();
+        let field_data = FieldData {
+          rust_name: name.to_string(),
+          proto_name: name.to_string(),
+          tag: 0,
+          is_repeated: false,
+          is_map: false,
+          is_required: false,
+          is_optional: false,
+          is_for_key: false,
+          key_type: None,
+          value_type: None,
+          proto_type: ProtoType::Bool,
+          enum_full_name: None,
+          ignore: Ignore::IfZeroValue,
+        };
+        validation_data.push(ValidatorCallTemplate {
+          validator_path: None,
+          target_value_tokens: None,
+          field_data,
+          kind: GeneratedCodeKind::OneofRule,
+        });
       }
     }
   }
