@@ -10,6 +10,7 @@ prost = { workspace = true }
 serde = { workspace = true }
 pr_macro = { path = "../pr_macro/" }
 proto_types = { path = "../proto_types/" }
+cel-interpreter = { workspace = true }
 
 [build-dependencies]
 prost-build = { workspace = true }

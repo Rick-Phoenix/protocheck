@@ -5,6 +5,7 @@ members = ["tauri_main", "db", "pr_macro", "macro_impl", "cel", "proto_types"]
 resolver = "2"
 
 [workspace.dependencies]
+cel-parser = "=0.8.1"
 prost = "0.14.1"
 serde = { version = "1", features = ["derive"] }
 prost-reflect = { version = "0.16.0", features = ["serde"] }

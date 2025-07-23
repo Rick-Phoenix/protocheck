@@ -1,5 +1,5 @@
 use cel_interpreter::{Context, Program};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 #[derive(Serialize)]
 struct Test {
@@ -19,12 +19,11 @@ fn main() {
       field: String::from("io"),
     },
   };
-  let program = Program::compile("this.last_name.field == this.first_name").unwrap();
+  let program = Program::compile("this.last_name.field").unwrap();
   let mut context = Context::default();
 
   context.add_variable("this", person).unwrap();
 
   let value = program.execute(&context).unwrap();
   println!("{:?}", value);
-  assert_eq!(value, cel_interpreter::Value::Bool(true));
 }

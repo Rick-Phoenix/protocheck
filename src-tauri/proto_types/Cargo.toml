@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+cel-parser = { workspace = true }
 prost = { workspace = true }
 serde = { workspace = true }
 prost-reflect = { workspace = true }

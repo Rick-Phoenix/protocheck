@@ -25,6 +25,7 @@ use regex::Regex;
 pub mod any_rules;
 pub mod bool_rules;
 pub mod bytes_rules;
+pub mod cel_rules;
 pub mod core;
 pub mod duration_rules;
 pub mod enum_rules;

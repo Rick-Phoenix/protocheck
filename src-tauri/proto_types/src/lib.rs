@@ -29,7 +29,7 @@ pub struct FieldContext<'a> {
   pub subscript: Option<Subscript>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct FieldData {
   pub rust_name: String,
   pub proto_name: String,
@@ -83,7 +83,11 @@ pub enum GeneratedCodeKind {
     value_rules: Vec<ValidatorCallTemplate>,
     value_is_message: bool, 
   },
-  OneofRule
+  OneofRule, 
+  CelRule {
+    expression: String,
+    message: String,
+  }
 }
 
 #[derive(Debug)]
@@ -285,6 +289,24 @@ impl ToTokens for ValidatorCallTemplate {
             let violation = macro_impl::validators::oneofs::required(field_context);
             #violations_ident.push(violation);
           }
+        });
+      },
+      GeneratedCodeKind::CelRule { expression, message } => {
+        let static_program_ident = Ident::new(&format!("__CEL_MESSAGE_PROGRAM_{}_{}", self.field_data.rust_name, expression.chars().filter(|c| c.is_alphanumeric()).take(10).collect::<String>()), Span::call_site());
+        tokens.extend(quote! {
+          #[allow(non_upper_case_globals)]
+          static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
+            cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
+          });
+
+          let program = &#static_program_ident;
+          let mut context = cel_interpreter::Context::default();
+          context.add_variable("this", &self).expect("Failed to add 'this' to the cel program");
+
+          match macro_impl::validators::cel::validate_cel(program, context, #message.to_string()) {
+            Ok(_) => {},
+            Err(v) => violations.push(v),
+          };
         });
       }
     }

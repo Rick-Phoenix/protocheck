@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::validator::{
+  cel_rules::get_cel_rules,
   core::{convert_kind_to_proto_type, get_field_rules},
   enum_rules::{self, get_enum_rules},
   map_rules::{self, get_map_rules},
@@ -71,15 +72,13 @@ pub fn extract_validators(
 
     if message_rules.cel.len() > 0 {
       let message_cel_rules = message_rules.cel.clone();
-    }
-
-    if message_rules.oneof.len() > 0 {
-      let message_oneof_rules = message_rules.oneof;
+      validation_data
+        .extend(get_cel_rules(message_cel_rules).expect("Failed to get the cel rules"));
     }
   }
 
   for oneof in user_desc.oneofs() {
-    println!("{:?}", oneof.name());
+    // println!("{:?}", oneof.name());
     if let Value::Message(oneof_rules_msg) = oneof
       .options()
       .get_extension(&oneof_ext_descriptor)

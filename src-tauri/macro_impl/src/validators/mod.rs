@@ -9,6 +9,7 @@ pub trait WithValidator {
   ) -> ();
 }
 
+pub mod cel;
 pub mod enums;
 pub mod oneofs;
 pub mod strings;
