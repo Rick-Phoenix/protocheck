@@ -34,6 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ],
     map_field,
     enum_field: 31,
+    oneof_fields: None,
   };
 
   let result = user.validate();

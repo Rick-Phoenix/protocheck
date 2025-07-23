@@ -34,10 +34,17 @@ pub fn get_enum_rules(
 
   if enum_rules.r#in.len() > 0 {
     for n in enum_rules.r#in.iter() {
+      let mut invalid_numbers: Vec<i32> = Vec::new();
       if !enum_values.contains(n) {
+        invalid_numbers.push(*n);
+      }
+      if !invalid_numbers.is_empty() {
         return Err(Box::new(syn::Error::new(
           Span::call_site(),
-          "enum_rules.in contains values that are not in the enum",
+          format!(
+            "enum_rules.in contains values that are not in the {} enum: {:?}",
+            enum_full_name, invalid_numbers
+          ),
         )));
       }
     }
