@@ -52,7 +52,19 @@ pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
     }
   }
 
-  generated_constants.into()
+  let output = quote! {
+    #[allow(clippy::all)]
+    #[allow(non_snake_case)]
+    #[allow(unused)]
+    pub mod __protobuf_validators_consts {
+      use std::collections::HashSet;
+      use std::sync::LazyLock;
+
+      #generated_constants
+    }
+  };
+
+  output.into()
 }
 
 

@@ -21,7 +21,9 @@ pub fn get_enum_rules(
 
     templates.push(ValidatorCallTemplate {
       validator_path: Some(quote! { macro_impl::validators::enums::defined_only }),
-      target_value_tokens: Some(quote! { &crate::#enum_static_ident }),
+      target_value_tokens: Some(
+        quote! { &crate::__protobuf_validators_consts::#enum_static_ident },
+      ),
       field_data,
       kind: GeneratedCodeKind::FieldRule,
     });

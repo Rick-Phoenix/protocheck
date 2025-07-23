@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::myapp::v1::user::Post;
 use crate::myapp::v1::User;
-use cel_test::*;
+use cel_test::__protobuf_validators_consts;
 use macro_impl::validators::WithValidator;
 
 mod myapp {
