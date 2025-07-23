@@ -30,6 +30,7 @@ pub mod duration_rules;
 pub mod enum_rules;
 pub mod map_rules;
 pub mod numeric_rules;
+pub mod pool_loader;
 pub mod repeated_rules;
 pub mod string_rules;
 pub mod timestamp_rules;

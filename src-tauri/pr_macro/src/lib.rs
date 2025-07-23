@@ -1,13 +1,60 @@
+use std::collections::HashSet;
+
 use proc_macro::TokenStream;
+use crate::validator::pool_loader::DESCRIPTOR_POOL;
 use quote::quote;
-use syn::parse_macro_input;
-use syn::DeriveInput;
+use syn::{parse_macro_input, DeriveInput, punctuated::Punctuated, LitStr, Token};
+use proc_macro2::{Ident,Span};
 
 use crate::protogen::parse_proto_message;
 use crate::validator::core::extract_validators;
 
 mod protogen;
 mod validator;
+
+#[proc_macro]
+pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
+  let parsed_args = parse_macro_input!(input with Punctuated::<LitStr, Token![,]>::parse_terminated);
+  let package_filters: HashSet<String> = parsed_args.iter().map(|lit_str| lit_str.value()).collect();
+
+  let mut generated_constants = proc_macro2::TokenStream::new();
+
+  for enum_descriptor in DESCRIPTOR_POOL.all_enums() {
+    let full_name = enum_descriptor.full_name();
+    
+    let should_include = if package_filters.is_empty() {
+      true 
+    } else {
+      package_filters.iter().any(|filter| full_name.starts_with(filter))
+    };
+
+    if should_include {
+      println!("Full Name: {}", full_name);
+      let static_name_str = format!("__VALID_{}_VALUES", full_name.replace('.', "_").to_uppercase());
+      let static_ident = Ident::new(&static_name_str, Span::call_site());
+
+      let mut insert_statements = proc_macro2::TokenStream::new();
+      for value in enum_descriptor.values() {
+        let num = value.number();
+        insert_statements.extend(quote! {
+          s.insert(#num);
+        });
+      }
+
+      generated_constants.extend(quote! {
+        #[allow(non_upper_case_globals)] 
+        pub static #static_ident: std::sync::LazyLock<std::collections::HashSet<i32>> = std::sync::LazyLock::new(|| {
+          let mut s = std::collections::HashSet::new();
+          #insert_statements
+          s
+        });
+      });
+    }
+  }
+
+  generated_constants.into()
+}
+
 
 #[proc_macro_attribute]
 pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {

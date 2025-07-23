@@ -1,5 +1,6 @@
 #![allow(clippy::all, dead_code, unused)]
 use crate::validator::map_rules::get_map_rules;
+use crate::validator::pool_loader::DESCRIPTOR_POOL;
 use crate::validator::{map_rules, repeated_rules, string_rules};
 use bytes::Bytes;
 use proc_macro2::{Ident, TokenStream as TokenStream2};
@@ -64,10 +65,6 @@ pub fn extract_validators(
   let range = input_tokens.ident;
   let struct_name = range.to_string();
 
-  let descriptor_set_bytes =
-    Bytes::from(std::fs::read(std::env::var("PROTO_DESCRIPTOR_SET").unwrap()).unwrap());
-  let pool = DescriptorPool::decode(descriptor_set_bytes).unwrap();
-
   let message_name = if struct_name == "User" {
     "User".to_string()
   } else if struct_name == "Post" {
@@ -76,7 +73,7 @@ pub fn extract_validators(
     "".to_string()
   };
 
-  let message = pool.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
+  let message = DESCRIPTOR_POOL.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
 
   if !message.is_some() {
     return Ok(validation_data);
@@ -84,17 +81,17 @@ pub fn extract_validators(
 
   let user_desc = message.unwrap();
 
-  let field_ext_descriptor = pool
+  let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
     .ok_or("buf.validate.field extension not found in descriptor pool")
     .unwrap();
 
-  let message_ext_descriptor = pool
+  let message_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.message")
     .ok_or("buf.validate.message extension not found in descriptor pool")
     .unwrap();
 
-  let oneof_ext_descriptor = pool
+  let oneof_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.oneof")
     .ok_or("buf.validate.oneof extension not found in descriptor pool")
     .unwrap();
