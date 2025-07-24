@@ -109,6 +109,8 @@ impl ToTokens for ValidatorCallTemplate {
     let field_tag = self.field_data.tag;
     let field_proto_type = self.field_data.proto_type as i32;
     let field_is_optional = self.field_data.is_optional;
+    let field_is_repeated = self.field_data.is_repeated;
+    let field_is_map = self.field_data.is_map;
     let is_for_key = self.field_data.is_for_key;
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
@@ -121,6 +123,19 @@ impl ToTokens for ValidatorCallTemplate {
     let key_ident = Ident::new("key", Span::call_site());
     let val_ident = Ident::new("val", Span::call_site());
 
+    let subscript = if field_is_repeated { 
+      quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
+    } else if field_is_map {
+      if let Some(key_type_enum) = key_type {
+        let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
+        quote! { Some(#key_subscript_tokens) }
+      } else {
+       quote! {compile_error!("Map key type is missing during macro expansion.")} 
+      }
+    } else {
+      quote! { None }
+    };
+
     let field_data = self.field_data.clone();
 
     match &self.kind {
@@ -128,14 +143,14 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        if self.field_data.is_repeated {
+        if field_is_repeated {
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let field_context = proto_types::FieldContext {
                 field_data: #field_data,
                 parent_elements: current_item_parent_elements,
-                subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
+                subscript: #subscript,
               };
               match #validator(field_context, Some(#item_ident), #target) {
                 Ok(_) => {},
@@ -145,13 +160,7 @@ impl ToTokens for ValidatorCallTemplate {
               };
             }
           });
-        } else if self.field_data.is_map {
-          let key_subscript_gen_tokens = if let Some(key_type_enum) = key_type {
-            generate_key_subscript(key_type_enum, &key_ident)
-          } else {
-             quote! {compile_error!("Map key type is missing during macro expansion.")} 
-          };
-
+        } else if field_is_map {
           let data_ident = if is_for_key {
             &key_ident
           } else {
@@ -162,7 +171,7 @@ impl ToTokens for ValidatorCallTemplate {
             let field_context = proto_types::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
-              subscript: Some(#key_subscript_gen_tokens),
+              subscript: #subscript,
             };
 
             match #validator(field_context, Some(#data_ident), #target) {
@@ -206,11 +215,11 @@ impl ToTokens for ValidatorCallTemplate {
           }
         };
 
-        if self.field_data.is_repeated {
+        if field_is_repeated {
           tokens.extend(quote! {
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let mut nested_item_element = #current_nested_field_element;
-              nested_item_element.subscript = Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64));
+              nested_item_element.subscript = #subscript;
 
               #parent_messages_ident.push(nested_item_element); 
               #item_ident.nested_validate(#parent_messages_ident, #violations_ident); 
@@ -234,13 +243,6 @@ impl ToTokens for ValidatorCallTemplate {
         }
       },
       GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
-        let key_subscript_gen_tokens = if let Some(key_type_enum) = key_type {
-            generate_key_subscript(key_type_enum, &key_ident)
-        } else {
-           quote! {compile_error!("Map key type is missing during macro expansion.")} 
-        };
-
-
         tokens.extend(quote! {
           #(#map_level_rules)* 
 
@@ -251,7 +253,7 @@ impl ToTokens for ValidatorCallTemplate {
               field_type: Some(#field_proto_type),
               key_type: Some(#key_type as i32),
               value_type: Some(#value_type as i32),
-              subscript: Some(#key_subscript_gen_tokens),
+              subscript: #subscript,
             };
             #parent_messages_ident.push(map_entry_field_path_element);
 
