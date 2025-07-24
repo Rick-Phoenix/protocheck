@@ -12,7 +12,7 @@ pub fn max_len(
 ) -> Result<(), Violation> {
   let check = if value.is_some() {
     let unwrapped_val = value.unwrap();
-    unwrapped_val.chars().count() < max_len
+    unwrapped_val.chars().count() <= max_len
   } else {
     return Ok(());
   };

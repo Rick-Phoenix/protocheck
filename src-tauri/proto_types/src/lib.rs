@@ -130,22 +130,26 @@ impl ToTokens for ValidatorCallTemplate {
     match &self.kind {
       GeneratedCodeKind::FieldCelRule { expression, message, rule_id } => {
         let random_string = random_string::generate(5, ALPHA_LOWER);
+
         let static_field_program_ident = Ident::new(&format!("__CEL_FIELD_PROGRAM_{}_{}", self.field_data.rust_name, random_string), Span::call_site());
-        tokens.extend(quote! {
+
+        let cel_boilerplate = quote!{
           #[allow(non_upper_case_globals)]
           static #static_field_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
             cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
           });
 
           let program = &#static_field_program_ident;
+          let current_item_parent_elements = #parent_messages_ident.as_slice();
+        };
+
+        tokens.extend(quote! {
+          #cel_boilerplate
           let mut cel_context = cel_interpreter::Context::default();
           cel_context.add_variable("this", &self.#field_rust_ident).expect("Failed to add 'this' to the cel program");
 
-          let current_item_parent_elements = #parent_messages_ident.as_slice();
-          let field_data = #field_data;
-
           let field_context = proto_types::FieldContext {
-            field_data, 
+            field_data: #field_data, 
             parent_elements: current_item_parent_elements,
             subscript: None,
           };

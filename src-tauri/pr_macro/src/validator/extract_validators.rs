@@ -78,7 +78,7 @@ pub fn extract_validators(
       field_data.tag = 0;
       field_data.proto_type = ProtoType::Message;
       validation_data.extend(
-        get_cel_rules(field_data, message_cel_rules, true).expect("Failed to get the cel rules"),
+        get_cel_rules(&field_data, message_cel_rules, true).expect("Failed to get the cel rules"),
       );
     }
   }
@@ -185,8 +185,7 @@ pub fn extract_validators(
       if field_rules.cel.len() > 0 {
         let cel_rules = field_rules.cel.clone();
         validation_data.extend(
-          get_cel_rules(field_data.clone(), cel_rules, false)
-            .expect("Failed to get field cel rules"),
+          get_cel_rules(&field_data, cel_rules, false).expect("Failed to get field cel rules"),
         );
       }
 
@@ -209,7 +208,7 @@ pub fn extract_validators(
               ))
             }
           },
-          _ => get_field_rules(field_data, &field_rules).unwrap(),
+          _ => get_field_rules(&field_data, &field_rules).unwrap(),
         };
 
         validation_data.extend(rules);

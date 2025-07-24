@@ -17,27 +17,18 @@ message User {
     PASSIVE = 2;
   }
   oneof oneof_fields {
-    option (buf.validate.oneof).required = true;
     string field_1 = 20;
     string field_2 = 21;
   }
   message Post {
-    option (buf.validate.message).cel = {
-      id: "user.id.not_alfonso"
-      message: "somemessage"
-      expression: "this.name == 'alfonso'"
-    };
     repeated string tags = 10 [(buf.validate.field).repeated.items = {
       string: {max_len: 2}
     }];
-    string name = 1 [
-      (buf.validate.field).required = true,
-      (buf.validate.field).cel = {
-        id: "name.not_alfonso"
-        message: "field_validation"
-        expression: "this == 'alfonso'"
-      }
-    ];
+    repeated string name = 1 [(buf.validate.field).repeated.items.cel = {
+      id: "name.not_alfonso"
+      message: "name is not alfonso"
+      expression: "this == 'alfonso'"
+    }];
   }
 
   repeated string value = 10 [(buf.validate.field).repeated.items = {
@@ -47,8 +38,8 @@ message User {
   google.protobuf.Timestamp created_at = 3;
   map<string, Post> map_field = 5 [(buf.validate.field).map.keys = {
     string: {max_len: 1}
-  } /* (buf.validate.field).map.values = { */ /* string: {max_len: 1} */ /* } */];
-  test_enum enum_field = 11 [(buf.validate.field).enum = {defined_only: true}];
+  }];
+  test_enum enum_field = 11;
   repeated Post posts = 4;
 }
 

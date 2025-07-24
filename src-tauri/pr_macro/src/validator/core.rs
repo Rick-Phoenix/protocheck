@@ -31,7 +31,7 @@ use proto_types::google::protobuf::{Duration, Timestamp};
 use regex::Regex;
 
 pub fn get_field_rules(
-  field_data: FieldData,
+  field_data: &FieldData,
   field_rules: &FieldRules,
 ) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
   if let Some(rules_type) = field_rules.r#type.clone() {

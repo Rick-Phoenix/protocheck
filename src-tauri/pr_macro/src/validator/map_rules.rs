@@ -1,3 +1,4 @@
+use crate::validator::cel_rules::get_cel_rules;
 use crate::validator::core::convert_kind_to_proto_type;
 use crate::validator::core::get_field_rules;
 use proc_macro2::{Ident, Span, TokenStream};
@@ -80,8 +81,13 @@ pub fn get_map_rules(
       key_field_data.is_for_key = true;
       key_field_data.ignore = ignore;
 
-      let generated_key_templates = get_field_rules(key_field_data, &key_rules_descriptor)?;
+      let generated_key_templates = get_field_rules(&key_field_data, &key_rules_descriptor)?;
       key_rules_templates.extend(generated_key_templates);
+
+      if key_rules_descriptor.cel.len() > 0 {
+        let cel_rules = get_cel_rules(&key_field_data, key_rules_descriptor.cel, false)?;
+        key_rules_templates.extend(cel_rules);
+      }
     }
   }
 
@@ -102,8 +108,13 @@ pub fn get_map_rules(
 
       value_field_data.ignore = ignore;
 
-      let generated_value_templates = get_field_rules(value_field_data, &value_rules_descriptor)?;
+      let generated_value_templates = get_field_rules(&value_field_data, &value_rules_descriptor)?;
       value_rules_templates.extend(generated_value_templates);
+
+      if value_rules_descriptor.cel.len() > 0 {
+        let cel_rules = get_cel_rules(&value_field_data, value_rules_descriptor.cel, false)?;
+        value_rules_templates.extend(cel_rules);
+      }
     }
   }
 

@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::myapp::v1::user::Post;
 use crate::myapp::v1::User;
-use cel_test::__protobuf_validators_consts;
 use macro_impl::validators::WithValidator;
 
 mod myapp {
@@ -14,17 +13,26 @@ mod myapp {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut map_field: HashMap<String, Post> = HashMap::new();
   map_field.insert(
-    "aa".to_string(),
+    "a".to_string(),
     Post {
-      tags: vec!["mee".to_string()],
-      name: "M".to_string(),
+      tags: vec!["me".to_string()],
+      name: vec!["alfonso".to_string()],
     },
   );
   let user = User {
     created_at: None,
     id: 1,
     value: vec![],
-    posts: vec![],
+    posts: vec![
+      Post {
+        tags: vec!["me".to_string()],
+        name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
+      },
+      Post {
+        tags: vec!["me".to_string()],
+        name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
+      },
+    ],
     map_field,
     enum_field: 31,
     oneof_fields: None,

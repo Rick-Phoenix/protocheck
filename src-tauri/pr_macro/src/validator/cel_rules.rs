@@ -3,7 +3,7 @@ use proc_macro2::Span;
 use proto_types::{buf::validate::Rule, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 
 pub fn get_cel_rules(
-  field_data: FieldData,
+  field_data: &FieldData,
   rules: Vec<Rule>,
   is_for_message: bool,
 ) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {

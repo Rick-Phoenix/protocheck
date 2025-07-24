@@ -8,7 +8,7 @@ use quote::{quote, ToTokens};
 use regex::Regex;
 
 pub fn get_string_rules(
-  field_data: FieldData,
+  field_data: &FieldData,
   string_rules: &proto_types::buf::validate::StringRules,
 ) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -19,7 +19,7 @@ pub fn get_string_rules(
     templates.push(ValidatorCallTemplate {
       validator_path: Some(quote! { macro_impl::validators::strings::max_len }),
       target_value_tokens: Some(max_len_value.into_token_stream()),
-      field_data,
+      field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
     });
   }

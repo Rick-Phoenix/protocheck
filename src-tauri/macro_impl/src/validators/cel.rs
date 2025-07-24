@@ -20,25 +20,19 @@ pub fn validate_cel(
         if bool_value {
           Ok(())
         } else {
-          let (field_number, field_type, field_name) = if is_for_message {
-            (None, None, None)
-          } else {
-            (
-              Some(field_context.field_data.tag as i32),
-              Some(field_context.field_data.proto_type as i32),
-              Some(field_context.field_data.proto_name),
-            )
-          };
           let mut elements = field_context.parent_elements.to_vec();
-          let current_elem = FieldPathElement {
-            field_type,
-            field_name,
-            field_number,
-            key_type: field_context.field_data.key_type.map(|t| t as i32),
-            value_type: field_context.field_data.value_type.map(|t| t as i32),
-            subscript: field_context.subscript,
-          };
-          elements.push(current_elem);
+          if !is_for_message {
+            let current_elem = FieldPathElement {
+              field_type: Some(field_context.field_data.proto_type as i32),
+              field_name: Some(field_context.field_data.proto_name),
+              field_number: Some(field_context.field_data.tag as i32),
+              key_type: field_context.field_data.key_type.map(|t| t as i32),
+              value_type: field_context.field_data.value_type.map(|t| t as i32),
+              subscript: field_context.subscript,
+            };
+            elements.push(current_elem);
+          }
+
           Err(Violation {
             message: Some(message),
             rule_id: Some(rule_id),
