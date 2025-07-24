@@ -38,7 +38,7 @@ pub fn validate_cel(
             rule_id: Some(rule_id),
             rule: None,
             field: Some(FieldPath { elements }),
-            for_key: Some(field_context.field_data.is_for_key),
+            for_key: Some(field_context.field_data.is_map_key),
           })
         }
       } else {

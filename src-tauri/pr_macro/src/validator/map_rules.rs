@@ -51,9 +51,11 @@ pub fn get_map_rules(
     tag: map_field_desc.number(),
     is_required: false,
     is_map: true,
+    is_map_key: false,
+    is_map_value: false,
     is_repeated: false,
+    is_repeated_item: false,
     is_optional: false,
-    is_for_key: false,
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
     enum_full_name: None,
@@ -78,7 +80,8 @@ pub fn get_map_rules(
 
       let mut key_field_data = map_field_data.clone();
       key_field_data.is_required = is_required;
-      key_field_data.is_for_key = true;
+      key_field_data.is_map = false;
+      key_field_data.is_map_key = true;
       key_field_data.ignore = ignore;
 
       let generated_key_templates = get_field_rules(&key_field_data, &key_rules_descriptor)?;
@@ -105,6 +108,8 @@ pub fn get_map_rules(
 
       let mut value_field_data = map_field_data.clone();
       value_field_data.is_required = is_required;
+      value_field_data.is_map = false;
+      value_field_data.is_map_value = true;
 
       value_field_data.ignore = ignore;
 

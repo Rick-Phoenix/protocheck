@@ -42,7 +42,7 @@ pub fn max_len(
         max_len,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.is_for_key),
+      for_key: Some(field_context.field_data.is_map_key),
       field: Some(FieldPath { elements: elements }),
       rule: Some(FieldPath {
         elements: vec![

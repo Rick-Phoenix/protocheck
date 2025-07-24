@@ -12,4 +12,5 @@ pub trait WithValidator {
 pub mod cel;
 pub mod enums;
 pub mod oneofs;
+pub mod repeated;
 pub mod strings;

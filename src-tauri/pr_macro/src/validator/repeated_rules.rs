@@ -22,6 +22,8 @@ pub fn get_repeated_rules(
     if !matches!(ignore, Ignore::Always) {
       let mut items_field_data = field_data.clone();
       items_field_data.ignore = ignore;
+      items_field_data.is_repeated = false;
+      items_field_data.is_repeated_item = true;
 
       let rules_for_single_item = get_field_rules(&items_field_data, &items_rules_descriptor)?;
 
@@ -32,6 +34,10 @@ pub fn get_repeated_rules(
         templates.extend(cel_rules);
       }
     }
+  }
+
+  if repeated_rules.min_items() > 0 {
+    let rule_val = repeated_rules.min_items();
   }
 
   Ok(templates)

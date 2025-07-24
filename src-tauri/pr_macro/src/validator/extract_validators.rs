@@ -137,16 +137,18 @@ pub fn extract_validators(
       let mut field_data = FieldData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
-        proto_type: convert_kind_to_proto_type(field_desc.kind()),
         tag: field_tag,
+        proto_type: convert_kind_to_proto_type(field_desc.kind()),
         is_required,
         is_repeated,
+        is_repeated_item: false,
         is_map,
-        is_for_key: false,
+        is_map_key: false,
+        is_map_value: false,
         key_type: None,
         value_type: None,
-        ignore: ignore_val,
         enum_full_name: None,
+        ignore: ignore_val,
         is_optional,
       };
 
@@ -156,6 +158,10 @@ pub fn extract_validators(
             // println!("{}", field_desc.name());
             continue;
           }
+
+          field_data.is_repeated = false;
+          field_data.is_repeated_item = is_repeated;
+
           let template = ValidatorCallTemplate {
             validator_path: None,
             target_value_tokens: None,

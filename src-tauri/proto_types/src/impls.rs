@@ -110,10 +110,12 @@ impl ToTokens for FieldData {
     let proto_name = &self.proto_name;
     let tag = self.tag;
     let is_repeated = self.is_repeated;
+    let is_repeated_item = self.is_repeated_item;
     let is_map = self.is_map;
+    let is_map_key = self.is_map_key;
+    let is_map_value = self.is_map_value;
     let is_required = self.is_required;
     let is_optional = self.is_optional;
-    let is_for_key = self.is_for_key;
     let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
@@ -128,10 +130,12 @@ impl ToTokens for FieldData {
         proto_type: #proto_type,
         tag: #tag,
         is_repeated: #is_repeated,
+        is_repeated_item: #is_repeated_item,
         is_map: #is_map,
+        is_map_key: #is_map_key,
+        is_map_value: #is_map_value,
         is_required: #is_required,
         is_optional: #is_optional,
-        is_for_key: #is_for_key,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
         enum_full_name: #enum_tokens,

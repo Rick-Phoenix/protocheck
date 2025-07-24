@@ -36,10 +36,12 @@ pub struct FieldData {
   pub proto_name: String,
   pub tag: u32,
   pub is_repeated: bool,
+  pub is_repeated_item: bool,
   pub is_map: bool,
+  pub is_map_key: bool,
+  pub is_map_value: bool,
   pub is_required: bool,
   pub is_optional: bool,
-  pub is_for_key: bool,
   pub key_type: Option<ProtoType>,   
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
@@ -109,9 +111,9 @@ impl ToTokens for ValidatorCallTemplate {
     let field_tag = self.field_data.tag;
     let field_proto_type = self.field_data.proto_type as i32;
     let field_is_optional = self.field_data.is_optional;
-    let field_is_repeated = self.field_data.is_repeated;
-    let field_is_map = self.field_data.is_map;
-    let is_for_key = self.field_data.is_for_key;
+    let field_is_repeated_item = self.field_data.is_repeated_item;
+    let field_is_map_key = self.field_data.is_map_key;
+    let field_is_in_map = field_is_map_key || self.field_data.is_map_value;
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
 
@@ -123,9 +125,9 @@ impl ToTokens for ValidatorCallTemplate {
     let key_ident = Ident::new("key", Span::call_site());
     let val_ident = Ident::new("val", Span::call_site());
 
-    let subscript = if field_is_repeated { 
+    let subscript = if field_is_repeated_item { 
       quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
-    } else if field_is_map {
+    } else if field_is_in_map {
       if let Some(key_type_enum) = key_type {
         let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
         quote! { Some(#key_subscript_tokens) }
@@ -143,7 +145,7 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        if field_is_repeated {
+        if field_is_repeated_item {
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
@@ -160,8 +162,8 @@ impl ToTokens for ValidatorCallTemplate {
               };
             }
           });
-        } else if field_is_map {
-          let data_ident = if is_for_key {
+        } else if field_is_in_map {
+          let data_ident = if field_is_map_key {
             &key_ident
           } else {
             &val_ident
@@ -215,7 +217,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         };
 
-        if field_is_repeated {
+        if field_is_repeated_item {
           tokens.extend(quote! {
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
               let mut nested_item_element = #current_nested_field_element;
@@ -226,7 +228,7 @@ impl ToTokens for ValidatorCallTemplate {
               #parent_messages_ident.pop(); 
             }
           });
-        } else if self.field_data.is_optional {
+        } else if field_is_optional {
           tokens.extend(quote! {
             if let Some(nested_msg_instance) = &self.#field_rust_ident {
               #parent_messages_ident.push(#current_nested_field_element); 
@@ -242,7 +244,13 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       },
-      GeneratedCodeKind::MapValidationLoop {map_level_rules, key_rules, value_rules, value_is_message } => {
+      GeneratedCodeKind::MapValidationLoop { map_level_rules, key_rules, value_rules, value_is_message } => {
+        let validator_tokens = if *value_is_message {
+          quote! { #val_ident.nested_validate(#parent_messages_ident, #violations_ident); }
+        } else {
+          quote! { #(#value_rules)* }
+        };
+
         tokens.extend(quote! {
           #(#map_level_rules)* 
 
@@ -259,11 +267,7 @@ impl ToTokens for ValidatorCallTemplate {
 
             #(#key_rules)*
 
-            if #value_is_message {
-              #val_ident.nested_validate(#parent_messages_ident, #violations_ident);
-            } else {
-              #(#value_rules)*
-            }
+            #validator_tokens
 
             #parent_messages_ident.pop();
           }
