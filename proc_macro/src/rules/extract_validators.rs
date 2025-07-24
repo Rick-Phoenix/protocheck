@@ -1,31 +1,30 @@
 use std::collections::HashSet;
 
 use proc_macro::Span;
-use proc_macro2::{Ident, TokenStream as TokenStream2};
-use prost_reflect::{
-  prost::Message, DescriptorPool, ExtensionDescriptor, FieldDescriptor, Kind, MessageDescriptor,
-  Value,
-};
-use proto_types::{
-  buf::validate::{
-    field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-    MapRules, MessageRules, OneofRules, PredefinedRules, Rule, Violation,
-  },
-  google::protobuf::field_descriptor_proto::Type as ProtoType,
-  FieldData, GeneratedCodeKind, ValidatorCallTemplate,
-};
+use prost_reflect::{Kind, Value as ProstValue};
 use quote::{quote, ToTokens};
 use syn::{token::Continue, DeriveInput};
 
-use crate::validator::{
-  cel_rules::get_cel_rules,
-  core::{convert_kind_to_proto_type, get_field_rules},
-  enum_rules::{self, get_enum_rules},
-  map_rules::{self, get_map_rules},
-  pool_loader::DESCRIPTOR_POOL,
-  repeated_rules,
-  repeated_rules::get_repeated_rules,
-  string_rules,
+use super::{
+  protovalidate::{
+    field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
+    Rule, Violation,
+  },
+  FieldData, GeneratedCodeKind, MapRules, MessageRules, OneofRules, PredefinedRules, ProtoType,
+  ValidatorCallTemplate,
+};
+use crate::{
+  rules::{
+    cel_rules::get_cel_rules,
+    core::{convert_kind_to_proto_type, get_field_rules},
+    enum_rules::{self, get_enum_rules},
+    map_rules::{self, get_map_rules},
+    pool_loader::DESCRIPTOR_POOL,
+    repeated_rules,
+    repeated_rules::get_repeated_rules,
+    string_rules,
+  },
+  TokenStream as TokenStream2,
 };
 
 pub fn extract_validators(
@@ -67,7 +66,7 @@ pub fn extract_validators(
 
   let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
 
-  if let Value::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
+  if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
 
     if message_rules.cel.len() > 0 {
@@ -85,7 +84,7 @@ pub fn extract_validators(
 
   for oneof in message_desc.oneofs() {
     // println!("{:?}", oneof.name());
-    if let Value::Message(oneof_rules_msg) = oneof
+    if let ProstValue::Message(oneof_rules_msg) = oneof
       .options()
       .get_extension(&oneof_ext_descriptor)
       .as_ref()
@@ -125,7 +124,7 @@ pub fn extract_validators(
 
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
-    if let Value::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
+    if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
       let ignore_val = field_rules.ignore();
 

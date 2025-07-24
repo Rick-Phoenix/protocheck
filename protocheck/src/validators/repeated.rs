@@ -1,11 +1,9 @@
-use std::collections::HashSet;
-use std::hash::Hash;
+use std::{collections::HashSet, hash::Hash};
 
-use proto_types::FieldContext;
-
-use proto_types::{
-  buf::validate::{FieldPath, FieldPathElement, Violation},
-  google::protobuf::field_descriptor_proto::Type as ProtoTypes,
+use crate::{
+  field_data::FieldContext,
+  protovalidate::{FieldPath, FieldPathElement, Violation},
+  ProtoTypes,
 };
 
 pub fn min_items<T>(

@@ -1,34 +1,10 @@
-#![allow(clippy::all, dead_code, unused)]
-use crate::validator::map_rules::get_map_rules;
-use crate::validator::pool_loader::DESCRIPTOR_POOL;
-use crate::validator::{enum_rules, map_rules, repeated_rules, string_rules};
-use bytes::Bytes;
-use proc_macro2::{Ident, TokenStream as TokenStream2};
-use prost_reflect::prost_types::Type;
-use prost_reflect::FieldDescriptor;
-use prost_reflect::{
-  prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
+use super::{
+  field_rules, FieldData, FieldRules, GeneratedCodeKind, Type as ProtoType, ValidatorCallTemplate,
 };
-use proto_types::buf::validate::MapRules;
-use proto_types::buf::validate::{
-  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-  MessageRules, OneofRules, PredefinedRules, Rule, Violation,
+use crate::{
+  pool_loader::DESCRIPTOR_POOL,
+  rules::{enum_rules, map_rules, map_rules::get_map_rules, repeated_rules, string_rules},
 };
-use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
-use proto_types::GeneratedCodeKind;
-use proto_types::{FieldData, ValidatorCallTemplate};
-use quote::{quote, ToTokens};
-
-use syn::token::Continue;
-use syn::DeriveInput;
-
-use proc_macro::TokenStream;
-
-use std::collections::{HashMap, HashSet};
-use std::sync::LazyLock;
-
-use proto_types::google::protobuf::{Duration, Timestamp};
-use regex::Regex;
 
 pub fn get_field_rules(
   field_data: &FieldData,

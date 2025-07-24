@@ -1,6 +1,37 @@
-use crate::google::protobuf::field_descriptor_proto::Type as ProtoType;
-use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+
+use crate::{
+  field_data::FieldData,
+  protovalidate::{field_path_element::Subscript, Ignore},
+  ProtoType, TokenStream2,
+};
+
+impl ToTokens for FieldPathElement {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    let field_number = &self.field_number;
+    let field_name = &self.field_name;
+    let field_type = &self.field_type;
+    let key_type = &self.key_type;
+    let value_type = &self.value_type;
+    let subscript = &self.subscript;
+
+    let field_name_expr = match field_name {
+      Some(name_str) => quote! { Some(#name_str.clone()) },
+      None => quote! { None },
+    };
+
+    tokens.extend(quote! {
+      proto_types::buf::validate::FieldPathElement {
+        field_number: #field_number,
+        field_name: #field_name_expr,
+        field_type: #field_type,
+        key_type: #key_type,
+        value_type: #value_type,
+        subscript: #subscript,
+      }
+    });
+  }
+}
 
 impl ToTokens for ProtoType {
   fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -28,8 +59,6 @@ impl ToTokens for ProtoType {
     }
   }
 }
-
-use crate::buf::validate::Ignore;
 
 impl ToTokens for Ignore {
   fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -68,8 +97,6 @@ pub fn option_string_to_tokens(option: &Option<String>) -> TokenStream {
   }
 }
 
-use crate::buf::validate::field_path_element::Subscript;
-
 impl ToTokens for Subscript {
   fn to_tokens(&self, tokens: &mut TokenStream) {
     match self {
@@ -101,8 +128,6 @@ impl ToTokens for Subscript {
     }
   }
 }
-
-use crate::FieldData;
 
 impl ToTokens for FieldData {
   fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {

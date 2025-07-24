@@ -1,37 +1,44 @@
 use std::collections::HashSet;
 
+use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-use crate::validator::pool_loader::DESCRIPTOR_POOL;
+pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, punctuated::Punctuated, LitStr, Token};
-use proc_macro2::{Ident,Span};
+use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
 
-use crate::protogen::parse_proto_message;
-use crate::validator::extract_validators::extract_validators;
+use crate::{protogen::parse_proto_message, rules::extract_validators::extract_validators};
 
+mod pool_loader;
 mod protogen;
-mod validator;
+mod rules;
 
 #[proc_macro]
 pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
-  let parsed_args = parse_macro_input!(input with Punctuated::<LitStr, Token![,]>::parse_terminated);
-  let package_filters: HashSet<String> = parsed_args.iter().map(|lit_str| lit_str.value()).collect();
+  let parsed_args =
+    parse_macro_input!(input with Punctuated::<LitStr, Token![,]>::parse_terminated);
+  let package_filters: HashSet<String> =
+    parsed_args.iter().map(|lit_str| lit_str.value()).collect();
 
   let mut generated_constants = proc_macro2::TokenStream::new();
 
   for enum_descriptor in DESCRIPTOR_POOL.all_enums() {
     let full_name = enum_descriptor.full_name();
-    
+
     let should_include = if package_filters.is_empty() {
-      true 
+      true
     } else {
-      package_filters.iter().any(|filter| full_name.starts_with(filter))
+      package_filters
+        .iter()
+        .any(|filter| full_name.starts_with(filter))
     };
 
     if should_include {
       // println!("Full Name: {}", full_name);
-      let static_name_str = format!("__VALID_{}_VALUES", full_name.replace('.', "_").to_uppercase());
-      let static_ident = Ident::new(&static_name_str, Span::call_site());
+      let static_name_str = format!(
+        "__VALID_{}_VALUES",
+        full_name.replace('.', "_").to_uppercase()
+      );
+      let static_ident = Ident2::new(&static_name_str, Span2::call_site());
 
       let mut insert_statements = proc_macro2::TokenStream::new();
       for value in enum_descriptor.values() {
@@ -42,7 +49,7 @@ pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
       }
 
       generated_constants.extend(quote! {
-        #[allow(non_upper_case_globals)] 
+        #[allow(non_upper_case_globals)]
         pub static #static_ident: std::sync::LazyLock<std::collections::HashSet<i32>> = std::sync::LazyLock::new(|| {
           let mut s = std::collections::HashSet::new();
           #insert_statements
@@ -66,7 +73,6 @@ pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
 
   output.into()
 }
-
 
 #[proc_macro_attribute]
 pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {

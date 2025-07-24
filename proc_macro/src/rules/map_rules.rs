@@ -1,15 +1,16 @@
-use crate::validator::cel_rules::get_cel_rules;
-use crate::validator::core::convert_kind_to_proto_type;
-use crate::validator::core::get_field_rules;
-use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::{FieldDescriptor, Kind};
-use proto_types::buf::validate::Ignore;
-use proto_types::buf::validate::MapRules;
-use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
-use proto_types::FieldData;
-use proto_types::GeneratedCodeKind;
-use proto_types::ValidatorCallTemplate;
 use quote::{quote, ToTokens};
+
+use super::{
+  protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ProtoType, ValidatorCallTemplate,
+};
+use crate::{
+  rules::{
+    cel_rules::get_cel_rules,
+    core::{convert_kind_to_proto_type, get_field_rules},
+  },
+  Span2,
+};
 
 pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
@@ -90,7 +91,7 @@ pub fn get_map_rules(
   if min_pairs.is_some() && max_pairs.is_some() {
     if min_pairs.unwrap() > max_pairs.unwrap() {
       return Err(Box::new(syn::Error::new(
-        Span::call_site(),
+        Span2::call_site(),
         "map.min_pairs cannot be larger than map.max_pairs",
       )));
     }

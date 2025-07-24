@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     .message_attribute(".myapp.v1", "#[macro_impl::macros::protobuf_validate]")
     .extern_path(".google.protobuf", "::proto_types::google::protobuf")
-    .extern_path(".buf.validate", "::proto_types::buf::validate")
+    .extern_path(".buf.validate", "::proto_types::protovalidate")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 

@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
-pub mod validators;
-
 pub mod macros {
-  pub use pr_macro::*;
+  pub use proc_macro::*;
 
   #[macro_export]
   macro_rules! reserved_numbers {

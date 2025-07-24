@@ -1,15 +1,15 @@
 [package]
-name = "macro_impl"
+name = "protoschema"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
 
 [dependencies]
+proc_macro = { path = "../proc_macro/" }
+proto_types = { path = "../proto_types/" }
 prost = { workspace = true }
 serde = { workspace = true }
-pr_macro = { path = "../pr_macro/" }
-proto_types = { path = "../proto_types/" }
 cel-interpreter = { workspace = true }
 
 [build-dependencies]

@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, Span};
-use proto_types::{buf::validate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use quote::quote;
+
+use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
+use crate::{Ident2, Span2};
 
 pub fn get_enum_rules(
   field_data: FieldData,
@@ -20,7 +21,7 @@ pub fn get_enum_rules(
       "__VALID_{}_VALUES",
       enum_full_name.replace('.', "_").to_uppercase()
     );
-    let enum_static_ident = Ident::new(&static_name_str, Span::call_site());
+    let enum_static_ident = Ident2::new(&static_name_str, Span2::call_site());
 
     templates.push(ValidatorCallTemplate {
       validator_path: Some(quote! { macro_impl::validators::enums::defined_only }),
@@ -40,7 +41,7 @@ pub fn get_enum_rules(
       }
       if !invalid_numbers.is_empty() {
         return Err(Box::new(syn::Error::new(
-          Span::call_site(),
+          Span2::call_site(),
           format!(
             "enum_rules.in contains values that are not in the {} enum: {:?}",
             enum_full_name, invalid_numbers

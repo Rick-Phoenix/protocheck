@@ -1,17 +1,13 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::buf::validate::Ignore;
-use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
-use proto_types::FieldData;
-use proto_types::GeneratedCodeKind;
-use proto_types::ValidatorCallTemplate;
-use quote::quote;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 
-use super::CelRule;
-use super::CelRuleValue;
-use crate::validator::cel_rules::get_cel_rules;
-use crate::validator::core::get_field_rules;
-use proto_types::buf::validate::RepeatedRules;
+use super::{
+  protovalidate::{field_rules::RepeatedRules, Ignore},
+  FieldData, GeneratedCodeKind, ProtoType, ValidatorCallTemplate,
+};
+use crate::{
+  rules::{cel_rules::get_cel_rules, core::get_field_rules},
+  Span2,
+};
 
 pub fn get_repeated_rules(
   field_data: &FieldData,
@@ -48,7 +44,7 @@ pub fn get_repeated_rules(
   if min_items.is_some() && max_items.is_some() {
     if min_items.unwrap() > max_items.unwrap() {
       return Err(Box::new(syn::Error::new(
-        Span::call_site(),
+        Span2::call_site(),
         "repeated.min_items cannot be larger than repeated.max_items",
       )));
     }
@@ -61,7 +57,7 @@ pub fn get_repeated_rules(
   if repeated_rules.unique() {
     if matches!(field_data.proto_type, ProtoType::Message) {
       return Err(Box::new(syn::Error::new(
-        Span::call_site(),
+        Span2::call_site(),
         "repeated.unique only works for scalar fields",
       )));
     }

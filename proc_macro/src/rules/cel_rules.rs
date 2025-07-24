@@ -1,6 +1,7 @@
 use cel_interpreter::Program;
-use proc_macro2::Span;
-use proto_types::{buf::validate::Rule, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
+
+use super::{FieldData, GeneratedCodeKind, Rule, ValidatorCallTemplate};
+use crate::Span2;
 
 pub fn get_cel_rules(
   field_data: &FieldData,
@@ -41,7 +42,7 @@ pub fn get_cel_rules(
       }
       Err(e) => {
         return Err(syn::Error::new(
-          Span::call_site(),
+          Span2::call_site(),
           format!("Cel program failed to compile: {}", e.to_string()),
         ))
       }

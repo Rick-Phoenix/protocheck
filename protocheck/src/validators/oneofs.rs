@@ -1,8 +1,7 @@
-use proto_types::FieldContext;
-
-use proto_types::{
-  buf::validate::{FieldPath, FieldPathElement, Violation},
-  google::protobuf::field_descriptor_proto::Type as ProtoTypes,
+use crate::{
+  field_data::FieldContext,
+  protovalidate::{FieldPath, FieldPathElement, Violation},
+  ProtoTypes,
 };
 
 pub fn required(field_context: FieldContext) -> Violation {

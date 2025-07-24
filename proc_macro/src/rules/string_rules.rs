@@ -1,15 +1,11 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::{
-  buf::{
-    validate,
-    validate::{field_path_element::Subscript, StringRules},
-  },
-  FieldData, GeneratedCodeKind, ValidatorCallTemplate,
-};
 use quote::{quote, ToTokens};
 use regex::Regex;
 
-use super::{CelRule, CelRuleValue};
+use super::{
+  protovalidate::StringRules, CelRule, CelRuleValue, FieldData, GeneratedCodeKind, Subscript,
+  ValidatorCallTemplate,
+};
+use crate::Span2;
 
 pub fn get_string_rules(
   field_data: &FieldData,
@@ -59,7 +55,7 @@ pub fn get_string_rules(
 
   if len.is_some() && (min_len.is_some() || max_len.is_some()) {
     return Err(Box::new(syn::Error::new(
-      Span::call_site(),
+      Span2::call_site(),
       "string.len cannot be used with string.max_len or string.min_len",
     )));
   }
@@ -67,7 +63,7 @@ pub fn get_string_rules(
   if min_len.is_some() && max_len.is_some() {
     if min_len.unwrap() > max_len.unwrap() {
       return Err(Box::new(syn::Error::new(
-        Span::call_site(),
+        Span2::call_site(),
         "string.min_len cannot be larger than string.max_len",
       )));
     }

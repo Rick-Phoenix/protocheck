@@ -1,4 +1,4 @@
-use proto_types::buf::validate::{FieldPathElement, Violation, Violations};
+use crate::protovalidate::{FieldPathElement, Violation, Violations};
 
 pub trait WithValidator {
   fn validate(&self) -> Result<(), Violations>;

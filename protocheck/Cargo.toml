@@ -1,17 +1,15 @@
 [package]
-name = "cel-test"
+name = "protocheck"
 version = "0.1.0"
 edition = "2024"
-
 
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true }
 cel-interpreter = { workspace = true }
-bytes = { workspace = true }
+syn = { workspace = true }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/" }
+random-string = { workspace = true }
 proto_types = { path = "../proto_types/" }
-
-[build-dependencies]
-prost-build = { workspace = true }

@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use proto_types::FieldContext;
-
-use proto_types::{
-  buf::validate::{FieldPath, FieldPathElement, Violation},
-  google::protobuf::field_descriptor_proto::Type as ProtoType,
+use crate::{
+  field_data::FieldContext,
+  protovalidate::{FieldPath, FieldPathElement, Violation},
+  ProtoType,
 };
 
 pub fn min_pairs<K, V>(

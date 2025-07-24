@@ -1,11 +1,9 @@
-use proto_types::{FieldContext, FieldData};
-
-use proto_types::{
-  buf::validate::{FieldPath, FieldPathElement, Violation},
-  google::protobuf::field_descriptor_proto::Type as ProtoTypes,
+use crate::{
+  field_data::{FieldContext, FieldData},
+  protovalidate::{FieldPath, FieldPathElement, Violation},
+  validators::common::get_base_violations_path,
+  ProtoType,
 };
-
-use crate::validators::common::get_base_violations_path;
 
 pub fn defined_only(
   field_context: FieldContext,

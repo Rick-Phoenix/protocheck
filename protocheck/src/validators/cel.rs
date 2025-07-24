@@ -1,11 +1,11 @@
 use cel_interpreter::{Context, Program, Value};
-use proto_types::{
-  buf::validate::{FieldPath, FieldPathElement, Violation},
-  google::protobuf::field_descriptor_proto,
-  FieldContext, FieldData,
-};
 
-use crate::validators::common::get_base_violations_path;
+use crate::{
+  field_data::{FieldContext, FieldData},
+  protobuf::field_descriptor_proto,
+  protovalidate::{FieldPath, FieldPathElement, Violation},
+  validators::common::get_base_violations_path,
+};
 
 pub fn validate_cel(
   field_context: FieldContext,

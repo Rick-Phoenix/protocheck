@@ -6,12 +6,6 @@ edition = "2024"
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true }
-cel-interpreter = { workspace = true }
-syn = { workspace = true }
-quote = { workspace = true }
-proc-macro2 = { workspace = true }
-regex = { workspace = true }
-random-string = { workspace = true }
 
 [build-dependencies]
 prost-build = { workspace = true }
