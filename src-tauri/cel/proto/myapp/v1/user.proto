@@ -27,6 +27,7 @@ message User {
       }
       unique: true
     }];
+    repeated float float_field = 23 [(buf.validate.field).repeated = {unique: true}];
     repeated string name = 1;
   }
 

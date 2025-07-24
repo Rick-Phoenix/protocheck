@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::buf::validate::Ignore;
-use proto_types::google::protobuf::field_descriptor_proto;
+use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
 use proto_types::FieldData;
 use proto_types::GeneratedCodeKind;
 use proto_types::ValidatorCallTemplate;
@@ -51,9 +51,11 @@ pub fn get_repeated_rules(
   }
 
   let mut unique_values = false;
+  let float_values = matches!(field_data.proto_type, ProtoType::Float)
+    || matches!(field_data.proto_type, ProtoType::Double);
 
   if repeated_rules.unique() {
-    if matches!(field_data.proto_type, field_descriptor_proto::Type::Message) {
+    if matches!(field_data.proto_type, ProtoType::Message) {
       return Err(Box::new(syn::Error::new(
         Span::call_site(),
         "repeated.unique only works for scalar fields",
@@ -71,6 +73,7 @@ pub fn get_repeated_rules(
       vec_level_rules: templates,
       items_rules: items_templates,
       unique_values,
+      float_values,
     },
   })
 }

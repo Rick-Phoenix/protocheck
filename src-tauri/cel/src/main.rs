@@ -15,6 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   map_field.insert(
     "a".to_string(),
     Post {
+      float_field: vec![1.5, 1.5],
       tags: vec!["me".to_string(), "me".to_string()],
       name: vec!["alfonso".to_string()],
     },
@@ -25,10 +26,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     value: vec![],
     posts: vec![
       Post {
+        float_field: vec![],
         tags: vec!["me".to_string()],
         name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
       },
       Post {
+        float_field: vec![],
         tags: vec!["me".to_string()],
         name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
       },

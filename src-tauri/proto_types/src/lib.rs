@@ -90,6 +90,7 @@ pub enum GeneratedCodeKind {
     vec_level_rules: Vec<ValidatorCallTemplate>,
     items_rules: Vec<ValidatorCallTemplate>,
     unique_values: bool,
+    float_values: bool,
   },
   OneofRule, 
   CelRule {
@@ -247,10 +248,15 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       },
-      GeneratedCodeKind::RepeatedValidationLoop { vec_level_rules, items_rules, unique_values } => {
+      GeneratedCodeKind::RepeatedValidationLoop { vec_level_rules, items_rules, unique_values, float_values } => {
         let (values_hashset, unique_values_check) = if *unique_values {
           let hashset_ident = Ident::new("processed_values", Span::call_site());
           let not_unique = Ident::new("not_unique", Span::call_site());
+          let func_name = if *float_values {
+            quote! { unique_floats }
+          } else {
+            quote! { unique }
+          };
           (
             Some(quote! { 
               let mut processed_values = std::collections::HashSet::new(); 
@@ -263,7 +269,7 @@ impl ToTokens for ValidatorCallTemplate {
                   parent_elements: #parent_messages_ident,
                   subscript: #subscript,
                 };
-                match macro_impl::validators::repeated::unique(field_context, #item_ident, &mut #hashset_ident) {
+                match macro_impl::validators::repeated::#func_name(field_context, #item_ident, &mut #hashset_ident) {
                   Ok(_) => {},
                   Err(v) => {
                     #not_unique = true;
