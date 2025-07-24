@@ -10,6 +10,7 @@ pub fn validate_cel(
   cel_context: Context,
   message: String,
   rule_id: String,
+  is_for_message: bool,
 ) -> Result<(), Violation> {
   let result = program.execute(&cel_context);
 
@@ -19,18 +20,22 @@ pub fn validate_cel(
         if bool_value {
           Ok(())
         } else {
-          let field_number = if field_context.field_data.tag == 0 {
-            None
+          let (field_number, field_type, field_name) = if is_for_message {
+            (None, None, None)
           } else {
-            Some(field_context.field_data.tag as i32)
+            (
+              Some(field_context.field_data.tag as i32),
+              Some(field_context.field_data.proto_type as i32),
+              Some(field_context.field_data.proto_name),
+            )
           };
           let mut elements = field_context.parent_elements.to_vec();
           let current_elem = FieldPathElement {
-            field_type: Some(field_context.field_data.proto_type as i32),
-            field_name: Some(field_context.field_data.proto_name.clone()),
+            field_type,
+            field_name,
+            field_number,
             key_type: field_context.field_data.key_type.map(|t| t as i32),
             value_type: field_context.field_data.value_type.map(|t| t as i32),
-            field_number,
             subscript: field_context.subscript,
           };
           elements.push(current_elem);
