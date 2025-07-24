@@ -85,15 +85,11 @@ pub enum GeneratedCodeKind {
     value_is_message: bool, 
   },
   OneofRule, 
-  FieldCelRule {
+  CelRule {
     expression: String,
     message: String,
     rule_id: String,
-  }, 
-  MessageCelRule {
-    expression: String,
-    message: String,
-    rule_id: String,
+    is_for_message: bool,
   }
 }
 
@@ -128,37 +124,6 @@ impl ToTokens for ValidatorCallTemplate {
     let field_data = self.field_data.clone();
 
     match &self.kind {
-      GeneratedCodeKind::FieldCelRule { expression, message, rule_id } => {
-        let random_string = random_string::generate(5, ALPHA_LOWER);
-
-        let static_field_program_ident = Ident::new(&format!("__CEL_FIELD_PROGRAM_{}_{}", self.field_data.rust_name, random_string), Span::call_site());
-
-        let cel_boilerplate = quote!{
-          #[allow(non_upper_case_globals)]
-          static #static_field_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-            cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
-          });
-
-          let program = &#static_field_program_ident;
-        };
-
-        tokens.extend(quote! {
-          #cel_boilerplate
-          let mut cel_context = cel_interpreter::Context::default();
-          cel_context.add_variable("this", &self.#field_rust_ident).expect("Failed to add 'this' to the cel program");
-
-          let field_context = proto_types::FieldContext {
-            field_data: #field_data, 
-            parent_elements: #parent_messages_ident.as_slice(),
-            subscript: None,
-          };
-
-          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), false) {
-            Ok(_) => {},
-            Err(v) => violations.push(v),
-          };
-        });
-      },
       GeneratedCodeKind::FieldRule => {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
@@ -316,9 +281,15 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       },
-      GeneratedCodeKind::MessageCelRule { expression, message, rule_id } => {
+      GeneratedCodeKind::CelRule { expression, message, rule_id, is_for_message } => {
+        let (context_target, program_type) = if *is_for_message {
+          (quote! { &self }, "MESSAGE")
+        } else {
+          (quote! { &self.#field_rust_ident }, "FIELD") 
+        };
+
         let random_string = random_string::generate(5, ALPHA_LOWER);
-        let static_program_ident = Ident::new(&format!("__CEL_MESSAGE_PROGRAM_{}_{}", self.field_data.rust_name, random_string), Span::call_site());
+        let static_program_ident = Ident::new(&format!("__CEL_{}_PROGRAM_{}_{}", program_type, self.field_data.rust_name, random_string), Span::call_site());
 
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
@@ -328,7 +299,7 @@ impl ToTokens for ValidatorCallTemplate {
 
           let program = &#static_program_ident;
           let mut cel_context = cel_interpreter::Context::default();
-          cel_context.add_variable("this", &self).expect("Failed to add 'this' to the cel program");
+          cel_context.add_variable("this", #context_target).expect("Failed to add 'this' to the cel program");
 
           let field_context = proto_types::FieldContext {
             field_data: #field_data,
@@ -336,7 +307,7 @@ impl ToTokens for ValidatorCallTemplate {
             parent_elements: #parent_messages_ident.as_slice(),
           };
 
-          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), true) {
+          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), #is_for_message) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };

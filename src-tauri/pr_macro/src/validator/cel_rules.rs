@@ -18,16 +18,18 @@ pub fn get_cel_rules(
         let message = rule.message().to_string();
         let rule_id = rule.id().to_string();
         let kind = if is_for_message {
-          GeneratedCodeKind::MessageCelRule {
+          GeneratedCodeKind::CelRule {
             expression,
             message,
             rule_id,
+            is_for_message: true,
           }
         } else {
-          GeneratedCodeKind::FieldCelRule {
+          GeneratedCodeKind::CelRule {
             expression,
             message,
             rule_id,
+            is_for_message: false,
           }
         };
         validators.push(ValidatorCallTemplate {
