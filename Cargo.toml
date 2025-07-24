@@ -1,7 +1,5 @@
-
-
 [workspace]
-members = ["tauri_main", "db", "pr_macro", "macro_impl", "cel", "proto_types"]
+members = ["pr_macro", "macro_impl", "cel", "proto_types"]
 resolver = "2"
 
 [workspace.dependencies]
