@@ -4,15 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cel-parser = { workspace = true }
 prost = { workspace = true }
 serde = { workspace = true }
-prost-reflect = { workspace = true }
 cel-interpreter = { workspace = true }
 syn = { workspace = true }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
-bytes = { workspace = true }
 regex = { workspace = true }
 random-string = { workspace = true }
 

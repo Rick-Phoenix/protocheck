@@ -6,7 +6,6 @@ use random_string::charsets::ALPHA_LOWER;
 use crate::buf::validate::{field_path_element::Subscript, FieldPathElement, Ignore};
 
 pub mod impls;
-pub mod macros;
 
 pub mod buf {
   pub mod validate {

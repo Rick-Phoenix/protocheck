@@ -3137,13 +3137,10 @@ dependencies = [
 name = "proto_types"
 version = "0.1.0"
 dependencies = [
- "bytes",
  "cel-interpreter",
- "cel-parser",
  "proc-macro2",
  "prost",
  "prost-build",
- "prost-reflect",
  "quote",
  "random-string",
  "regex",
