@@ -140,7 +140,6 @@ impl ToTokens for ValidatorCallTemplate {
           });
 
           let program = &#static_field_program_ident;
-          let current_item_parent_elements = #parent_messages_ident.as_slice();
         };
 
         tokens.extend(quote! {
@@ -150,7 +149,7 @@ impl ToTokens for ValidatorCallTemplate {
 
           let field_context = proto_types::FieldContext {
             field_data: #field_data, 
-            parent_elements: current_item_parent_elements,
+            parent_elements: #parent_messages_ident.as_slice(),
             subscript: None,
           };
 
@@ -168,9 +167,8 @@ impl ToTokens for ValidatorCallTemplate {
           tokens.extend(quote! {
             let current_item_parent_elements = #parent_messages_ident.as_slice();
             for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-              let field_data = #field_data;
               let field_context = proto_types::FieldContext {
-                field_data,
+                field_data: #field_data,
                 parent_elements: current_item_parent_elements,
                 subscript: Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)),
               };
@@ -196,13 +194,9 @@ impl ToTokens for ValidatorCallTemplate {
           };
 
           tokens.extend(quote! {
-            let current_field_parent_elements = #parent_messages_ident.as_slice();
-
-            let field_data = #field_data;
-
             let field_context = proto_types::FieldContext {
-              field_data,
-              parent_elements: current_field_parent_elements,
+              field_data: #field_data,
+              parent_elements: #parent_messages_ident.as_slice(),
               subscript: Some(#key_subscript_gen_tokens),
             };
 
@@ -220,13 +214,9 @@ impl ToTokens for ValidatorCallTemplate {
             quote! { Some(&self.#field_rust_ident) }
           };
           tokens.extend(quote! {
-            let current_field_parent_elements = #parent_messages_ident.as_slice();
-
-            let field_data = #field_data;
-
             let field_context = proto_types::FieldContext {
-              field_data,
-              parent_elements: current_field_parent_elements,
+              field_data: #field_data,
+              parent_elements: #parent_messages_ident.as_slice(),
               subscript: None,
             };
 
@@ -315,13 +305,9 @@ impl ToTokens for ValidatorCallTemplate {
       GeneratedCodeKind::OneofRule => {
         tokens.extend(quote! {
           if !&self.#field_rust_ident.is_some() {
-            let current_field_parent_elements = #parent_messages_ident.as_slice();
-
-            let field_data = #field_data;
-
             let field_context = proto_types::FieldContext {
-              field_data,
-              parent_elements: current_field_parent_elements,
+              field_data: #field_data,
+              parent_elements: #parent_messages_ident.as_slice(),
               subscript: None,
             };
 
@@ -340,18 +326,14 @@ impl ToTokens for ValidatorCallTemplate {
             cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
           });
 
-          let current_field_parent_elements = #parent_messages_ident.as_slice();
-
           let program = &#static_program_ident;
           let mut cel_context = cel_interpreter::Context::default();
           cel_context.add_variable("this", &self).expect("Failed to add 'this' to the cel program");
 
-          let field_data = #field_data;
-
           let field_context = proto_types::FieldContext {
-            field_data,
+            field_data: #field_data,
             subscript: None, 
-            parent_elements: current_field_parent_elements,
+            parent_elements: #parent_messages_ident.as_slice(),
           };
 
           match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), true) {

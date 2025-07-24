@@ -25,7 +25,7 @@ message User {
       string: {max_len: 2}
     }];
     repeated string name = 1 [(buf.validate.field).repeated.items.cel = {
-      id: "name.not_alfonso"
+      id: "name.is_alfonso"
       message: "name is not alfonso"
       expression: "this == 'alfonso'"
     }];
