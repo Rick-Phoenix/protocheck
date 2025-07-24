@@ -1,3 +1,4 @@
+use crate::validator::repeated_rules::get_repeated_rules;
 use std::collections::HashSet;
 
 use crate::validator::{
@@ -200,6 +201,9 @@ pub fn extract_validators(
               ))
             }
           },
+          field_rules::Type::Repeated(repeated_rules) => {
+            vec![get_repeated_rules(&field_data, &repeated_rules).unwrap()]
+          }
           _ => get_field_rules(&field_data, &field_rules).unwrap(),
         };
 

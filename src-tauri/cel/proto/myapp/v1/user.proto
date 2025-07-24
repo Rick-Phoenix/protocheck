@@ -21,14 +21,13 @@ message User {
     string field_2 = 21;
   }
   message Post {
-    repeated string tags = 10 [(buf.validate.field).repeated.items = {
-      string: {max_len: 2}
+    repeated string tags = 10 [(buf.validate.field).repeated = {
+      items: {
+        string: {max_len: 2}
+      }
+      unique: true
     }];
-    repeated string name = 1 [(buf.validate.field).repeated.items.cel = {
-      id: "name.is_alfonso"
-      message: "name is not alfonso"
-      expression: "this == 'alfonso'"
-    }];
+    repeated string name = 1;
   }
 
   repeated string value = 10 [(buf.validate.field).repeated.items = {

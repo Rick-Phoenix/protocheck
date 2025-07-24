@@ -86,6 +86,11 @@ pub enum GeneratedCodeKind {
     value_rules: Vec<ValidatorCallTemplate>,
     value_is_message: bool, 
   },
+  RepeatedValidationLoop {
+    vec_level_rules: Vec<ValidatorCallTemplate>,
+    items_rules: Vec<ValidatorCallTemplate>,
+    unique_values: bool,
+  },
   OneofRule, 
   CelRule {
     expression: String,
@@ -125,9 +130,9 @@ impl ToTokens for ValidatorCallTemplate {
     let key_ident = Ident::new("key", Span::call_site());
     let val_ident = Ident::new("val", Span::call_site());
 
-    let subscript = if field_is_repeated_item { 
+    let subscript = if field_is_repeated_item || self.field_data.is_repeated { 
       quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
-    } else if field_is_in_map {
+    } else if self.field_data.is_map || field_is_in_map {
       if let Some(key_type_enum) = key_type {
         let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
         quote! { Some(#key_subscript_tokens) }
@@ -147,20 +152,18 @@ impl ToTokens for ValidatorCallTemplate {
 
         if field_is_repeated_item {
           tokens.extend(quote! {
-            let current_item_parent_elements = #parent_messages_ident.as_slice();
-            for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-              let field_context = proto_types::FieldContext {
-                field_data: #field_data,
-                parent_elements: current_item_parent_elements,
-                subscript: #subscript,
-              };
-              match #validator(field_context, Some(#item_ident), #target) {
-                Ok(_) => {},
-                Err(v) => {
-                   #violations_ident.push(v);
-                },
-              };
-            }
+            let field_context = proto_types::FieldContext {
+              field_data: #field_data,
+              parent_elements: #parent_messages_ident.as_slice(),
+              subscript: #subscript,
+            };
+
+            match #validator(field_context, Some(#item_ident), #target) {
+              Ok(_) => {},
+              Err(v) => {
+                #violations_ident.push(v);
+              },
+            };
           });
         } else if field_is_in_map {
           let data_ident = if field_is_map_key {
@@ -244,6 +247,46 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       },
+      GeneratedCodeKind::RepeatedValidationLoop { vec_level_rules, items_rules, unique_values } => {
+        let (values_hashset, unique_values_check) = if *unique_values {
+          let hashset_ident = Ident::new("processed_values", Span::call_site());
+          let not_unique = Ident::new("not_unique", Span::call_site());
+          (
+            Some(quote! { 
+              let mut processed_values = std::collections::HashSet::new(); 
+              let mut not_unique = false;
+            }),
+            Some(quote! { 
+              if !not_unique {
+                let field_context = proto_types::FieldContext {
+                  field_data: #field_data,
+                  parent_elements: #parent_messages_ident,
+                  subscript: #subscript,
+                };
+                match macro_impl::validators::repeated::unique(field_context, #item_ident, &mut #hashset_ident) {
+                  Ok(_) => {},
+                  Err(v) => {
+                    #not_unique = true;
+                    #violations_ident.push(v);
+                  }
+                };
+              }
+            })
+          )
+        } else {
+          (None, None)
+        };
+        tokens.extend(quote! {
+          #(#vec_level_rules)*
+            
+          #values_hashset
+          for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
+            #(#items_rules)*
+
+            #unique_values_check
+          }
+        });
+      },
       GeneratedCodeKind::MapValidationLoop { map_level_rules, key_rules, value_rules, value_is_message } => {
         let validator_tokens = if *value_is_message {
           quote! { #val_ident.nested_validate(#parent_messages_ident, #violations_ident); }
@@ -263,6 +306,7 @@ impl ToTokens for ValidatorCallTemplate {
               value_type: Some(#value_type as i32),
               subscript: #subscript,
             };
+
             #parent_messages_ident.push(map_entry_field_path_element);
 
             #(#key_rules)*
