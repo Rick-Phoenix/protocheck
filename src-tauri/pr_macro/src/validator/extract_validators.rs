@@ -1,5 +1,21 @@
-use crate::validator::repeated_rules::get_repeated_rules;
 use std::collections::HashSet;
+
+use proc_macro::Span;
+use proc_macro2::{Ident, TokenStream as TokenStream2};
+use prost_reflect::{
+  prost::Message, DescriptorPool, ExtensionDescriptor, FieldDescriptor, Kind, MessageDescriptor,
+  Value,
+};
+use proto_types::{
+  buf::validate::{
+    field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
+    MapRules, MessageRules, OneofRules, PredefinedRules, Rule, Violation,
+  },
+  google::protobuf::field_descriptor_proto::Type as ProtoType,
+  FieldData, GeneratedCodeKind, ValidatorCallTemplate,
+};
+use quote::{quote, ToTokens};
+use syn::{token::Continue, DeriveInput};
 
 use crate::validator::{
   cel_rules::get_cel_rules,
@@ -7,24 +23,10 @@ use crate::validator::{
   enum_rules::{self, get_enum_rules},
   map_rules::{self, get_map_rules},
   pool_loader::DESCRIPTOR_POOL,
-  repeated_rules, string_rules,
+  repeated_rules,
+  repeated_rules::get_repeated_rules,
+  string_rules,
 };
-use proc_macro::Span;
-use proc_macro2::{Ident, TokenStream as TokenStream2};
-use prost_reflect::FieldDescriptor;
-use prost_reflect::{
-  prost::Message, DescriptorPool, ExtensionDescriptor, Kind, MessageDescriptor, Value,
-};
-use proto_types::buf::validate::MapRules;
-use proto_types::buf::validate::{
-  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-  MessageRules, OneofRules, PredefinedRules, Rule, Violation,
-};
-use proto_types::google::protobuf::field_descriptor_proto::Type as ProtoType;
-use proto_types::{FieldData, GeneratedCodeKind, ValidatorCallTemplate};
-use quote::{quote, ToTokens};
-use syn::token::Continue;
-use syn::DeriveInput;
 
 pub fn extract_validators(
   input_tokens: DeriveInput,

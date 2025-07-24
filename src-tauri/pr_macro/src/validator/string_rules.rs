@@ -1,11 +1,15 @@
-use super::{CelRule, CelRuleValue};
 use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::buf::validate;
-use proto_types::buf::validate::field_path_element::Subscript;
-use proto_types::buf::validate::StringRules;
-use proto_types::{FieldData, GeneratedCodeKind, ValidatorCallTemplate};
+use proto_types::{
+  buf::{
+    validate,
+    validate::{field_path_element::Subscript, StringRules},
+  },
+  FieldData, GeneratedCodeKind, ValidatorCallTemplate,
+};
 use quote::{quote, ToTokens};
 use regex::Regex;
+
+use super::{CelRule, CelRuleValue};
 
 pub fn get_string_rules(
   field_data: &FieldData,

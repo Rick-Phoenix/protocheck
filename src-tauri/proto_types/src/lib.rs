@@ -1,15 +1,12 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
-use quote::ToTokens;
 use google::protobuf::field_descriptor_proto::Type as ProtoType;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
 use random_string::charsets::ALPHA_LOWER;
 
-use crate::buf::validate::field_path_element::Subscript;
-use crate::buf::validate::FieldPathElement;
-use crate::buf::validate::Ignore;
+use crate::buf::validate::{field_path_element::Subscript, FieldPathElement, Ignore};
 
-pub mod macros;
 pub mod impls;
+pub mod macros;
 
 pub mod buf {
   pub mod validate {
@@ -23,7 +20,7 @@ pub mod google {
   }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
   pub field_data: FieldData,
   pub parent_elements: &'a [FieldPathElement],
@@ -42,7 +39,7 @@ pub struct FieldData {
   pub is_map_value: bool,
   pub is_required: bool,
   pub is_optional: bool,
-  pub key_type: Option<ProtoType>,   
+  pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
   pub enum_full_name: Option<String>,
@@ -59,8 +56,8 @@ impl ToTokens for FieldPathElement {
     let subscript = &self.subscript;
 
     let field_name_expr = match field_name {
-      Some(name_str) => quote! { ::core::option::Option::Some(#name_str.clone()) },
-      None => quote! { ::core::option::Option::None },
+      Some(name_str) => quote! { Some(#name_str.clone()) },
+      None => quote! { None },
     };
 
     tokens.extend(quote! {
@@ -84,7 +81,7 @@ pub enum GeneratedCodeKind {
     map_level_rules: Vec<ValidatorCallTemplate>,
     key_rules: Vec<ValidatorCallTemplate>,
     value_rules: Vec<ValidatorCallTemplate>,
-    value_is_message: bool, 
+    value_is_message: bool,
   },
   RepeatedValidationLoop {
     vec_level_rules: Vec<ValidatorCallTemplate>,
@@ -92,13 +89,13 @@ pub enum GeneratedCodeKind {
     unique_values: bool,
     float_values: bool,
   },
-  OneofRule, 
+  OneofRule,
   CelRule {
     expression: String,
     message: String,
     rule_id: String,
     is_for_message: bool,
-  }
+  },
 }
 
 #[derive(Debug)]
@@ -131,14 +128,14 @@ impl ToTokens for ValidatorCallTemplate {
     let key_ident = Ident::new("key", Span::call_site());
     let val_ident = Ident::new("val", Span::call_site());
 
-    let subscript = if field_is_repeated_item || self.field_data.is_repeated { 
+    let subscript = if field_is_repeated_item || self.field_data.is_repeated {
       quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
     } else if self.field_data.is_map || field_is_in_map {
       if let Some(key_type_enum) = key_type {
         let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
         quote! { Some(#key_subscript_tokens) }
       } else {
-       quote! {compile_error!("Map key type is missing during macro expansion.")} 
+        quote! {compile_error!("Map key type is missing during macro expansion.")}
       }
     } else {
       quote! { None }
@@ -209,7 +206,7 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       }
-      GeneratedCodeKind::NestedMessageRecursion  => {
+      GeneratedCodeKind::NestedMessageRecursion => {
         let current_nested_field_element = quote! {
           proto_types::buf::validate::FieldPathElement {
             field_name: Some(#field_proto_name.to_string()),
@@ -227,17 +224,17 @@ impl ToTokens for ValidatorCallTemplate {
               let mut nested_item_element = #current_nested_field_element;
               nested_item_element.subscript = #subscript;
 
-              #parent_messages_ident.push(nested_item_element); 
-              #item_ident.nested_validate(#parent_messages_ident, #violations_ident); 
-              #parent_messages_ident.pop(); 
+              #parent_messages_ident.push(nested_item_element);
+              #item_ident.nested_validate(#parent_messages_ident, #violations_ident);
+              #parent_messages_ident.pop();
             }
           });
         } else if field_is_optional {
           tokens.extend(quote! {
             if let Some(nested_msg_instance) = &self.#field_rust_ident {
-              #parent_messages_ident.push(#current_nested_field_element); 
-              nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident); 
-              #parent_messages_ident.pop(); 
+              #parent_messages_ident.push(#current_nested_field_element);
+              nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident);
+              #parent_messages_ident.pop();
             }
           });
         } else {
@@ -247,8 +244,13 @@ impl ToTokens for ValidatorCallTemplate {
             #parent_messages_ident.pop();
           });
         }
-      },
-      GeneratedCodeKind::RepeatedValidationLoop { vec_level_rules, items_rules, unique_values, float_values } => {
+      }
+      GeneratedCodeKind::RepeatedValidationLoop {
+        vec_level_rules,
+        items_rules,
+        unique_values,
+        float_values,
+      } => {
         let (values_hashset, unique_values_check) = if *unique_values {
           let hashset_ident = Ident::new("processed_values", Span::call_site());
           let not_unique = Ident::new("not_unique", Span::call_site());
@@ -258,11 +260,11 @@ impl ToTokens for ValidatorCallTemplate {
             quote! { unique }
           };
           (
-            Some(quote! { 
-              let mut processed_values = std::collections::HashSet::new(); 
+            Some(quote! {
+              let mut processed_values = std::collections::HashSet::new();
               let mut not_unique = false;
             }),
-            Some(quote! { 
+            Some(quote! {
               if !not_unique {
                 let field_context = proto_types::FieldContext {
                   field_data: #field_data,
@@ -277,14 +279,14 @@ impl ToTokens for ValidatorCallTemplate {
                   }
                 };
               }
-            })
+            }),
           )
         } else {
           (None, None)
         };
         tokens.extend(quote! {
           #(#vec_level_rules)*
-            
+
           #values_hashset
           for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
             #(#items_rules)*
@@ -292,8 +294,13 @@ impl ToTokens for ValidatorCallTemplate {
             #unique_values_check
           }
         });
-      },
-      GeneratedCodeKind::MapValidationLoop { map_level_rules, key_rules, value_rules, value_is_message } => {
+      }
+      GeneratedCodeKind::MapValidationLoop {
+        map_level_rules,
+        key_rules,
+        value_rules,
+        value_is_message,
+      } => {
         let validator_tokens = if *value_is_message {
           quote! { #val_ident.nested_validate(#parent_messages_ident, #violations_ident); }
         } else {
@@ -301,7 +308,7 @@ impl ToTokens for ValidatorCallTemplate {
         };
 
         tokens.extend(quote! {
-          #(#map_level_rules)* 
+          #(#map_level_rules)*
 
           for (#key_ident, #val_ident) in self.#field_rust_ident.iter() {
             let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
@@ -322,7 +329,7 @@ impl ToTokens for ValidatorCallTemplate {
             #parent_messages_ident.pop();
           }
         });
-      },
+      }
       GeneratedCodeKind::OneofRule => {
         tokens.extend(quote! {
           if !&self.#field_rust_ident.is_some() {
@@ -336,16 +343,27 @@ impl ToTokens for ValidatorCallTemplate {
             #violations_ident.push(violation);
           }
         });
-      },
-      GeneratedCodeKind::CelRule { expression, message, rule_id, is_for_message } => {
+      }
+      GeneratedCodeKind::CelRule {
+        expression,
+        message,
+        rule_id,
+        is_for_message,
+      } => {
         let (context_target, program_type) = if *is_for_message {
           (quote! { &self }, "MESSAGE")
         } else {
-          (quote! { &self.#field_rust_ident }, "FIELD") 
+          (quote! { &self.#field_rust_ident }, "FIELD")
         };
 
         let random_string = random_string::generate(5, ALPHA_LOWER);
-        let static_program_ident = Ident::new(&format!("__CEL_{}_PROGRAM_{}_{}", program_type, self.field_data.rust_name, random_string), Span::call_site());
+        let static_program_ident = Ident::new(
+          &format!(
+            "__CEL_{}_PROGRAM_{}_{}",
+            program_type, self.field_data.rust_name, random_string
+          ),
+          Span::call_site(),
+        );
 
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
@@ -359,7 +377,7 @@ impl ToTokens for ValidatorCallTemplate {
 
           let field_context = proto_types::FieldContext {
             field_data: #field_data,
-            subscript: None, 
+            subscript: None,
             parent_elements: #parent_messages_ident.as_slice(),
           };
 
@@ -381,7 +399,7 @@ fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> Token
     ProtoType::Uint64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
     ProtoType::Uint32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
     ProtoType::Int64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Int32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) }, 
+    ProtoType::Int32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
     ProtoType::Fixed64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
     ProtoType::Fixed32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
     ProtoType::Sfixed64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
@@ -390,9 +408,10 @@ fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> Token
     ProtoType::Sint32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
     ProtoType::Bool => quote! { #subscript_path::BoolKey(#key_ident.clone().into()) },
 
-    _ => quote! { compile_error!(format!("Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
-        key_proto_type
-    )) },
+    _ => {
+      quote! { compile_error!(format!("Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
+          key_proto_type
+      )) }
+    }
   }
 }
-
