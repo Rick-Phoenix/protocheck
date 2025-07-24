@@ -1,25 +1,12 @@
-#![allow(clippy::all, dead_code, unused)]
-use std::{collections::HashMap, sync::LazyLock};
-
-use bytes::Bytes;
-use proc_macro::TokenStream;
 pub(crate) use prost_reflect::Kind as ProtoFieldKind;
-use prost_reflect::{prost::Message, ExtensionDescriptor, MessageDescriptor, Value};
 pub(crate) use proto_types::{protobuf, protovalidate};
-pub(crate) use protobuf::field_descriptor_proto::Type as ProtoTypes;
+pub(crate) use protobuf::field_descriptor_proto::Type as ProtoType;
 pub(crate) use protocheck_core::{
-  field_data::{FieldContext, FieldData},
-  validator_template::{GeneratedCodeKind, ValidatorCallTemplate},
+  field_data::FieldData,
+  internals::validator_template::{GeneratedCodeKind, ValidatorCallTemplate},
 };
-use protovalidate::{
-  field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-  MessageRules, OneofRules, PredefinedRules, Rule,
-};
-pub(crate) use protovalidate::{
-  field_rules, FieldPath, FieldPathElement, FieldRules, Ignore, Violation,
-};
-use regex::Regex;
-use syn::DeriveInput;
+pub(crate) use protovalidate::{field_rules, FieldRules, Ignore};
+use protovalidate::{MessageRules, OneofRules, Rule};
 
 pub mod any_rules;
 pub mod bool_rules;

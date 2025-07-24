@@ -1,21 +1,19 @@
-#[allow(clippy::all, dead_code, unused)]
-use std::collections::{HashMap, HashSet};
-use std::sync::LazyLock;
-use syn::braced;
-use syn::bracketed;
-use syn::Ident;
+#![allow(clippy::all, dead_code, unused)]
+use std::{
+  collections::{HashMap, HashSet},
+  sync::LazyLock,
+};
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
-use syn::parse::Parse;
-use syn::parse::ParseStream;
-use syn::parse_macro_input;
-use syn::punctuated::Punctuated;
-use syn::LitInt;
-use syn::Token;
-use syn::Type;
-use syn::TypePath;
+use syn::{
+  braced, bracketed,
+  parse::{Parse, ParseStream},
+  parse_macro_input,
+  punctuated::Punctuated,
+  Ident, LitInt, Token, Type, TypePath,
+};
 
 static RUST_TO_PROTO_MAP: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
   let mut type_map = HashMap::new();

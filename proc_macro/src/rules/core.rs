@@ -1,10 +1,5 @@
-use super::{
-  field_rules, FieldData, FieldRules, GeneratedCodeKind, ProtoType, ValidatorCallTemplate,
-};
-use crate::{
-  pool_loader::DESCRIPTOR_POOL,
-  rules::{enum_rules, map_rules, map_rules::get_map_rules, repeated_rules, string_rules},
-};
+use super::{field_rules, FieldData, FieldRules, ProtoFieldKind, ProtoType, ValidatorCallTemplate};
+use crate::rules::string_rules;
 
 pub fn get_field_rules(
   field_data: &FieldData,
@@ -32,24 +27,24 @@ pub fn get_field_rules(
   }
 }
 
-pub fn convert_kind_to_proto_type(kind: Kind) -> ProtoType {
+pub fn convert_kind_to_proto_type(kind: ProtoFieldKind) -> ProtoType {
   match kind {
-    Kind::Double => ProtoType::Double,
-    Kind::Float => ProtoType::Float,
-    Kind::Int32 => ProtoType::Int32,
-    Kind::Int64 => ProtoType::Int64,
-    Kind::Uint32 => ProtoType::Uint32,
-    Kind::Uint64 => ProtoType::Uint64,
-    Kind::Sint32 => ProtoType::Sint32,
-    Kind::Sint64 => ProtoType::Sint64,
-    Kind::Fixed32 => ProtoType::Fixed32,
-    Kind::Fixed64 => ProtoType::Fixed64,
-    Kind::Sfixed32 => ProtoType::Sfixed32,
-    Kind::Sfixed64 => ProtoType::Sfixed64,
-    Kind::Bool => ProtoType::Bool,
-    Kind::String => ProtoType::String,
-    Kind::Bytes => ProtoType::Bytes,
-    Kind::Message(_) => ProtoType::Message,
-    Kind::Enum(_) => ProtoType::Enum,
+    ProtoFieldKind::Double => ProtoType::Double,
+    ProtoFieldKind::Float => ProtoType::Float,
+    ProtoFieldKind::Int32 => ProtoType::Int32,
+    ProtoFieldKind::Int64 => ProtoType::Int64,
+    ProtoFieldKind::Uint32 => ProtoType::Uint32,
+    ProtoFieldKind::Uint64 => ProtoType::Uint64,
+    ProtoFieldKind::Sint32 => ProtoType::Sint32,
+    ProtoFieldKind::Sint64 => ProtoType::Sint64,
+    ProtoFieldKind::Fixed32 => ProtoType::Fixed32,
+    ProtoFieldKind::Fixed64 => ProtoType::Fixed64,
+    ProtoFieldKind::Sfixed32 => ProtoType::Sfixed32,
+    ProtoFieldKind::Sfixed64 => ProtoType::Sfixed64,
+    ProtoFieldKind::Bool => ProtoType::Bool,
+    ProtoFieldKind::String => ProtoType::String,
+    ProtoFieldKind::Bytes => ProtoType::Bytes,
+    ProtoFieldKind::Message(_) => ProtoType::Message,
+    ProtoFieldKind::Enum(_) => ProtoType::Enum,
   }
 }

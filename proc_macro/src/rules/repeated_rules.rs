@@ -1,7 +1,7 @@
 use quote::{quote, ToTokens};
 
 use super::{
-  protovalidate::{field_rules::RepeatedRules, Ignore},
+  protovalidate::{Ignore, RepeatedRules},
   FieldData, GeneratedCodeKind, ProtoType, ValidatorCallTemplate,
 };
 use crate::{
@@ -23,7 +23,7 @@ pub fn get_repeated_rules(
     let rule_val = repeated_rules.min_items();
     min_items = Some(rule_val);
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::repeated::min_items }),
+      validator_path: Some(quote! { protocheck::validators::repeated::min_items }),
       target_value_tokens: Some(rule_val.to_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
@@ -34,20 +34,18 @@ pub fn get_repeated_rules(
     let rule_val = repeated_rules.max_items();
     max_items = Some(rule_val);
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::repeated::max_items }),
+      validator_path: Some(quote! { protocheck::validators::repeated::max_items }),
       target_value_tokens: Some(rule_val.to_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
     });
   }
 
-  if min_items.is_some() && max_items.is_some() {
-    if min_items.unwrap() > max_items.unwrap() {
-      return Err(Box::new(syn::Error::new(
-        Span2::call_site(),
-        "repeated.min_items cannot be larger than repeated.max_items",
-      )));
-    }
+  if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {
+    return Err(Box::new(syn::Error::new(
+      Span2::call_site(),
+      "repeated.min_items cannot be larger than repeated.max_items",
+    )));
   }
 
   let mut unique_values = false;
@@ -78,7 +76,7 @@ pub fn get_repeated_rules(
 
       items_templates.extend(rules_for_single_item);
 
-      if items_rules_descriptor.cel.len() > 0 {
+      if !items_rules_descriptor.cel.is_empty() {
         let cel_rules = get_cel_rules(&items_field_data, items_rules_descriptor.cel, false)?;
         items_templates.extend(cel_rules);
       }

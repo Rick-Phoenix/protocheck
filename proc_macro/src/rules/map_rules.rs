@@ -60,7 +60,7 @@ pub fn get_map_rules(
     key_type: Some(key_proto_type),
     value_type: Some(value_proto_type),
     enum_full_name: None,
-    ignore: ignore,
+    ignore,
   };
 
   let mut min_pairs: Option<usize> = None;
@@ -88,13 +88,11 @@ pub fn get_map_rules(
     });
   }
 
-  if min_pairs.is_some() && max_pairs.is_some() {
-    if min_pairs.unwrap() > max_pairs.unwrap() {
-      return Err(Box::new(syn::Error::new(
-        Span2::call_site(),
-        "map.min_pairs cannot be larger than map.max_pairs",
-      )));
-    }
+  if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
+    return Err(Box::new(syn::Error::new(
+      Span2::call_site(),
+      "map.min_pairs cannot be larger than map.max_pairs",
+    )));
   }
 
   if map_rules.keys.is_some() {
@@ -112,7 +110,7 @@ pub fn get_map_rules(
       let generated_key_templates = get_field_rules(&key_field_data, &key_rules_descriptor)?;
       key_rules_templates.extend(generated_key_templates);
 
-      if key_rules_descriptor.cel.len() > 0 {
+      if !key_rules_descriptor.cel.is_empty() {
         let cel_rules = get_cel_rules(&key_field_data, key_rules_descriptor.cel, false)?;
         key_rules_templates.extend(cel_rules);
       }
@@ -141,7 +139,7 @@ pub fn get_map_rules(
       let generated_value_templates = get_field_rules(&value_field_data, &value_rules_descriptor)?;
       value_rules_templates.extend(generated_value_templates);
 
-      if value_rules_descriptor.cel.len() > 0 {
+      if !value_rules_descriptor.cel.is_empty() {
         let cel_rules = get_cel_rules(&value_field_data, value_rules_descriptor.cel, false)?;
         value_rules_templates.extend(cel_rules);
       }

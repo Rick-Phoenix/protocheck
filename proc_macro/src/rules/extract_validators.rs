@@ -1,30 +1,21 @@
 use std::collections::HashSet;
 
-use proc_macro::Span;
-use prost_reflect::{Kind, Value as ProstValue};
-use quote::{quote, ToTokens};
-use syn::{token::Continue, DeriveInput};
+use prost_reflect::{prost::Message, Kind, Value as ProstValue};
+use syn::DeriveInput;
 
 use super::{
-  protovalidate::{
-    field_path_element::Subscript, field_rules, FieldPath, FieldPathElement, FieldRules, Ignore,
-    Rule, Violation,
-  },
-  FieldData, GeneratedCodeKind, MapRules, MessageRules, OneofRules, PredefinedRules, ProtoType,
-  ValidatorCallTemplate,
+  protovalidate::{field_rules, FieldRules, Ignore},
+  FieldData, GeneratedCodeKind, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate,
 };
 use crate::{
+  pool_loader::DESCRIPTOR_POOL,
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
-    enum_rules::{self, get_enum_rules},
-    map_rules::{self, get_map_rules},
-    pool_loader::DESCRIPTOR_POOL,
-    repeated_rules,
+    enum_rules::get_enum_rules,
+    map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
-    string_rules,
   },
-  TokenStream as TokenStream2,
 };
 
 pub fn extract_validators(
@@ -44,7 +35,7 @@ pub fn extract_validators(
 
   let message = DESCRIPTOR_POOL.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
 
-  if !message.is_some() {
+  if message.is_none() {
     return Ok(validation_data);
   };
 
@@ -69,7 +60,7 @@ pub fn extract_validators(
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
 
-    if message_rules.cel.len() > 0 {
+    if !message_rules.cel.is_empty() {
       let message_cel_rules = message_rules.cel.clone();
       let mut field_data = FieldData::default();
       field_data.rust_name = message_desc.name().to_string();
@@ -117,7 +108,7 @@ pub fn extract_validators(
     let is_map = field_desc.is_map();
     let is_optional = field_desc.supports_presence();
 
-    let field_rust_ident = field_desc.json_name(); // Or derive from proto name
+    let _field_rust_ident = field_desc.json_name(); // Or derive from proto name
     let field_tag = field_desc.number();
 
     let field_options = field_desc.options();
@@ -154,7 +145,7 @@ pub fn extract_validators(
         is_optional,
       };
 
-      if let Kind::Message(field_message_type) = field_desc.kind() {
+      if let Kind::Message(_field_message_type) = field_desc.kind() {
         if !is_map {
           if field_desc.name() != "posts" {
             // println!("{}", field_desc.name());
@@ -176,7 +167,7 @@ pub fn extract_validators(
         }
       }
 
-      if field_rules.cel.len() > 0 {
+      if !field_rules.cel.is_empty() {
         let cel_rules = field_rules.cel.clone();
         validation_data.extend(
           get_cel_rules(&field_data, cel_rules, false).expect("Failed to get field cel rules"),

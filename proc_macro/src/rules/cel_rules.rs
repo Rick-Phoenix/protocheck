@@ -43,7 +43,7 @@ pub fn get_cel_rules(
       Err(e) => {
         return Err(syn::Error::new(
           Span2::call_site(),
-          format!("Cel program failed to compile: {}", e.to_string()),
+          format!("Cel program failed to compile: {}", e),
         ))
       }
     }

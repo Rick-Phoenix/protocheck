@@ -14,7 +14,7 @@ pub fn get_enum_rules(
   let enum_full_name = field_data
     .enum_full_name
     .clone()
-    .ok_or_else(|| "Enum field missing full enum name in FieldData")?;
+    .ok_or("Enum field missing full enum name in FieldData")?;
 
   if enum_rules.defined_only() {
     let static_name_str = format!(
@@ -33,7 +33,7 @@ pub fn get_enum_rules(
     });
   }
 
-  if enum_rules.r#in.len() > 0 {
+  if !enum_rules.r#in.is_empty() {
     for n in enum_rules.r#in.iter() {
       let mut invalid_numbers: Vec<i32> = Vec::new();
       if !enum_values.contains(n) {

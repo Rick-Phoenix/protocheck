@@ -1,15 +1,11 @@
 use quote::{quote, ToTokens};
-use regex::Regex;
 
-use super::{
-  protovalidate::StringRules, CelRule, CelRuleValue, FieldData, GeneratedCodeKind, Subscript,
-  ValidatorCallTemplate,
-};
+use super::{protovalidate::StringRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::Span2;
 
 pub fn get_string_rules(
   field_data: &FieldData,
-  string_rules: &proto_types::buf::validate::StringRules,
+  string_rules: &StringRules,
 ) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
 
@@ -22,7 +18,7 @@ pub fn get_string_rules(
     len = Some(len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::strings::len }),
+      validator_path: Some(quote! { protocheck::validators::strings::len }),
       target_value_tokens: Some(len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
@@ -34,7 +30,7 @@ pub fn get_string_rules(
     min_len = Some(min_len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::strings::min_len }),
+      validator_path: Some(quote! { protocheck::validators::strings::min_len }),
       target_value_tokens: Some(min_len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
@@ -46,7 +42,7 @@ pub fn get_string_rules(
     max_len = Some(max_len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::strings::max_len }),
+      validator_path: Some(quote! { protocheck::validators::strings::max_len }),
       target_value_tokens: Some(max_len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
@@ -60,13 +56,11 @@ pub fn get_string_rules(
     )));
   }
 
-  if min_len.is_some() && max_len.is_some() {
-    if min_len.unwrap() > max_len.unwrap() {
-      return Err(Box::new(syn::Error::new(
-        Span2::call_site(),
-        "string.min_len cannot be larger than string.max_len",
-      )));
-    }
+  if min_len.is_some() && max_len.is_some() && min_len.unwrap() > max_len.unwrap() {
+    return Err(Box::new(syn::Error::new(
+      Span2::call_site(),
+      "string.min_len cannot be larger than string.max_len",
+    )));
   }
 
   Ok(templates)

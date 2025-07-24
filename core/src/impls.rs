@@ -32,7 +32,7 @@ pub fn option_string_to_tokens(option: &Option<String>) -> TokenStream2 {
 }
 
 impl ToTokens for FieldData {
-  fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream2) {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
     let rust_name = &self.rust_name;
     let proto_name = &self.proto_name;
     let tag = self.tag;

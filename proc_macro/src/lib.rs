@@ -1,8 +1,10 @@
+#![allow(clippy::field_reassign_with_default)]
+
 use std::collections::HashSet;
 
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
+pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2};
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
 
