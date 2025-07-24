@@ -1,9 +1,11 @@
-use proto_types::FieldContext;
+use proto_types::{FieldContext, FieldData};
 
 use proto_types::{
   buf::validate::{FieldPath, FieldPathElement, Violation},
   google::protobuf::field_descriptor_proto::Type as ProtoTypes,
 };
+
+use crate::validators::common::get_base_violations_path;
 
 pub fn max_len(
   field_context: FieldContext,
@@ -33,7 +35,38 @@ pub fn max_len(
       field_number: Some(field_context.field_data.tag as i32),
       subscript: field_context.subscript,
     };
+
     elements.push(current_elem);
+
+    let FieldData {
+      is_repeated_item,
+      is_map_key,
+      is_map_value,
+      ..
+    } = field_context.field_data;
+
+    let mut violation_elements =
+      get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
+
+    violation_elements.extend(vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoTypes::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("max_len".to_string()),
+        field_number: Some(3),
+        field_type: Some(ProtoTypes::Uint64 as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]);
+
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),
       message: Some(format!(
@@ -45,24 +78,7 @@ pub fn max_len(
       for_key: Some(field_context.field_data.is_map_key),
       field: Some(FieldPath { elements: elements }),
       rule: Some(FieldPath {
-        elements: vec![
-          FieldPathElement {
-            field_name: Some("string".to_string()),
-            field_number: Some(14),
-            field_type: Some(ProtoTypes::Message as i32),
-            subscript: None,
-            key_type: None,
-            value_type: None,
-          },
-          FieldPathElement {
-            field_name: Some("max_len".to_string()),
-            field_number: Some(3),
-            field_type: Some(ProtoTypes::Uint64 as i32),
-            key_type: None,
-            value_type: None,
-            subscript: None,
-          },
-        ],
+        elements: violation_elements,
       }),
     };
     return Err(violation);

@@ -10,7 +10,9 @@ pub trait WithValidator {
 }
 
 pub mod cel;
+pub mod common;
 pub mod enums;
+pub mod maps;
 pub mod oneofs;
 pub mod repeated;
 pub mod strings;

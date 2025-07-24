@@ -1,9 +1,11 @@
-use proto_types::FieldContext;
+use proto_types::{FieldContext, FieldData};
 
 use proto_types::{
   buf::validate::{FieldPath, FieldPathElement, Violation},
   google::protobuf::field_descriptor_proto::Type as ProtoTypes,
 };
+
+use crate::validators::common::get_base_violations_path;
 
 pub fn defined_only(
   field_context: FieldContext,
@@ -31,7 +33,36 @@ pub fn defined_only(
       field_number: Some(field_context.field_data.tag as i32),
       subscript: field_context.subscript,
     };
+
     elements.push(current_elem);
+
+    let FieldData {
+      is_repeated_item,
+      is_map_key,
+      is_map_value,
+      ..
+    } = field_context.field_data;
+
+    let mut violations_path = get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
+
+    violations_path.extend(vec![
+      FieldPathElement {
+        field_name: Some("enum".to_string()),
+        field_number: Some(16),
+        field_type: Some(ProtoTypes::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("defined_only".to_string()),
+        field_number: Some(2),
+        field_type: Some(ProtoTypes::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]);
 
     let violation = Violation {
       rule_id: Some("enum.defined_only".to_string()),
@@ -43,24 +74,7 @@ pub fn defined_only(
       for_key: Some(field_context.field_data.is_map_key),
       field: Some(FieldPath { elements: elements }),
       rule: Some(FieldPath {
-        elements: vec![
-          FieldPathElement {
-            field_name: Some("enum".to_string()),
-            field_number: Some(16),
-            field_type: Some(ProtoTypes::Message as i32),
-            subscript: None,
-            key_type: None,
-            value_type: None,
-          },
-          FieldPathElement {
-            field_name: Some("defined_only".to_string()),
-            field_number: Some(2),
-            field_type: Some(ProtoTypes::Bool as i32),
-            key_type: None,
-            value_type: None,
-            subscript: None,
-          },
-        ],
+        elements: violations_path,
       }),
     };
     return Err(violation);

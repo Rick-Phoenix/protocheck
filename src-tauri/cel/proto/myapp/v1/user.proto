@@ -25,9 +25,7 @@ message User {
       items: {
         string: {max_len: 2}
       }
-      unique: true
     }];
-    repeated float float_field = 23 [(buf.validate.field).repeated = {unique: true}];
     repeated string name = 1;
   }
 
@@ -36,8 +34,9 @@ message User {
   }];
   int64 id = 2;
   google.protobuf.Timestamp created_at = 3;
-  map<string, Post> map_field = 5 [(buf.validate.field).map.keys = {
-    string: {max_len: 1}
+  map<string, Post> map_field = 5 [(buf.validate.field).map = {
+    min_pairs: 10
+    max_pairs: 0
   }];
   test_enum enum_field = 11;
   repeated Post posts = 4;

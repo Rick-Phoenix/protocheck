@@ -1,8 +1,11 @@
 use cel_interpreter::{Context, Program, Value};
 use proto_types::{
   buf::validate::{FieldPath, FieldPathElement, Violation},
-  FieldContext,
+  google::protobuf::field_descriptor_proto,
+  FieldContext, FieldData,
 };
+
+use crate::validators::common::get_base_violations_path;
 
 pub fn validate_cel(
   field_context: FieldContext,
@@ -21,6 +24,7 @@ pub fn validate_cel(
           Ok(())
         } else {
           let mut elements = field_context.parent_elements.to_vec();
+          let mut violations_path = vec![];
           if !is_for_message {
             let current_elem = FieldPathElement {
               field_type: Some(field_context.field_data.proto_type as i32),
@@ -31,12 +35,36 @@ pub fn validate_cel(
               subscript: field_context.subscript,
             };
             elements.push(current_elem);
+
+            let FieldData {
+              is_repeated_item,
+              is_map_key,
+              is_map_value,
+              ..
+            } = field_context.field_data;
+
+            violations_path.extend(get_base_violations_path(
+              is_repeated_item,
+              is_map_key,
+              is_map_value,
+            ));
+
+            violations_path.push(FieldPathElement {
+              field_name: Some("cel".to_string()),
+              field_number: Some(23),
+              field_type: Some(field_descriptor_proto::Type::Message as i32),
+              key_type: None,
+              value_type: None,
+              subscript: None,
+            });
           }
 
           Err(Violation {
             message: Some(message),
             rule_id: Some(rule_id),
-            rule: None,
+            rule: Some(FieldPath {
+              elements: violations_path,
+            }),
             field: Some(FieldPath { elements }),
             for_key: Some(field_context.field_data.is_map_key),
           })
