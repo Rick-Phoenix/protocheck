@@ -40,7 +40,7 @@ pub fn min_pairs<K, V>(
     let violation = Violation {
       rule_id: Some("map.min_pairs".to_string()),
       message: Some(format!(
-        "map field {} requires at least {} item{}",
+        "map field `{}` requires at least {} item{}",
         field_context.field_data.proto_name.clone(),
         min_pairs,
         plural_suffix
@@ -106,7 +106,7 @@ pub fn max_pairs<K, V>(
     let violation = Violation {
       rule_id: Some("map.max_pairs".to_string()),
       message: Some(format!(
-        "map field {} cannot have more than {} item{}",
+        "map field `{}` cannot have more than {} item{}",
         field_context.field_data.proto_name.clone(),
         max_pairs,
         plural_suffix

@@ -13,7 +13,7 @@ mod myapp {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut map_field: HashMap<String, Post> = HashMap::new();
   map_field.insert(
-    "a".to_string(),
+    "aa".to_string(),
     Post {
       tags: vec!["me".to_string(), "me".to_string()],
       name: vec!["alfonso".to_string()],

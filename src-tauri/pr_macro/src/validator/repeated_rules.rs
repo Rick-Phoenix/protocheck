@@ -20,6 +20,55 @@ pub fn get_repeated_rules(
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut items_templates: Vec<ValidatorCallTemplate> = Vec::new();
 
+  let mut min_items: Option<u64> = None;
+  let mut max_items: Option<u64> = None;
+
+  if repeated_rules.min_items() > 0 {
+    let rule_val = repeated_rules.min_items();
+    min_items = Some(rule_val);
+    templates.push(ValidatorCallTemplate {
+      validator_path: Some(quote! { macro_impl::validators::repeated::min_items }),
+      target_value_tokens: Some(rule_val.to_token_stream()),
+      field_data: field_data.clone(),
+      kind: GeneratedCodeKind::FieldRule,
+    });
+  }
+
+  if repeated_rules.max_items() > 0 {
+    let rule_val = repeated_rules.max_items();
+    max_items = Some(rule_val);
+    templates.push(ValidatorCallTemplate {
+      validator_path: Some(quote! { macro_impl::validators::repeated::max_items }),
+      target_value_tokens: Some(rule_val.to_token_stream()),
+      field_data: field_data.clone(),
+      kind: GeneratedCodeKind::FieldRule,
+    });
+  }
+
+  if min_items.is_some() && max_items.is_some() {
+    if min_items.unwrap() > max_items.unwrap() {
+      return Err(Box::new(syn::Error::new(
+        Span::call_site(),
+        "repeated.min_items cannot be larger than repeated.max_items",
+      )));
+    }
+  }
+
+  let mut unique_values = false;
+  let float_values = matches!(field_data.proto_type, ProtoType::Float)
+    || matches!(field_data.proto_type, ProtoType::Double);
+
+  if repeated_rules.unique() {
+    if matches!(field_data.proto_type, ProtoType::Message) {
+      return Err(Box::new(syn::Error::new(
+        Span::call_site(),
+        "repeated.unique only works for scalar fields",
+      )));
+    }
+
+    unique_values = true;
+  }
+
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
     let ignore = items_rules_descriptor.ignore();
@@ -38,31 +87,6 @@ pub fn get_repeated_rules(
         items_templates.extend(cel_rules);
       }
     }
-  }
-
-  if repeated_rules.min_items() > 0 {
-    let rule_val = repeated_rules.min_items();
-    templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::repeated::min_items }),
-      target_value_tokens: Some(rule_val.to_token_stream()),
-      field_data: field_data.clone(),
-      kind: GeneratedCodeKind::FieldRule,
-    });
-  }
-
-  let mut unique_values = false;
-  let float_values = matches!(field_data.proto_type, ProtoType::Float)
-    || matches!(field_data.proto_type, ProtoType::Double);
-
-  if repeated_rules.unique() {
-    if matches!(field_data.proto_type, ProtoType::Message) {
-      return Err(Box::new(syn::Error::new(
-        Span::call_site(),
-        "repeated.unique only works for scalar fields",
-      )));
-    }
-
-    unique_values = true;
   }
 
   Ok(ValidatorCallTemplate {

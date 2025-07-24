@@ -62,8 +62,12 @@ pub fn get_map_rules(
     ignore: ignore,
   };
 
+  let mut min_pairs: Option<usize> = None;
+  let mut max_pairs: Option<usize> = None;
+
   if map_rules.min_pairs.is_some() {
     let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
+    min_pairs = Some(min_pairs_value);
     map_level_rules_templates.push(ValidatorCallTemplate {
       validator_path: Some(quote! { macro_impl::validators::maps::min_pairs }),
       target_value_tokens: Some(min_pairs_value.into_token_stream()),
@@ -74,12 +78,22 @@ pub fn get_map_rules(
 
   if map_rules.max_pairs.is_some() {
     let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
+    max_pairs = Some(max_pairs_value);
     map_level_rules_templates.push(ValidatorCallTemplate {
       validator_path: Some(quote! { macro_impl::validators::maps::max_pairs }),
       target_value_tokens: Some(max_pairs_value.into_token_stream()),
       kind: GeneratedCodeKind::FieldRule,
       field_data: map_field_data.clone(),
     });
+  }
+
+  if min_pairs.is_some() && max_pairs.is_some() {
+    if min_pairs.unwrap() > max_pairs.unwrap() {
+      return Err(Box::new(syn::Error::new(
+        Span::call_site(),
+        "map.min_pairs cannot be larger than map.max_pairs",
+      )));
+    }
   }
 
   if map_rules.keys.is_some() {

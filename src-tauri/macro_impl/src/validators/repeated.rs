@@ -41,7 +41,7 @@ pub fn min_items<T>(
     let violation = Violation {
       rule_id: Some("repeated.min_items".to_string()),
       message: Some(format!(
-        "repeated field {} requires at least {} item{}",
+        "repeated field `{}` requires at least {} item{}",
         field_context.field_data.proto_name.clone(),
         min_items,
         plural_suffix
@@ -107,7 +107,7 @@ pub fn max_items<T>(
     let violation = Violation {
       rule_id: Some("repeated.max_items".to_string()),
       message: Some(format!(
-        "repeated field {} cannot have more than {} item{}",
+        "repeated field `{}` cannot have more than {} item{}",
         field_context.field_data.proto_name.clone(),
         max_items,
         plural_suffix
