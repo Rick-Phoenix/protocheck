@@ -46,7 +46,7 @@ pub fn extract_validators(
     return Ok(validation_data);
   };
 
-  let user_desc = message.unwrap();
+  let message_desc = message.unwrap();
 
   let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
@@ -63,7 +63,7 @@ pub fn extract_validators(
     .ok_or("buf.validate.oneof extension not found in descriptor pool")
     .unwrap();
 
-  let message_options = user_desc.options();
+  let message_options = message_desc.options();
 
   let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
 
@@ -73,14 +73,16 @@ pub fn extract_validators(
     if message_rules.cel.len() > 0 {
       let message_cel_rules = message_rules.cel.clone();
       let mut field_data = FieldData::default();
-      field_data.rust_name = "test".to_string();
-      field_data.proto_name = "test".to_string();
+      field_data.rust_name = message_desc.name().to_string();
+      field_data.proto_name = message_desc.name().to_string();
+      field_data.tag = 0;
+      field_data.proto_type = ProtoType::Message;
       validation_data
         .extend(get_cel_rules(field_data, message_cel_rules).expect("Failed to get the cel rules"));
     }
   }
 
-  for oneof in user_desc.oneofs() {
+  for oneof in message_desc.oneofs() {
     // println!("{:?}", oneof.name());
     if let Value::Message(oneof_rules_msg) = oneof
       .options()
@@ -117,7 +119,7 @@ pub fn extract_validators(
 
   // println!("Struct Name: {}", struct_name.to_string());
 
-  for field_desc in user_desc.fields() {
+  for field_desc in message_desc.fields() {
     // println!("{}", user_desc.name());
 
     let field_name = field_desc.name();
