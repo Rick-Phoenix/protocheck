@@ -16,22 +16,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   map_field.insert(
     "aa".to_string(),
     Post {
-      tags: vec!["mee".to_string(), "mee".to_string(), "mee".to_string()],
+      tags: vec!["mee".to_string()],
+      name: "M".to_string(),
     },
   );
   let user = User {
     created_at: None,
     id: 1,
-    name: "M".to_string(),
     value: vec![],
-    posts: vec![
-      Post {
-        tags: vec!["m".to_string(), "m".to_string(), "m".to_string()],
-      },
-      Post {
-        tags: vec!["m".to_string(), "m".to_string(), "m".to_string()],
-      },
-    ],
+    posts: vec![],
     map_field,
     enum_field: 31,
     oneof_fields: None,
