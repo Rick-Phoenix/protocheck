@@ -59,7 +59,7 @@ impl ToTokens for ValidatorCallTemplate {
     let val_ident = Ident2::new("val", Span2::call_site());
 
     let subscript = if field_is_repeated_item || self.field_data.is_repeated {
-      quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
+      quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
     } else if self.field_data.is_map || field_is_in_map {
       if let Some(key_type_enum) = key_type {
         let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
@@ -80,7 +80,7 @@ impl ToTokens for ValidatorCallTemplate {
 
         if field_is_repeated_item {
           tokens.extend(quote! {
-            let field_context = proto_types::FieldContext {
+            let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
               subscript: #subscript,
@@ -101,7 +101,7 @@ impl ToTokens for ValidatorCallTemplate {
           };
 
           tokens.extend(quote! {
-            let field_context = proto_types::FieldContext {
+            let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
               subscript: #subscript,
@@ -121,7 +121,7 @@ impl ToTokens for ValidatorCallTemplate {
             quote! { Some(&self.#field_rust_ident) }
           };
           tokens.extend(quote! {
-            let field_context = proto_types::FieldContext {
+            let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
               subscript: None,
@@ -138,7 +138,7 @@ impl ToTokens for ValidatorCallTemplate {
       }
       GeneratedCodeKind::NestedMessageRecursion => {
         let current_nested_field_element = quote! {
-          proto_types::buf::validate::FieldPathElement {
+          protocheck::types::protovalidate::FieldPathElement {
             field_name: Some(#field_proto_name.to_string()),
             field_number: Some(#field_tag as i32),
             field_type: Some(#field_proto_type),
@@ -196,12 +196,12 @@ impl ToTokens for ValidatorCallTemplate {
             }),
             Some(quote! {
               if !not_unique {
-                let field_context = proto_types::FieldContext {
+                let field_context = protocheck::field_data::FieldContext {
                   field_data: #field_data,
                   parent_elements: #parent_messages_ident,
                   subscript: #subscript,
                 };
-                match macro_impl::validators::repeated::#func_name(field_context, #item_ident, &mut #hashset_ident) {
+                match protocheck::validators::repeated::#func_name(field_context, #item_ident, &mut #hashset_ident) {
                   Ok(_) => {},
                   Err(v) => {
                     #not_unique = true;
@@ -241,7 +241,7 @@ impl ToTokens for ValidatorCallTemplate {
           #(#map_level_rules)*
 
           for (#key_ident, #val_ident) in self.#field_rust_ident.iter() {
-            let map_entry_field_path_element = proto_types::buf::validate::FieldPathElement {
+            let map_entry_field_path_element = protocheck::types::protovalidate::FieldPathElement {
               field_name: Some(#field_proto_name.to_string()),
               field_number: Some(#field_tag as i32),
               field_type: Some(#field_proto_type),
@@ -263,13 +263,13 @@ impl ToTokens for ValidatorCallTemplate {
       GeneratedCodeKind::OneofRule => {
         tokens.extend(quote! {
           if !&self.#field_rust_ident.is_some() {
-            let field_context = proto_types::FieldContext {
+            let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
               subscript: None,
             };
 
-            let violation = macro_impl::validators::oneofs::required(field_context);
+            let violation = protocheck::validators::oneofs::required(field_context);
             #violations_ident.push(violation);
           }
         });
@@ -305,13 +305,13 @@ impl ToTokens for ValidatorCallTemplate {
           let mut cel_context = cel_interpreter::Context::default();
           cel_context.add_variable("this", #context_target).expect("Failed to add 'this' to the cel program");
 
-          let field_context = proto_types::FieldContext {
+          let field_context = protocheck::field_data::FieldContext {
             field_data: #field_data,
             subscript: None,
             parent_elements: #parent_messages_ident.as_slice(),
           };
 
-          match macro_impl::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), #is_for_message) {
+          match protocheck::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), #is_for_message) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };
@@ -322,7 +322,7 @@ impl ToTokens for ValidatorCallTemplate {
 }
 
 fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident2) -> TokenStream2 {
-  let subscript_path = quote! { proto_types::buf::validate::field_path_element::Subscript };
+  let subscript_path = quote! { protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {
     ProtoType::String => quote! { #subscript_path::StringKey(#key_ident.clone().into()) },

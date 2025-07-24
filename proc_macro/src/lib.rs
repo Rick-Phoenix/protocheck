@@ -8,7 +8,7 @@ pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2};
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
 
-use crate::{protogen::parse_proto_message, rules::extract_validators::extract_validators};
+use crate::rules::extract_validators::extract_validators;
 
 mod pool_loader;
 mod protogen;
@@ -95,23 +95,23 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
   let output = quote! {
     #original_input_as_proc_macro2
 
-    impl macro_impl::validators::WithValidator for #struct_ident {
-      fn validate(&self) -> Result<(), proto_types::buf::validate::Violations> {
-        let mut violations: Vec<proto_types::buf::validate::Violation> = Vec::new();
-        let mut parent_messages: Vec<proto_types::buf::validate::FieldPathElement> = Vec::new();
+    impl protocheck::validators::WithValidator for #struct_ident {
+      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+        let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
+        let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
 
         self.nested_validate(&mut parent_messages, &mut violations);
 
         if violations.len() > 0 {
-          return Err(proto_types::buf::validate::Violations { violations });
+          return Err(protocheck::types::protovalidate::Violations { violations });
         }
         Ok(())
       }
 
       fn nested_validate(
         &self,
-        parent_messages: &mut Vec<proto_types::buf::validate::FieldPathElement>,
-        violations: &mut Vec<proto_types::buf::validate::Violation>,
+        parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
+        violations: &mut Vec<protocheck::types::protovalidate::Violation>,
       ) {
 
         #(#validator_call_templates)*
@@ -125,10 +125,10 @@ pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
   output.into()
 }
 
-#[proc_macro_derive(
-  ProtoMessage,
-  attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
-)]
-pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
-  parse_proto_message(input)
-}
+// #[proc_macro_derive(
+//   ProtoMessage,
+//   attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
+// )]
+// pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
+//   parse_proto_message(input)
+// }

@@ -51,7 +51,7 @@ impl ToTokens for FieldData {
     let value_type_tokens = option_to_tokens(&self.value_type);
 
     tokens.extend(quote! {
-      proto_types::FieldData {
+      protocheck::field_data::FieldData {
         rust_name: #rust_name.to_string(),
         proto_name: #proto_name.to_string(),
         proto_type: #proto_type,

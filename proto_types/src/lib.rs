@@ -32,7 +32,7 @@ impl ToTokens for FieldPathElement {
     };
 
     tokens.extend(quote! {
-      proto_types::buf::validate::FieldPathElement {
+      protocheck::types::protovalidate::FieldPathElement {
         field_number: #field_number,
         field_name: #field_name_expr,
         field_type: #field_type,
@@ -46,7 +46,7 @@ impl ToTokens for FieldPathElement {
 
 impl ToTokens for ProtoType {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let path = quote! { proto_types::google::protobuf::field_descriptor_proto::Type }; // The full path to the enum
+    let path = quote! { protocheck::types::protobuf::field_descriptor_proto::Type };
 
     match self {
       ProtoType::Double => tokens.extend(quote! { #path::Double }),
@@ -73,7 +73,7 @@ impl ToTokens for ProtoType {
 
 impl ToTokens for Ignore {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let path = quote! { proto_types::buf::validate::Ignore };
+    let path = quote! { protocheck::types::protovalidate::Ignore };
 
     match self {
       Ignore::Unspecified => tokens.extend(quote! { #path::Unspecified }),
@@ -88,27 +88,27 @@ impl ToTokens for Subscript {
     match self {
       Subscript::Index(value) => {
         tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::Index(#value)
+            protocheck::types::protovalidate::Subscript::Index(#value)
         });
       }
       Subscript::BoolKey(value) => {
         tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::BoolKey(#value)
+            protocheck::types::protovalidate::Subscript::BoolKey(#value)
         });
       }
       Subscript::IntKey(value) => {
         tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::IntKey(#value)
+            protocheck::types::protovalidate::Subscript::IntKey(#value)
         });
       }
       Subscript::UintKey(value) => {
         tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::UintKey(#value)
+            protocheck::types::protovalidate::Subscript::UintKey(#value)
         });
       }
       Subscript::StringKey(value) => {
         tokens.extend(quote! {
-            proto_types::buf::validate::Subscript::StringKey(#value)
+            protocheck::types::protovalidate::Subscript::StringKey(#value)
         });
       }
     }

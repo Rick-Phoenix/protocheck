@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::myapp::v1::user::Post;
-use crate::myapp::v1::User;
-use macro_impl::validators::WithValidator;
+use protocheck::validators::WithValidator;
+
+use crate::myapp::v1::{user::Post, User};
 
 mod myapp {
   pub mod v1 {
