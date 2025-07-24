@@ -50,18 +50,15 @@ pub fn extract_validators(
 
   let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
-    .ok_or("buf.validate.field extension not found in descriptor pool")
-    .unwrap();
+    .expect("buf.validate.field extension not found in descriptor pool");
 
   let message_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.message")
-    .ok_or("buf.validate.message extension not found in descriptor pool")
-    .unwrap();
+    .expect("buf.validate.message extension not found in descriptor pool");
 
   let oneof_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.oneof")
-    .ok_or("buf.validate.oneof extension not found in descriptor pool")
-    .unwrap();
+    .expect("buf.validate.oneof extension not found in descriptor pool");
 
   let message_options = message_desc.options();
 
@@ -93,21 +90,10 @@ pub fn extract_validators(
       let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
       if oneof_rules.required() {
         let name = oneof.name();
-        let field_data = FieldData {
-          rust_name: name.to_string(),
-          proto_name: name.to_string(),
-          tag: 0,
-          is_repeated: false,
-          is_map: false,
-          is_required: false,
-          is_optional: false,
-          is_for_key: false,
-          key_type: None,
-          value_type: None,
-          proto_type: ProtoType::Bool,
-          enum_full_name: None,
-          ignore: Ignore::IfZeroValue,
-        };
+        let mut field_data = FieldData::default();
+        field_data.rust_name = name.to_string();
+        field_data.proto_name = name.to_string();
+
         validation_data.push(ValidatorCallTemplate {
           validator_path: None,
           target_value_tokens: None,

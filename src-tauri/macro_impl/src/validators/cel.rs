@@ -42,24 +42,31 @@ pub fn validate_cel(
           })
         }
       } else {
+        println!(
+          "Error during cel validation for `{}`: expected boolean result from expression, got `{:?}`",
+            field_context.field_data.proto_name, value.type_of()
+          );
         Err(Violation {
-          message: Some(format!(
-            "error during validation: expected boolean result, got `{:?}`",
-            value.type_of()
-          )),
-          rule_id: None,
+          message: Some("Internal server error".to_string()),
+          rule_id: Some("internal_server_error".to_string()),
           rule: None,
           field: None,
           for_key: Some(false),
         })
       }
     }
-    Err(e) => Err(Violation {
-      message: Some(format!("error during validation: {:?}", e)),
-      rule_id: None,
-      rule: None,
-      field: None,
-      for_key: Some(false),
-    }),
+    Err(e) => {
+      println!(
+        "Error during cel validation for `{}`: {:?}",
+        field_context.field_data.proto_name, e
+      );
+      Err(Violation {
+        message: Some("Internal server error".to_string()),
+        rule_id: Some("internal_server_error".to_string()),
+        rule: None,
+        field: None,
+        for_key: Some(false),
+      })
+    }
   }
 }

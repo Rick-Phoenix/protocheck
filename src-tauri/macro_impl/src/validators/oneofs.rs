@@ -6,20 +6,11 @@ use proto_types::{
 };
 
 pub fn required(field_context: FieldContext) -> Violation {
-  let mut elements = field_context.parent_elements.to_vec();
-  let current_elem = FieldPathElement {
-    field_type: Some(ProtoTypes::String.into()),
-    field_name: Some(field_context.field_data.proto_name.clone()),
-    key_type: None,
-    value_type: None,
-    field_number: None,
-    subscript: field_context.subscript,
-  };
-  elements.push(current_elem);
+  let elements = field_context.parent_elements.to_vec();
   let violation = Violation {
     rule_id: Some("oneof.required".to_string()),
     message: Some(format!(
-      "at least one value in {} is required",
+      "at least one value for `{}` is required",
       field_context.field_data.proto_name.clone(),
     )),
     for_key: None,
