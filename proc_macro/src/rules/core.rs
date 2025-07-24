@@ -1,5 +1,5 @@
 use super::{
-  field_rules, FieldData, FieldRules, GeneratedCodeKind, Type as ProtoType, ValidatorCallTemplate,
+  field_rules, FieldData, FieldRules, GeneratedCodeKind, ProtoType, ValidatorCallTemplate,
 };
 use crate::{
   pool_loader::DESCRIPTOR_POOL,

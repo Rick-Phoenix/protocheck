@@ -3,7 +3,7 @@ use std::{collections::HashSet, hash::Hash};
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  ProtoTypes,
+  ProtoType,
 };
 
 pub fn min_items<T>(
@@ -45,13 +45,13 @@ pub fn min_items<T>(
         plural_suffix
       )),
       for_key: Some(field_context.field_data.is_map_key),
-      field: Some(FieldPath { elements: elements }),
+      field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
           FieldPathElement {
             field_name: Some("repeated".to_string()),
             field_number: Some(18),
-            field_type: Some(ProtoTypes::Message as i32),
+            field_type: Some(ProtoType::Message as i32),
             subscript: None,
             key_type: None,
             value_type: None,
@@ -59,7 +59,7 @@ pub fn min_items<T>(
           FieldPathElement {
             field_name: Some("min_items".to_string()),
             field_number: Some(1),
-            field_type: Some(ProtoTypes::Uint64 as i32),
+            field_type: Some(ProtoType::Uint64 as i32),
             key_type: None,
             value_type: None,
             subscript: None,
@@ -111,13 +111,13 @@ pub fn max_items<T>(
         plural_suffix
       )),
       for_key: Some(field_context.field_data.is_map_key),
-      field: Some(FieldPath { elements: elements }),
+      field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
           FieldPathElement {
             field_name: Some("repeated".to_string()),
             field_number: Some(18),
-            field_type: Some(ProtoTypes::Message as i32),
+            field_type: Some(ProtoType::Message as i32),
             subscript: None,
             key_type: None,
             value_type: None,
@@ -125,7 +125,7 @@ pub fn max_items<T>(
           FieldPathElement {
             field_name: Some("max_items".to_string()),
             field_number: Some(2),
-            field_type: Some(ProtoTypes::Uint64 as i32),
+            field_type: Some(ProtoType::Uint64 as i32),
             key_type: None,
             value_type: None,
             subscript: None,
@@ -166,13 +166,13 @@ where
         field_context.field_data.proto_name.clone(),
       )),
       for_key: None,
-      field: Some(FieldPath { elements: elements }),
+      field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
           FieldPathElement {
             field_name: Some("repeated".to_string()),
             field_number: Some(18),
-            field_type: Some(ProtoTypes::Message as i32),
+            field_type: Some(ProtoType::Message as i32),
             subscript: None,
             key_type: None,
             value_type: None,
@@ -180,7 +180,7 @@ where
           FieldPathElement {
             field_name: Some("unique".to_string()),
             field_number: Some(3),
-            field_type: Some(ProtoTypes::Uint64 as i32),
+            field_type: Some(ProtoType::Uint64 as i32),
             key_type: None,
             value_type: None,
             subscript: None,
@@ -243,13 +243,13 @@ where
         field_context.field_data.proto_name.clone(),
       )),
       for_key: None,
-      field: Some(FieldPath { elements: elements }),
+      field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
           FieldPathElement {
             field_name: Some("repeated".to_string()),
             field_number: Some(18),
-            field_type: Some(ProtoTypes::Message as i32),
+            field_type: Some(ProtoType::Message as i32),
             subscript: None,
             key_type: None,
             value_type: None,
@@ -257,7 +257,7 @@ where
           FieldPathElement {
             field_name: Some("unique".to_string()),
             field_number: Some(3),
-            field_type: Some(ProtoTypes::Uint64 as i32),
+            field_type: Some(ProtoType::Uint64 as i32),
             key_type: None,
             value_type: None,
             subscript: None,

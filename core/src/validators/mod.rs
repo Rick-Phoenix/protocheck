@@ -6,7 +6,7 @@ pub trait WithValidator {
     &self,
     parent_messages: &mut Vec<FieldPathElement>,
     violations: &mut Vec<Violation>,
-  ) -> ();
+  );
 }
 
 pub mod cel;

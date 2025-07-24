@@ -3,10 +3,11 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use bytes::Bytes;
 use proc_macro::TokenStream;
+pub(crate) use prost_reflect::Kind as ProtoFieldKind;
 use prost_reflect::{prost::Message, ExtensionDescriptor, MessageDescriptor, Value};
 pub(crate) use proto_types::{protobuf, protovalidate};
 pub(crate) use protobuf::field_descriptor_proto::Type as ProtoTypes;
-pub(crate) use protocheck::{
+pub(crate) use protocheck_core::{
   field_data::{FieldContext, FieldData},
   validator_template::{GeneratedCodeKind, ValidatorCallTemplate},
 };

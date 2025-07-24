@@ -1,10 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{
-  field_data::FieldData,
-  protovalidate::{FieldPath, FieldPathElement, Violation},
-  ProtoType,
-};
+use crate::{protovalidate::FieldPathElement, ProtoType};
 
 static MAP_KEY_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![

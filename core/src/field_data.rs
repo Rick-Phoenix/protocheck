@@ -1,4 +1,7 @@
-use proto_types::protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore};
+use crate::{
+  protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore},
+  ProtoType,
+};
 
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {

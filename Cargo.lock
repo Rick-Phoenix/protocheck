@@ -107,10 +107,9 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "cel-interpreter",
- "macro_impl",
  "prost",
  "prost-build",
- "proto_types",
+ "protocheck",
  "regex",
  "serde",
 ]
@@ -344,18 +343,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
-name = "macro_impl"
-version = "0.1.0"
-dependencies = [
- "cel-interpreter",
- "pr_macro",
- "prost",
- "prost-build",
- "proto_types",
- "serde",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -468,23 +455,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5be167a7af36ee22fe3115051bc51f6e6c7054c9348e28deb4f49bd6f705a315"
 
 [[package]]
-name = "pr_macro"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "cel-interpreter",
- "proc-macro2",
- "prost",
- "prost-build",
- "prost-reflect",
- "proto_types",
- "quote",
- "regex",
- "serde",
- "syn",
-]
-
-[[package]]
 name = "precomputed-hash"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -578,15 +548,65 @@ dependencies = [
 name = "proto_types"
 version = "0.1.0"
 dependencies = [
- "cel-interpreter",
  "proc-macro2",
  "prost",
  "prost-build",
+ "quote",
+ "serde",
+]
+
+[[package]]
+name = "protocheck"
+version = "0.1.0"
+dependencies = [
+ "proto_types",
+ "protocheck_core",
+ "protocheck_proc_macros",
+]
+
+[[package]]
+name = "protocheck_core"
+version = "0.1.0"
+dependencies = [
+ "cel-interpreter",
+ "proc-macro2",
+ "prost",
+ "proto_types",
  "quote",
  "random-string",
  "regex",
  "serde",
  "syn",
+]
+
+[[package]]
+name = "protocheck_proc_macros"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "cel-interpreter",
+ "proc-macro2",
+ "prost",
+ "prost-build",
+ "prost-reflect",
+ "proto_types",
+ "protocheck_core",
+ "quote",
+ "regex",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "protoschema"
+version = "0.1.0"
+dependencies = [
+ "cel-interpreter",
+ "prost",
+ "prost-build",
+ "proto_types",
+ "protocheck_proc_macros",
+ "serde",
 ]
 
 [[package]]

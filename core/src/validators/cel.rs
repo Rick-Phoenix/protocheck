@@ -2,9 +2,9 @@ use cel_interpreter::{Context, Program, Value};
 
 use crate::{
   field_data::{FieldContext, FieldData},
-  protobuf::field_descriptor_proto,
   protovalidate::{FieldPath, FieldPathElement, Violation},
   validators::common::get_base_violations_path,
+  ProtoType,
 };
 
 pub fn validate_cel(
@@ -52,7 +52,7 @@ pub fn validate_cel(
             violations_path.push(FieldPathElement {
               field_name: Some("cel".to_string()),
               field_number: Some(23),
-              field_type: Some(field_descriptor_proto::Type::Message as i32),
+              field_type: Some(ProtoType::Message as i32),
               key_type: None,
               value_type: None,
               subscript: None,

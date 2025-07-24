@@ -15,8 +15,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .file_descriptor_set_path(descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     .message_attribute(".myapp.v1", "#[macro_impl::macros::protobuf_validate]")
-    .extern_path(".google.protobuf", "::proto_types::google::protobuf")
-    .extern_path(".buf.validate", "::proto_types::protovalidate")
+    .extern_path(".google.protobuf", "protocheck::types::protobuf")
+    .extern_path(".buf.validate", "protocheck::types::protovalidate")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 

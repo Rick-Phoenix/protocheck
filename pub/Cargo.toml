@@ -1,0 +1,9 @@
+[package]
+name = "protocheck"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+protocheck_proc_macros = { path = "../proc_macro/" }
+protocheck_core = { path = "../core/" }
+proto_types = { path = "../proto_types/" }

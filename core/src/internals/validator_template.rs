@@ -1,11 +1,7 @@
-use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use random_string::charsets::ALPHA_LOWER;
 
-use crate::{
-  protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore},
-  TokenStream2,
-};
+use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 
 #[derive(Debug)]
 pub enum GeneratedCodeKind {
@@ -54,13 +50,13 @@ impl ToTokens for ValidatorCallTemplate {
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
 
-    let field_rust_ident = Ident::new(&self.field_data.rust_name, Span::call_site());
-    let parent_messages_ident = Ident::new("parent_messages", Span::call_site());
-    let violations_ident = Ident::new("violations", Span::call_site());
-    let item_ident = Ident::new("item", Span::call_site());
-    let index_ident = Ident::new("idx", Span::call_site());
-    let key_ident = Ident::new("key", Span::call_site());
-    let val_ident = Ident::new("val", Span::call_site());
+    let field_rust_ident = Ident2::new(&self.field_data.rust_name, Span2::call_site());
+    let parent_messages_ident = Ident2::new("parent_messages", Span2::call_site());
+    let violations_ident = Ident2::new("violations", Span2::call_site());
+    let item_ident = Ident2::new("item", Span2::call_site());
+    let index_ident = Ident2::new("idx", Span2::call_site());
+    let key_ident = Ident2::new("key", Span2::call_site());
+    let val_ident = Ident2::new("val", Span2::call_site());
 
     let subscript = if field_is_repeated_item || self.field_data.is_repeated {
       quote! { Some(proto_types::buf::validate::field_path_element::Subscript::Index(#index_ident as u64)) }
@@ -186,8 +182,8 @@ impl ToTokens for ValidatorCallTemplate {
         float_values,
       } => {
         let (values_hashset, unique_values_check) = if *unique_values {
-          let hashset_ident = Ident::new("processed_values", Span::call_site());
-          let not_unique = Ident::new("not_unique", Span::call_site());
+          let hashset_ident = Ident2::new("processed_values", Span2::call_site());
+          let not_unique = Ident2::new("not_unique", Span2::call_site());
           let func_name = if *float_values {
             quote! { unique_floats }
           } else {
@@ -291,12 +287,12 @@ impl ToTokens for ValidatorCallTemplate {
         };
 
         let random_string = random_string::generate(5, ALPHA_LOWER);
-        let static_program_ident = Ident::new(
+        let static_program_ident = Ident2::new(
           &format!(
             "__CEL_{}_PROGRAM_{}_{}",
             program_type, self.field_data.rust_name, random_string
           ),
-          Span::call_site(),
+          Span2::call_site(),
         );
 
         tokens.extend(quote! {
@@ -325,7 +321,7 @@ impl ToTokens for ValidatorCallTemplate {
   }
 }
 
-fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> TokenStream2 {
+fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident2) -> TokenStream2 {
   let subscript_path = quote! { proto_types::buf::validate::field_path_element::Subscript };
 
   match key_proto_type {

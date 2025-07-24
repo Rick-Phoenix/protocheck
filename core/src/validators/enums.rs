@@ -24,7 +24,7 @@ pub fn defined_only(
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(ProtoTypes::Enum.into()),
+      field_type: Some(ProtoType::Enum.into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
@@ -47,7 +47,7 @@ pub fn defined_only(
       FieldPathElement {
         field_name: Some("enum".to_string()),
         field_number: Some(16),
-        field_type: Some(ProtoTypes::Message as i32),
+        field_type: Some(ProtoType::Message as i32),
         subscript: None,
         key_type: None,
         value_type: None,
@@ -55,7 +55,7 @@ pub fn defined_only(
       FieldPathElement {
         field_name: Some("defined_only".to_string()),
         field_number: Some(2),
-        field_type: Some(ProtoTypes::Bool as i32),
+        field_type: Some(ProtoType::Bool as i32),
         key_type: None,
         value_type: None,
         subscript: None,
@@ -70,7 +70,7 @@ pub fn defined_only(
         enum_name,
       )),
       for_key: Some(field_context.field_data.is_map_key),
-      field: Some(FieldPath { elements: elements }),
+      field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violations_path,
       }),

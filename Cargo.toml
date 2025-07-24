@@ -1,5 +1,5 @@
 [workspace]
-members = ["proc_macro", "protoschema", "cel", "proto_types", "protocheck"]
+members = ["proc_macro", "protoschema", "cel", "proto_types", "core", "pub"]
 resolver = "2"
 
 [workspace.dependencies]
