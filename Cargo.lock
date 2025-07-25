@@ -471,6 +471,7 @@ name = "protocheck"
 version = "0.1.0"
 dependencies = [
  "prost-build",
+ "prost-reflect",
  "proto_types",
  "protocheck_core",
  "protocheck_proc_macros",

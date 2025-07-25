@@ -15,5 +15,6 @@ protocheck = { path = "../protocheck/" }
 # proto_types = { path = "../proto_types/" }
 
 [build-dependencies]
+protocheck = { path = "../protocheck/" }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }
