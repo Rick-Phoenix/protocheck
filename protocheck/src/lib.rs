@@ -34,19 +34,15 @@ pub mod build {
     let fds = FileDescriptorSet::decode(fds_bytes.as_slice())?;
     let pool = prost_reflect::DescriptorPool::from_file_descriptor_set(fds)?;
 
-    let mut full_message_names = Vec::new();
     for message_desc in pool.all_messages() {
       if message_desc.full_name().starts_with(app_package_prefix) {
-        full_message_names.push(message_desc.full_name().to_string());
+        let message_name = message_desc.full_name();
+        let attribute_str = format!(
+          r#"#[protocheck::macros::protobuf_validate("{}")]"#,
+          message_name
+        );
+        config.message_attribute(message_name, &attribute_str);
       }
-    }
-
-    for full_name in full_message_names {
-      let attribute_str = format!(
-        r#"#[protocheck::macros::protobuf_validate("{}")]"#,
-        full_name
-      );
-      config.message_attribute(full_name, &attribute_str);
     }
 
     config.compile_protos(proto_files, proto_include_paths)?;
