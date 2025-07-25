@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use prost_reflect::{prost::Message, Kind, Value as ProstValue};
-use syn::DeriveInput;
+use prost_reflect::{prost::Message, Kind, MessageDescriptor, Value as ProstValue};
+use syn::{DeriveInput, Error};
 
 use super::{
   protovalidate::{field_rules, FieldRules, Ignore},
@@ -16,30 +16,26 @@ use crate::{
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
   },
+  Span2,
 };
 
 pub fn extract_validators(
   input_tokens: DeriveInput,
+  message_desc: MessageDescriptor,
 ) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
-  let range = &input_tokens.ident;
-  let struct_name = range.to_string();
 
-  let message_name = if struct_name == "User" {
-    "User".to_string()
-  } else if struct_name == "Post" {
-    "User.Post".to_string()
-  } else {
-    "".to_string()
+  let rust_field_spans: std::collections::HashMap<String, Span2> = {
+    let mut map = std::collections::HashMap::new();
+    if let syn::Data::Struct(syn::DataStruct { fields, .. }) = &input_tokens.data {
+      for field in fields {
+        if let Some(ident) = &field.ident {
+          map.insert(ident.to_string(), ident.span());
+        }
+      }
+    }
+    map
   };
-
-  let message = DESCRIPTOR_POOL.get_message_by_name(format!("myapp.v1.{}", message_name).as_str());
-
-  if message.is_none() {
-    return Ok(validation_data);
-  };
-
-  let message_desc = message.unwrap();
 
   let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
@@ -103,6 +99,12 @@ pub fn extract_validators(
     // println!("{}", user_desc.name());
 
     let field_name = field_desc.name();
+
+    let rust_field_span = rust_field_spans
+      .get(field_name)
+      .cloned()
+      .unwrap_or_else(Span2::call_site);
+
     // println!("{}", field_name.to_string());
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
@@ -169,9 +171,7 @@ pub fn extract_validators(
 
       if !field_rules.cel.is_empty() {
         let cel_rules = field_rules.cel.clone();
-        validation_data.extend(
-          get_cel_rules(&field_data, cel_rules, false).expect("Failed to get field cel rules"),
-        );
+        validation_data.extend(get_cel_rules(&field_data, cel_rules, false).unwrap());
       }
 
       if let Some(rules_type) = field_rules.r#type.clone() {
