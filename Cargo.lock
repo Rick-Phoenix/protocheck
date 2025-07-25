@@ -117,19 +117,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cel-test"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "cel-interpreter",
- "prost",
- "prost-build",
- "protocheck",
- "regex",
- "serde",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -679,6 +666,19 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "tests"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "cel-interpreter",
+ "prost",
+ "prost-build",
+ "protocheck",
+ "regex",
+ "serde",
 ]
 
 [[package]]

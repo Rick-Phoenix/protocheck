@@ -2,7 +2,7 @@
 members = [
   "proc_macro",
   "protoschema",
-  "cel",
+  "tests",
   "proto_types",
   "core",
   "protocheck",
