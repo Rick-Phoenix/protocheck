@@ -76,6 +76,65 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   output.into()
 }
 
+#[proc_macro_attribute]
+pub fn protobuf_validate_enum(attrs: TokenStream, input: TokenStream) -> TokenStream {
+  let proto_enum_name_tokens = parse_macro_input!(attrs as LitStr);
+
+  let proto_enum_name = proto_enum_name_tokens.value();
+
+  if proto_enum_name.is_empty() {
+    return quote! {}.into();
+  }
+
+  let enum_desc = DESCRIPTOR_POOL.get_enum_by_name(&proto_enum_name);
+
+  if enum_desc.is_none() {
+    println!("Enum {} not found", proto_enum_name);
+    return quote! {}.into();
+  }
+
+  println!("{}", proto_enum_name);
+
+  let input_clone = input.clone();
+  let ast = parse_macro_input!(input_clone as DeriveInput);
+
+  let struct_ident = ast.ident.clone();
+
+  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
+
+  let output = quote! {
+    #original_input_as_proc_macro2
+
+    // impl protocheck::validators::WithValidator for #struct_ident {
+    //   fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+    //     let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
+    //     let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
+    //
+    //     self.nested_validate(&mut parent_messages, &mut violations);
+    //
+    //     if violations.len() > 0 {
+    //       return Err(protocheck::types::protovalidate::Violations { violations });
+    //     }
+    //     Ok(())
+    //   }
+    //
+    //   fn nested_validate(
+    //     &self,
+    //     parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
+    //     violations: &mut Vec<protocheck::types::protovalidate::Violation>,
+    //   ) {
+    //
+    //     #(#validator_call_templates)*
+    //
+    //   }
+    // }
+  };
+
+  // eprintln!("{}", output);
+
+  output.into()
+}
+
 #[proc_macro]
 pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
   let parsed_args =

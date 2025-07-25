@@ -35,13 +35,24 @@ pub mod build {
     let pool = prost_reflect::DescriptorPool::from_file_descriptor_set(fds)?;
 
     for message_desc in pool.all_messages() {
-      if message_desc.full_name().starts_with(app_package_prefix) {
-        let message_name = message_desc.full_name();
+      let message_name = message_desc.full_name();
+      if message_name.starts_with(app_package_prefix) {
         let attribute_str = format!(
           r#"#[protocheck::macros::protobuf_validate("{}")]"#,
           message_name
         );
         config.message_attribute(message_name, &attribute_str);
+      }
+    }
+
+    for enum_desc in pool.all_enums() {
+      let enum_name = enum_desc.full_name();
+      if enum_name.starts_with(app_package_prefix) {
+        let attribute_str = format!(
+          r#"#[protocheck::macros::protobuf_validate_enum("{}")]"#,
+          enum_name
+        );
+        config.enum_attribute(enum_name, attribute_str);
       }
     }
 
