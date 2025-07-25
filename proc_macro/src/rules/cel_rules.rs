@@ -5,7 +5,7 @@ use crate::Span2;
 
 pub fn get_cel_rules(
   field_data: &FieldData,
-  rules: Vec<Rule>,
+  rules: &[Rule],
   is_for_message: bool,
 ) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
   let mut validators: Vec<ValidatorCallTemplate> = Vec::new();

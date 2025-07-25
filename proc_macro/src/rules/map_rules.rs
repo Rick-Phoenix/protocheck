@@ -105,7 +105,7 @@ pub fn get_map_rules(
         key_rules_templates.extend(generated_key_templates);
 
         if !key_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&key_field_data, key_rules_descriptor.cel, false)?;
+          let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
           key_rules_templates.extend(cel_rules);
         }
       }
@@ -137,7 +137,7 @@ pub fn get_map_rules(
         value_rules_templates.extend(generated_value_templates);
 
         if !value_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&value_field_data, value_rules_descriptor.cel, false)?;
+          let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
           value_rules_templates.extend(cel_rules);
         }
       }

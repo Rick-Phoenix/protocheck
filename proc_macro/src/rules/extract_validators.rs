@@ -34,33 +34,38 @@ pub fn extract_validators(
 
   let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
-    .expect("buf.validate.field extension not found in descriptor pool");
+    .ok_or(Error::new_spanned(
+      &input_tokens,
+      "buf.validate.field extension not found in descriptor pool",
+    ))?;
 
   let message_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.message")
-    .expect("buf.validate.message extension not found in descriptor pool");
+    .ok_or(Error::new_spanned(
+      &input_tokens,
+      "buf.validate.message extension not found in descriptor pool",
+    ))?;
 
   let oneof_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.oneof")
-    .expect("buf.validate.oneof extension not found in descriptor pool");
+    .ok_or(Error::new_spanned(
+      &input_tokens,
+      "buf.validate.oneof extension not found in descriptor pool",
+    ))?;
 
   let message_options = message_desc.options();
-
   let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
 
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
 
     if !message_rules.cel.is_empty() {
-      let message_cel_rules = message_rules.cel.clone();
       let mut field_data = FieldData::default();
       field_data.rust_name = message_desc.name().to_string();
       field_data.proto_name = message_desc.name().to_string();
       field_data.tag = 0;
       field_data.proto_type = ProtoType::Message;
-      validation_data.extend(
-        get_cel_rules(&field_data, message_cel_rules, true).expect("Failed to get the cel rules"),
-      );
+      validation_data.extend(get_cel_rules(&field_data, &message_rules.cel, true)?);
     }
   }
 
@@ -103,11 +108,11 @@ pub fn extract_validators(
     let field_tag = field_desc.number();
 
     let field_options = field_desc.options();
-
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
+
       let ignore_val = field_rules.ignore();
 
       if matches!(ignore_val, Ignore::Always) {
@@ -135,8 +140,7 @@ pub fn extract_validators(
       };
 
       if !field_rules.cel.is_empty() {
-        let cel_rules = field_rules.cel.clone();
-        validation_data.extend(get_cel_rules(&field_data, cel_rules, false).unwrap());
+        validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
       }
 
       if let Kind::Message(field_message_type) = field_desc.kind() {

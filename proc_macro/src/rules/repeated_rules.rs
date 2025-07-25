@@ -84,7 +84,7 @@ pub fn get_repeated_rules(
         items_templates.extend(rules_for_single_item);
 
         if !items_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&items_field_data, items_rules_descriptor.cel, false)?;
+          let cel_rules = get_cel_rules(&items_field_data, &items_rules_descriptor.cel, false)?;
           items_templates.extend(cel_rules);
         }
       }
