@@ -3,11 +3,11 @@ members = ["proc_macro", "protoschema", "cel", "proto_types", "core", "pub"]
 resolver = "2"
 
 [workspace.dependencies]
-cel-parser = "=0.8.1"
+cel-parser = "=0.10.1"
+cel-interpreter = "=0.10.0"
 prost = "0.14.1"
 serde = { version = "1", features = ["derive"] }
 prost-reflect = { version = "0.16.0", features = ["serde"] }
-cel-interpreter = "0.9.1"
 syn = { version = "2.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = "1.0"
