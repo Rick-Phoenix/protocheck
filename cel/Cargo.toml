@@ -10,7 +10,7 @@ serde = { workspace = true }
 cel-interpreter = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../pub/" }
+protocheck = { path = "../protocheck/" }
 # proto_types = { path = "../proto_types/" }
 
 [build-dependencies]

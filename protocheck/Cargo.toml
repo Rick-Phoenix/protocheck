@@ -7,3 +7,6 @@ edition = "2024"
 protocheck_proc_macros = { path = "../proc_macro/" }
 protocheck_core = { path = "../core/" }
 proto_types = { path = "../proto_types/" }
+
+[dev-dependencies]
+prost-build = { workspace = true }

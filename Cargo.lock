@@ -483,6 +483,7 @@ dependencies = [
 name = "protocheck"
 version = "0.1.0"
 dependencies = [
+ "prost-build",
  "proto_types",
  "protocheck_core",
  "protocheck_proc_macros",
