@@ -5,11 +5,13 @@ use std::collections::HashSet;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2};
+use prost_reflect::FileDescriptor;
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
 
 use crate::rules::extract_validators::extract_validators;
 
+mod namespaces;
 mod pool_loader;
 mod protogen;
 mod rules;
@@ -77,20 +79,21 @@ pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn protobuf_validate(args: TokenStream, input: TokenStream) -> TokenStream {
-  let _ = args;
+pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream {
+  let args = parse_macro_input!(attrs with Punctuated::<LitStr, syn::Token![,]>::parse_terminated);
+
+  let args_vec: HashSet<String> = args.iter().map(|s| s.value()).collect();
 
   let input_clone = input.clone();
-  let _ast = parse_macro_input!(input_clone as DeriveInput);
+  let ast = parse_macro_input!(input_clone as DeriveInput);
 
-  let struct_ident = _ast.ident.clone();
+  let struct_ident = ast.ident.clone();
 
-  // let struct_name = _ast.ident.to_string();
-  // println!("{}", struct_name.to_string());
+  // println!("Struct Ident: {}", struct_ident.to_string());
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
-  let validator_call_templates = extract_validators(_ast).unwrap();
+  let validator_call_templates = extract_validators(ast).unwrap();
 
   let output = quote! {
     #original_input_as_proc_macro2
