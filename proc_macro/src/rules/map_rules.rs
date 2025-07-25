@@ -113,11 +113,15 @@ pub fn get_map_rules(
   }
 
   let mut value_is_message = false;
-  if let Kind::Message(_) = value_desc.kind() {
-    value_is_message = true;
+  if let Kind::Message(value_message_desc) = value_desc.kind() {
+    if !value_message_desc
+      .full_name()
+      .starts_with("google.protobuf")
+    {
+      value_is_message = true;
+    }
   }
 
-  // Change it for well known types
   if map_rules.values.is_some() && !value_is_message {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
     let ignore = value_rules_descriptor.ignore();

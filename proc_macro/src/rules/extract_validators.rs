@@ -6,7 +6,7 @@ use super::{
   FieldData, GeneratedCodeKind, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate,
 };
 use crate::{
-  pool_loader::DESCRIPTOR_POOL,
+  pool_loader::get_rule_extensions_descriptors,
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
@@ -32,30 +32,13 @@ pub fn extract_validators(
     map
   };
 
-  let field_ext_descriptor = DESCRIPTOR_POOL
-    .get_extension_by_name("buf.validate.field")
-    .ok_or(Error::new_spanned(
-      &input_tokens,
-      "buf.validate.field extension not found in descriptor pool",
-    ))?;
-
-  let message_ext_descriptor = DESCRIPTOR_POOL
-    .get_extension_by_name("buf.validate.message")
-    .ok_or(Error::new_spanned(
-      &input_tokens,
-      "buf.validate.message extension not found in descriptor pool",
-    ))?;
-
-  let oneof_ext_descriptor = DESCRIPTOR_POOL
-    .get_extension_by_name("buf.validate.oneof")
-    .ok_or(Error::new_spanned(
-      &input_tokens,
-      "buf.validate.oneof extension not found in descriptor pool",
-    ))?;
+  let (field_ext_descriptor, message_ext_descriptor, oneof_ext_descriptor) =
+    get_rule_extensions_descriptors(input_tokens)?;
 
   let message_options = message_desc.options();
   let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
 
+  // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
 
@@ -69,6 +52,7 @@ pub fn extract_validators(
     }
   }
 
+  // Oneof rules
   for oneof in message_desc.oneofs() {
     // println!("{:?}", oneof.name());
     if let ProstValue::Message(oneof_rules_msg) = oneof
@@ -93,6 +77,7 @@ pub fn extract_validators(
     }
   }
 
+  // Field Rules
   for field_desc in message_desc.fields() {
     let field_name = field_desc.name();
     // println!("{}", field_name.to_string());
@@ -113,13 +98,12 @@ pub fn extract_validators(
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
 
-      let ignore_val = field_rules.ignore();
+      let ignore = field_rules.ignore();
+      let is_required = field_rules.required();
 
-      if matches!(ignore_val, Ignore::Always) {
+      if matches!(ignore, Ignore::Always) {
         continue;
       }
-
-      let is_required = field_rules.required();
 
       let mut field_data = FieldData {
         rust_name: field_name.to_string(),
@@ -135,13 +119,9 @@ pub fn extract_validators(
         key_type: None,
         value_type: None,
         enum_full_name: None,
-        ignore: ignore_val,
+        ignore,
         is_optional,
       };
-
-      if !field_rules.cel.is_empty() {
-        validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
-      }
 
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !is_map
@@ -163,8 +143,12 @@ pub fn extract_validators(
         }
       }
 
-      if let Some(rules_type) = field_rules.r#type.clone() {
-        let rules = get_field_rules(field_span, &field_desc, &field_data, &rules_type)?;
+      if !field_rules.cel.is_empty() {
+        validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
+      }
+
+      if let Some(ref rules_type) = field_rules.r#type {
+        let rules = get_field_rules(field_span, &field_desc, &field_data, rules_type)?;
 
         validation_data.extend(rules);
       }
