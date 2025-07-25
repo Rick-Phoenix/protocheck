@@ -1,10 +1,8 @@
-use std::collections::HashSet;
-
 use prost_reflect::{prost::Message, Kind, MessageDescriptor, Value as ProstValue};
 use syn::{DeriveInput, Error};
 
 use super::{
-  protovalidate::{field_rules, FieldRules, Ignore},
+  protovalidate::{FieldRules, Ignore},
   FieldData, GeneratedCodeKind, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate,
 };
 use crate::{
@@ -12,9 +10,6 @@ use crate::{
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
-    enum_rules::get_enum_rules,
-    map_rules::get_map_rules,
-    repeated_rules::get_repeated_rules,
   },
   Span2,
 };
@@ -22,7 +17,7 @@ use crate::{
 pub fn extract_validators(
   input_tokens: DeriveInput,
   message_desc: MessageDescriptor,
-) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
+) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
 
   let rust_field_spans: std::collections::HashMap<String, Span2> = {
@@ -93,24 +88,18 @@ pub fn extract_validators(
     }
   }
 
-  // println!("Struct Name: {}", struct_name.to_string());
-
   for field_desc in message_desc.fields() {
-    // println!("{}", user_desc.name());
-
     let field_name = field_desc.name();
-
-    let rust_field_span = rust_field_spans
+    // println!("{}", field_name.to_string());
+    let field_span = rust_field_spans
       .get(field_name)
       .cloned()
       .unwrap_or_else(Span2::call_site);
 
-    // println!("{}", field_name.to_string());
+    let field_kind = field_desc.kind();
     let is_repeated = field_desc.is_list();
     let is_map = field_desc.is_map();
     let is_optional = field_desc.supports_presence();
-
-    let _field_rust_ident = field_desc.json_name(); // Or derive from proto name
     let field_tag = field_desc.number();
 
     let field_options = field_desc.options();
@@ -127,13 +116,11 @@ pub fn extract_validators(
 
       let is_required = field_rules.required();
 
-      // println!("Enum Name: {:?}", enum_full_name);
-
       let mut field_data = FieldData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         tag: field_tag,
-        proto_type: convert_kind_to_proto_type(field_desc.kind()),
+        proto_type: convert_kind_to_proto_type(&field_kind),
         is_required,
         is_repeated,
         is_repeated_item: false,
@@ -147,13 +134,17 @@ pub fn extract_validators(
         is_optional,
       };
 
-      if let Kind::Message(_field_message_type) = field_desc.kind() {
-        if !is_map {
-          if field_desc.name() != "posts" {
-            // println!("{}", field_desc.name());
-            continue;
-          }
+      if !field_rules.cel.is_empty() {
+        let cel_rules = field_rules.cel.clone();
+        validation_data.extend(get_cel_rules(&field_data, cel_rules, false).unwrap());
+      }
 
+      if let Kind::Message(field_message_type) = field_desc.kind() {
+        if !is_map
+          && !field_message_type
+            .full_name()
+            .starts_with("google.protobuf")
+        {
           field_data.is_repeated = false;
           field_data.is_repeated_item = is_repeated;
 
@@ -163,44 +154,15 @@ pub fn extract_validators(
             field_data,
             kind: GeneratedCodeKind::NestedMessageRecursion,
           };
-          // println!("{:#?}", template);
           validation_data.push(template);
           continue;
         }
       }
 
-      if !field_rules.cel.is_empty() {
-        let cel_rules = field_rules.cel.clone();
-        validation_data.extend(get_cel_rules(&field_data, cel_rules, false).unwrap());
-      }
-
       if let Some(rules_type) = field_rules.r#type.clone() {
-        let rules = match rules_type {
-          field_rules::Type::Map(map_rules) => {
-            vec![get_map_rules(&field_desc, &map_rules, ignore_val).unwrap()]
-          }
-          field_rules::Type::Enum(enum_rules) => match field_desc.kind() {
-            Kind::Enum(enum_descriptor) => {
-              field_data.enum_full_name = Some(enum_descriptor.full_name().to_string());
-              let enum_values: HashSet<i32> =
-                enum_descriptor.values().map(|e| e.number()).collect();
-              get_enum_rules(field_data, &enum_rules, enum_values).unwrap()
-            }
-            _ => {
-              return Err(syn::Error::new_spanned(
-                input_tokens,
-                "Found enum rules on a non-enum field.",
-              ))
-            }
-          },
-          field_rules::Type::Repeated(repeated_rules) => {
-            vec![get_repeated_rules(&field_data, &repeated_rules).unwrap()]
-          }
-          _ => get_field_rules(&field_data, &field_rules).unwrap(),
-        };
+        let rules = get_field_rules(field_span, &field_desc, &field_data, &rules_type)?;
 
         validation_data.extend(rules);
-        // println!("Rules: {:#?}", rules);
       }
     }
   }

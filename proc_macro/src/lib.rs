@@ -32,7 +32,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     return quote! {}.into();
   }
 
-  println!("{}", proto_message_name);
+  // println!("{}", proto_message_name);
 
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);

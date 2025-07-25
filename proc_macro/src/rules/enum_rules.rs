@@ -1,20 +1,24 @@
 use std::collections::HashSet;
 
 use quote::quote;
+use syn::Error;
 
 use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::{Ident2, Span2};
 
 pub fn get_enum_rules(
-  field_data: FieldData,
+  field_data: &FieldData,
   enum_rules: &EnumRules,
   enum_values: HashSet<i32>,
-) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
+) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
-  let enum_full_name = field_data
-    .enum_full_name
-    .clone()
-    .ok_or("Enum field missing full enum name in FieldData")?;
+  let enum_full_name = field_data.enum_full_name.clone().ok_or(Error::new(
+    Span2::call_site(),
+    format!(
+      "Enum field {} missing full enum name",
+      field_data.proto_name
+    ),
+  ))?;
 
   if enum_rules.defined_only() {
     let static_name_str = format!(
@@ -28,7 +32,7 @@ pub fn get_enum_rules(
       target_value_tokens: Some(
         quote! { &crate::__protobuf_validators_consts::#enum_static_ident },
       ),
-      field_data,
+      field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
     });
   }
@@ -40,13 +44,13 @@ pub fn get_enum_rules(
         invalid_numbers.push(*n);
       }
       if !invalid_numbers.is_empty() {
-        return Err(Box::new(syn::Error::new(
+        return Err(syn::Error::new(
           Span2::call_site(),
           format!(
             "enum_rules.in contains values that are not in the {} enum: {:?}",
             enum_full_name, invalid_numbers
           ),
-        )));
+        ));
       }
     }
   }

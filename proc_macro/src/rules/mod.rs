@@ -19,5 +19,6 @@ pub mod extract_validators;
 pub mod map_rules;
 pub mod numeric_rules;
 pub mod repeated_rules;
+pub mod rules_compat;
 pub mod string_rules;
 pub mod timestamp_rules;

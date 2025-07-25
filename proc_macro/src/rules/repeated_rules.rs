@@ -1,4 +1,6 @@
+use prost_reflect::FieldDescriptor;
 use quote::{quote, ToTokens};
+use syn::Error;
 
 use super::{
   protovalidate::{Ignore, RepeatedRules},
@@ -10,9 +12,11 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
+  field_desc: &FieldDescriptor,
+  field_span: Span2,
   field_data: &FieldData,
   repeated_rules: &RepeatedRules,
-) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
+) -> Result<ValidatorCallTemplate, Error> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut items_templates: Vec<ValidatorCallTemplate> = Vec::new();
 
@@ -42,10 +46,10 @@ pub fn get_repeated_rules(
   }
 
   if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {
-    return Err(Box::new(syn::Error::new(
-      Span2::call_site(),
+    return Err(syn::Error::new(
+      field_span,
       "repeated.min_items cannot be larger than repeated.max_items",
-    )));
+    ));
   }
 
   let mut unique_values = false;
@@ -54,10 +58,10 @@ pub fn get_repeated_rules(
 
   if repeated_rules.unique() {
     if matches!(field_data.proto_type, ProtoType::Message) {
-      return Err(Box::new(syn::Error::new(
-        Span2::call_site(),
+      return Err(syn::Error::new(
+        field_span,
         "repeated.unique only works for scalar fields",
-      )));
+      ));
     }
 
     unique_values = true;
@@ -66,19 +70,23 @@ pub fn get_repeated_rules(
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
     let ignore = items_rules_descriptor.ignore();
-    if !matches!(ignore, Ignore::Always) {
-      let mut items_field_data = field_data.clone();
-      items_field_data.ignore = ignore;
-      items_field_data.is_repeated = false;
-      items_field_data.is_repeated_item = true;
+    if let Some(ref rules_type) = items_rules_descriptor.r#type {
+      if !matches!(ignore, Ignore::Always) {
+        let mut items_field_data = field_data.clone();
+        items_field_data.ignore = ignore;
+        items_field_data.is_repeated = false;
+        items_field_data.is_repeated_item = true;
+        items_field_data.is_required = items_rules_descriptor.required();
 
-      let rules_for_single_item = get_field_rules(&items_field_data, &items_rules_descriptor)?;
+        let rules_for_single_item =
+          get_field_rules(field_span, field_desc, &items_field_data, rules_type)?;
 
-      items_templates.extend(rules_for_single_item);
+        items_templates.extend(rules_for_single_item);
 
-      if !items_rules_descriptor.cel.is_empty() {
-        let cel_rules = get_cel_rules(&items_field_data, items_rules_descriptor.cel, false)?;
-        items_templates.extend(cel_rules);
+        if !items_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(&items_field_data, items_rules_descriptor.cel, false)?;
+          items_templates.extend(cel_rules);
+        }
       }
     }
   }

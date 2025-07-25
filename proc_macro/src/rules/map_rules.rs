@@ -1,5 +1,6 @@
 use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
+use syn::Error;
 
 use super::{
   protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ProtoType, ValidatorCallTemplate,
@@ -13,10 +14,11 @@ use crate::{
 };
 
 pub fn get_map_rules(
+  map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
   map_rules: &MapRules,
   ignore: Ignore,
-) -> Result<ValidatorCallTemplate, Box<dyn std::error::Error>> {
+) -> Result<ValidatorCallTemplate, Error> {
   let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut value_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -28,22 +30,28 @@ pub fn get_map_rules(
       map_entry_message_desc.get_field_by_name("value"),
     )
   } else {
-    return Err(
+    return Err(Error::new(
+      map_field_span,
       format!(
         "Map field {} has no associated map entry message descriptor.",
         map_field_desc.name()
-      )
-      .into(),
-    );
+      ),
+    ));
   };
 
   let (key_desc, value_desc) = (
-    key_desc.ok_or("Map entry missing 'key' field descriptor")?,
-    value_desc.ok_or("Map entry missing 'value' field descriptor")?,
+    key_desc.ok_or(Error::new(
+      map_field_span,
+      "Map entry missing 'key' field descriptor",
+    ))?,
+    value_desc.ok_or(Error::new(
+      map_field_span,
+      "Map entry missing 'value' field descriptor",
+    ))?,
   );
 
-  let key_proto_type = convert_kind_to_proto_type(key_desc.kind());
-  let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
+  let key_proto_type = convert_kind_to_proto_type(&key_desc.kind());
+  let value_proto_type = convert_kind_to_proto_type(&value_desc.kind());
 
   let map_field_data = FieldData {
     rust_name: map_field_desc.name().to_string(),
@@ -89,30 +97,33 @@ pub fn get_map_rules(
   }
 
   if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
-    return Err(Box::new(syn::Error::new(
-      Span2::call_site(),
+    return Err(syn::Error::new(
+      map_field_span,
       "map.min_pairs cannot be larger than map.max_pairs",
-    )));
+    ));
   }
 
   if map_rules.keys.is_some() {
     let key_rules_descriptor = map_rules.keys.clone().unwrap();
     let ignore = key_rules_descriptor.ignore();
-    if !matches!(ignore, Ignore::Always) {
-      let is_required = key_rules_descriptor.required();
+    if let Some(ref rules) = key_rules_descriptor.r#type {
+      if !matches!(ignore, Ignore::Always) {
+        let is_required = key_rules_descriptor.required();
 
-      let mut key_field_data = map_field_data.clone();
-      key_field_data.is_required = is_required;
-      key_field_data.is_map = false;
-      key_field_data.is_map_key = true;
-      key_field_data.ignore = ignore;
+        let mut key_field_data = map_field_data.clone();
+        key_field_data.is_required = is_required;
+        key_field_data.is_map = false;
+        key_field_data.is_map_key = true;
+        key_field_data.ignore = ignore;
 
-      let generated_key_templates = get_field_rules(&key_field_data, &key_rules_descriptor)?;
-      key_rules_templates.extend(generated_key_templates);
+        let generated_key_templates =
+          get_field_rules(map_field_span, &key_desc, &key_field_data, rules)?;
+        key_rules_templates.extend(generated_key_templates);
 
-      if !key_rules_descriptor.cel.is_empty() {
-        let cel_rules = get_cel_rules(&key_field_data, key_rules_descriptor.cel, false)?;
-        key_rules_templates.extend(cel_rules);
+        if !key_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(&key_field_data, key_rules_descriptor.cel, false)?;
+          key_rules_templates.extend(cel_rules);
+        }
       }
     }
   }
@@ -126,22 +137,25 @@ pub fn get_map_rules(
   if map_rules.values.is_some() && !value_is_message {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
     let ignore = value_rules_descriptor.ignore();
-    if !matches!(ignore, Ignore::Always) {
-      let is_required = value_rules_descriptor.required();
+    if let Some(ref rules) = value_rules_descriptor.r#type {
+      if !matches!(ignore, Ignore::Always) {
+        let is_required = value_rules_descriptor.required();
 
-      let mut value_field_data = map_field_data.clone();
-      value_field_data.is_required = is_required;
-      value_field_data.is_map = false;
-      value_field_data.is_map_value = true;
+        let mut value_field_data = map_field_data.clone();
+        value_field_data.is_required = is_required;
+        value_field_data.is_map = false;
+        value_field_data.is_map_value = true;
 
-      value_field_data.ignore = ignore;
+        value_field_data.ignore = ignore;
 
-      let generated_value_templates = get_field_rules(&value_field_data, &value_rules_descriptor)?;
-      value_rules_templates.extend(generated_value_templates);
+        let generated_value_templates =
+          get_field_rules(map_field_span, &value_desc, &value_field_data, rules)?;
+        value_rules_templates.extend(generated_value_templates);
 
-      if !value_rules_descriptor.cel.is_empty() {
-        let cel_rules = get_cel_rules(&value_field_data, value_rules_descriptor.cel, false)?;
-        value_rules_templates.extend(cel_rules);
+        if !value_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(&value_field_data, value_rules_descriptor.cel, false)?;
+          value_rules_templates.extend(cel_rules);
+        }
       }
     }
   }

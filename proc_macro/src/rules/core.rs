@@ -1,50 +1,124 @@
-use super::{field_rules, FieldData, FieldRules, ProtoFieldKind, ProtoType, ValidatorCallTemplate};
-use crate::rules::string_rules;
+use std::collections::HashSet;
+
+use proc_macro2::Span;
+use prost_reflect::{FieldDescriptor, Kind};
+use syn::Error;
+
+use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
+use crate::rules::{
+  enum_rules::get_enum_rules, map_rules::get_map_rules, repeated_rules::get_repeated_rules,
+  string_rules::get_string_rules,
+};
 
 pub fn get_field_rules(
+  field_span: Span,
+  field_desc: &FieldDescriptor,
   field_data: &FieldData,
-  field_rules: &FieldRules,
-) -> Result<Vec<ValidatorCallTemplate>, Box<dyn std::error::Error>> {
-  if let Some(rules_type) = field_rules.r#type.clone() {
-    match rules_type {
-      field_rules::Type::String(string_rules) => {
-        string_rules::get_string_rules(field_data, &string_rules)
-      }
-      // field_rules::Type::Int64(int64_rules) => numeric_rules::get_int64_rules(&int64_rules),
-      // field_rules::Type::Int32(int32_rules) => numeric_rules::get_int32_rules(&int32_rules),
-      // field_rules::Type::Bytes(bytes_rules) => bytes_rules::get_bytes_rules(&bytes_rules),
-      // field_rules::Type::Bool(bool_rules) => bool_rules::get_bool_rules(&bool_rules),
-      // field_rules::Type::Enum(enum_rules) => enum_rules::get_enum_rules(field_data, &enum_rules),
+  field_rules: &RulesType,
+) -> Result<Vec<ValidatorCallTemplate>, Error> {
+  let mut rules_agg: Vec<ValidatorCallTemplate> = Vec::new();
+  let mut error: Option<Error> = None;
 
-      // field_rules::Type::Map(map_rules) => map_rules::get_map_rules(field_data, &map_rules),
-      // field_rules::Type::Any(any_rules) => any_rules::get_any_rules(&any_rules),
-      // field_rules::Type::Duration(dur_rules) => duration_rules::get_duration_rules(&dur_rules),
-      // field_rules::Type::Timestamp(time_rules) => timestamp_rules::get_timestamp_rules(&time_rules),
-      _ => Ok(Vec::new()),
+  let field_name = &field_data.proto_name;
+  let field_kind = &field_desc.kind();
+
+  match field_rules {
+    RulesType::Repeated(repeated_rules) => {
+      if !field_data.is_repeated {
+        error = Some(Error::new(
+          field_span,
+          format!(
+            "Cannot use repeated rules for non repeated field {}",
+            field_name
+          ),
+        ));
+      } else {
+        let rules = get_repeated_rules(field_desc, field_span, field_data, repeated_rules)?;
+        rules_agg.push(rules);
+      }
     }
-  } else {
-    Ok(Vec::new())
+    RulesType::Map(map_rules) => {
+      if !field_data.is_map {
+        error = Some(Error::new(
+          field_span,
+          format!("Cannot use map rules for non map field {}", field_name),
+        ));
+      } else {
+        let rules = get_map_rules(field_span, field_desc, map_rules, field_data.ignore)?;
+        rules_agg.push(rules);
+      }
+    }
+    RulesType::Enum(enum_rules) => {
+      if let Kind::Enum(enum_descriptor) = &field_kind {
+        let mut enum_data = field_data.clone();
+        enum_data.enum_full_name = Some(enum_descriptor.full_name().to_string());
+        let enum_values: HashSet<i32> = enum_descriptor.values().map(|e| e.number()).collect();
+        let rules = get_enum_rules(&enum_data, enum_rules, enum_values)?;
+        rules_agg.extend(rules);
+      } else {
+        error = Some(Error::new(
+          field_span,
+          format!(
+            "Could not find enum descriptor for enum field {}",
+            field_name
+          ),
+        ))
+      }
+    }
+    RulesType::String(string_rules) => {
+      if !matches!(&field_kind, Kind::String) {
+        error = Some(field_mismatch_error(
+          field_name, "string", field_kind, field_span,
+        ))
+      } else {
+        let rules = get_string_rules(field_span, field_data, string_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    // RulesType::String(string_rules) => string_rules::get_string_rules(field_data, &string_rules),
+    _ => {}
+  };
+
+  if let Some(err) = error {
+    return Err(err);
   }
+
+  Ok(rules_agg)
 }
 
-pub fn convert_kind_to_proto_type(kind: ProtoFieldKind) -> ProtoType {
+pub fn field_mismatch_error(
+  field_name: &str,
+  rule_type: &str,
+  field_type: &Kind,
+  span: Span,
+) -> Error {
+  Error::new(
+    span,
+    format!(
+      "Wrong rule type for field {}. Rule type: {}, Field Type: {:#?}",
+      field_name, rule_type, field_type
+    ),
+  )
+}
+
+pub fn convert_kind_to_proto_type(kind: &Kind) -> ProtoType {
   match kind {
-    ProtoFieldKind::Double => ProtoType::Double,
-    ProtoFieldKind::Float => ProtoType::Float,
-    ProtoFieldKind::Int32 => ProtoType::Int32,
-    ProtoFieldKind::Int64 => ProtoType::Int64,
-    ProtoFieldKind::Uint32 => ProtoType::Uint32,
-    ProtoFieldKind::Uint64 => ProtoType::Uint64,
-    ProtoFieldKind::Sint32 => ProtoType::Sint32,
-    ProtoFieldKind::Sint64 => ProtoType::Sint64,
-    ProtoFieldKind::Fixed32 => ProtoType::Fixed32,
-    ProtoFieldKind::Fixed64 => ProtoType::Fixed64,
-    ProtoFieldKind::Sfixed32 => ProtoType::Sfixed32,
-    ProtoFieldKind::Sfixed64 => ProtoType::Sfixed64,
-    ProtoFieldKind::Bool => ProtoType::Bool,
-    ProtoFieldKind::String => ProtoType::String,
-    ProtoFieldKind::Bytes => ProtoType::Bytes,
-    ProtoFieldKind::Message(_) => ProtoType::Message,
-    ProtoFieldKind::Enum(_) => ProtoType::Enum,
+    Kind::Double => ProtoType::Double,
+    Kind::Float => ProtoType::Float,
+    Kind::Int32 => ProtoType::Int32,
+    Kind::Int64 => ProtoType::Int64,
+    Kind::Uint32 => ProtoType::Uint32,
+    Kind::Uint64 => ProtoType::Uint64,
+    Kind::Sint32 => ProtoType::Sint32,
+    Kind::Sint64 => ProtoType::Sint64,
+    Kind::Fixed32 => ProtoType::Fixed32,
+    Kind::Fixed64 => ProtoType::Fixed64,
+    Kind::Sfixed32 => ProtoType::Sfixed32,
+    Kind::Sfixed64 => ProtoType::Sfixed64,
+    Kind::Bool => ProtoType::Bool,
+    Kind::String => ProtoType::String,
+    Kind::Bytes => ProtoType::Bytes,
+    Kind::Message(_) => ProtoType::Message,
+    Kind::Enum(_) => ProtoType::Enum,
   }
 }
