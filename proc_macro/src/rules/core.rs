@@ -44,7 +44,7 @@ pub fn get_field_rules(
           format!("Cannot use map rules for non map field {}", field_name),
         ));
       } else {
-        let rules = get_map_rules(field_span, field_desc, map_rules, field_data.ignore)?;
+        let rules = get_map_rules(field_span, field_desc, field_data, map_rules)?;
         rules_agg.push(rules);
       }
     }

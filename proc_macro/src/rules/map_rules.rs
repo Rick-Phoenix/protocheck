@@ -2,9 +2,7 @@ use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{
-  protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ProtoType, ValidatorCallTemplate,
-};
+use super::{protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate};
 use crate::{
   rules::{
     cel_rules::get_cel_rules,
@@ -16,8 +14,8 @@ use crate::{
 pub fn get_map_rules(
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
+  map_field_data: &FieldData,
   map_rules: &MapRules,
-  ignore: Ignore,
 ) -> Result<ValidatorCallTemplate, Error> {
   let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -53,23 +51,9 @@ pub fn get_map_rules(
   let key_proto_type = convert_kind_to_proto_type(&key_desc.kind());
   let value_proto_type = convert_kind_to_proto_type(&value_desc.kind());
 
-  let map_field_data = FieldData {
-    rust_name: map_field_desc.name().to_string(),
-    proto_name: map_field_desc.name().to_string(),
-    proto_type: ProtoType::Message,
-    tag: map_field_desc.number(),
-    is_required: false,
-    is_map: true,
-    is_map_key: false,
-    is_map_value: false,
-    is_repeated: false,
-    is_repeated_item: false,
-    is_optional: false,
-    key_type: Some(key_proto_type),
-    value_type: Some(value_proto_type),
-    enum_full_name: None,
-    ignore,
-  };
+  let mut map_field_data = map_field_data.clone();
+  map_field_data.key_type = Some(key_proto_type);
+  map_field_data.value_type = Some(value_proto_type);
 
   let mut min_pairs: Option<usize> = None;
   let mut max_pairs: Option<usize> = None;
@@ -163,7 +147,7 @@ pub fn get_map_rules(
   Ok(ValidatorCallTemplate {
     validator_path: None,
     target_value_tokens: None,
-    field_data: map_field_data,
+    field_data: map_field_data.to_owned(),
     kind: GeneratedCodeKind::MapValidationLoop {
       map_level_rules: map_level_rules_templates,
       key_rules: key_rules_templates,
