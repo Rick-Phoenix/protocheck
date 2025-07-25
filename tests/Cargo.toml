@@ -16,3 +16,4 @@ protocheck = { path = "../protocheck/" }
 
 [build-dependencies]
 prost-build = { workspace = true }
+prost-reflect = { workspace = true }

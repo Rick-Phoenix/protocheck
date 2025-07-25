@@ -1,44 +1,68 @@
+use std::io::Read;
+
 use prost_build::Config;
+use prost_reflect::{prost::Message, prost_types::FileDescriptorSet};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   println!("cargo:rerun-if-changed=proto/");
   println!("cargo:rerun-if-changed=proto_deps/");
 
-  let dummy_path = "/tmp/my_test_descriptor.bin";
-  println!("cargo:rustc-env=CEL_DESCRIPTOR_SET_PATH={}", dummy_path);
-
   let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
-  let descriptor_path = out_dir.join("file_descriptor_set.bin");
+  let final_descriptor_path = out_dir.join("file_descriptor_set.bin");
+
+  let temp_descriptor_path = out_dir.join("temp_file_descriptor_set.bin");
+
+  let proto_include_paths = &["proto", "proto_deps"];
+
+  let proto_files = &[
+    "proto/myapp/v1/user.proto",
+    "proto_deps/buf/validate/validate.proto",
+    // "proto/myapp/v1/post.proto",
+  ];
+
+  {
+    let mut temp_config = prost_build::Config::new();
+    temp_config.file_descriptor_set_path(temp_descriptor_path.clone());
+    temp_config.compile_protos(proto_files, proto_include_paths)?;
+  }
+
+  let mut fds_file = std::fs::File::open(&temp_descriptor_path)?;
+  let mut fds_bytes = Vec::new();
+  fds_file.read_to_end(&mut fds_bytes)?;
+  let fds = FileDescriptorSet::decode(fds_bytes.as_slice())?;
+  let pool = prost_reflect::DescriptorPool::from_file_descriptor_set(fds)?;
+
+  let mut full_message_names = Vec::new();
+  for message_desc in pool.all_messages() {
+    if message_desc.full_name().starts_with("myapp.v1") {
+      full_message_names.push(message_desc.full_name().to_string());
+    }
+  }
 
   let mut config = Config::new();
   config
-    .file_descriptor_set_path(descriptor_path.clone())
+    .file_descriptor_set_path(final_descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .message_attribute(".myapp.v1", r#"#[protocheck::macros::protobuf_validate]"#)
     .extern_path(".google.protobuf", "protocheck::types::protobuf")
     .extern_path(".buf.validate", "protocheck::types::protovalidate")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 
-  let proto_include_paths = &["proto", "proto_deps"];
+  for full_name in full_message_names {
+    let attribute_str = format!(
+      r#"#[protocheck::macros::protobuf_validate("{}")]"#,
+      full_name
+    );
+    config.message_attribute(full_name, &attribute_str);
+  }
 
-  config.compile_protos(
-    &[
-      "proto/myapp/v1/user.proto",
-      "proto_deps/buf/validate/validate.proto",
-      // "proto_deps/google/protobuf/descriptor.proto",
-      // "proto_deps/google/protobuf/duration.proto",
-      // "proto_deps/google/protobuf/timestamp.proto",
-      // "proto_deps/google/protobuf/empty.proto",
-      // "proto_deps/google/protobuf/field_mask.proto",
-      // "proto/myapp/v1/post.proto",
-    ],
-    proto_include_paths,
-  )?;
+  config.compile_protos(proto_files, proto_include_paths)?;
+
+  std::fs::remove_file(&temp_descriptor_path)?;
 
   println!(
     "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",
-    descriptor_path.display()
+    final_descriptor_path.display()
   );
 
   Ok(())

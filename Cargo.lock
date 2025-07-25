@@ -676,6 +676,7 @@ dependencies = [
  "cel-interpreter",
  "prost",
  "prost-build",
+ "prost-reflect",
  "protocheck",
  "regex",
  "serde",

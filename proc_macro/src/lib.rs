@@ -84,6 +84,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 
   let args_vec: HashSet<String> = args.iter().map(|s| s.value()).collect();
 
+  println!("Args: {:#?}", args_vec);
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
 
