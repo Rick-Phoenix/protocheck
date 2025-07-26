@@ -42,6 +42,16 @@ pub mod build {
           message_name
         );
         config.message_attribute(message_name, &attribute_str);
+
+        for oneof in message_desc.oneofs() {
+          config.type_attribute(
+            oneof.full_name(),
+            format!(
+              r#"#[protocheck::macros::protobuf_validate_oneof("{}")]"#,
+              oneof.full_name()
+            ),
+          );
+        }
       }
     }
 

@@ -94,11 +94,6 @@ impl ToTokens for ValidatorCallTemplate {
           quote! { *&self.#field_rust_ident }
         };
 
-        println!(
-          "Field Name: {}, Is repeated item: {:?}",
-          field_proto_name, field_is_repeated_item
-        );
-
         tokens.extend(quote! {
           if !#enum_ident_tokens::try_from(#enum_field_ident).is_ok() {
             let field_context = protocheck::field_data::FieldContext {
