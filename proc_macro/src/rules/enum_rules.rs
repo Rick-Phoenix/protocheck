@@ -8,7 +8,7 @@ use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCal
 use crate::{Ident2, Span2};
 
 pub fn get_enum_rules(
-  field_type_ident: &TypeIdent,
+  field_type_ident: String,
   field_span: Span2,
   enum_desc: &EnumDescriptor,
   field_data: &FieldData,

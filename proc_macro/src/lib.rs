@@ -71,7 +71,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  // eprintln!("{}", output);
+  eprintln!("{}", output);
 
   output.into()
 }

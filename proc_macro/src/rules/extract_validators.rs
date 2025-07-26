@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use prost_reflect::{prost::Message, Kind, MessageDescriptor, Value as ProstValue};
-use syn::{DeriveInput, Error, Type as TypeIdent};
+use syn::{DeriveInput, Error, LitStr, Token};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
@@ -23,12 +23,22 @@ pub fn extract_validators(
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
-  let mut rust_field_type_ident: HashMap<String, TypeIdent> = HashMap::new();
+  let mut rust_field_type_ident: HashMap<String, String> = HashMap::new();
 
   if let syn::Data::Struct(syn::DataStruct { fields, .. }) = &input_tokens.data {
     for field in fields {
       if let Some(ident) = &field.ident {
-        rust_field_type_ident.insert(ident.to_string(), field.ty.clone());
+        for attr in &field.attrs {
+          if attr.path().is_ident("prost") {
+            let _ = attr.parse_nested_meta(|meta| {
+              if meta.path.is_ident("enumeration") && meta.input.peek(Token![=]) {
+                let enum_name = meta.value().unwrap().parse::<LitStr>().unwrap();
+                rust_field_type_ident.insert(ident.to_string(), enum_name.value());
+              }
+              Ok(())
+            });
+          }
+        }
         rust_field_spans.insert(ident.to_string(), ident.span());
       }
     }
@@ -81,6 +91,9 @@ pub fn extract_validators(
 
   // Field Rules
   for field_desc in message_desc.fields() {
+    if field_desc.containing_oneof().is_some() {
+      continue;
+    }
     let field_name = field_desc.name();
     // println!("{}", field_name.to_string());
     let field_span = rust_field_spans
@@ -91,10 +104,7 @@ pub fn extract_validators(
     let field_type_ident = rust_field_type_ident
       .get(field_name)
       .cloned()
-      .ok_or(Error::new(
-        field_span,
-        format!("Could not find type identifier for field {}", field_name),
-      ))?;
+      .unwrap_or("".to_string());
 
     let field_kind = field_desc.kind();
     let is_repeated = field_desc.is_list();
@@ -159,7 +169,7 @@ pub fn extract_validators(
 
       if let Some(ref rules_type) = field_rules.r#type {
         let rules = get_field_rules(
-          &field_type_ident,
+          field_type_ident,
           field_span,
           &field_desc,
           &field_data,

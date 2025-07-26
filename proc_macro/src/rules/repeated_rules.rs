@@ -1,6 +1,6 @@
 use prost_reflect::FieldDescriptor;
 use quote::{quote, ToTokens};
-use syn::{Error, Type as TypeIdent};
+use syn::Error;
 
 use super::{
   protovalidate::{Ignore, RepeatedRules},
@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
-  field_type_ident: &TypeIdent,
+  field_type_ident: String,
   field_desc: &FieldDescriptor,
   field_span: Span2,
   field_data: &FieldData,

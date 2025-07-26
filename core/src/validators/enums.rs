@@ -13,7 +13,7 @@ where
   E::try_from(value).is_ok()
 }
 
-pub fn defined_only(field_context: FieldContext, enum_name: String) -> Violation {
+pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
     field_type: Some(ProtoType::Enum.into()),

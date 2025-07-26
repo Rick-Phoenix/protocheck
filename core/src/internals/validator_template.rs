@@ -1,6 +1,5 @@
 use quote::{quote, ToTokens};
 use random_string::charsets::ALPHA_LOWER;
-use syn::Type as TypeIdent;
 
 use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 
@@ -28,7 +27,7 @@ pub enum GeneratedCodeKind {
     is_for_message: bool,
   },
   EnumDefinedOnly {
-    enum_type_ident: TypeIdent,
+    enum_type_ident: String,
     enum_name: String,
   },
 }
@@ -84,16 +83,19 @@ impl ToTokens for ValidatorCallTemplate {
         enum_type_ident,
         enum_name,
       } => {
+        let enum_ident_tokens: TokenStream2 = enum_type_ident
+          .parse()
+          .expect("Failed to parse enum ident into tokens");
         let enum_field_ident = if field_is_repeated_item {
-          quote! { #item_ident }
+          quote! { *#item_ident }
         } else if field_is_map_value {
-          quote! { #val_ident }
+          quote! { *#val_ident }
         } else {
-          quote! { &self.#field_rust_ident }
+          quote! { *&self.#field_rust_ident }
         };
 
         tokens.extend(quote! {
-          if !#enum_type_ident::try_from(#enum_field_ident).is_ok() {
+          if !#enum_ident_tokens::try_from(#enum_field_ident).is_ok() {
             let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),

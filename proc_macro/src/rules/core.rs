@@ -9,7 +9,7 @@ use crate::rules::{
 };
 
 pub fn get_field_rules(
-  field_type_ident: &TypeIdent,
+  field_type_ident: String,
   field_span: Span,
   field_desc: &FieldDescriptor,
   field_data: &FieldData,
