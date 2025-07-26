@@ -239,6 +239,30 @@ pub fn extract_message_validators(
     }
   }
 
+  // Oneof rules
+  for oneof in message_desc.oneofs() {
+    if let ProstValue::Message(oneof_rules_msg) = oneof
+      .options()
+      .get_extension(&oneof_ext_descriptor)
+      .as_ref()
+    {
+      let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
+      let name = oneof.name();
+      let mut field_data = FieldData::default();
+      field_data.rust_name = name.to_string();
+      field_data.proto_name = name.to_string();
+
+      validation_data.push(ValidatorCallTemplate {
+        validator_path: None,
+        target_value_tokens: None,
+        field_data,
+        kind: GeneratedCodeKind::OneofField {
+          is_required: oneof_rules.required(),
+        },
+      });
+    }
+  }
+
   // Field Rules
   for field_desc in message_desc.fields() {
     if field_desc.containing_oneof().is_some() {

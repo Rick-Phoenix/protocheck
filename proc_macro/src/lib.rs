@@ -1,10 +1,13 @@
 #![allow(clippy::field_reassign_with_default)]
 
+use std::collections::HashMap;
+
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-pub(crate) use proc_macro2::Span as Span2;
+pub(crate) use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
+use protocheck_core::internals::validator_template::ValidatorCallTemplate;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Error, LitStr};
+use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
 
 use crate::{
   extract_validators::extract_oneof_validators,
@@ -32,8 +35,6 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     println!("Message {} not found", proto_message_name);
     return quote! {}.into();
   }
-
-  // println!("{}", proto_message_name);
 
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
@@ -81,6 +82,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
+  let oneof_enum_name = &ast.ident.clone();
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
   let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
@@ -124,44 +126,47 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     .into();
   }
 
+  let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
+
   for oneof in message_desc.unwrap().oneofs() {
     if oneof.name() == oneof_name {
-      let _ = extract_oneof_validators(ast, oneof);
+      match extract_oneof_validators(ast, oneof) {
+        Ok(validators_data) => validators = validators_data,
+        Err(e) => return e.to_compile_error().into(),
+      };
       break;
     }
   }
 
-  // println!("{}", proto_message_name);
+  let mut validators_tokens = TokenStream2::new();
 
-  //
-  // let validator_call_templates = extract_validators(ast, message_desc.unwrap()).unwrap();
+  for (ident, validator) in validators {
+    validators_tokens.extend(quote! {
+      Self::#ident(val) => {
+        #(#validator)*
+      },
+    });
+  }
 
   let output = quote! {
     #original_input_as_proc_macro2
 
-    // impl protocheck::validators::WithValidator for #struct_ident {
-    //   fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
-    //     let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
-    //     let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
-    //
-    //     self.nested_validate(&mut parent_messages, &mut violations);
-    //
-    //     if violations.len() > 0 {
-    //       return Err(protocheck::types::protovalidate::Violations { violations });
-    //     }
-    //     Ok(())
-    //   }
-    //
-    //   fn nested_validate(
-    //     &self,
-    //     parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
-    //     violations: &mut Vec<protocheck::types::protovalidate::Violation>,
-    //   ) {
-    //
-    //     #(#validator_call_templates)*
-    //
-    //   }
-    // }
+    impl protocheck::validators::WithValidator for #oneof_enum_name {
+      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+        self.nested_validate(&mut parent_messages, &mut violations);
+        Ok(())
+      }
+
+      fn nested_validate(
+        &self,
+        parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
+        violations: &mut Vec<protocheck::types::protovalidate::Violation>,
+      ) {
+        match self {
+          #validators_tokens
+        };
+      }
+    }
   };
 
   // eprintln!("{}", output);

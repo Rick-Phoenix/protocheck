@@ -19,7 +19,9 @@ pub enum GeneratedCodeKind {
     unique_values: bool,
     float_values: bool,
   },
-  OneofRule,
+  OneofField {
+    is_required: bool,
+  },
   CelRule {
     expression: String,
     message: String,
@@ -291,18 +293,23 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       }
-      GeneratedCodeKind::OneofRule => {
+      GeneratedCodeKind::OneofField { is_required } => {
         tokens.extend(quote! {
-          if !&self.#field_rust_ident.is_some() {
-            let field_context = protocheck::field_data::FieldContext {
-              field_data: #field_data,
-              parent_elements: #parent_messages_ident.as_slice(),
-              subscript: None,
-            };
+          match &self.#field_rust_ident {
+            Some(oneof) => { oneof.nested_validate(#parent_messages_ident, #violations_ident); },
+            None => {
+              if #is_required {
+                let field_context = protocheck::field_data::FieldContext {
+                  field_data: #field_data,
+                  parent_elements: #parent_messages_ident.as_slice(),
+                  subscript: None,
+                };
 
-            let violation = protocheck::validators::oneofs::required(field_context);
-            #violations_ident.push(violation);
-          }
+                let violation = protocheck::validators::oneofs::required(field_context);
+                #violations_ident.push(violation);
+              }
+            }
+          };
         });
       }
       GeneratedCodeKind::CelRule {
