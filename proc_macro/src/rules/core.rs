@@ -1,8 +1,6 @@
-use std::collections::HashSet;
-
 use proc_macro2::Span;
 use prost_reflect::{FieldDescriptor, Kind};
-use syn::Error;
+use syn::{Error, Type as TypeIdent};
 
 use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
 use crate::rules::{
@@ -11,6 +9,7 @@ use crate::rules::{
 };
 
 pub fn get_field_rules(
+  field_type_ident: &TypeIdent,
   field_span: Span,
   field_desc: &FieldDescriptor,
   field_data: &FieldData,
@@ -33,7 +32,13 @@ pub fn get_field_rules(
           ),
         ));
       } else {
-        let rules = get_repeated_rules(field_desc, field_span, field_data, repeated_rules)?;
+        let rules = get_repeated_rules(
+          field_type_ident,
+          field_desc,
+          field_span,
+          field_data,
+          repeated_rules,
+        )?;
         rules_agg.push(rules);
       }
     }
@@ -44,16 +49,25 @@ pub fn get_field_rules(
           format!("Cannot use map rules for non map field {}", field_name),
         ));
       } else {
-        let rules = get_map_rules(field_span, field_desc, field_data, map_rules)?;
+        let rules = get_map_rules(
+          field_type_ident,
+          field_span,
+          field_desc,
+          field_data,
+          map_rules,
+        )?;
         rules_agg.push(rules);
       }
     }
     RulesType::Enum(enum_rules) => {
       if let Kind::Enum(enum_descriptor) = &field_kind {
-        let mut enum_data = field_data.clone();
-        enum_data.enum_full_name = Some(enum_descriptor.full_name().to_string());
-        let enum_values: HashSet<i32> = enum_descriptor.values().map(|e| e.number()).collect();
-        let rules = get_enum_rules(&enum_data, enum_rules, enum_values)?;
+        let rules = get_enum_rules(
+          field_type_ident,
+          field_span,
+          enum_descriptor,
+          field_data,
+          enum_rules,
+        )?;
         rules_agg.extend(rules);
       } else {
         error = Some(Error::new(

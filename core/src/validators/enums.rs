@@ -5,77 +5,66 @@ use crate::{
   ProtoType,
 };
 
-pub fn defined_only(
-  field_context: FieldContext,
-  value: Option<&i32>,
-  valid_values: &'static std::collections::HashSet<i32>,
-) -> Result<(), Violation> {
-  let check = if let Some(unwrapped_val) = value {
-    valid_values.contains(unwrapped_val)
-  } else {
-    return Ok(());
+pub fn enum_contains<E>(value: i32) -> bool
+where
+  E: std::convert::TryFrom<i32>,
+  E: std::fmt::Debug + Sized,
+{
+  E::try_from(value).is_ok()
+}
+
+pub fn defined_only(field_context: FieldContext, enum_name: String) -> Violation {
+  let mut elements = field_context.parent_elements.to_vec();
+  let current_elem = FieldPathElement {
+    field_type: Some(ProtoType::Enum.into()),
+    field_name: Some(field_context.field_data.proto_name.clone()),
+    key_type: field_context.field_data.key_type.map(|t| t as i32),
+    value_type: field_context.field_data.value_type.map(|t| t as i32),
+    field_number: Some(field_context.field_data.tag as i32),
+    subscript: field_context.subscript,
   };
 
-  let enum_name = field_context
-    .field_data
-    .enum_full_name
-    .unwrap_or("missing_name".to_string());
+  elements.push(current_elem);
 
-  if !check {
-    let mut elements = field_context.parent_elements.to_vec();
-    let current_elem = FieldPathElement {
-      field_type: Some(ProtoType::Enum.into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
-    };
+  let FieldData {
+    is_repeated_item,
+    is_map_key,
+    is_map_value,
+    ..
+  } = field_context.field_data;
 
-    elements.push(current_elem);
+  let mut violations_path = get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
 
-    let FieldData {
-      is_repeated_item,
-      is_map_key,
-      is_map_value,
-      ..
-    } = field_context.field_data;
+  violations_path.extend(vec![
+    FieldPathElement {
+      field_name: Some("enum".to_string()),
+      field_number: Some(16),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("defined_only".to_string()),
+      field_number: Some(2),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]);
 
-    let mut violations_path = get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
-
-    violations_path.extend(vec![
-      FieldPathElement {
-        field_name: Some("enum".to_string()),
-        field_number: Some(16),
-        field_type: Some(ProtoType::Message as i32),
-        subscript: None,
-        key_type: None,
-        value_type: None,
-      },
-      FieldPathElement {
-        field_name: Some("defined_only".to_string()),
-        field_number: Some(2),
-        field_type: Some(ProtoType::Bool as i32),
-        key_type: None,
-        value_type: None,
-        subscript: None,
-      },
-    ]);
-
-    let violation = Violation {
-      rule_id: Some("enum.defined_only".to_string()),
-      message: Some(format!(
-        "{} must be a defined value of {}",
-        field_context.field_data.proto_name.clone(),
-        enum_name,
-      )),
-      for_key: Some(field_context.field_data.is_map_key),
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violations_path,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  Violation {
+    rule_id: Some("enum.defined_only".to_string()),
+    message: Some(format!(
+      "field {} must be a defined value of {}",
+      field_context.field_data.proto_name.clone(),
+      enum_name,
+    )),
+    for_key: Some(field_context.field_data.is_map_key),
+    field: Some(FieldPath { elements }),
+    rule: Some(FieldPath {
+      elements: violations_path,
+    }),
+  }
 }

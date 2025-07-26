@@ -1,5 +1,6 @@
 use quote::{quote, ToTokens};
 use random_string::charsets::ALPHA_LOWER;
+use syn::Type as TypeIdent;
 
 use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 
@@ -26,6 +27,10 @@ pub enum GeneratedCodeKind {
     rule_id: String,
     is_for_message: bool,
   },
+  EnumDefinedOnly {
+    enum_type_ident: TypeIdent,
+    enum_name: String,
+  },
 }
 
 #[derive(Debug)]
@@ -46,7 +51,8 @@ impl ToTokens for ValidatorCallTemplate {
     let field_is_optional = self.field_data.is_optional;
     let field_is_repeated_item = self.field_data.is_repeated_item;
     let field_is_map_key = self.field_data.is_map_key;
-    let field_is_in_map = field_is_map_key || self.field_data.is_map_value;
+    let field_is_map_value = self.field_data.is_map_value;
+    let field_is_in_map = field_is_map_key || field_is_map_value;
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
 
@@ -74,6 +80,29 @@ impl ToTokens for ValidatorCallTemplate {
     let field_data = self.field_data.clone();
 
     match &self.kind {
+      GeneratedCodeKind::EnumDefinedOnly {
+        enum_type_ident,
+        enum_name,
+      } => {
+        let enum_field_ident = if field_is_repeated_item {
+          quote! { #item_ident }
+        } else if field_is_map_value {
+          quote! { #val_ident }
+        } else {
+          quote! { &self.#field_rust_ident }
+        };
+
+        tokens.extend(quote! {
+          if !#enum_type_ident::try_from(#enum_field_ident).is_ok() {
+            let field_context = protocheck::field_data::FieldContext {
+              field_data: #field_data,
+              parent_elements: #parent_messages_ident.as_slice(),
+              subscript: #subscript,
+            };
+            #violations_ident.push(protocheck::validators::enums::defined_only(field_context, #enum_name));
+          }
+        });
+      }
       GeneratedCodeKind::FieldRule => {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();

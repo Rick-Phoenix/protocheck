@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use prost_reflect::{prost::Message, Kind, MessageDescriptor, Value as ProstValue};
-use syn::{DeriveInput, Error};
+use syn::{DeriveInput, Error, Type as TypeIdent};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
@@ -20,17 +22,17 @@ pub fn extract_validators(
 ) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
 
-  let rust_field_spans: std::collections::HashMap<String, Span2> = {
-    let mut map = std::collections::HashMap::new();
-    if let syn::Data::Struct(syn::DataStruct { fields, .. }) = &input_tokens.data {
-      for field in fields {
-        if let Some(ident) = &field.ident {
-          map.insert(ident.to_string(), ident.span());
-        }
+  let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
+  let mut rust_field_type_ident: HashMap<String, TypeIdent> = HashMap::new();
+
+  if let syn::Data::Struct(syn::DataStruct { fields, .. }) = &input_tokens.data {
+    for field in fields {
+      if let Some(ident) = &field.ident {
+        rust_field_type_ident.insert(ident.to_string(), field.ty.clone());
+        rust_field_spans.insert(ident.to_string(), ident.span());
       }
     }
-    map
-  };
+  }
 
   let (field_ext_descriptor, message_ext_descriptor, oneof_ext_descriptor) =
     get_rule_extensions_descriptors(input_tokens)?;
@@ -85,6 +87,14 @@ pub fn extract_validators(
       .get(field_name)
       .cloned()
       .unwrap_or_else(Span2::call_site);
+
+    let field_type_ident = rust_field_type_ident
+      .get(field_name)
+      .cloned()
+      .ok_or(Error::new(
+        field_span,
+        format!("Could not find type identifier for field {}", field_name),
+      ))?;
 
     let field_kind = field_desc.kind();
     let is_repeated = field_desc.is_list();
@@ -148,7 +158,13 @@ pub fn extract_validators(
       }
 
       if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(field_span, &field_desc, &field_data, rules_type)?;
+        let rules = get_field_rules(
+          &field_type_ident,
+          field_span,
+          &field_desc,
+          &field_data,
+          rules_type,
+        )?;
 
         validation_data.extend(rules);
       }

@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2};
+pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
 
@@ -93,44 +93,27 @@ pub fn protobuf_validate_enum(attrs: TokenStream, input: TokenStream) -> TokenSt
     return quote! {}.into();
   }
 
-  println!("{}", proto_enum_name);
-
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
 
-  let struct_ident = ast.ident.clone();
+  let enum_ident = &ast.ident;
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
   let output = quote! {
     #original_input_as_proc_macro2
 
-    // impl protocheck::validators::WithValidator for #struct_ident {
-    //   fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
-    //     let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
-    //     let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
-    //
-    //     self.nested_validate(&mut parent_messages, &mut violations);
-    //
-    //     if violations.len() > 0 {
-    //       return Err(protocheck::types::protovalidate::Violations { violations });
+    // impl protocheck::validators::EnumValidator for #enum_ident {
+    //   fn has_value(&self, value: i32) -> bool {
+    //     match self::try_into(value) {
+    //       Ok(_) => true,
+    //       Err(_) => false
     //     }
-    //     Ok(())
-    //   }
-    //
-    //   fn nested_validate(
-    //     &self,
-    //     parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
-    //     violations: &mut Vec<protocheck::types::protovalidate::Violation>,
-    //   ) {
-    //
-    //     #(#validator_call_templates)*
-    //
     //   }
     // }
   };
 
-  // eprintln!("{}", output);
+  eprintln!("{}", output);
 
   output.into()
 }

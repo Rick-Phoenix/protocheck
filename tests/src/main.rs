@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
-use protocheck::validators::WithValidator;
+use protocheck::validators::{enums::enum_contains, WithValidator};
 
-use crate::myapp::v1::{user::Post, User};
+use crate::myapp::v1::{
+  user::{Post, TestEnum},
+  User,
+};
 
 mod myapp {
   pub mod v1 {

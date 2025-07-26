@@ -1,6 +1,6 @@
 use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
-use syn::Error;
+use syn::{Error, Type as TypeIdent};
 
 use super::{protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate};
 use crate::{
@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
+  field_type_ident: &TypeIdent,
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
   map_field_data: &FieldData,
@@ -100,8 +101,13 @@ pub fn get_map_rules(
         key_field_data.is_map_key = true;
         key_field_data.ignore = ignore;
 
-        let generated_key_templates =
-          get_field_rules(map_field_span, &key_desc, &key_field_data, rules)?;
+        let generated_key_templates = get_field_rules(
+          field_type_ident,
+          map_field_span,
+          &key_desc,
+          &key_field_data,
+          rules,
+        )?;
         key_rules_templates.extend(generated_key_templates);
 
         if !key_rules_descriptor.cel.is_empty() {
@@ -136,8 +142,13 @@ pub fn get_map_rules(
 
         value_field_data.ignore = ignore;
 
-        let generated_value_templates =
-          get_field_rules(map_field_span, &value_desc, &value_field_data, rules)?;
+        let generated_value_templates = get_field_rules(
+          field_type_ident,
+          map_field_span,
+          &value_desc,
+          &value_field_data,
+          rules,
+        )?;
         value_rules_templates.extend(generated_value_templates);
 
         if !value_rules_descriptor.cel.is_empty() {

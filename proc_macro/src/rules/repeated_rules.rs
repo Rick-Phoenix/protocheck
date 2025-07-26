@@ -1,6 +1,6 @@
 use prost_reflect::FieldDescriptor;
 use quote::{quote, ToTokens};
-use syn::Error;
+use syn::{Error, Type as TypeIdent};
 
 use super::{
   protovalidate::{Ignore, RepeatedRules},
@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
+  field_type_ident: &TypeIdent,
   field_desc: &FieldDescriptor,
   field_span: Span2,
   field_data: &FieldData,
@@ -78,8 +79,13 @@ pub fn get_repeated_rules(
         items_field_data.is_repeated_item = true;
         items_field_data.is_required = items_rules_descriptor.required();
 
-        let rules_for_single_item =
-          get_field_rules(field_span, field_desc, &items_field_data, rules_type)?;
+        let rules_for_single_item = get_field_rules(
+          field_type_ident,
+          field_span,
+          field_desc,
+          &items_field_data,
+          rules_type,
+        )?;
 
         items_templates.extend(rules_for_single_item);
 

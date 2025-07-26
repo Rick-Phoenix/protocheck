@@ -1,39 +1,36 @@
 use std::collections::HashSet;
 
+use prost_reflect::EnumDescriptor;
 use quote::quote;
-use syn::Error;
+use syn::{Error, Type as TypeIdent};
 
 use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::{Ident2, Span2};
 
 pub fn get_enum_rules(
+  field_type_ident: &TypeIdent,
+  field_span: Span2,
+  enum_desc: &EnumDescriptor,
   field_data: &FieldData,
   enum_rules: &EnumRules,
-  enum_values: HashSet<i32>,
 ) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
-  let enum_full_name = field_data.enum_full_name.clone().ok_or(Error::new(
-    Span2::call_site(),
-    format!(
-      "Enum field {} missing full enum name",
-      field_data.proto_name
-    ),
-  ))?;
+
+  let mut enum_field_data = field_data.clone();
+  let enum_name = enum_desc.full_name();
+  enum_field_data.enum_full_name = Some(enum_name.to_string());
+
+  let enum_values: HashSet<i32> = enum_desc.values().map(|e| e.number()).collect();
 
   if enum_rules.defined_only() {
-    let static_name_str = format!(
-      "__VALID_{}_VALUES",
-      enum_full_name.replace('.', "_").to_uppercase()
-    );
-    let enum_static_ident = Ident2::new(&static_name_str, Span2::call_site());
-
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::enums::defined_only }),
-      target_value_tokens: Some(
-        quote! { &crate::__protobuf_validators_consts::#enum_static_ident },
-      ),
+      validator_path: None,
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::FieldRule,
+      target_value_tokens: None,
+      kind: GeneratedCodeKind::EnumDefinedOnly {
+        enum_type_ident: field_type_ident.clone(),
+        enum_name: enum_name.to_string(),
+      },
     });
   }
 
@@ -45,10 +42,10 @@ pub fn get_enum_rules(
       }
       if !invalid_numbers.is_empty() {
         return Err(syn::Error::new(
-          Span2::call_site(),
+          field_span,
           format!(
             "enum_rules.in contains values that are not in the {} enum: {:?}",
-            enum_full_name, invalid_numbers
+            enum_name, invalid_numbers
           ),
         ));
       }
