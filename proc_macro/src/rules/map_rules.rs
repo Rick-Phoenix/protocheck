@@ -67,6 +67,7 @@ pub fn get_map_rules(
       target_value_tokens: Some(min_pairs_value.into_token_stream()),
       kind: GeneratedCodeKind::FieldRule,
       field_data: map_field_data.clone(),
+      oneof_ident: None,
     });
   }
 
@@ -78,6 +79,7 @@ pub fn get_map_rules(
       target_value_tokens: Some(max_pairs_value.into_token_stream()),
       kind: GeneratedCodeKind::FieldRule,
       field_data: map_field_data.clone(),
+      oneof_ident: None,
     });
   }
 
@@ -102,6 +104,7 @@ pub fn get_map_rules(
         key_field_data.ignore = ignore;
 
         let generated_key_templates = get_field_rules(
+          None,
           field_rust_enum.clone(),
           map_field_span,
           &key_desc,
@@ -111,7 +114,7 @@ pub fn get_map_rules(
         key_rules_templates.extend(generated_key_templates);
 
         if !key_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
+          let cel_rules = get_cel_rules(None, &key_field_data, &key_rules_descriptor.cel, false)?;
           key_rules_templates.extend(cel_rules);
         }
       }
@@ -143,6 +146,7 @@ pub fn get_map_rules(
         value_field_data.ignore = ignore;
 
         let generated_value_templates = get_field_rules(
+          None,
           field_rust_enum,
           map_field_span,
           &value_desc,
@@ -152,7 +156,8 @@ pub fn get_map_rules(
         value_rules_templates.extend(generated_value_templates);
 
         if !value_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
+          let cel_rules =
+            get_cel_rules(None, &value_field_data, &value_rules_descriptor.cel, false)?;
           value_rules_templates.extend(cel_rules);
         }
       }
@@ -169,5 +174,6 @@ pub fn get_map_rules(
       value_rules: value_rules_templates,
       value_is_message,
     },
+    oneof_ident: None,
   })
 }

@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 
 use prost_reflect::EnumDescriptor;
-use syn::Error;
+use syn::{Error, Ident};
 
 use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::Span2;
 
 pub fn get_enum_rules(
+  oneof_ident: Option<Ident>,
   field_type_ident: String,
   field_span: Span2,
   enum_desc: &EnumDescriptor,
@@ -30,6 +31,7 @@ pub fn get_enum_rules(
         enum_type_ident: field_type_ident.clone(),
         enum_name: enum_name.to_string(),
       },
+      oneof_ident,
     });
   }
 

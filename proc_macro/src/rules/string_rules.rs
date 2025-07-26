@@ -1,10 +1,11 @@
 use quote::{quote, ToTokens};
-use syn::Error;
+use syn::{Error, Ident};
 
 use super::{protovalidate::StringRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::Span2;
 
 pub fn get_string_rules(
+  oneof_ident: Option<Ident>,
   field_span: Span2,
   field_data: &FieldData,
   string_rules: &StringRules,
@@ -24,6 +25,7 @@ pub fn get_string_rules(
       target_value_tokens: Some(len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
+      oneof_ident: oneof_ident.clone(),
     });
   }
 
@@ -36,6 +38,7 @@ pub fn get_string_rules(
       target_value_tokens: Some(min_len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
+      oneof_ident: oneof_ident.clone(),
     });
   }
 
@@ -48,6 +51,7 @@ pub fn get_string_rules(
       target_value_tokens: Some(max_len_value.into_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
+      oneof_ident: oneof_ident.clone(),
     });
   }
 

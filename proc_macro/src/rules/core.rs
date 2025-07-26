@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use prost_reflect::{FieldDescriptor, Kind};
-use syn::Error;
+use syn::{Error, Ident};
 
 use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
 use crate::rules::{
@@ -9,6 +9,7 @@ use crate::rules::{
 };
 
 pub fn get_field_rules(
+  oneof_ident: Option<Ident>,
   field_rust_enum: Option<String>,
   field_span: Span,
   field_desc: &FieldDescriptor,
@@ -72,6 +73,7 @@ pub fn get_field_rules(
         ));
       } else if let Kind::Enum(enum_descriptor) = &field_kind {
         let rules = get_enum_rules(
+          oneof_ident,
           field_rust_enum.unwrap(),
           field_span,
           enum_descriptor,
@@ -95,7 +97,7 @@ pub fn get_field_rules(
           field_name, "string", field_kind, field_span,
         ))
       } else {
-        let rules = get_string_rules(field_span, field_data, string_rules)?;
+        let rules = get_string_rules(oneof_ident, field_span, field_data, string_rules)?;
         rules_agg.extend(rules);
       }
     }

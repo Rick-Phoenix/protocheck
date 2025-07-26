@@ -128,9 +128,11 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
 
+  let oneof_ident = Ident::new("val", Span2::call_site());
+
   for oneof in message_desc.unwrap().oneofs() {
     if oneof.name() == oneof_name {
-      match extract_oneof_validators(ast, oneof) {
+      match extract_oneof_validators(oneof_ident.clone(), ast, oneof) {
         Ok(validators_data) => validators = validators_data,
         Err(e) => return e.to_compile_error().into(),
       };
@@ -142,7 +144,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   for (ident, validator) in validators {
     validators_tokens.extend(quote! {
-      Self::#ident(val) => {
+      Self::#ident(#oneof_ident) => {
         #(#validator)*
       },
     });
@@ -153,7 +155,6 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
     impl protocheck::validators::WithValidator for #oneof_enum_name {
       fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
-        self.nested_validate(&mut parent_messages, &mut violations);
         Ok(())
       }
 

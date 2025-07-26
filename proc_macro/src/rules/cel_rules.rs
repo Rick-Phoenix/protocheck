@@ -1,13 +1,15 @@
 use cel_interpreter::Program;
+use syn::{Error, Ident};
 
 use super::{FieldData, GeneratedCodeKind, Rule, ValidatorCallTemplate};
 use crate::Span2;
 
 pub fn get_cel_rules(
+  oneof_ident: Option<Ident>,
   field_data: &FieldData,
   rules: &[Rule],
   is_for_message: bool,
-) -> Result<Vec<ValidatorCallTemplate>, syn::Error> {
+) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut validators: Vec<ValidatorCallTemplate> = Vec::new();
 
   for rule in rules {
@@ -38,6 +40,7 @@ pub fn get_cel_rules(
           validator_path: None,
           target_value_tokens: None,
           kind,
+          oneof_ident: oneof_ident.clone(),
         });
       }
       Err(e) => {

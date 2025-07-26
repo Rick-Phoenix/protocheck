@@ -38,10 +38,9 @@ pub enum GeneratedCodeKind {
 pub struct ValidatorCallTemplate {
   pub validator_path: Option<TokenStream2>,
   pub target_value_tokens: Option<TokenStream2>,
-
   pub field_data: FieldData,
-
   pub kind: GeneratedCodeKind,
+  pub oneof_ident: Option<Ident2>,
 }
 
 impl ToTokens for ValidatorCallTemplate {
@@ -148,7 +147,10 @@ impl ToTokens for ValidatorCallTemplate {
             };
           });
         } else {
-          let field_ident = if field_is_optional {
+          let field_ident = if self.oneof_ident.is_some() {
+            let oneof_ident = self.oneof_ident.as_ref().unwrap();
+            quote! { Some(#oneof_ident) }
+          } else if field_is_optional {
             quote! { &self.#field_rust_ident }
           } else {
             quote! { Some(&self.#field_rust_ident) }
