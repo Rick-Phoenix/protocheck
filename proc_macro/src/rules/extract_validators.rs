@@ -18,16 +18,6 @@ use crate::{
 };
 
 static MAP_ENUM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-  // This regex matches:
-  // ^          - start of the string
-  // [^,]+,     - matches the key type (e.g., "string"), followed by a comma
-  // \s*        - optional whitespace
-  // enumeration\( - matches "enumeration(" literally
-  // (            - START of capturing group 1
-  //   [^)]+      - matches one or more characters that are NOT a closing parenthesis
-  // )            - END of capturing group 1
-  // \)           - matches the closing parenthesis literally
-  // $          - end of the string
   Regex::new(r"^[^,]+,\s*enumeration\(([^)]+)\)$").expect("Failed to compile MAP_ENUM_REGEX")
 });
 
