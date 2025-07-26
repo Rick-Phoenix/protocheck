@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 use prost_reflect::{prost::Message, Kind, MessageDescriptor, Value as ProstValue};
+use regex::Regex;
 use syn::{DeriveInput, Error, LitStr, Token};
 
 use super::{
@@ -16,6 +17,20 @@ use crate::{
   Span2,
 };
 
+static MAP_ENUM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+  // This regex matches:
+  // ^          - start of the string
+  // [^,]+,     - matches the key type (e.g., "string"), followed by a comma
+  // \s*        - optional whitespace
+  // enumeration\( - matches "enumeration(" literally
+  // (            - START of capturing group 1
+  //   [^)]+      - matches one or more characters that are NOT a closing parenthesis
+  // )            - END of capturing group 1
+  // \)           - matches the closing parenthesis literally
+  // $          - end of the string
+  Regex::new(r"^[^,]+,\s*enumeration\(([^)]+)\)$").expect("Failed to compile MAP_ENUM_REGEX")
+});
+
 pub fn extract_validators(
   input_tokens: DeriveInput,
   message_desc: MessageDescriptor,
@@ -23,7 +38,7 @@ pub fn extract_validators(
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
-  let mut rust_field_type_ident: HashMap<String, String> = HashMap::new();
+  let mut rust_enum_paths: HashMap<String, String> = HashMap::new();
 
   if let syn::Data::Struct(syn::DataStruct { fields, .. }) = &input_tokens.data {
     for field in fields {
@@ -31,10 +46,20 @@ pub fn extract_validators(
         for attr in &field.attrs {
           if attr.path().is_ident("prost") {
             let _ = attr.parse_nested_meta(|meta| {
-              if meta.path.is_ident("enumeration") && meta.input.peek(Token![=]) {
-                let enum_name = meta.value().unwrap().parse::<LitStr>().unwrap();
-                rust_field_type_ident.insert(ident.to_string(), enum_name.value());
+              if meta.input.peek(Token![=]) {
+                if meta.path.is_ident("enumeration") {
+                  let enum_name = meta.value().unwrap().parse::<LitStr>().unwrap();
+                  rust_enum_paths.insert(ident.to_string(), enum_name.value());
+                } else if meta.path.is_ident("map") {
+                  let attr_content = meta.value().unwrap().parse::<LitStr>().unwrap().value();
+                  if let Some(captures) = MAP_ENUM_REGEX.captures(&attr_content) {
+                    if let Some(enum_name) = captures.get(1) {
+                      rust_enum_paths.insert(ident.to_string(), enum_name.as_str().into());
+                    }
+                  }
+                }
               }
+
               Ok(())
             });
           }
@@ -101,10 +126,7 @@ pub fn extract_validators(
       .cloned()
       .unwrap_or_else(Span2::call_site);
 
-    let field_type_ident = rust_field_type_ident
-      .get(field_name)
-      .cloned()
-      .unwrap_or("".to_string());
+    let field_rust_enum = rust_enum_paths.get(field_name).cloned();
 
     let field_kind = field_desc.kind();
     let is_repeated = field_desc.is_list();
@@ -169,7 +191,7 @@ pub fn extract_validators(
 
       if let Some(ref rules_type) = field_rules.r#type {
         let rules = get_field_rules(
-          field_type_ident,
+          field_rust_enum,
           field_span,
           &field_desc,
           &field_data,

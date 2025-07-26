@@ -58,8 +58,8 @@ impl ToTokens for ValidatorCallTemplate {
     let field_rust_ident = Ident2::new(&self.field_data.rust_name, Span2::call_site());
     let parent_messages_ident = Ident2::new("parent_messages", Span2::call_site());
     let violations_ident = Ident2::new("violations", Span2::call_site());
-    let item_ident = Ident2::new("item", Span2::call_site());
     let index_ident = Ident2::new("idx", Span2::call_site());
+    let item_ident = Ident2::new("item", Span2::call_site());
     let key_ident = Ident2::new("key", Span2::call_site());
     let val_ident = Ident2::new("val", Span2::call_site());
 
@@ -93,6 +93,11 @@ impl ToTokens for ValidatorCallTemplate {
         } else {
           quote! { *&self.#field_rust_ident }
         };
+
+        println!(
+          "Field Name: {}, Is repeated item: {:?}",
+          field_proto_name, field_is_repeated_item
+        );
 
         tokens.extend(quote! {
           if !#enum_ident_tokens::try_from(#enum_field_ident).is_ok() {

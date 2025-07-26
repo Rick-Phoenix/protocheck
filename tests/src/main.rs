@@ -19,6 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       name: vec!["alfonso".to_string()],
     },
   );
+  let mut map_enum_field: HashMap<String, i32> = HashMap::new();
+  map_enum_field.insert("enum_map_field1".to_string(), 15);
+  map_enum_field.insert("enum_map_field2".to_string(), 16);
   let user = User {
     created_at: None,
     id: 1,
@@ -34,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       },
     ],
     map_field,
-    enum_field: 31,
+    enum_field: map_enum_field,
     oneof_fields: None,
   };
 

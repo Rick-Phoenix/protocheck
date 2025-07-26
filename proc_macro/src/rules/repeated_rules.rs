@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
-  field_type_ident: String,
+  field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_span: Span2,
   field_data: &FieldData,
@@ -80,7 +80,7 @@ pub fn get_repeated_rules(
         items_field_data.is_required = items_rules_descriptor.required();
 
         let rules_for_single_item = get_field_rules(
-          field_type_ident,
+          field_rust_enum,
           field_span,
           field_desc,
           &items_field_data,

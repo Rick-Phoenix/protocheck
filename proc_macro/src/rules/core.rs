@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use prost_reflect::{FieldDescriptor, Kind};
-use syn::{Error, Type as TypeIdent};
+use syn::Error;
 
 use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
 use crate::rules::{
@@ -9,7 +9,7 @@ use crate::rules::{
 };
 
 pub fn get_field_rules(
-  field_type_ident: String,
+  field_rust_enum: Option<String>,
   field_span: Span,
   field_desc: &FieldDescriptor,
   field_data: &FieldData,
@@ -20,6 +20,8 @@ pub fn get_field_rules(
 
   let field_name = &field_data.proto_name;
   let field_kind = &field_desc.kind();
+
+  // Check if repeated or map rules are being used on fields directly
 
   match field_rules {
     RulesType::Repeated(repeated_rules) => {
@@ -33,7 +35,7 @@ pub fn get_field_rules(
         ));
       } else {
         let rules = get_repeated_rules(
-          field_type_ident,
+          field_rust_enum,
           field_desc,
           field_span,
           field_data,
@@ -50,7 +52,7 @@ pub fn get_field_rules(
         ));
       } else {
         let rules = get_map_rules(
-          field_type_ident,
+          field_rust_enum,
           field_span,
           field_desc,
           field_data,
@@ -60,9 +62,17 @@ pub fn get_field_rules(
       }
     }
     RulesType::Enum(enum_rules) => {
-      if let Kind::Enum(enum_descriptor) = &field_kind {
+      if field_rust_enum.is_none() {
+        error = Some(Error::new(
+          field_span,
+          format!(
+            "Could not find the rust path to the generated enum for field {}",
+            field_name
+          ),
+        ));
+      } else if let Kind::Enum(enum_descriptor) = &field_kind {
         let rules = get_enum_rules(
-          field_type_ident,
+          field_rust_enum.unwrap(),
           field_span,
           enum_descriptor,
           field_data,

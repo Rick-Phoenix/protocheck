@@ -1,6 +1,6 @@
 use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
-use syn::{Error, Type as TypeIdent};
+use syn::Error;
 
 use super::{protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate};
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
-  field_type_ident: String,
+  field_rust_enum: Option<String>,
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
   map_field_data: &FieldData,
@@ -102,7 +102,7 @@ pub fn get_map_rules(
         key_field_data.ignore = ignore;
 
         let generated_key_templates = get_field_rules(
-          field_type_ident.clone(),
+          field_rust_enum.clone(),
           map_field_span,
           &key_desc,
           &key_field_data,
@@ -143,7 +143,7 @@ pub fn get_map_rules(
         value_field_data.ignore = ignore;
 
         let generated_value_templates = get_field_rules(
-          field_type_ident,
+          field_rust_enum,
           map_field_span,
           &value_desc,
           &value_field_data,

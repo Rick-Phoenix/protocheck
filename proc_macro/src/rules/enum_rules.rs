@@ -1,11 +1,10 @@
 use std::collections::HashSet;
 
 use prost_reflect::EnumDescriptor;
-use quote::quote;
-use syn::{Error, Type as TypeIdent};
+use syn::Error;
 
 use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
-use crate::{Ident2, Span2};
+use crate::Span2;
 
 pub fn get_enum_rules(
   field_type_ident: String,
