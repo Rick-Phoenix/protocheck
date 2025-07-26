@@ -1,6 +1,6 @@
 use std::{fs, sync::LazyLock};
 
-use prost_reflect::DescriptorPool;
+use prost_reflect::{DescriptorPool, ExtensionDescriptor};
 use syn::{DeriveInput, Error};
 
 pub static DESCRIPTOR_POOL: LazyLock<DescriptorPool> = LazyLock::new(|| {
@@ -14,6 +14,18 @@ pub static DESCRIPTOR_POOL: LazyLock<DescriptorPool> = LazyLock::new(|| {
   });
   DescriptorPool::decode(descriptor_set_bytes.as_slice())
         .expect("Failed to decode DescriptorPool from descriptor set bytes. Ensure your protobuf definitions are valid.")
+});
+
+pub static FIELD_RULES_EXT_DESCRIPTOR: LazyLock<ExtensionDescriptor> = LazyLock::new(|| {
+  DESCRIPTOR_POOL
+    .get_extension_by_name("buf.validate.field")
+    .expect("buf.validate.field extension not found in descriptor pool")
+});
+
+pub static ONEOF_RULES_EXT_DESCRIPTOR: LazyLock<ExtensionDescriptor> = LazyLock::new(|| {
+  DESCRIPTOR_POOL
+    .get_extension_by_name("buf.validate.oneof")
+    .expect("buf.validate.oneof extension not found in descriptor pool")
 });
 
 pub(crate) fn get_rule_extensions_descriptors(

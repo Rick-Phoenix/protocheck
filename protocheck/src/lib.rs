@@ -51,6 +51,15 @@ pub mod build {
               oneof.full_name()
             ),
           );
+
+          config.type_attribute(oneof.full_name(), r#"#[derive(protocheck::macros::Oneof)]"#);
+
+          for field in oneof.fields() {
+            config.field_attribute(
+              format!("{}.{}", oneof.full_name(), field.name()),
+              format!(r#"#[protocheck(proto_name = "{}")]"#, field.name()),
+            );
+          }
         }
       }
     }

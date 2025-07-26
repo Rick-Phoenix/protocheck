@@ -4,9 +4,12 @@ use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::Span as Span2;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Ident, LitStr};
+use syn::{parse_macro_input, DeriveInput, Error, LitStr};
 
-use crate::rules::extract_validators::extract_validators;
+use crate::{
+  extract_validators::extract_oneof_validators,
+  rules::extract_validators::{self, extract_message_validators},
+};
 
 mod namespaces;
 mod pool_loader;
@@ -39,7 +42,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
-  let validator_call_templates = extract_validators(ast, message_desc.unwrap()).unwrap();
+  let validator_call_templates = extract_message_validators(ast, message_desc.unwrap()).unwrap();
 
   let output = quote! {
     #original_input_as_proc_macro2
@@ -76,43 +79,57 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 
 #[proc_macro_attribute]
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
-  let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
+  let input_clone = input.clone();
+  let ast = parse_macro_input!(input_clone as DeriveInput);
+  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
+  let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
   let oneof_full_name = proto_oneof_name_tokens.value();
 
   if oneof_full_name.is_empty() {
-    return quote! {}.into();
+    return Error::new_spanned(
+      &ast,
+      format!("Could not find protobuf path for oneof {}", ast.ident),
+    )
+    .to_compile_error()
+    .into();
   }
 
   let (parent_message_name, oneof_name) = match oneof_full_name.rsplit_once('.') {
     Some((parent, oneof)) => (parent, oneof),
-    None => return quote! {}.into(),
+    None => {
+      return Error::new_spanned(
+        ast,
+        format!(
+          "Could not extract parent message and oneof name for {}",
+          oneof_full_name
+        ),
+      )
+      .to_compile_error()
+      .into()
+    }
   };
 
-  println!(
-    "Parent message: {}, Oneof: {}",
-    parent_message_name, oneof_name
-  );
+  let message_desc = DESCRIPTOR_POOL.get_message_by_name(parent_message_name);
 
-  let input_clone = input.clone();
-  let ast = parse_macro_input!(input_clone as DeriveInput);
-
-  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
-
-  let mut oneof_variants: Vec<Ident> = Vec::new();
-
-  if let syn::Data::Enum(data_enum) = &ast.data {
-    for variant in &data_enum.variants {
-      oneof_variants.push(variant.ident.clone());
-    }
+  if message_desc.is_none() {
+    return Error::new_spanned(
+      ast,
+      format!(
+        "Parent message {} not found for oneof {}",
+        parent_message_name, oneof_name
+      ),
+    )
+    .to_compile_error()
+    .into();
   }
 
-  // let message_desc = DESCRIPTOR_POOL.get_message_by_name(&proto_message_name);
-  //
-  // if message_desc.is_none() {
-  //   println!("Message {} not found", proto_message_name);
-  //   return quote! {}.into();
-  // }
+  for oneof in message_desc.unwrap().oneofs() {
+    if oneof.name() == oneof_name {
+      let _ = extract_oneof_validators(ast, oneof);
+      break;
+    }
+  }
 
   // println!("{}", proto_message_name);
 
@@ -150,6 +167,11 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   // eprintln!("{}", output);
 
   output.into()
+}
+
+#[proc_macro_derive(Oneof, attributes(protocheck))]
+pub fn derive_oneof(_input: TokenStream) -> TokenStream {
+  TokenStream::new()
 }
 
 // #[proc_macro_derive(
