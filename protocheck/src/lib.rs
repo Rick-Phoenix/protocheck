@@ -45,17 +45,6 @@ pub mod build {
       }
     }
 
-    for enum_desc in pool.all_enums() {
-      let enum_name = enum_desc.full_name();
-      if enum_name.starts_with(app_package_prefix) {
-        let attribute_str = format!(
-          r#"#[protocheck::macros::protobuf_validate_enum("{}")]"#,
-          enum_name
-        );
-        config.enum_attribute(enum_name, attribute_str);
-      }
-    }
-
     config.compile_protos(proto_files, proto_include_paths)?;
 
     std::fs::remove_file(&temp_descriptor_path)?;

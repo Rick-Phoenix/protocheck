@@ -1,12 +1,10 @@
 #![allow(clippy::field_reassign_with_default)]
 
-use std::collections::HashSet;
-
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{parse_macro_input, punctuated::Punctuated, DeriveInput, LitStr, Token};
+use syn::{parse_macro_input, DeriveInput, LitStr};
 
 use crate::rules::extract_validators::extract_validators;
 
@@ -71,111 +69,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  eprintln!("{}", output);
-
-  output.into()
-}
-
-#[proc_macro_attribute]
-pub fn protobuf_validate_enum(attrs: TokenStream, input: TokenStream) -> TokenStream {
-  let proto_enum_name_tokens = parse_macro_input!(attrs as LitStr);
-
-  let proto_enum_name = proto_enum_name_tokens.value();
-
-  if proto_enum_name.is_empty() {
-    return quote! {}.into();
-  }
-
-  let enum_desc = DESCRIPTOR_POOL.get_enum_by_name(&proto_enum_name);
-
-  if enum_desc.is_none() {
-    println!("Enum {} not found", proto_enum_name);
-    return quote! {}.into();
-  }
-
-  let input_clone = input.clone();
-  let ast = parse_macro_input!(input_clone as DeriveInput);
-
-  let enum_ident = &ast.ident;
-
-  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
-
-  let output = quote! {
-    #original_input_as_proc_macro2
-
-    // impl protocheck::validators::EnumValidator for #enum_ident {
-    //   fn has_value(&self, value: i32) -> bool {
-    //     match self::try_into(value) {
-    //       Ok(_) => true,
-    //       Err(_) => false
-    //     }
-    //   }
-    // }
-  };
-
-  eprintln!("{}", output);
-
-  output.into()
-}
-
-#[proc_macro]
-pub fn generate_enum_valid_values(input: TokenStream) -> TokenStream {
-  let parsed_args =
-    parse_macro_input!(input with Punctuated::<LitStr, Token![,]>::parse_terminated);
-  let package_filters: HashSet<String> =
-    parsed_args.iter().map(|lit_str| lit_str.value()).collect();
-
-  let mut generated_constants = proc_macro2::TokenStream::new();
-
-  for enum_descriptor in DESCRIPTOR_POOL.all_enums() {
-    let full_name = enum_descriptor.full_name();
-
-    let should_include = if package_filters.is_empty() {
-      true
-    } else {
-      package_filters
-        .iter()
-        .any(|filter| full_name.starts_with(filter))
-    };
-
-    if should_include {
-      // println!("Full Name: {}", full_name);
-      let static_name_str = format!(
-        "__VALID_{}_VALUES",
-        full_name.replace('.', "_").to_uppercase()
-      );
-      let static_ident = Ident2::new(&static_name_str, Span2::call_site());
-
-      let mut insert_statements = proc_macro2::TokenStream::new();
-      for value in enum_descriptor.values() {
-        let num = value.number();
-        insert_statements.extend(quote! {
-          s.insert(#num);
-        });
-      }
-
-      generated_constants.extend(quote! {
-        #[allow(non_upper_case_globals)]
-        pub static #static_ident: std::sync::LazyLock<std::collections::HashSet<i32>> = std::sync::LazyLock::new(|| {
-          let mut s = std::collections::HashSet::new();
-          #insert_statements
-          s
-        });
-      });
-    }
-  }
-
-  let output = quote! {
-    #[allow(clippy::all)]
-    #[allow(non_snake_case)]
-    #[allow(unused)]
-    pub mod __protobuf_validators_consts {
-      use std::collections::HashSet;
-      use std::sync::LazyLock;
-
-      #generated_constants
-    }
-  };
+  // eprintln!("{}", output);
 
   output.into()
 }
