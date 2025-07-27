@@ -1,6 +1,6 @@
 use crate::protovalidate::{FieldPathElement, Violation, Violations};
 
-pub trait WithValidator {
+pub trait ProtoValidator {
   fn validate(&self) -> Result<(), Violations>;
   fn nested_validate(
     &self,

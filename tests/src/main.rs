@@ -1,19 +1,17 @@
-use std::collections::HashMap;
-
-use protocheck::validators::WithValidator;
-
-use crate::myapp::v1::{
-  user::{OneofFields, Post},
-  User,
-};
-
 mod myapp {
   pub mod v1 {
     include!(concat!(env!("OUT_DIR"), "/myapp.v1.rs"));
   }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+use protocheck::validators::ProtoValidator;
+
+use crate::myapp::v1::{
+  user::{OneofFields, Post},
+  User,
+};
+
+fn main() {
   let user = User {
     created_at: None,
     id: 1,
@@ -33,6 +31,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let result = user.validate();
   println!("{:#?}", result);
-
-  Ok(())
 }

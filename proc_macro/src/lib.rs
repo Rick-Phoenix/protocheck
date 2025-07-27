@@ -48,7 +48,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   let output = quote! {
     #original_input_as_proc_macro2
 
-    impl protocheck::validators::WithValidator for #struct_ident {
+    impl protocheck::validators::ProtoValidator for #struct_ident {
       fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
         let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
         let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
@@ -153,7 +153,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   let output = quote! {
     #original_input_as_proc_macro2
 
-    impl protocheck::validators::WithValidator for #oneof_enum_name {
+    impl protocheck::validators::ProtoValidator for #oneof_enum_name {
       fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
         Ok(())
       }
