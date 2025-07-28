@@ -29,7 +29,7 @@ pub static ONEOF_RULES_EXT_DESCRIPTOR: LazyLock<ExtensionDescriptor> = LazyLock:
 });
 
 pub(crate) fn get_rule_extensions_descriptors(
-  input_tokens: DeriveInput,
+  input_tokens: &DeriveInput,
 ) -> Result<
   (
     prost_reflect::ExtensionDescriptor,
@@ -41,19 +41,19 @@ pub(crate) fn get_rule_extensions_descriptors(
   let field_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.field")
     .ok_or(Error::new_spanned(
-      &input_tokens,
+      input_tokens,
       "buf.validate.field extension not found in descriptor pool",
     ))?;
   let message_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.message")
     .ok_or(Error::new_spanned(
-      &input_tokens,
+      input_tokens,
       "buf.validate.message extension not found in descriptor pool",
     ))?;
   let oneof_ext_descriptor = DESCRIPTOR_POOL
     .get_extension_by_name("buf.validate.oneof")
     .ok_or(Error::new_spanned(
-      &input_tokens,
+      input_tokens,
       "buf.validate.oneof extension not found in descriptor pool",
     ))?;
   Ok((

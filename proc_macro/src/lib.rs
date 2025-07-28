@@ -22,28 +22,40 @@ mod rules;
 #[proc_macro_attribute]
 pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let proto_message_name_tokens = parse_macro_input!(attrs as LitStr);
-
   let proto_message_name = proto_message_name_tokens.value();
-
-  if proto_message_name.is_empty() {
-    return quote! {}.into();
-  }
-
-  let message_desc = DESCRIPTOR_POOL.get_message_by_name(&proto_message_name);
-
-  if message_desc.is_none() {
-    println!("Message {} not found", proto_message_name);
-    return quote! {}.into();
-  }
 
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
 
-  let struct_ident = ast.ident.clone();
+  if proto_message_name.is_empty() {
+    return Error::new_spanned(
+      &ast.ident,
+      format!("Found empty message name for {}", &ast.ident),
+    )
+    .to_compile_error()
+    .into();
+  }
+
+  let message_desc = match DESCRIPTOR_POOL.get_message_by_name(&proto_message_name) {
+    Some(message) => message,
+    None => {
+      return Error::new_spanned(
+        proto_message_name_tokens,
+        format!("Message {} not found", proto_message_name),
+      )
+      .to_compile_error()
+      .into()
+    }
+  };
+
+  let validators: Vec<ValidatorCallTemplate> = match extract_message_validators(&ast, &message_desc)
+  {
+    Ok(validators_data) => validators_data,
+    Err(e) => return e.to_compile_error().into(),
+  };
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
-
-  let validator_call_templates = extract_message_validators(ast, message_desc.unwrap()).unwrap();
+  let struct_ident = &ast.ident;
 
   let output = quote! {
     #original_input_as_proc_macro2
@@ -67,7 +79,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
         violations: &mut Vec<protocheck::types::protovalidate::Violation>,
       ) {
 
-        #(#validator_call_templates)*
+        #(#validators)*
 
       }
     }
@@ -82,8 +94,6 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
-  let oneof_rust_ident = &ast.ident.clone();
-  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
   let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
   let oneof_full_name = proto_oneof_name_tokens.value();
@@ -91,7 +101,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   if oneof_full_name.is_empty() {
     return Error::new_spanned(
       &ast,
-      format!("Could not find protobuf path for oneof {}", ast.ident),
+      format!("Found empty oneof name attribute for {}", &ast.ident),
     )
     .to_compile_error()
     .into();
@@ -112,25 +122,26 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     }
   };
 
-  let message_desc = DESCRIPTOR_POOL.get_message_by_name(parent_message_name);
-
-  if message_desc.is_none() {
-    return Error::new_spanned(
-      ast,
-      format!(
-        "Parent message {} not found for oneof {}",
-        parent_message_name, oneof_name
-      ),
-    )
-    .to_compile_error()
-    .into();
-  }
+  let message_desc = match DESCRIPTOR_POOL.get_message_by_name(parent_message_name) {
+    Some(message) => message,
+    None => {
+      return Error::new_spanned(
+        ast,
+        format!(
+          "Parent message {} not found for oneof {}",
+          parent_message_name, oneof_name
+        ),
+      )
+      .to_compile_error()
+      .into()
+    }
+  };
 
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
 
-  for oneof in message_desc.unwrap().oneofs() {
+  for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
-      match extract_oneof_validators(ast, oneof) {
+      match extract_oneof_validators(&ast, &oneof) {
         Ok(validators_data) => validators = validators_data,
         Err(e) => return e.to_compile_error().into(),
       };
@@ -147,6 +158,9 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
       },
     });
   }
+
+  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
+  let oneof_rust_ident = &ast.ident;
 
   let output = quote! {
     #original_input_as_proc_macro2

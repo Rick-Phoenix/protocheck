@@ -3,7 +3,7 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{
-  field_rules::Type as RulesType, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate,
+  field_rules::Type as RulesType, FieldData, Ignore, ValidatorCallTemplate, ValidatorKind,
 };
 use crate::{
   rules::{
@@ -77,7 +77,7 @@ pub fn get_map_rules(
       let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
       min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
-        kind: GeneratedCodeKind::FieldRule {
+        kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::min_pairs },
           target_value_tokens: min_pairs_value.into_token_stream(),
         },
@@ -89,7 +89,7 @@ pub fn get_map_rules(
       let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
       max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
-        kind: GeneratedCodeKind::FieldRule {
+        kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::max_pairs },
           target_value_tokens: max_pairs_value.into_token_stream(),
         },
@@ -173,7 +173,7 @@ pub fn get_map_rules(
     value_field_data.is_map_value = true;
     let value_message_rules = ValidatorCallTemplate {
       field_data: value_field_data,
-      kind: GeneratedCodeKind::MessageField,
+      kind: ValidatorKind::MessageField,
     };
 
     value_rules.push(value_message_rules);
@@ -184,7 +184,7 @@ pub fn get_map_rules(
   } else {
     Ok(Some(ValidatorCallTemplate {
       field_data: map_field_data.to_owned(),
-      kind: GeneratedCodeKind::MapValidationLoop {
+      kind: ValidatorKind::MapValidationLoop {
         map_level_rules,
         key_rules,
         value_rules,

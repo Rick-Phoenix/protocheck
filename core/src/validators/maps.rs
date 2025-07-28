@@ -11,7 +11,7 @@ pub fn min_pairs<K, V>(
   value: Option<&HashMap<K, V>>,
   min_pairs: usize,
 ) -> Result<(), Violation> {
-  if !value.is_some() {
+  if value.is_none() {
     return Ok(());
   };
 
@@ -20,11 +20,7 @@ pub fn min_pairs<K, V>(
   let check = value_unwrapped.len() >= min_pairs;
 
   if !check {
-    let plural_suffix = if min_pairs > 1 {
-      format!("s")
-    } else {
-      format!("")
-    };
+    let plural_suffix = if min_pairs > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
@@ -77,7 +73,7 @@ pub fn max_pairs<K, V>(
   value: Option<&HashMap<K, V>>,
   max_pairs: usize,
 ) -> Result<(), Violation> {
-  if !value.is_some() {
+  if value.is_none() {
     return Ok(());
   };
 
@@ -86,11 +82,7 @@ pub fn max_pairs<K, V>(
   let check = value_unwrapped.len() <= max_pairs;
 
   if !check {
-    let plural_suffix = if max_pairs > 1 {
-      format!("s")
-    } else {
-      format!("")
-    };
+    let plural_suffix = if max_pairs > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {

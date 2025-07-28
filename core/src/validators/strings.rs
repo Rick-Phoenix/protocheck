@@ -10,18 +10,12 @@ pub fn max_len(
   value: Option<&str>,
   max_len: usize,
 ) -> Result<(), Violation> {
-  let check = if value.is_some() {
-    let unwrapped_val = value.unwrap();
-    unwrapped_val.chars().count() <= max_len
-  } else {
-    return Ok(());
+  let check = match value {
+    Some(val) => val.chars().count() <= max_len,
+    None => return Ok(()),
   };
 
-  let plural_suffix = if max_len > 1 {
-    format!("s")
-  } else {
-    format!("")
-  };
+  let plural_suffix = if max_len > 1 { "s" } else { "" };
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -89,18 +83,12 @@ pub fn min_len(
   value: Option<&str>,
   min_len: usize,
 ) -> Result<(), Violation> {
-  let check = if value.is_some() {
-    let unwrapped_val = value.unwrap();
-    unwrapped_val.chars().count() >= min_len
-  } else {
-    return Ok(());
+  let check = match value {
+    Some(val) => val.chars().count() >= min_len,
+    None => return Ok(()),
   };
 
-  let plural_suffix = if min_len > 1 {
-    format!("s")
-  } else {
-    format!("")
-  };
+  let plural_suffix = if min_len > 1 { "s" } else { "" };
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -164,14 +152,12 @@ pub fn min_len(
 }
 
 pub fn len(field_context: FieldContext, value: Option<&str>, len: usize) -> Result<(), Violation> {
-  let check = if value.is_some() {
-    let unwrapped_val = value.unwrap();
-    unwrapped_val.chars().count() == len
-  } else {
-    return Ok(());
+  let check = match value {
+    Some(val) => val.chars().count() == len,
+    None => return Ok(()),
   };
 
-  let plural_suffix = if len > 1 { format!("s") } else { format!("") };
+  let plural_suffix = if len > 1 { "s" } else { "" };
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();

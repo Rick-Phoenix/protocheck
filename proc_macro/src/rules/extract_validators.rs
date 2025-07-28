@@ -8,7 +8,7 @@ use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
-  FieldData, GeneratedCodeKind, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate,
+  FieldData, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate, ValidatorKind,
 };
 use crate::{
   pool_loader::{
@@ -36,8 +36,8 @@ struct OneofField {
 }
 
 pub fn extract_oneof_validators(
-  input_tokens: DeriveInput,
-  oneof_desc: OneofDescriptor,
+  input_tokens: &DeriveInput,
+  oneof_desc: &OneofDescriptor,
 ) -> Result<HashMap<Ident, Vec<ValidatorCallTemplate>>, Error> {
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
@@ -60,7 +60,18 @@ pub fn extract_oneof_validators(
         if attr.path().is_ident("protocheck") {
           let _ = attr.parse_nested_meta(|meta| {
             if meta.input.peek(Token![=]) && meta.path.is_ident("proto_name") {
-              let proto_field_name = meta.value().unwrap().parse::<LitStr>().unwrap();
+              let proto_field_name = meta
+                .value()
+                .map_err(|e| {
+                  Error::new_spanned(attr, format!("Failed to parse the proto_name attribute's value tokens: {}", e))
+                })?
+                .parse::<LitStr>()
+                .map_err(|e| {
+                  Error::new_spanned(
+                    attr,
+                    format!("Failed to parse the value for the proto_name attribute into a string literal: {}", e),
+                  )
+                })?;
               let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
               field_ident_entry.proto_name = proto_field_name.value();
             }
@@ -70,7 +81,11 @@ pub fn extract_oneof_validators(
         } else if attr.path().is_ident("prost") {
           let _ = attr.parse_nested_meta(|meta| {
             if meta.path.is_ident("enumeration") && meta.input.peek(Token![=]) {
-              let enum_name = meta.value().unwrap().parse::<LitStr>().unwrap();
+              let enum_name = meta.value().map_err(|e| {
+                Error::new_spanned(attr, format!("Failed to parse the enumeration attribute's value tokens: {}", e))
+              })?.parse::<LitStr>().map_err(|e| {
+                Error::new_spanned(attr, format!("Failed to parse the value for the enumeration attribute to a string literal: {}", e))
+              })?;
               let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
               field_ident_entry.enum_ident = Some(enum_name.value());
             }
@@ -93,7 +108,10 @@ pub fn extract_oneof_validators(
     .get_extension(&ONEOF_RULES_EXT_DESCRIPTOR)
     .as_ref()
   {
-    let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
+    let oneof_rules =
+      OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).map_err(|e| {
+        Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
+      })?;
     if oneof_rules.required() {
       let mut field_data = FieldData::default();
       field_data.rust_name = oneof_name.to_string();
@@ -122,7 +140,10 @@ pub fn extract_oneof_validators(
     let field_rules_descriptor = field_options.get_extension(&FIELD_RULES_EXT_DESCRIPTOR);
 
     if let ProstValue::Message(field_rules_message) = field_rules_descriptor.as_ref() {
-      let field_rules = FieldRules::decode(field_rules_message.encode_to_vec().as_slice()).unwrap();
+      let field_rules = FieldRules::decode(field_rules_message.encode_to_vec().as_slice())
+        .map_err(|e| {
+          Error::new_spanned(input_tokens, format!("Could not decode field rules: {}", e))
+        })?;
 
       let ignore = field_rules.ignore();
       let is_required = field_rules.required();
@@ -164,7 +185,7 @@ pub fn extract_oneof_validators(
         {
           let template = ValidatorCallTemplate {
             field_data,
-            kind: GeneratedCodeKind::MessageField,
+            kind: ValidatorKind::MessageField,
           };
           field_validators.push(template);
           validators.insert(field_ident, field_validators);
@@ -185,8 +206,8 @@ pub fn extract_oneof_validators(
 }
 
 pub fn extract_message_validators(
-  input_tokens: DeriveInput,
-  message_desc: MessageDescriptor,
+  input_tokens: &DeriveInput,
+  message_desc: &MessageDescriptor,
 ) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
 
@@ -201,10 +222,45 @@ pub fn extract_message_validators(
             let _ = attr.parse_nested_meta(|meta| {
               if meta.input.peek(Token![=]) {
                 if meta.path.is_ident("enumeration") {
-                  let enum_name = meta.value().unwrap().parse::<LitStr>().unwrap();
+                  let enum_name = meta
+                    .value()
+                    .map_err(|e| {
+                      Error::new_spanned(
+                        attr,
+                        format!(
+                          "Failed to parse the enumeration attribute's value tokens: {}",
+                          e
+                        ),
+                      )
+                    })?
+                    .parse::<LitStr>()
+                    .map_err(|e| {
+                      Error::new_spanned(
+                        attr,
+                        format!(
+                          "Failed to parse the enumeration attribute to a string literal: {}",
+                          e
+                        ),
+                      )
+                    })?;
                   rust_enum_paths.insert(ident.to_string(), enum_name.value());
                 } else if meta.path.is_ident("map") {
-                  let attr_content = meta.value().unwrap().parse::<LitStr>().unwrap().value();
+                  let attr_content = meta
+                    .value()
+                    .map_err(|e| {
+                      Error::new_spanned(
+                        attr,
+                        format!("Failed to parse the map attribute's value tokens: {}", e),
+                      )
+                    })?
+                    .parse::<LitStr>()
+                    .map_err(|e| {
+                      Error::new_spanned(
+                        attr,
+                        format!("Failed to parse map attribute to a string literal: {}", e),
+                      )
+                    })?
+                    .value();
                   if let Some(captures) = MAP_ENUM_REGEX.captures(&attr_content) {
                     if let Some(enum_name) = captures.get(1) {
                       rust_enum_paths.insert(ident.to_string(), enum_name.as_str().into());
@@ -230,7 +286,13 @@ pub fn extract_message_validators(
 
   // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
-    let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice()).unwrap();
+    let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice())
+      .map_err(|e| {
+        Error::new_spanned(
+          input_tokens,
+          format!("Could not decode message rules: {}", e),
+        )
+      })?;
 
     if !message_rules.cel.is_empty() {
       let mut field_data = FieldData::default();
@@ -249,7 +311,10 @@ pub fn extract_message_validators(
       .get_extension(&oneof_ext_descriptor)
       .as_ref()
     {
-      let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).unwrap();
+      let oneof_rules =
+        OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).map_err(|e| {
+          Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
+        })?;
       let name = oneof.name();
       let mut field_data = FieldData::default();
       field_data.rust_name = name.to_string();
@@ -257,7 +322,7 @@ pub fn extract_message_validators(
 
       validation_data.push(ValidatorCallTemplate {
         field_data,
-        kind: GeneratedCodeKind::OneofField {
+        kind: ValidatorKind::OneofField {
           is_required: oneof_rules.required(),
         },
       });
@@ -287,7 +352,10 @@ pub fn extract_message_validators(
     let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
 
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
-      let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).unwrap();
+      let field_rules =
+        FieldRules::decode(field_rules_msg.encode_to_vec().as_slice()).map_err(|e| {
+          Error::new_spanned(input_tokens, format!("Could not decode field rules: {}", e))
+        })?;
 
       let ignore = field_rules.ignore();
       let is_required = field_rules.required();
@@ -317,7 +385,7 @@ pub fn extract_message_validators(
 
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
-          validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
+          validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false)?);
         }
 
         if !is_map
@@ -328,7 +396,7 @@ pub fn extract_message_validators(
         {
           let template = ValidatorCallTemplate {
             field_data,
-            kind: GeneratedCodeKind::MessageField,
+            kind: ValidatorKind::MessageField,
           };
           validation_data.push(template);
           continue;

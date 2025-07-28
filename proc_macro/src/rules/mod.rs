@@ -2,7 +2,7 @@ pub(crate) use proto_types::{protobuf, protovalidate};
 pub(crate) use protobuf::field_descriptor_proto::Type as ProtoType;
 pub(crate) use protocheck_core::{
   field_data::FieldData,
-  internals::validator_template::{GeneratedCodeKind, ValidatorCallTemplate},
+  internals::validator_template::{ValidatorCallTemplate, ValidatorKind},
 };
 pub(crate) use protovalidate::{field_rules, Ignore};
 use protovalidate::{MessageRules, OneofRules, Rule};

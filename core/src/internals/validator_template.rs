@@ -4,7 +4,7 @@ use random_string::charsets::ALPHA_LOWER;
 use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 
 #[derive(Debug)]
-pub enum GeneratedCodeKind {
+pub enum ValidatorKind {
   FieldRule {
     validator_path: TokenStream2,
     target_value_tokens: TokenStream2,
@@ -39,7 +39,7 @@ pub enum GeneratedCodeKind {
 #[derive(Debug)]
 pub struct ValidatorCallTemplate {
   pub field_data: FieldData,
-  pub kind: GeneratedCodeKind,
+  pub kind: ValidatorKind,
 }
 
 impl ToTokens for ValidatorCallTemplate {
@@ -102,7 +102,7 @@ impl ToTokens for ValidatorCallTemplate {
     let field_data = self.field_data.clone();
 
     match &self.kind {
-      GeneratedCodeKind::EnumDefinedOnly {
+      ValidatorKind::EnumDefinedOnly {
         enum_type_ident,
         enum_name,
       } => {
@@ -121,7 +121,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       }
-      GeneratedCodeKind::FieldRule {
+      ValidatorKind::FieldRule {
         validator_path,
         target_value_tokens,
       } => {
@@ -146,7 +146,7 @@ impl ToTokens for ValidatorCallTemplate {
           };
         });
       }
-      GeneratedCodeKind::MessageField => {
+      ValidatorKind::MessageField => {
         let current_nested_field_element = quote! {
           protocheck::types::protovalidate::FieldPathElement {
             field_name: Some(#field_proto_name.to_string()),
@@ -174,7 +174,7 @@ impl ToTokens for ValidatorCallTemplate {
           });
         }
       }
-      GeneratedCodeKind::RepeatedValidationLoop {
+      ValidatorKind::RepeatedValidationLoop {
         vec_level_rules,
         items_rules,
         unique_values,
@@ -224,7 +224,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       }
-      GeneratedCodeKind::MapValidationLoop {
+      ValidatorKind::MapValidationLoop {
         map_level_rules,
         key_rules,
         value_rules,
@@ -252,7 +252,7 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       }
-      GeneratedCodeKind::OneofField { is_required } => {
+      ValidatorKind::OneofField { is_required } => {
         tokens.extend(quote! {
           match &self.#field_rust_ident {
             Some(oneof) => { oneof.nested_validate(#parent_messages_ident, #violations_ident); },
@@ -271,7 +271,7 @@ impl ToTokens for ValidatorCallTemplate {
           };
         });
       }
-      GeneratedCodeKind::CelRule {
+      ValidatorKind::CelRule {
         expression,
         message,
         rule_id,
@@ -304,7 +304,7 @@ impl ToTokens for ValidatorCallTemplate {
 
           let field_context = protocheck::field_data::FieldContext {
             field_data: #field_data,
-            subscript: None,
+            subscript: #subscript,
             parent_elements: #parent_messages_ident.as_slice(),
           };
 

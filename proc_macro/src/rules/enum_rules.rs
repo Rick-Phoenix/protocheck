@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use prost_reflect::EnumDescriptor;
 use syn::Error;
 
-use super::{protovalidate::EnumRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
+use super::{protovalidate::EnumRules, FieldData, ValidatorCallTemplate, ValidatorKind};
 use crate::Span2;
 
 pub fn get_enum_rules(
@@ -22,7 +22,7 @@ pub fn get_enum_rules(
   if enum_rules.defined_only() {
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::EnumDefinedOnly {
+      kind: ValidatorKind::EnumDefinedOnly {
         enum_type_ident: field_type_ident.clone(),
         enum_name: enum_name.to_string(),
       },

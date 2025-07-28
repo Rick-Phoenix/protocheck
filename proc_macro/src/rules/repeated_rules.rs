@@ -3,8 +3,8 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{
-  field_rules::Type as RulesType, protovalidate::Ignore, FieldData, GeneratedCodeKind, ProtoType,
-  ValidatorCallTemplate,
+  field_rules::Type as RulesType, protovalidate::Ignore, FieldData, ProtoType,
+  ValidatorCallTemplate, ValidatorKind,
 };
 use crate::{
   rules::{cel_rules::get_cel_rules, core::get_field_rules},
@@ -52,7 +52,7 @@ pub fn get_repeated_rules(
       min_items = Some(rule_val);
       vec_level_rules.push(ValidatorCallTemplate {
         field_data: field_data.clone(),
-        kind: GeneratedCodeKind::FieldRule {
+        kind: ValidatorKind::FieldRule {
           validator_path: quote! { protocheck::validators::repeated::min_items },
           target_value_tokens: rule_val.to_token_stream(),
         },
@@ -64,7 +64,7 @@ pub fn get_repeated_rules(
       max_items = Some(rule_val);
       vec_level_rules.push(ValidatorCallTemplate {
         field_data: field_data.clone(),
-        kind: GeneratedCodeKind::FieldRule {
+        kind: ValidatorKind::FieldRule {
           validator_path: quote! { protocheck::validators::repeated::max_items },
           target_value_tokens: rule_val.to_token_stream(),
         },
@@ -117,7 +117,7 @@ pub fn get_repeated_rules(
 
     let items_message_rules = ValidatorCallTemplate {
       field_data: items_field_data,
-      kind: GeneratedCodeKind::MessageField,
+      kind: ValidatorKind::MessageField,
     };
 
     items_rules.push(items_message_rules);
@@ -128,7 +128,7 @@ pub fn get_repeated_rules(
   } else {
     Ok(Some(ValidatorCallTemplate {
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::RepeatedValidationLoop {
+      kind: ValidatorKind::RepeatedValidationLoop {
         vec_level_rules,
         items_rules,
         unique_values,

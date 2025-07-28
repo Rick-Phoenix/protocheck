@@ -1,7 +1,7 @@
 use cel_interpreter::Program;
 use syn::Error;
 
-use super::{FieldData, GeneratedCodeKind, Rule, ValidatorCallTemplate};
+use super::{FieldData, Rule, ValidatorCallTemplate, ValidatorKind};
 use crate::Span2;
 
 pub fn get_cel_rules(
@@ -20,14 +20,14 @@ pub fn get_cel_rules(
         let message = rule.message().to_string();
         let rule_id = rule.id().to_string();
         let kind = if is_for_message {
-          GeneratedCodeKind::CelRule {
+          ValidatorKind::CelRule {
             expression,
             message,
             rule_id,
             is_for_message: true,
           }
         } else {
-          GeneratedCodeKind::CelRule {
+          ValidatorKind::CelRule {
             expression,
             message,
             rule_id,

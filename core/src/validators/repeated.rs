@@ -11,7 +11,7 @@ pub fn min_items<T>(
   value: Option<&Vec<T>>,
   min_items: u64,
 ) -> Result<(), Violation> {
-  if !value.is_some() {
+  if value.is_none() {
     return Ok(());
   };
 
@@ -20,11 +20,7 @@ pub fn min_items<T>(
   let check = value_unwrapped.len() >= min_items as usize;
 
   if !check {
-    let plural_suffix = if min_items > 1 {
-      format!("s")
-    } else {
-      format!("")
-    };
+    let plural_suffix = if min_items > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
@@ -77,7 +73,7 @@ pub fn max_items<T>(
   value: Option<&Vec<T>>,
   max_items: u64,
 ) -> Result<(), Violation> {
-  if !value.is_some() {
+  if value.is_none() {
     return Ok(());
   };
 
@@ -86,11 +82,7 @@ pub fn max_items<T>(
   let check = value_unwrapped.len() <= max_items as usize;
 
   if !check {
-    let plural_suffix = if max_items > 1 {
-      format!("s")
-    } else {
-      format!("")
-    };
+    let plural_suffix = if max_items > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
