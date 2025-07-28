@@ -17,9 +17,9 @@ pub fn get_repeated_rules(
   field_span: Span2,
   field_data: &FieldData,
   field_rules: Option<&RulesType>,
-) -> Result<ValidatorCallTemplate, Error> {
-  let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut items_templates: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Option<ValidatorCallTemplate>, Error> {
+  let mut vec_level_rules: Vec<ValidatorCallTemplate> = Vec::new();
+  let mut items_rules: Vec<ValidatorCallTemplate> = Vec::new();
 
   let mut item_is_message = false;
   if let Kind::Message(item_desc) = field_desc.kind() {
@@ -50,7 +50,7 @@ pub fn get_repeated_rules(
     if repeated_rules.min_items() > 0 {
       let rule_val = repeated_rules.min_items();
       min_items = Some(rule_val);
-      templates.push(ValidatorCallTemplate {
+      vec_level_rules.push(ValidatorCallTemplate {
         validator_path: Some(quote! { protocheck::validators::repeated::min_items }),
         target_value_tokens: Some(rule_val.to_token_stream()),
         field_data: field_data.clone(),
@@ -61,7 +61,7 @@ pub fn get_repeated_rules(
     if repeated_rules.max_items() > 0 {
       let rule_val = repeated_rules.max_items();
       max_items = Some(rule_val);
-      templates.push(ValidatorCallTemplate {
+      vec_level_rules.push(ValidatorCallTemplate {
         validator_path: Some(quote! { protocheck::validators::repeated::max_items }),
         target_value_tokens: Some(rule_val.to_token_stream()),
         field_data: field_data.clone(),
@@ -89,7 +89,7 @@ pub fn get_repeated_rules(
 
           if !items_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(&items_field_data, &items_rules_descriptor.cel, false)?;
-            items_templates.extend(cel_rules);
+            items_rules.extend(cel_rules);
           }
 
           if !item_is_message {
@@ -101,7 +101,7 @@ pub fn get_repeated_rules(
               rules_type,
             )?;
 
-            items_templates.extend(rules_for_single_item);
+            items_rules.extend(rules_for_single_item);
           }
         }
       }
@@ -120,18 +120,22 @@ pub fn get_repeated_rules(
       kind: GeneratedCodeKind::MessageField,
     };
 
-    items_templates.push(items_message_rules);
+    items_rules.push(items_message_rules);
   }
 
-  Ok(ValidatorCallTemplate {
-    validator_path: None,
-    target_value_tokens: None,
-    field_data: field_data.clone(),
-    kind: GeneratedCodeKind::RepeatedValidationLoop {
-      vec_level_rules: templates,
-      items_rules: items_templates,
-      unique_values,
-      float_values,
-    },
-  })
+  if vec_level_rules.is_empty() && items_rules.is_empty() {
+    Ok(None)
+  } else {
+    Ok(Some(ValidatorCallTemplate {
+      validator_path: None,
+      target_value_tokens: None,
+      field_data: field_data.clone(),
+      kind: GeneratedCodeKind::RepeatedValidationLoop {
+        vec_level_rules,
+        items_rules,
+        unique_values,
+        float_values,
+      },
+    }))
+  }
 }

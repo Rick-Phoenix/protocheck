@@ -344,23 +344,29 @@ pub fn extract_message_validators(
       let field_rules = field_rules.r#type.as_ref();
 
       if is_repeated {
-        let rules = get_repeated_rules(
+        let repeated_rules = get_repeated_rules(
           field_rust_enum,
           &field_desc,
           field_span,
           &field_data,
           field_rules,
         )?;
-        validation_data.push(rules);
+
+        if let Some(rules) = repeated_rules {
+          validation_data.push(rules);
+        }
       } else if is_map {
-        let rules = get_map_rules(
+        let map_rules = get_map_rules(
           field_rust_enum,
           field_span,
           &field_desc,
           &field_data,
           field_rules,
         )?;
-        validation_data.push(rules);
+
+        if let Some(rules) = map_rules {
+          validation_data.push(rules);
+        }
       } else if let Some(rules_type) = field_rules {
         let rules = get_field_rules(
           field_rust_enum,

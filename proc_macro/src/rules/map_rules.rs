@@ -19,10 +19,10 @@ pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
   map_field_data: &FieldData,
   field_rules: Option<&RulesType>,
-) -> Result<ValidatorCallTemplate, Error> {
-  let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut value_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Option<ValidatorCallTemplate>, Error> {
+  let mut map_level_rules: Vec<ValidatorCallTemplate> = Vec::new();
+  let mut key_rules: Vec<ValidatorCallTemplate> = Vec::new();
+  let mut value_rules: Vec<ValidatorCallTemplate> = Vec::new();
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -76,7 +76,7 @@ pub fn get_map_rules(
     if map_rules.min_pairs.is_some() {
       let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
       min_pairs = Some(min_pairs_value);
-      map_level_rules_templates.push(ValidatorCallTemplate {
+      map_level_rules.push(ValidatorCallTemplate {
         validator_path: Some(quote! { macro_impl::validators::maps::min_pairs }),
         target_value_tokens: Some(min_pairs_value.into_token_stream()),
         kind: GeneratedCodeKind::FieldRule,
@@ -87,7 +87,7 @@ pub fn get_map_rules(
     if map_rules.max_pairs.is_some() {
       let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
       max_pairs = Some(max_pairs_value);
-      map_level_rules_templates.push(ValidatorCallTemplate {
+      map_level_rules.push(ValidatorCallTemplate {
         validator_path: Some(quote! { macro_impl::validators::maps::max_pairs }),
         target_value_tokens: Some(max_pairs_value.into_token_stream()),
         kind: GeneratedCodeKind::FieldRule,
@@ -122,11 +122,11 @@ pub fn get_map_rules(
             &key_field_data,
             rules,
           )?;
-          key_rules_templates.extend(generated_key_templates);
+          key_rules.extend(generated_key_templates);
 
           if !key_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
-            key_rules_templates.extend(cel_rules);
+            key_rules.extend(cel_rules);
           }
         }
       }
@@ -147,7 +147,7 @@ pub fn get_map_rules(
 
           if !value_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
-            value_rules_templates.extend(cel_rules);
+            value_rules.extend(cel_rules);
           }
 
           if !value_is_message {
@@ -158,7 +158,7 @@ pub fn get_map_rules(
               &value_field_data,
               rules,
             )?;
-            value_rules_templates.extend(generated_value_templates);
+            value_rules.extend(generated_value_templates);
           }
         }
       }
@@ -176,17 +176,21 @@ pub fn get_map_rules(
       kind: GeneratedCodeKind::MessageField,
     };
 
-    value_rules_templates.push(value_message_rules);
+    value_rules.push(value_message_rules);
   }
 
-  Ok(ValidatorCallTemplate {
-    validator_path: None,
-    target_value_tokens: None,
-    field_data: map_field_data.to_owned(),
-    kind: GeneratedCodeKind::MapValidationLoop {
-      map_level_rules: map_level_rules_templates,
-      key_rules: key_rules_templates,
-      value_rules: value_rules_templates,
-    },
-  })
+  if map_level_rules.is_empty() && key_rules.is_empty() && value_rules.is_empty() {
+    Ok(None)
+  } else {
+    Ok(Some(ValidatorCallTemplate {
+      validator_path: None,
+      target_value_tokens: None,
+      field_data: map_field_data.to_owned(),
+      kind: GeneratedCodeKind::MapValidationLoop {
+        map_level_rules,
+        key_rules,
+        value_rules,
+      },
+    }))
+  }
 }
