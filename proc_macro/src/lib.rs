@@ -141,7 +141,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
-      match extract_oneof_validators(&ast, &oneof, &message_desc) {
+      match extract_oneof_validators(&ast, &oneof) {
         Ok(validators_data) => validators = validators_data,
         Err(e) => return e.to_compile_error().into(),
       };

@@ -15,7 +15,7 @@ use crate::{
     get_rule_extensions_descriptors, FIELD_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
   },
   rules::{
-    cel_rules::get_cel_rules,
+    cel_rules::{get_cel_rules, CelRuleKind},
     core::{convert_kind_to_proto_type, get_field_rules},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
@@ -38,7 +38,6 @@ struct OneofField {
 pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
-  message_desc: &MessageDescriptor,
 ) -> Result<HashMap<Ident, Vec<ValidatorCallTemplate>>, Error> {
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
@@ -177,10 +176,9 @@ pub fn extract_oneof_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          message_desc,
+          &CelRuleKind::Field(&field),
           &field_data,
           &field_rules.cel,
-          false,
         )?);
       }
 
@@ -307,10 +305,9 @@ pub fn extract_message_validators(
       field_data.tag = 0;
       field_data.proto_type = ProtoType::Message;
       validation_data.extend(get_cel_rules(
-        message_desc,
+        &CelRuleKind::Message(message_desc),
         &field_data,
         &message_rules.cel,
-        true,
       )?);
     }
   }
@@ -397,10 +394,9 @@ pub fn extract_message_validators(
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
           validation_data.extend(get_cel_rules(
-            message_desc,
+            &CelRuleKind::Field(&field_desc),
             &field_data,
             &field_rules.cel,
-            false,
           )?);
         }
 
@@ -423,7 +419,6 @@ pub fn extract_message_validators(
 
       if is_repeated {
         let repeated_rules = get_repeated_rules(
-          message_desc,
           field_rust_enum,
           &field_desc,
           field_span,
@@ -436,7 +431,6 @@ pub fn extract_message_validators(
         }
       } else if is_map {
         let map_rules = get_map_rules(
-          message_desc,
           field_rust_enum,
           field_span,
           &field_desc,

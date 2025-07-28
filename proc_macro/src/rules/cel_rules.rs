@@ -1,18 +1,26 @@
 use cel_interpreter::{Context, Program, Value as CelValue};
-use prost_reflect::{DynamicMessage, MessageDescriptor, SerializeOptions, Value as ProstValue};
+use prost_reflect::{
+  DynamicMessage, FieldDescriptor, MessageDescriptor, SerializeOptions, Value as ProstValue,
+};
 use serde_json::{Serializer, Value as JsonValue};
 use syn::Error;
 
 use super::{FieldData, Rule, ValidatorCallTemplate, ValidatorKind};
 use crate::Span2;
 
+#[derive(Debug, Clone)]
+pub enum CelRuleKind<'a> {
+  Message(&'a MessageDescriptor),
+  Field(&'a FieldDescriptor),
+}
+
 pub fn get_cel_rules(
-  message_desc: &MessageDescriptor,
+  rule_kind: &CelRuleKind,
   field_data: &FieldData,
   rules: &[Rule],
-  is_for_message: bool,
 ) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut validators: Vec<ValidatorCallTemplate> = Vec::new();
+  let mut is_for_message = false;
 
   for rule in rules {
     let program = match Program::compile(rule.expression()) {
@@ -25,49 +33,34 @@ pub fn get_cel_rules(
       }
     };
 
-    let dyn_message = DynamicMessage::new(message_desc.clone());
-    let serialize_options = SerializeOptions::new().skip_default_fields(false);
-    let mut serializer = Serializer::new(vec![]);
-
-    let json_val: serde_json::Value = if is_for_message {
-      dyn_message
-        .serialize_with_options(&mut serializer, &serialize_options)
-        .unwrap();
-      serde_json::from_slice(&serializer.into_inner()).unwrap()
-    } else {
-      let field_json_val = get_default_field_prost_value(field_data, message_desc)?;
-
-      serde_json::from_value(field_json_val).unwrap()
+    let json_val: JsonValue = match rule_kind {
+      CelRuleKind::Message(message_desc) => {
+        is_for_message = true;
+        let dyn_message = DynamicMessage::new(message_desc.to_owned().clone());
+        convert_prost_value_to_json_value(&ProstValue::Message(dyn_message))?
+      }
+      CelRuleKind::Field(field_desc) => get_default_field_prost_value(field_data, field_desc)?,
     };
 
-    println!("Dyn Message: {:#?}", json_val);
+    let serialized_json_val: JsonValue = serde_json::from_value(json_val).unwrap();
 
     let mut context = Context::default();
-    match context.add_variable("this", json_val) {
+    match context.add_variable("this", serialized_json_val) {
       Ok(_) => match program.execute(&context) {
         Ok(result) => {
           if let CelValue::Bool(_) = result {
             let expression = rule.expression().to_string();
             let message = rule.message().to_string();
             let rule_id = rule.id().to_string();
-            let kind = if is_for_message {
-              ValidatorKind::CelRule {
-                expression,
-                message,
-                rule_id,
-                is_for_message: true,
-              }
-            } else {
-              ValidatorKind::CelRule {
-                expression,
-                message,
-                rule_id,
-                is_for_message: false,
-              }
-            };
+
             validators.push(ValidatorCallTemplate {
               field_data: field_data.clone(),
-              kind,
+              kind: ValidatorKind::CelRule {
+                expression,
+                message,
+                rule_id,
+                is_for_message,
+              },
             });
           } else {
             return Err(Error::new(
@@ -101,24 +94,12 @@ pub fn get_cel_rules(
 
 fn get_default_field_prost_value(
   field_data: &FieldData,
-  message_desc: &MessageDescriptor,
+  field_desc: &FieldDescriptor,
 ) -> Result<JsonValue, Error> {
-  let field = message_desc.get_field(field_data.tag).unwrap();
-  let field_kind = &field.kind();
-
   let default_val = if field_data.is_repeated_item {
-    ProstValue::default_value(field_kind)
-  } else if field_data.is_map && (field_data.is_map_key || field_data.is_map_value) {
-    let map_desc = field_kind.as_message().unwrap();
-    if field_data.is_map_key {
-      let key_desc = map_desc.get_field_by_name("key").unwrap();
-      ProstValue::default_value(&key_desc.kind())
-    } else {
-      let val_desc = map_desc.get_field_by_name("value").unwrap();
-      ProstValue::default_value(&val_desc.kind())
-    }
+    ProstValue::default_value(&field_desc.kind())
   } else {
-    ProstValue::default_value_for_field(&field)
+    ProstValue::default_value_for_field(field_desc)
   };
 
   convert_prost_value_to_json_value(&default_val)

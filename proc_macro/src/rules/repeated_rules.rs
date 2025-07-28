@@ -1,4 +1,4 @@
-use prost_reflect::{FieldDescriptor, Kind, MessageDescriptor};
+use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -7,12 +7,14 @@ use super::{
   ValidatorCallTemplate, ValidatorKind,
 };
 use crate::{
-  rules::{cel_rules::get_cel_rules, core::get_field_rules},
+  rules::{
+    cel_rules::{get_cel_rules, CelRuleKind},
+    core::get_field_rules,
+  },
   Span2,
 };
 
 pub fn get_repeated_rules(
-  message_desc: &MessageDescriptor,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_span: Span2,
@@ -91,10 +93,9 @@ pub fn get_repeated_rules(
 
           if !items_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(
-              &message_desc,
+              &CelRuleKind::Field(field_desc),
               &items_field_data,
               &items_rules_descriptor.cel,
-              false,
             )?;
             items_rules.extend(cel_rules);
           }
