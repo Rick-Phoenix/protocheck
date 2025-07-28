@@ -1,10 +1,5 @@
-use std::collections::HashMap;
-
 use cel_interpreter::{Context, Program, Value as CelValue};
-use prost_reflect::{
-  DynamicMessage, FieldDescriptor, Kind, MapKey, MessageDescriptor, SerializeOptions,
-  Value as ProstValue,
-};
+use prost_reflect::{DynamicMessage, MessageDescriptor, SerializeOptions, Value as ProstValue};
 use serde_json::{Serializer, Value as JsonValue};
 use syn::Error;
 
@@ -40,14 +35,7 @@ pub fn get_cel_rules(
         .unwrap();
       serde_json::from_slice(&serializer.into_inner()).unwrap()
     } else {
-      let field = message_desc.get_field(field_data.tag).unwrap();
-
-      let default_val = if field_data.is_repeated_item {
-        ProstValue::default_value(&field.kind())
-      } else {
-        ProstValue::default_value_for_field(&field)
-      };
-      let field_json_val = convert_prost_value_to_json_value(&default_val).unwrap();
+      let field_json_val = get_default_field_prost_value(field_data, message_desc)?;
 
       serde_json::from_value(field_json_val).unwrap()
     };
@@ -58,28 +46,39 @@ pub fn get_cel_rules(
     match context.add_variable("this", json_val) {
       Ok(_) => match program.execute(&context) {
         Ok(result) => {
-          let expression = rule.expression().to_string();
-          let message = rule.message().to_string();
-          let rule_id = rule.id().to_string();
-          let kind = if is_for_message {
-            ValidatorKind::CelRule {
-              expression,
-              message,
-              rule_id,
-              is_for_message: true,
-            }
+          if let CelValue::Bool(_) = result {
+            let expression = rule.expression().to_string();
+            let message = rule.message().to_string();
+            let rule_id = rule.id().to_string();
+            let kind = if is_for_message {
+              ValidatorKind::CelRule {
+                expression,
+                message,
+                rule_id,
+                is_for_message: true,
+              }
+            } else {
+              ValidatorKind::CelRule {
+                expression,
+                message,
+                rule_id,
+                is_for_message: false,
+              }
+            };
+            validators.push(ValidatorCallTemplate {
+              field_data: field_data.clone(),
+              kind,
+            });
           } else {
-            ValidatorKind::CelRule {
-              expression,
-              message,
-              rule_id,
-              is_for_message: false,
-            }
-          };
-          validators.push(ValidatorCallTemplate {
-            field_data: field_data.clone(),
-            kind,
-          });
+            return Err(Error::new(
+              Span2::call_site(),
+              format!(
+                "Error for cel program for field {}: expected boolean, got {}",
+                field_data.proto_name,
+                result.type_of()
+              ),
+            ));
+          }
         }
         Err(e) => {
           return Err(syn::Error::new(
@@ -98,6 +97,31 @@ pub fn get_cel_rules(
   }
 
   Ok(validators)
+}
+
+fn get_default_field_prost_value(
+  field_data: &FieldData,
+  message_desc: &MessageDescriptor,
+) -> Result<JsonValue, Error> {
+  let field = message_desc.get_field(field_data.tag).unwrap();
+  let field_kind = &field.kind();
+
+  let default_val = if field_data.is_repeated_item {
+    ProstValue::default_value(field_kind)
+  } else if field_data.is_map && (field_data.is_map_key || field_data.is_map_value) {
+    let map_desc = field_kind.as_message().unwrap();
+    if field_data.is_map_key {
+      let key_desc = map_desc.get_field_by_name("key").unwrap();
+      ProstValue::default_value(&key_desc.kind())
+    } else {
+      let val_desc = map_desc.get_field_by_name("value").unwrap();
+      ProstValue::default_value(&val_desc.kind())
+    }
+  } else {
+    ProstValue::default_value_for_field(&field)
+  };
+
+  convert_prost_value_to_json_value(&default_val)
 }
 
 fn convert_prost_value_to_json_value(prost_value: &ProstValue) -> Result<JsonValue, syn::Error> {
