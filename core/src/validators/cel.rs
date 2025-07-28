@@ -7,20 +7,28 @@ use crate::{
   ProtoType,
 };
 
+#[derive(Debug, Clone)]
+pub struct CelRuleData {
+  pub rule_id: String,
+  pub error_message: String,
+  pub is_for_message: bool,
+  pub validation_type: String,
+}
+
 pub fn validate_cel(
   field_context: FieldContext,
   program: &'static Program,
   cel_context: Context,
-  message: String,
-  rule_id: String,
-  is_for_message: bool,
+  rule_data: &CelRuleData,
 ) -> Result<(), Violation> {
   let result = program.execute(&cel_context);
 
-  let validator_type = match is_for_message {
-    true => "message",
-    false => "field",
-  };
+  let CelRuleData {
+    validation_type: validator_type,
+    is_for_message,
+    rule_id,
+    error_message,
+  } = rule_data;
 
   let error_prefix = format!(
     "Error during Cel validation for {} {}:",
@@ -70,8 +78,8 @@ pub fn validate_cel(
           }
 
           Err(Violation {
-            message: Some(message),
-            rule_id: Some(rule_id),
+            message: Some(error_message.to_string()),
+            rule_id: Some(rule_id.clone()),
             rule: Some(FieldPath {
               elements: violations_path,
             }),

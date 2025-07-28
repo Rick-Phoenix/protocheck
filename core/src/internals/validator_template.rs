@@ -29,6 +29,7 @@ pub enum ValidatorKind {
     message: String,
     rule_id: String,
     is_for_message: bool,
+    validation_type: String,
   },
   EnumDefinedOnly {
     enum_type_ident: String,
@@ -277,12 +278,8 @@ impl ToTokens for ValidatorCallTemplate {
         message,
         rule_id,
         is_for_message,
+        validation_type,
       } => {
-        let program_type = match *is_for_message {
-          true => "MESSAGE",
-          false => "FIELD",
-        };
-
         let context_target = if *is_for_message {
           quote! { &self }
         } else {
@@ -292,22 +289,32 @@ impl ToTokens for ValidatorCallTemplate {
         let random_string = random_string::generate(5, ALPHA_LOWER);
         let static_program_ident = Ident2::new(
           &format!(
-            "__CEL_{}_PROGRAM_{}_{}",
-            program_type, self.field_data.rust_name, random_string
+            "__CEL_{}_{}_PROGRAM_{}",
+            validation_type.to_uppercase(),
+            field_rust_name,
+            random_string
+          ),
+          Span2::call_site(),
+        );
+
+        let static_rule_data = Ident2::new(
+          &format!(
+            "__CEL_{}_{}_RULE_DATA_{}",
+            validation_type.to_uppercase(),
+            field_rust_name,
+            random_string
           ),
           Span2::call_site(),
         );
 
         let compilation_error = format!(
           "Cel program failed to compile for {} {}",
-          program_type.to_lowercase(),
-          field_rust_name
+          validation_type, field_rust_name
         );
 
         let context_error = format!(
           "Failed to add context to the Cel program for {} {}",
-          program_type.to_lowercase(),
-          field_rust_name
+          validation_type, field_rust_name
         );
 
         tokens.extend(quote! {
@@ -316,7 +323,16 @@ impl ToTokens for ValidatorCallTemplate {
             cel_interpreter::Program::compile(#expression).expect(#compilation_error)
           });
 
-          let program = &#static_program_ident;
+          #[allow(non_upper_case_globals)]
+          static #static_rule_data: std::sync::LazyLock<protocheck::validators::cel::CelRuleData> = std::sync::LazyLock::new(|| {
+              protocheck::validators::cel::CelRuleData {
+              rule_id: #rule_id.to_string(),
+              error_message: #message.to_string(),
+              is_for_message: #is_for_message,
+              validation_type: #validation_type.to_string(),
+            }
+          });
+
           let mut cel_context = cel_interpreter::Context::default();
           cel_context.add_variable("this", #context_target).expect(#context_error);
 
@@ -326,7 +342,7 @@ impl ToTokens for ValidatorCallTemplate {
             parent_elements: #parent_messages_ident.as_slice(),
           };
 
-          match protocheck::validators::cel::validate_cel(field_context, program, cel_context, #message.to_string(), #rule_id.to_string(), #is_for_message) {
+          match protocheck::validators::cel::validate_cel(field_context, &#static_program_ident, cel_context, &#static_rule_data) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };

@@ -31,13 +31,13 @@ pub fn get_cel_rules(
     CelRuleKind::Field(field_desc) => get_default_field_prost_value(field_data, field_desc)?,
   };
 
-  let validator_type = match is_for_message {
+  let validation_type = match is_for_message {
     true => "message",
     false => "field",
   };
   let error_prefix = format!(
     "Cel program error for {} {}:",
-    validator_type, field_data.proto_name
+    validation_type, field_data.proto_name
   );
 
   let serialized_json_val: JsonValue = serde_json::from_value(json_val).map_err(|e| {
@@ -77,6 +77,7 @@ pub fn get_cel_rules(
                 message,
                 rule_id,
                 is_for_message,
+                validation_type: validation_type.to_string(),
               },
             });
           } else {
