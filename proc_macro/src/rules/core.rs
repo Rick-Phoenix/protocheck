@@ -3,10 +3,7 @@ use prost_reflect::{FieldDescriptor, Kind};
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
-use crate::rules::{
-  enum_rules::get_enum_rules, map_rules::get_map_rules, repeated_rules::get_repeated_rules,
-  string_rules::get_string_rules,
-};
+use crate::rules::{enum_rules::get_enum_rules, string_rules::get_string_rules};
 
 pub fn get_field_rules(
   field_rust_enum: Option<String>,
@@ -21,46 +18,7 @@ pub fn get_field_rules(
   let field_name = &field_data.proto_name;
   let field_kind = &field_desc.kind();
 
-  // Check if repeated or map rules are being used on fields directly
-
   match field_rules {
-    RulesType::Repeated(repeated_rules) => {
-      if !field_data.is_repeated {
-        error = Some(Error::new(
-          field_span,
-          format!(
-            "Cannot use repeated rules for non repeated field {}",
-            field_name
-          ),
-        ));
-      } else {
-        let rules = get_repeated_rules(
-          field_rust_enum,
-          field_desc,
-          field_span,
-          field_data,
-          repeated_rules,
-        )?;
-        rules_agg.push(rules);
-      }
-    }
-    RulesType::Map(map_rules) => {
-      if !field_data.is_map {
-        error = Some(Error::new(
-          field_span,
-          format!("Cannot use map rules for non map field {}", field_name),
-        ));
-      } else {
-        let rules = get_map_rules(
-          field_rust_enum,
-          field_span,
-          field_desc,
-          field_data,
-          map_rules,
-        )?;
-        rules_agg.push(rules);
-      }
-    }
     RulesType::Enum(enum_rules) => {
       if field_rust_enum.is_none() {
         error = Some(Error::new(

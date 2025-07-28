@@ -2,7 +2,9 @@ use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{protovalidate::MapRules, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate};
+use super::{
+  field_rules::Type as RulesType, FieldData, GeneratedCodeKind, Ignore, ValidatorCallTemplate,
+};
 use crate::{
   rules::{
     cel_rules::get_cel_rules,
@@ -16,7 +18,7 @@ pub fn get_map_rules(
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
   map_field_data: &FieldData,
-  map_rules: &MapRules,
+  field_rules: Option<&RulesType>,
 ) -> Result<ValidatorCallTemplate, Error> {
   let mut map_level_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
   let mut key_rules_templates: Vec<ValidatorCallTemplate> = Vec::new();
@@ -57,68 +59,6 @@ pub fn get_map_rules(
   map_field_data.value_type = Some(value_proto_type);
   map_field_data.is_repeated = false;
 
-  let mut min_pairs: Option<usize> = None;
-  let mut max_pairs: Option<usize> = None;
-
-  if map_rules.min_pairs.is_some() {
-    let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
-    min_pairs = Some(min_pairs_value);
-    map_level_rules_templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::maps::min_pairs }),
-      target_value_tokens: Some(min_pairs_value.into_token_stream()),
-      kind: GeneratedCodeKind::FieldRule,
-      field_data: map_field_data.clone(),
-    });
-  }
-
-  if map_rules.max_pairs.is_some() {
-    let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
-    max_pairs = Some(max_pairs_value);
-    map_level_rules_templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { macro_impl::validators::maps::max_pairs }),
-      target_value_tokens: Some(max_pairs_value.into_token_stream()),
-      kind: GeneratedCodeKind::FieldRule,
-      field_data: map_field_data.clone(),
-    });
-  }
-
-  if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
-    return Err(syn::Error::new(
-      map_field_span,
-      "map.min_pairs cannot be larger than map.max_pairs",
-    ));
-  }
-
-  if map_rules.keys.is_some() {
-    let key_rules_descriptor = map_rules.keys.clone().unwrap();
-    let ignore = key_rules_descriptor.ignore();
-    if let Some(ref rules) = key_rules_descriptor.r#type {
-      if !matches!(ignore, Ignore::Always) {
-        let is_required = key_rules_descriptor.required();
-
-        let mut key_field_data = map_field_data.clone();
-        key_field_data.is_required = is_required;
-        key_field_data.is_map = false;
-        key_field_data.is_map_key = true;
-        key_field_data.ignore = ignore;
-
-        let generated_key_templates = get_field_rules(
-          field_rust_enum.clone(),
-          map_field_span,
-          &key_desc,
-          &key_field_data,
-          rules,
-        )?;
-        key_rules_templates.extend(generated_key_templates);
-
-        if !key_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
-          key_rules_templates.extend(cel_rules);
-        }
-      }
-    }
-  }
-
   let mut value_is_message = false;
   if let Kind::Message(value_message_desc) = value_desc.kind() {
     if !value_message_desc
@@ -129,45 +69,114 @@ pub fn get_map_rules(
     }
   }
 
-  if map_rules.values.is_some() {
-    let value_rules_descriptor = map_rules.values.clone().unwrap();
-    let ignore = value_rules_descriptor.ignore();
-    if let Some(ref rules) = value_rules_descriptor.r#type {
-      if !matches!(ignore, Ignore::Always) {
-        let is_required = value_rules_descriptor.required();
+  if let Some(RulesType::Map(map_rules)) = field_rules {
+    let mut min_pairs: Option<usize> = None;
+    let mut max_pairs: Option<usize> = None;
 
-        let mut value_field_data = map_field_data.clone();
-        value_field_data.is_required = is_required;
-        value_field_data.is_map = false;
-        value_field_data.is_map_value = true;
-        value_field_data.ignore = ignore;
+    if map_rules.min_pairs.is_some() {
+      let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
+      min_pairs = Some(min_pairs_value);
+      map_level_rules_templates.push(ValidatorCallTemplate {
+        validator_path: Some(quote! { macro_impl::validators::maps::min_pairs }),
+        target_value_tokens: Some(min_pairs_value.into_token_stream()),
+        kind: GeneratedCodeKind::FieldRule,
+        field_data: map_field_data.clone(),
+      });
+    }
 
-        if !value_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
-          value_rules_templates.extend(cel_rules);
-        }
+    if map_rules.max_pairs.is_some() {
+      let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
+      max_pairs = Some(max_pairs_value);
+      map_level_rules_templates.push(ValidatorCallTemplate {
+        validator_path: Some(quote! { macro_impl::validators::maps::max_pairs }),
+        target_value_tokens: Some(max_pairs_value.into_token_stream()),
+        kind: GeneratedCodeKind::FieldRule,
+        field_data: map_field_data.clone(),
+      });
+    }
 
-        if value_is_message {
-          let value_message_rules = ValidatorCallTemplate {
-            field_data: value_field_data,
-            validator_path: None,
-            target_value_tokens: None,
-            kind: GeneratedCodeKind::MessageField,
-          };
+    if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
+      return Err(syn::Error::new(
+        map_field_span,
+        "map.min_pairs cannot be larger than map.max_pairs",
+      ));
+    }
 
-          value_rules_templates.push(value_message_rules);
-        } else {
-          let generated_value_templates = get_field_rules(
-            field_rust_enum,
+    if map_rules.keys.is_some() {
+      let key_rules_descriptor = map_rules.keys.clone().unwrap();
+      let ignore = key_rules_descriptor.ignore();
+      if let Some(ref rules) = key_rules_descriptor.r#type {
+        if !matches!(ignore, Ignore::Always) {
+          let is_required = key_rules_descriptor.required();
+
+          let mut key_field_data = map_field_data.clone();
+          key_field_data.is_required = is_required;
+          key_field_data.is_map = false;
+          key_field_data.is_map_key = true;
+          key_field_data.ignore = ignore;
+
+          let generated_key_templates = get_field_rules(
+            field_rust_enum.clone(),
             map_field_span,
-            &value_desc,
-            &value_field_data,
+            &key_desc,
+            &key_field_data,
             rules,
           )?;
-          value_rules_templates.extend(generated_value_templates);
+          key_rules_templates.extend(generated_key_templates);
+
+          if !key_rules_descriptor.cel.is_empty() {
+            let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
+            key_rules_templates.extend(cel_rules);
+          }
         }
       }
     }
+
+    if map_rules.values.is_some() {
+      let value_rules_descriptor = map_rules.values.clone().unwrap();
+      let ignore = value_rules_descriptor.ignore();
+      if let Some(ref rules) = value_rules_descriptor.r#type {
+        if !matches!(ignore, Ignore::Always) {
+          let is_required = value_rules_descriptor.required();
+
+          let mut value_field_data = map_field_data.clone();
+          value_field_data.is_required = is_required;
+          value_field_data.is_map = false;
+          value_field_data.is_map_value = true;
+          value_field_data.ignore = ignore;
+
+          if !value_rules_descriptor.cel.is_empty() {
+            let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
+            value_rules_templates.extend(cel_rules);
+          }
+
+          if !value_is_message {
+            let generated_value_templates = get_field_rules(
+              field_rust_enum,
+              map_field_span,
+              &value_desc,
+              &value_field_data,
+              rules,
+            )?;
+            value_rules_templates.extend(generated_value_templates);
+          }
+        }
+      }
+    }
+  }
+
+  if value_is_message {
+    let mut value_field_data = map_field_data.clone();
+    value_field_data.is_map = false;
+    value_field_data.is_map_value = true;
+    let value_message_rules = ValidatorCallTemplate {
+      field_data: value_field_data,
+      validator_path: None,
+      target_value_tokens: None,
+      kind: GeneratedCodeKind::MessageField,
+    };
+
+    value_rules_templates.push(value_message_rules);
   }
 
   Ok(ValidatorCallTemplate {

@@ -17,6 +17,8 @@ use crate::{
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
+    map_rules::get_map_rules,
+    repeated_rules::get_repeated_rules,
   },
   Span2,
 };
@@ -339,7 +341,27 @@ pub fn extract_message_validators(
         }
       }
 
-      if let Some(ref rules_type) = field_rules.r#type {
+      let field_rules = field_rules.r#type.as_ref();
+
+      if is_repeated {
+        let rules = get_repeated_rules(
+          field_rust_enum,
+          &field_desc,
+          field_span,
+          &field_data,
+          field_rules,
+        )?;
+        validation_data.push(rules);
+      } else if is_map {
+        let rules = get_map_rules(
+          field_rust_enum,
+          field_span,
+          &field_desc,
+          &field_data,
+          field_rules,
+        )?;
+        validation_data.push(rules);
+      } else if let Some(rules_type) = field_rules {
         let rules = get_field_rules(
           field_rust_enum,
           field_span,
