@@ -160,19 +160,30 @@ impl ToTokens for ValidatorCallTemplate {
           }
         };
 
-        if field_is_optional && !field_is_in_oneof {
+        let is_option = field_is_optional && !field_is_in_oneof;
+
+        let target_ident = if is_option {
+          let unwrapped_message_ident = Ident2::new("nested_msg_instance", Span2::call_site());
+          &quote! { #unwrapped_message_ident }
+        } else {
+          &value_ident
+        };
+
+        let validator_tokens = quote! {
+          #parent_messages_ident.push(#current_nested_field_element);
+          #target_ident.nested_validate(#parent_messages_ident, #violations_ident);
+          #parent_messages_ident.pop();
+        };
+
+        if is_option {
           tokens.extend(quote! {
-            if let Some(nested_msg_instance) = #value_ident {
-              #parent_messages_ident.push(#current_nested_field_element);
-              nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident);
-              #parent_messages_ident.pop();
+            if let Some(#target_ident) = #value_ident {
+              #validator_tokens
             }
           });
         } else {
           tokens.extend(quote! {
-            #parent_messages_ident.push(#current_nested_field_element);
-            #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
-            #parent_messages_ident.pop();
+            #validator_tokens
           });
         }
       }
