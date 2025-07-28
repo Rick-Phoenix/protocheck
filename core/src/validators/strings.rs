@@ -8,10 +8,10 @@ use crate::{
 pub fn max_len(
   field_context: FieldContext,
   value: Option<&str>,
-  max_len: usize,
+  max_len: u64,
 ) -> Result<(), Violation> {
   let check = match value {
-    Some(val) => val.chars().count() <= max_len,
+    Some(val) => val.chars().count() <= max_len as usize,
     None => return Ok(()),
   };
 
@@ -62,7 +62,7 @@ pub fn max_len(
     let violation = Violation {
       rule_id: Some("string.max_len".to_string()),
       message: Some(format!(
-        "`{}` cannot be longer than {} character{}",
+        "{} cannot be longer than {} character{}",
         field_context.field_data.proto_name.clone(),
         max_len,
         plural_suffix
@@ -81,10 +81,10 @@ pub fn max_len(
 pub fn min_len(
   field_context: FieldContext,
   value: Option<&str>,
-  min_len: usize,
+  min_len: u64,
 ) -> Result<(), Violation> {
   let check = match value {
-    Some(val) => val.chars().count() >= min_len,
+    Some(val) => val.chars().count() >= min_len as usize,
     None => return Ok(()),
   };
 
@@ -135,7 +135,7 @@ pub fn min_len(
     let violation = Violation {
       rule_id: Some("string.min_len".to_string()),
       message: Some(format!(
-        "`{}` cannot be shorter than {} character{}",
+        "{} cannot be shorter than {} character{}",
         field_context.field_data.proto_name.clone(),
         min_len,
         plural_suffix
@@ -151,9 +151,9 @@ pub fn min_len(
   Ok(())
 }
 
-pub fn len(field_context: FieldContext, value: Option<&str>, len: usize) -> Result<(), Violation> {
+pub fn len(field_context: FieldContext, value: Option<&str>, len: u64) -> Result<(), Violation> {
   let check = match value {
-    Some(val) => val.chars().count() == len,
+    Some(val) => val.chars().count() == len as usize,
     None => return Ok(()),
   };
 
@@ -204,7 +204,7 @@ pub fn len(field_context: FieldContext, value: Option<&str>, len: usize) -> Resu
     let violation = Violation {
       rule_id: Some("string.len".to_string()),
       message: Some(format!(
-        "`{}` must be exactly {} character{} long",
+        "{} must be exactly {} character{} long",
         field_context.field_data.proto_name.clone(),
         len,
         plural_suffix

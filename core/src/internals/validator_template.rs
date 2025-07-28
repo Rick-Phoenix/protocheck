@@ -44,6 +44,7 @@ pub struct ValidatorCallTemplate {
 
 impl ToTokens for ValidatorCallTemplate {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let field_rust_name = &self.field_data.rust_name;
     let field_proto_name = &self.field_data.proto_name;
     let field_tag = self.field_data.tag;
     let field_proto_type = self.field_data.proto_type as i32;
@@ -295,12 +296,12 @@ impl ToTokens for ValidatorCallTemplate {
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
           static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-            cel_interpreter::Program::compile(#expression).expect("Cel program failed to compile")
+            cel_interpreter::Program::compile(#expression).expect(format!("Cel program failed to compile for {} {}", #program_type.to_lowercase(), #field_rust_name))
           });
 
           let program = &#static_program_ident;
           let mut cel_context = cel_interpreter::Context::default();
-          cel_context.add_variable("this", #context_target).expect("Failed to add 'this' to the cel program");
+          cel_context.add_variable("this", #context_target).expect(format!("Failed to add context to the cel program for {} {}", #program_type.to_lowercase(), #field_rust_name));
 
           let field_context = protocheck::field_data::FieldContext {
             field_data: #field_data,

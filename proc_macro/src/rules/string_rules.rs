@@ -11,12 +11,12 @@ pub fn get_string_rules(
 ) -> Result<Vec<ValidatorCallTemplate>, Error> {
   let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
 
-  let mut min_len: Option<usize> = None;
-  let mut max_len: Option<usize> = None;
-  let mut len: Option<usize> = None;
+  let mut min_len: Option<u64> = None;
+  let mut max_len: Option<u64> = None;
+  let mut len: Option<u64> = None;
 
   if let Some(len_value) = string_rules.len {
-    len = Some(len_value as usize);
+    len = Some(len_value);
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
@@ -27,7 +27,7 @@ pub fn get_string_rules(
   }
 
   if let Some(min_len_value) = string_rules.min_len {
-    min_len = Some(min_len_value as usize);
+    min_len = Some(min_len_value);
 
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
@@ -39,7 +39,7 @@ pub fn get_string_rules(
   }
 
   if let Some(max_len_value) = string_rules.max_len {
-    max_len = Some(max_len_value as usize);
+    max_len = Some(max_len_value);
 
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
