@@ -40,7 +40,6 @@ pub struct ValidatorCallTemplate {
   pub target_value_tokens: Option<TokenStream2>,
   pub field_data: FieldData,
   pub kind: GeneratedCodeKind,
-  pub oneof_ident: Option<Ident2>,
 }
 
 impl ToTokens for ValidatorCallTemplate {
@@ -53,6 +52,7 @@ impl ToTokens for ValidatorCallTemplate {
     let field_is_map_key = self.field_data.is_map_key;
     let field_is_map_value = self.field_data.is_map_value;
     let field_is_in_map = field_is_map_key || field_is_map_value;
+    let field_is_in_oneof = self.field_data.is_in_oneof;
     let key_type = self.field_data.key_type;
     let value_type = self.field_data.value_type;
 
@@ -63,6 +63,7 @@ impl ToTokens for ValidatorCallTemplate {
     let item_ident = Ident2::new("item", Span2::call_site());
     let key_ident = Ident2::new("key", Span2::call_site());
     let val_ident = Ident2::new("val", Span2::call_site());
+    let oneof_ident = Ident2::new("val", Span2::call_site());
 
     let subscript = if field_is_repeated_item || self.field_data.is_repeated {
       quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
@@ -77,6 +78,18 @@ impl ToTokens for ValidatorCallTemplate {
       quote! { None }
     };
 
+    let value_ident = if field_is_in_oneof {
+      quote! { #oneof_ident }
+    } else if field_is_repeated_item {
+      quote! { #item_ident }
+    } else if field_is_map_key {
+      quote! { #key_ident }
+    } else if field_is_map_value {
+      quote! { #val_ident }
+    } else {
+      quote! { &self.#field_rust_ident }
+    };
+
     let field_data = self.field_data.clone();
 
     match &self.kind {
@@ -87,16 +100,9 @@ impl ToTokens for ValidatorCallTemplate {
         let enum_ident_tokens: TokenStream2 = enum_type_ident
           .parse()
           .expect("Failed to parse enum ident into tokens");
-        let enum_field_ident = if field_is_repeated_item {
-          quote! { *#item_ident }
-        } else if field_is_map_value {
-          quote! { *#val_ident }
-        } else {
-          quote! { *&self.#field_rust_ident }
-        };
 
         tokens.extend(quote! {
-          if !#enum_ident_tokens::try_from(#enum_field_ident).is_ok() {
+          if !#enum_ident_tokens::try_from(*#value_ident).is_ok() {
             let field_context = protocheck::field_data::FieldContext {
               field_data: #field_data,
               parent_elements: #parent_messages_ident.as_slice(),
@@ -110,66 +116,26 @@ impl ToTokens for ValidatorCallTemplate {
         let validator = self.validator_path.as_ref().unwrap();
         let target = self.target_value_tokens.as_ref().unwrap();
 
-        if field_is_repeated_item {
-          tokens.extend(quote! {
-            let field_context = protocheck::field_data::FieldContext {
-              field_data: #field_data,
-              parent_elements: #parent_messages_ident.as_slice(),
-              subscript: #subscript,
-            };
-
-            match #validator(field_context, Some(#item_ident), #target) {
-              Ok(_) => {},
-              Err(v) => {
-                #violations_ident.push(v);
-              },
-            };
-          });
-        } else if field_is_in_map {
-          let data_ident = if field_is_map_key {
-            &key_ident
-          } else {
-            &val_ident
-          };
-
-          tokens.extend(quote! {
-            let field_context = protocheck::field_data::FieldContext {
-              field_data: #field_data,
-              parent_elements: #parent_messages_ident.as_slice(),
-              subscript: #subscript,
-            };
-
-            match #validator(field_context, Some(#data_ident), #target) {
-              Ok(_) => {},
-              Err(v) => {
-                #violations_ident.push(v);
-              },
-            };
-          });
+        let field_ident = if field_is_in_oneof || !field_is_optional {
+          quote! { Some(#value_ident) }
         } else {
-          let field_ident = if self.oneof_ident.is_some() {
-            let oneof_ident = self.oneof_ident.as_ref().unwrap();
-            quote! { Some(#oneof_ident) }
-          } else if field_is_optional {
-            quote! { &self.#field_rust_ident }
-          } else {
-            quote! { Some(&self.#field_rust_ident) }
-          };
-          tokens.extend(quote! {
-            let field_context = protocheck::field_data::FieldContext {
-              field_data: #field_data,
-              parent_elements: #parent_messages_ident.as_slice(),
-              subscript: None,
-            };
+          quote! { #value_ident }
+        };
 
-            match #validator(field_context, #field_ident, #target) {
-              Ok(_) => {},
-              Err(v) => {
-                #violations_ident.push(v);
-              },
-            };
-          });
-        }
+        tokens.extend(quote! {
+          let field_context = protocheck::field_data::FieldContext {
+            field_data: #field_data,
+            parent_elements: #parent_messages_ident.as_slice(),
+            subscript: #subscript,
+          };
+
+          match #validator(field_context, #field_ident, #target) {
+            Ok(_) => {},
+            Err(v) => {
+              #violations_ident.push(v);
+            },
+          };
+        });
       }
       GeneratedCodeKind::NestedMessageRecursion => {
         let current_nested_field_element = quote! {
@@ -194,7 +160,7 @@ impl ToTokens for ValidatorCallTemplate {
               #parent_messages_ident.pop();
             }
           });
-        } else if field_is_optional {
+        } else if field_is_optional && !field_is_in_oneof {
           tokens.extend(quote! {
             if let Some(nested_msg_instance) = &self.#field_rust_ident {
               #parent_messages_ident.push(#current_nested_field_element);
@@ -205,7 +171,7 @@ impl ToTokens for ValidatorCallTemplate {
         } else {
           tokens.extend(quote! {
             #parent_messages_ident.push(#current_nested_field_element);
-            self.#field_rust_ident.nested_validate(#parent_messages_ident, #violations_ident);
+            #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
             #parent_messages_ident.pop();
           });
         }

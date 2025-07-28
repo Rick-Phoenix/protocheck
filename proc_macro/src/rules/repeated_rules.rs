@@ -32,7 +32,6 @@ pub fn get_repeated_rules(
       target_value_tokens: Some(rule_val.to_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
-      oneof_ident: None,
     });
   }
 
@@ -44,7 +43,6 @@ pub fn get_repeated_rules(
       target_value_tokens: Some(rule_val.to_token_stream()),
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::FieldRule,
-      oneof_ident: None,
     });
   }
 
@@ -82,7 +80,6 @@ pub fn get_repeated_rules(
         items_field_data.is_required = items_rules_descriptor.required();
 
         let rules_for_single_item = get_field_rules(
-          None,
           field_rust_enum,
           field_span,
           field_desc,
@@ -93,8 +90,7 @@ pub fn get_repeated_rules(
         items_templates.extend(rules_for_single_item);
 
         if !items_rules_descriptor.cel.is_empty() {
-          let cel_rules =
-            get_cel_rules(None, &items_field_data, &items_rules_descriptor.cel, false)?;
+          let cel_rules = get_cel_rules(&items_field_data, &items_rules_descriptor.cel, false)?;
           items_templates.extend(cel_rules);
         }
       }
@@ -111,6 +107,5 @@ pub fn get_repeated_rules(
       unique_values,
       float_values,
     },
-    oneof_ident: None,
   })
 }

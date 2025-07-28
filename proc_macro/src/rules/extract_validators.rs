@@ -34,7 +34,6 @@ struct OneofField {
 }
 
 pub fn extract_oneof_validators(
-  oneof_ident: Ident,
   input_tokens: DeriveInput,
   oneof_desc: OneofDescriptor,
 ) -> Result<HashMap<Ident, Vec<ValidatorCallTemplate>>, Error> {
@@ -144,12 +143,17 @@ pub fn extract_oneof_validators(
         is_map: false,
         is_map_key: false,
         is_map_value: false,
+        is_in_oneof: true,
         key_type: None,
         value_type: None,
         enum_full_name: None,
         ignore,
         is_optional: true,
       };
+
+      if !field_rules.cel.is_empty() {
+        field_validators.extend(get_cel_rules(&field_data, &field_rules.cel, false)?);
+      }
 
       if let Kind::Message(field_message_type) = &field_kind {
         if !field_message_type
@@ -161,30 +165,15 @@ pub fn extract_oneof_validators(
             target_value_tokens: None,
             field_data,
             kind: GeneratedCodeKind::NestedMessageRecursion,
-            oneof_ident: Some(oneof_ident.clone()),
           };
+          field_validators.push(template);
+          validators.insert(field_ident, field_validators);
           continue;
         }
       }
 
-      if !field_rules.cel.is_empty() {
-        field_validators.extend(get_cel_rules(
-          Some(oneof_ident.clone()),
-          &field_data,
-          &field_rules.cel,
-          false,
-        )?);
-      }
-
       if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(
-          Some(oneof_ident.clone()),
-          enum_ident,
-          field_span,
-          &field,
-          &field_data,
-          rules_type,
-        )?;
+        let rules = get_field_rules(enum_ident, field_span, &field, &field_data, rules_type)?;
         field_validators.extend(rules);
       }
 
@@ -249,7 +238,7 @@ pub fn extract_message_validators(
       field_data.proto_name = message_desc.name().to_string();
       field_data.tag = 0;
       field_data.proto_type = ProtoType::Message;
-      validation_data.extend(get_cel_rules(None, &field_data, &message_rules.cel, true)?);
+      validation_data.extend(get_cel_rules(&field_data, &message_rules.cel, true)?);
     }
   }
 
@@ -273,7 +262,6 @@ pub fn extract_message_validators(
         kind: GeneratedCodeKind::OneofField {
           is_required: oneof_rules.required(),
         },
-        oneof_ident: None,
       });
     }
   }
@@ -321,12 +309,18 @@ pub fn extract_message_validators(
         is_map,
         is_map_key: false,
         is_map_value: false,
+        is_in_oneof: false,
         key_type: None,
         value_type: None,
         enum_full_name: None,
         ignore,
         is_optional,
       };
+
+      // println!(
+      //   "Field Name: {}, Is repeated: {:?}, Is Optional: {:?}",
+      //   field_name, is_repeated, is_optional
+      // );
 
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !is_map
@@ -342,7 +336,6 @@ pub fn extract_message_validators(
             target_value_tokens: None,
             field_data,
             kind: GeneratedCodeKind::NestedMessageRecursion,
-            oneof_ident: None,
           };
           validation_data.push(template);
           continue;
@@ -350,12 +343,11 @@ pub fn extract_message_validators(
       }
 
       if !field_rules.cel.is_empty() {
-        validation_data.extend(get_cel_rules(None, &field_data, &field_rules.cel, false).unwrap());
+        validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
       }
 
       if let Some(ref rules_type) = field_rules.r#type {
         let rules = get_field_rules(
-          None,
           field_rust_enum,
           field_span,
           &field_desc,

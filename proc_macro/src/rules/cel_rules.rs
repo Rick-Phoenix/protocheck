@@ -1,11 +1,10 @@
 use cel_interpreter::Program;
-use syn::{Error, Ident};
+use syn::Error;
 
 use super::{FieldData, GeneratedCodeKind, Rule, ValidatorCallTemplate};
 use crate::Span2;
 
 pub fn get_cel_rules(
-  oneof_ident: Option<Ident>,
   field_data: &FieldData,
   rules: &[Rule],
   is_for_message: bool,
@@ -40,7 +39,6 @@ pub fn get_cel_rules(
           validator_path: None,
           target_value_tokens: None,
           kind,
-          oneof_ident: oneof_ident.clone(),
         });
       }
       Err(e) => {

@@ -82,7 +82,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
   let input_clone = input.clone();
   let ast = parse_macro_input!(input_clone as DeriveInput);
-  let oneof_enum_name = &ast.ident.clone();
+  let oneof_rust_ident = &ast.ident.clone();
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
 
   let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
@@ -128,11 +128,9 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
 
-  let oneof_ident = Ident::new("val", Span2::call_site());
-
   for oneof in message_desc.unwrap().oneofs() {
     if oneof.name() == oneof_name {
-      match extract_oneof_validators(oneof_ident.clone(), ast, oneof) {
+      match extract_oneof_validators(ast, oneof) {
         Ok(validators_data) => validators = validators_data,
         Err(e) => return e.to_compile_error().into(),
       };
@@ -144,7 +142,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   for (ident, validator) in validators {
     validators_tokens.extend(quote! {
-      Self::#ident(#oneof_ident) => {
+      Self::#ident(val) => {
         #(#validator)*
       },
     });
@@ -153,7 +151,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   let output = quote! {
     #original_input_as_proc_macro2
 
-    impl protocheck::validators::ProtoValidator for #oneof_enum_name {
+    impl protocheck::validators::ProtoValidator for #oneof_rust_ident {
       fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
         Ok(())
       }

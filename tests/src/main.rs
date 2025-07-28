@@ -22,11 +22,15 @@ fn main() {
         name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
       },
       Post {
-        tags: vec!["me".to_string()],
+        tags: vec!["meeeeeee".to_string()],
         name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
       },
     ],
-    oneof_fields: Some(OneofFields::Field1("aa".to_string())),
+    oneof_fields: Some(OneofFields::Post(Post {
+      tags: vec!["me".to_string()],
+      name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
+    })),
+    // oneof_fields: None,
   };
 
   let result = user.validate();

@@ -1,10 +1,6 @@
 use quote::{quote, ToTokens};
 
-use crate::{
-  field_data::FieldData,
-  protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore},
-  ProtoType, TokenStream2,
-};
+use crate::{field_data::FieldData, TokenStream2};
 
 pub fn option_to_tokens<T>(option: &Option<T>) -> TokenStream2
 where
@@ -43,6 +39,7 @@ impl ToTokens for FieldData {
     let is_map_value = self.is_map_value;
     let is_required = self.is_required;
     let is_optional = self.is_optional;
+    let is_in_oneof = self.is_in_oneof;
     let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
@@ -63,6 +60,7 @@ impl ToTokens for FieldData {
         is_map_value: #is_map_value,
         is_required: #is_required,
         is_optional: #is_optional,
+        is_in_oneof: #is_in_oneof,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
         enum_full_name: #enum_tokens,

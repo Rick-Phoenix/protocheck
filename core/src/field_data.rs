@@ -22,6 +22,7 @@ pub struct FieldData {
   pub is_map_value: bool,
   pub is_required: bool,
   pub is_optional: bool,
+  pub is_in_oneof: bool,
   pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
