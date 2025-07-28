@@ -9,14 +9,14 @@ use crate::{
 pub fn min_pairs<K, V>(
   field_context: FieldContext,
   value: Option<&HashMap<K, V>>,
-  min_pairs: usize,
+  min_pairs: u64,
 ) -> Result<(), Violation> {
   let val = match value {
     Some(v) => v,
     None => return Ok(()),
   };
 
-  let check = val.len() >= min_pairs;
+  let check = val.len() >= min_pairs as usize;
 
   if !check {
     let plural_suffix = if min_pairs > 1 { "s" } else { "" };
@@ -70,14 +70,14 @@ pub fn min_pairs<K, V>(
 pub fn max_pairs<K, V>(
   field_context: FieldContext,
   value: Option<&HashMap<K, V>>,
-  max_pairs: usize,
+  max_pairs: u64,
 ) -> Result<(), Violation> {
   let val = match value {
     Some(v) => v,
     None => return Ok(()),
   };
 
-  let check = val.len() <= max_pairs;
+  let check = val.len() <= max_pairs as usize;
 
   if !check {
     let plural_suffix = if max_pairs > 1 { "s" } else { "" };

@@ -70,11 +70,11 @@ pub fn get_map_rules(
   }
 
   if let Some(RulesType::Map(map_rules)) = field_rules {
-    let mut min_pairs: Option<usize> = None;
-    let mut max_pairs: Option<usize> = None;
+    let mut min_pairs: Option<u64> = None;
+    let mut max_pairs: Option<u64> = None;
 
     if let Some(min_pairs_value) = map_rules.min_pairs {
-      min_pairs = Some(min_pairs_value as usize);
+      min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::min_pairs },
@@ -85,7 +85,7 @@ pub fn get_map_rules(
     }
 
     if let Some(max_pairs_value) = map_rules.max_pairs {
-      max_pairs = Some(max_pairs_value as usize);
+      max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::max_pairs },

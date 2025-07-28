@@ -22,30 +22,47 @@ pub fn get_cel_rules(
   let mut validators: Vec<ValidatorCallTemplate> = Vec::new();
   let mut is_for_message = false;
 
+  let json_val: JsonValue = match rule_kind {
+    CelRuleKind::Message(message_desc) => {
+      is_for_message = true;
+      let dyn_message = DynamicMessage::new(message_desc.to_owned().clone());
+      convert_prost_value_to_json_value(&ProstValue::Message(dyn_message))?
+    }
+    CelRuleKind::Field(field_desc) => get_default_field_prost_value(field_data, field_desc)?,
+  };
+
+  let validator_type = match is_for_message {
+    true => "message",
+    false => "field",
+  };
+  let error_prefix = format!(
+    "Cel program error for {} {}:",
+    validator_type, field_data.proto_name
+  );
+
+  let serialized_json_val: JsonValue = serde_json::from_value(json_val).map_err(|e| {
+    Error::new(
+      Span2::call_site(),
+      format!(
+        "{} failed to serialize descriptor (ensure the message implements serde::Serialize): {}",
+        error_prefix, e
+      ),
+    )
+  })?;
+
   for rule in rules {
     let program = match Program::compile(rule.expression()) {
       Ok(prog) => prog,
       Err(e) => {
         return Err(syn::Error::new(
           Span2::call_site(),
-          format!("Cel program failed to compile: {}", e),
+          format!("{} failed to compile: {}", error_prefix, e),
         ))
       }
     };
 
-    let json_val: JsonValue = match rule_kind {
-      CelRuleKind::Message(message_desc) => {
-        is_for_message = true;
-        let dyn_message = DynamicMessage::new(message_desc.to_owned().clone());
-        convert_prost_value_to_json_value(&ProstValue::Message(dyn_message))?
-      }
-      CelRuleKind::Field(field_desc) => get_default_field_prost_value(field_data, field_desc)?,
-    };
-
-    let serialized_json_val: JsonValue = serde_json::from_value(json_val).unwrap();
-
     let mut context = Context::default();
-    match context.add_variable("this", serialized_json_val) {
+    match context.add_variable("this", &serialized_json_val) {
       Ok(_) => match program.execute(&context) {
         Ok(result) => {
           if let CelValue::Bool(_) = result {
@@ -66,8 +83,8 @@ pub fn get_cel_rules(
             return Err(Error::new(
               Span2::call_site(),
               format!(
-                "Error for cel program for field {}: expected boolean, got {}",
-                field_data.proto_name,
+                "{} expected boolean, got {}",
+                error_prefix,
                 result.type_of()
               ),
             ));
@@ -76,14 +93,14 @@ pub fn get_cel_rules(
         Err(e) => {
           return Err(syn::Error::new(
             Span2::call_site(),
-            format!("Cel program failed to execute: {}", e),
+            format!("{} failed execution: {}", error_prefix, e),
           ))
         }
       },
       Err(e) => {
         return Err(syn::Error::new(
           Span2::call_site(),
-          format!("Cel program failed to add context: {}", e),
+          format!("{} failed to add context: {}", error_prefix, e),
         ))
       }
     };
@@ -145,16 +162,13 @@ fn convert_prost_value_to_json_value(prost_value: &ProstValue) -> Result<JsonVal
             .map_err(|e| {
               syn::Error::new(
                 Span2::call_site(),
-                format!("Failed to serialize map value DynamicMessage: {}", e),
+                format!("Failed to serialize map value: {}", e),
               )
             })?;
           serde_json::from_slice(&serializer.into_inner()).map_err(|e| {
             syn::Error::new(
               Span2::call_site(),
-              format!(
-                "Failed to parse serialized map value bytes to JsonValue: {}",
-                e
-              ),
+              format!("Failed to parse serialized map value bytes: {}", e),
             )
           })?
         } else {
@@ -173,17 +187,14 @@ fn convert_prost_value_to_json_value(prost_value: &ProstValue) -> Result<JsonVal
         .map_err(|e| {
           syn::Error::new(
             Span2::call_site(),
-            format!("Failed to serialize nested DynamicMessage: {}", e),
+            format!("Failed to serialize nested message: {}", e),
           )
         })?;
       Ok(
         serde_json::from_slice::<JsonValue>(&serializer.into_inner()).map_err(|e| {
           syn::Error::new(
             Span2::call_site(),
-            format!(
-              "Failed to parse serialized nested bytes to JsonValue: {}",
-              e
-            ),
+            format!("Failed to serialize nested message bytes: {}", e),
           )
         })?,
       )
