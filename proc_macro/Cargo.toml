@@ -10,6 +10,7 @@ attributes = ["protocheck"]
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 prost-reflect = { workspace = true }
 cel-interpreter = { workspace = true }
 syn = { workspace = true }

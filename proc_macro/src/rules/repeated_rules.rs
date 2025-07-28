@@ -1,4 +1,4 @@
-use prost_reflect::{FieldDescriptor, Kind};
+use prost_reflect::{FieldDescriptor, Kind, MessageDescriptor};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
+  message_desc: &MessageDescriptor,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_span: Span2,
@@ -89,7 +90,12 @@ pub fn get_repeated_rules(
           items_field_data.is_required = items_rules_descriptor.required();
 
           if !items_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(&items_field_data, &items_rules_descriptor.cel, false)?;
+            let cel_rules = get_cel_rules(
+              &message_desc,
+              &items_field_data,
+              &items_rules_descriptor.cel,
+              false,
+            )?;
             items_rules.extend(cel_rules);
           }
 

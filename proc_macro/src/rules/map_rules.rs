@@ -1,4 +1,4 @@
-use prost_reflect::{FieldDescriptor, Kind};
+use prost_reflect::{FieldDescriptor, Kind, MessageDescriptor};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -14,6 +14,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
+  message_desc: &MessageDescriptor,
   field_rust_enum: Option<String>,
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
@@ -123,10 +124,11 @@ pub fn get_map_rules(
           )?;
           key_rules.extend(generated_key_templates);
 
-          if !key_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(&key_field_data, &key_rules_descriptor.cel, false)?;
-            key_rules.extend(cel_rules);
-          }
+          // if !key_rules_descriptor.cel.is_empty() {
+          //   let cel_rules =
+          //     get_cel_rules(&key_desc, &key_field_data, &key_rules_descriptor.cel, false)?;
+          //   key_rules.extend(cel_rules);
+          // }
         }
       }
     }
@@ -143,10 +145,10 @@ pub fn get_map_rules(
           value_field_data.is_map_value = true;
           value_field_data.ignore = ignore;
 
-          if !value_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
-            value_rules.extend(cel_rules);
-          }
+          // if !value_rules_descriptor.cel.is_empty() {
+          //   let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
+          //   value_rules.extend(cel_rules);
+          // }
 
           if !value_is_message {
             let generated_value_templates = get_field_rules(

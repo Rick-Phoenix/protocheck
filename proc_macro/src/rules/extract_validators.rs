@@ -38,6 +38,7 @@ struct OneofField {
 pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
+  message_desc: &MessageDescriptor,
 ) -> Result<HashMap<Ident, Vec<ValidatorCallTemplate>>, Error> {
   let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
@@ -175,7 +176,12 @@ pub fn extract_oneof_validators(
       };
 
       if !field_rules.cel.is_empty() {
-        field_validators.extend(get_cel_rules(&field_data, &field_rules.cel, false)?);
+        field_validators.extend(get_cel_rules(
+          message_desc,
+          &field_data,
+          &field_rules.cel,
+          false,
+        )?);
       }
 
       if let Kind::Message(field_message_type) = &field_kind {
@@ -300,7 +306,12 @@ pub fn extract_message_validators(
       field_data.proto_name = message_desc.name().to_string();
       field_data.tag = 0;
       field_data.proto_type = ProtoType::Message;
-      validation_data.extend(get_cel_rules(&field_data, &message_rules.cel, true)?);
+      validation_data.extend(get_cel_rules(
+        message_desc,
+        &field_data,
+        &message_rules.cel,
+        true,
+      )?);
     }
   }
 
@@ -385,7 +396,12 @@ pub fn extract_message_validators(
 
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
-          validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false)?);
+          validation_data.extend(get_cel_rules(
+            message_desc,
+            &field_data,
+            &field_rules.cel,
+            false,
+          )?);
         }
 
         if !is_map
@@ -407,6 +423,7 @@ pub fn extract_message_validators(
 
       if is_repeated {
         let repeated_rules = get_repeated_rules(
+          message_desc,
           field_rust_enum,
           &field_desc,
           field_span,
@@ -419,6 +436,7 @@ pub fn extract_message_validators(
         }
       } else if is_map {
         let map_rules = get_map_rules(
+          message_desc,
           field_rust_enum,
           field_span,
           &field_desc,

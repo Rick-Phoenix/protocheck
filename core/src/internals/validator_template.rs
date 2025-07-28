@@ -293,15 +293,27 @@ impl ToTokens for ValidatorCallTemplate {
           Span2::call_site(),
         );
 
+        let compilation_error = format!(
+          "Cel program failed to compile for {} {}",
+          program_type.to_lowercase(),
+          field_rust_name
+        );
+
+        let context_error = format!(
+          "Failed to add context to the cel program for {} {}",
+          program_type.to_lowercase(),
+          field_rust_name
+        );
+
         tokens.extend(quote! {
           #[allow(non_upper_case_globals)]
           static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-            cel_interpreter::Program::compile(#expression).expect(format!("Cel program failed to compile for {} {}", #program_type.to_lowercase(), #field_rust_name))
+            cel_interpreter::Program::compile(#expression).expect(#compilation_error)
           });
 
           let program = &#static_program_ident;
           let mut cel_context = cel_interpreter::Context::default();
-          cel_context.add_variable("this", #context_target).expect(format!("Failed to add context to the cel program for {} {}", #program_type.to_lowercase(), #field_rust_name));
+          cel_context.add_variable("this", #context_target).expect(#context_error);
 
           let field_context = protocheck::field_data::FieldContext {
             field_data: #field_data,
