@@ -5,7 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   println!("cargo:rerun-if-changed=proto/");
   println!("cargo:rerun-if-changed=proto_deps/");
 
-  let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
+  let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").expect("Could not find OUT_DIR"));
   let final_descriptor_path = out_dir.join("file_descriptor_set.bin");
 
   let proto_include_paths = &["proto", "proto_deps"];

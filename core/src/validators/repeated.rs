@@ -11,13 +11,12 @@ pub fn min_items<T>(
   value: Option<&Vec<T>>,
   min_items: u64,
 ) -> Result<(), Violation> {
-  if value.is_none() {
-    return Ok(());
+  let val = match value {
+    Some(v) => v,
+    None => return Ok(()),
   };
 
-  let value_unwrapped = value.unwrap();
-
-  let check = value_unwrapped.len() >= min_items as usize;
+  let check = val.len() >= min_items as usize;
 
   if !check {
     let plural_suffix = if min_items > 1 { "s" } else { "" };
@@ -73,13 +72,12 @@ pub fn max_items<T>(
   value: Option<&Vec<T>>,
   max_items: u64,
 ) -> Result<(), Violation> {
-  if value.is_none() {
-    return Ok(());
+  let val = match value {
+    Some(v) => v,
+    None => return Ok(()),
   };
 
-  let value_unwrapped = value.unwrap();
-
-  let check = value_unwrapped.len() <= max_items as usize;
+  let check = val.len() <= max_items as usize;
 
   if !check {
     let plural_suffix = if max_items > 1 { "s" } else { "" };

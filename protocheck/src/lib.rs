@@ -19,7 +19,7 @@ pub mod build {
     proto_include_paths: &[impl AsRef<Path>],
     app_package_prefix: &str,
   ) -> Result<(), Box<dyn Error>> {
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_dir = PathBuf::from(env::var("OUT_DIR").expect("Could not find OUT_DIR."));
 
     let temp_descriptor_path = out_dir.join("temp_file_descriptor_set_for_protocheck.bin");
     {

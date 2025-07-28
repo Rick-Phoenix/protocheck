@@ -29,14 +29,24 @@ pub fn get_field_rules(
           ),
         ));
       } else if let Kind::Enum(enum_descriptor) = &field_kind {
-        let rules = get_enum_rules(
-          field_rust_enum.unwrap(),
-          field_span,
-          enum_descriptor,
-          field_data,
-          enum_rules,
-        )?;
-        rules_agg.extend(rules);
+        match field_rust_enum {
+          Some(enum_ident) => {
+            let rules = get_enum_rules(
+              enum_ident,
+              field_span,
+              enum_descriptor,
+              field_data,
+              enum_rules,
+            )?;
+            rules_agg.extend(rules);
+          }
+          None => {
+            error = Some(Error::new(
+              field_span,
+              format!("Could not find enum field ident for field {}", field_name),
+            ))
+          }
+        };
       } else {
         error = Some(Error::new(
           field_span,

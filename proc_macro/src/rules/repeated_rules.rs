@@ -78,8 +78,7 @@ pub fn get_repeated_rules(
       ));
     }
 
-    if repeated_rules.items.is_some() {
-      let items_rules_descriptor = repeated_rules.items.clone().unwrap();
+    if let Some(items_rules_descriptor) = repeated_rules.items.as_ref() {
       let ignore = items_rules_descriptor.ignore();
       if let Some(ref rules_type) = items_rules_descriptor.r#type {
         if !matches!(ignore, Ignore::Always) {

@@ -73,9 +73,8 @@ pub fn get_map_rules(
     let mut min_pairs: Option<usize> = None;
     let mut max_pairs: Option<usize> = None;
 
-    if map_rules.min_pairs.is_some() {
-      let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
-      min_pairs = Some(min_pairs_value);
+    if let Some(min_pairs_value) = map_rules.min_pairs {
+      min_pairs = Some(min_pairs_value as usize);
       map_level_rules.push(ValidatorCallTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::min_pairs },
@@ -85,9 +84,8 @@ pub fn get_map_rules(
       });
     }
 
-    if map_rules.max_pairs.is_some() {
-      let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
-      max_pairs = Some(max_pairs_value);
+    if let Some(max_pairs_value) = map_rules.max_pairs {
+      max_pairs = Some(max_pairs_value as usize);
       map_level_rules.push(ValidatorCallTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::max_pairs },
@@ -104,8 +102,7 @@ pub fn get_map_rules(
       ));
     }
 
-    if map_rules.keys.is_some() {
-      let key_rules_descriptor = map_rules.keys.clone().unwrap();
+    if let Some(key_rules_descriptor) = map_rules.keys.as_ref() {
       let ignore = key_rules_descriptor.ignore();
       if let Some(ref rules) = key_rules_descriptor.r#type {
         if !matches!(ignore, Ignore::Always) {
@@ -134,8 +131,7 @@ pub fn get_map_rules(
       }
     }
 
-    if map_rules.values.is_some() {
-      let value_rules_descriptor = map_rules.values.clone().unwrap();
+    if let Some(value_rules_descriptor) = map_rules.values.as_ref() {
       let ignore = value_rules_descriptor.ignore();
       if let Some(ref rules) = value_rules_descriptor.r#type {
         if !matches!(ignore, Ignore::Always) {

@@ -11,13 +11,12 @@ pub fn min_pairs<K, V>(
   value: Option<&HashMap<K, V>>,
   min_pairs: usize,
 ) -> Result<(), Violation> {
-  if value.is_none() {
-    return Ok(());
+  let val = match value {
+    Some(v) => v,
+    None => return Ok(()),
   };
 
-  let value_unwrapped = value.unwrap();
-
-  let check = value_unwrapped.len() >= min_pairs;
+  let check = val.len() >= min_pairs;
 
   if !check {
     let plural_suffix = if min_pairs > 1 { "s" } else { "" };
@@ -73,13 +72,12 @@ pub fn max_pairs<K, V>(
   value: Option<&HashMap<K, V>>,
   max_pairs: usize,
 ) -> Result<(), Violation> {
-  if value.is_none() {
-    return Ok(());
+  let val = match value {
+    Some(v) => v,
+    None => return Ok(()),
   };
 
-  let value_unwrapped = value.unwrap();
-
-  let check = value_unwrapped.len() <= max_pairs;
+  let check = val.len() <= max_pairs;
 
   if !check {
     let plural_suffix = if max_pairs > 1 { "s" } else { "" };

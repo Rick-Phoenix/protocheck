@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let dummy_path = "/tmp/my_test_descriptor.bin";
   println!("cargo:rustc-env=CEL_DESCRIPTOR_SET_PATH={}", dummy_path);
 
-  let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
+  let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").expect("Could not find OUT_DIR"));
   let descriptor_path = out_dir.join("file_descriptor_set.bin");
 
   let mut config = Config::new();

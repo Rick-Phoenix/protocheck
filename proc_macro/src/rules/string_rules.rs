@@ -15,10 +15,8 @@ pub fn get_string_rules(
   let mut max_len: Option<usize> = None;
   let mut len: Option<usize> = None;
 
-  if string_rules.len.is_some() {
-    let len_value = string_rules.len.unwrap() as usize;
-    len = Some(len_value);
-
+  if let Some(len_value) = string_rules.len {
+    len = Some(len_value as usize);
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
@@ -28,9 +26,8 @@ pub fn get_string_rules(
     });
   }
 
-  if string_rules.min_len.is_some() {
-    let min_len_value = string_rules.min_len.unwrap() as usize;
-    min_len = Some(min_len_value);
+  if let Some(min_len_value) = string_rules.min_len {
+    min_len = Some(min_len_value as usize);
 
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),
@@ -41,9 +38,8 @@ pub fn get_string_rules(
     });
   }
 
-  if string_rules.max_len.is_some() {
-    let max_len_value = string_rules.max_len.unwrap() as usize;
-    max_len = Some(max_len_value);
+  if let Some(max_len_value) = string_rules.max_len {
+    max_len = Some(max_len_value as usize);
 
     templates.push(ValidatorCallTemplate {
       field_data: field_data.clone(),

@@ -108,7 +108,7 @@ impl ToTokens for ValidatorCallTemplate {
       } => {
         let enum_ident_tokens: TokenStream2 = enum_type_ident
           .parse()
-          .expect("Failed to parse enum ident into tokens");
+          .unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", enum_type_ident, enum_name)) });
 
         tokens.extend(quote! {
           if !#enum_ident_tokens::try_from(*#value_ident).is_ok() {
