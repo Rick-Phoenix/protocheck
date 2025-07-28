@@ -278,10 +278,15 @@ impl ToTokens for ValidatorCallTemplate {
         rule_id,
         is_for_message,
       } => {
-        let (context_target, program_type) = if *is_for_message {
-          (quote! { &self }, "MESSAGE")
+        let program_type = match *is_for_message {
+          true => "MESSAGE",
+          false => "FIELD",
+        };
+
+        let context_target = if *is_for_message {
+          quote! { &self }
         } else {
-          (quote! { &self.#field_rust_ident }, "FIELD")
+          value_ident
         };
 
         let random_string = random_string::generate(5, ALPHA_LOWER);
