@@ -36,8 +36,6 @@ pub fn get_cel_rules(
         };
         validators.push(ValidatorCallTemplate {
           field_data: field_data.clone(),
-          validator_path: None,
-          target_value_tokens: None,
           kind,
         });
       }

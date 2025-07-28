@@ -163,8 +163,6 @@ pub fn extract_oneof_validators(
           .starts_with("google.protobuf")
         {
           let template = ValidatorCallTemplate {
-            validator_path: None,
-            target_value_tokens: None,
             field_data,
             kind: GeneratedCodeKind::MessageField,
           };
@@ -258,8 +256,6 @@ pub fn extract_message_validators(
       field_data.proto_name = name.to_string();
 
       validation_data.push(ValidatorCallTemplate {
-        validator_path: None,
-        target_value_tokens: None,
         field_data,
         kind: GeneratedCodeKind::OneofField {
           is_required: oneof_rules.required(),
@@ -331,8 +327,6 @@ pub fn extract_message_validators(
           && !is_repeated
         {
           let template = ValidatorCallTemplate {
-            validator_path: None,
-            target_value_tokens: None,
             field_data,
             kind: GeneratedCodeKind::MessageField,
           };

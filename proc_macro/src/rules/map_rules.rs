@@ -77,9 +77,10 @@ pub fn get_map_rules(
       let min_pairs_value = map_rules.min_pairs.unwrap() as usize;
       min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
-        validator_path: Some(quote! { macro_impl::validators::maps::min_pairs }),
-        target_value_tokens: Some(min_pairs_value.into_token_stream()),
-        kind: GeneratedCodeKind::FieldRule,
+        kind: GeneratedCodeKind::FieldRule {
+          validator_path: quote! { macro_impl::validators::maps::min_pairs },
+          target_value_tokens: min_pairs_value.into_token_stream(),
+        },
         field_data: map_field_data.clone(),
       });
     }
@@ -88,9 +89,10 @@ pub fn get_map_rules(
       let max_pairs_value = map_rules.max_pairs.unwrap() as usize;
       max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorCallTemplate {
-        validator_path: Some(quote! { macro_impl::validators::maps::max_pairs }),
-        target_value_tokens: Some(max_pairs_value.into_token_stream()),
-        kind: GeneratedCodeKind::FieldRule,
+        kind: GeneratedCodeKind::FieldRule {
+          validator_path: quote! { macro_impl::validators::maps::max_pairs },
+          target_value_tokens: max_pairs_value.into_token_stream(),
+        },
         field_data: map_field_data.clone(),
       });
     }
@@ -171,8 +173,6 @@ pub fn get_map_rules(
     value_field_data.is_map_value = true;
     let value_message_rules = ValidatorCallTemplate {
       field_data: value_field_data,
-      validator_path: None,
-      target_value_tokens: None,
       kind: GeneratedCodeKind::MessageField,
     };
 
@@ -183,8 +183,6 @@ pub fn get_map_rules(
     Ok(None)
   } else {
     Ok(Some(ValidatorCallTemplate {
-      validator_path: None,
-      target_value_tokens: None,
       field_data: map_field_data.to_owned(),
       kind: GeneratedCodeKind::MapValidationLoop {
         map_level_rules,

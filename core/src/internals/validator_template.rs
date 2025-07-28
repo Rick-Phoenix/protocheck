@@ -5,7 +5,10 @@ use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 
 #[derive(Debug)]
 pub enum GeneratedCodeKind {
-  FieldRule,
+  FieldRule {
+    validator_path: TokenStream2,
+    target_value_tokens: TokenStream2,
+  },
   MessageField,
   MapValidationLoop {
     map_level_rules: Vec<ValidatorCallTemplate>,
@@ -35,8 +38,6 @@ pub enum GeneratedCodeKind {
 
 #[derive(Debug)]
 pub struct ValidatorCallTemplate {
-  pub validator_path: Option<TokenStream2>,
-  pub target_value_tokens: Option<TokenStream2>,
   pub field_data: FieldData,
   pub kind: GeneratedCodeKind,
 }
@@ -120,10 +121,10 @@ impl ToTokens for ValidatorCallTemplate {
           }
         });
       }
-      GeneratedCodeKind::FieldRule => {
-        let validator = self.validator_path.as_ref().unwrap();
-        let target = self.target_value_tokens.as_ref().unwrap();
-
+      GeneratedCodeKind::FieldRule {
+        validator_path,
+        target_value_tokens,
+      } => {
         let field_ident = if field_is_in_oneof || !field_is_optional {
           quote! { Some(#value_ident) }
         } else {
@@ -137,7 +138,7 @@ impl ToTokens for ValidatorCallTemplate {
             subscript: #subscript,
           };
 
-          match #validator(field_context, #field_ident, #target) {
+          match #validator_path(field_context, #field_ident, #target_value_tokens) {
             Ok(_) => {},
             Err(v) => {
               #violations_ident.push(v);

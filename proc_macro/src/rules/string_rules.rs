@@ -1,5 +1,5 @@
 use quote::{quote, ToTokens};
-use syn::{Error, Ident};
+use syn::Error;
 
 use super::{protovalidate::StringRules, FieldData, GeneratedCodeKind, ValidatorCallTemplate};
 use crate::Span2;
@@ -20,10 +20,11 @@ pub fn get_string_rules(
     len = Some(len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { protocheck::validators::strings::len }),
-      target_value_tokens: Some(len_value.into_token_stream()),
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::FieldRule,
+      kind: GeneratedCodeKind::FieldRule {
+        validator_path: quote! { protocheck::validators::strings::len },
+        target_value_tokens: len_value.into_token_stream(),
+      },
     });
   }
 
@@ -32,10 +33,11 @@ pub fn get_string_rules(
     min_len = Some(min_len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { protocheck::validators::strings::min_len }),
-      target_value_tokens: Some(min_len_value.into_token_stream()),
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::FieldRule,
+      kind: GeneratedCodeKind::FieldRule {
+        validator_path: quote! { protocheck::validators::strings::min_len },
+        target_value_tokens: min_len_value.into_token_stream(),
+      },
     });
   }
 
@@ -44,10 +46,11 @@ pub fn get_string_rules(
     max_len = Some(max_len_value);
 
     templates.push(ValidatorCallTemplate {
-      validator_path: Some(quote! { protocheck::validators::strings::max_len }),
-      target_value_tokens: Some(max_len_value.into_token_stream()),
       field_data: field_data.clone(),
-      kind: GeneratedCodeKind::FieldRule,
+      kind: GeneratedCodeKind::FieldRule {
+        validator_path: quote! { protocheck::validators::strings::max_len },
+        target_value_tokens: max_len_value.into_token_stream(),
+      },
     });
   }
 

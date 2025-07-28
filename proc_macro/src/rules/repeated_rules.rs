@@ -51,10 +51,11 @@ pub fn get_repeated_rules(
       let rule_val = repeated_rules.min_items();
       min_items = Some(rule_val);
       vec_level_rules.push(ValidatorCallTemplate {
-        validator_path: Some(quote! { protocheck::validators::repeated::min_items }),
-        target_value_tokens: Some(rule_val.to_token_stream()),
         field_data: field_data.clone(),
-        kind: GeneratedCodeKind::FieldRule,
+        kind: GeneratedCodeKind::FieldRule {
+          validator_path: quote! { protocheck::validators::repeated::min_items },
+          target_value_tokens: rule_val.to_token_stream(),
+        },
       });
     }
 
@@ -62,10 +63,11 @@ pub fn get_repeated_rules(
       let rule_val = repeated_rules.max_items();
       max_items = Some(rule_val);
       vec_level_rules.push(ValidatorCallTemplate {
-        validator_path: Some(quote! { protocheck::validators::repeated::max_items }),
-        target_value_tokens: Some(rule_val.to_token_stream()),
         field_data: field_data.clone(),
-        kind: GeneratedCodeKind::FieldRule,
+        kind: GeneratedCodeKind::FieldRule {
+          validator_path: quote! { protocheck::validators::repeated::max_items },
+          target_value_tokens: rule_val.to_token_stream(),
+        },
       });
     }
 
@@ -115,8 +117,6 @@ pub fn get_repeated_rules(
 
     let items_message_rules = ValidatorCallTemplate {
       field_data: items_field_data,
-      validator_path: None,
-      target_value_tokens: None,
       kind: GeneratedCodeKind::MessageField,
     };
 
@@ -127,8 +127,6 @@ pub fn get_repeated_rules(
     Ok(None)
   } else {
     Ok(Some(ValidatorCallTemplate {
-      validator_path: None,
-      target_value_tokens: None,
       field_data: field_data.clone(),
       kind: GeneratedCodeKind::RepeatedValidationLoop {
         vec_level_rules,
