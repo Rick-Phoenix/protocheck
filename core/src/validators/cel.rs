@@ -17,6 +17,16 @@ pub fn validate_cel(
 ) -> Result<(), Violation> {
   let result = program.execute(&cel_context);
 
+  let validator_type = match is_for_message {
+    true => "message",
+    false => "field",
+  };
+
+  let error_prefix = format!(
+    "Error during Cel validation for {} {}:",
+    validator_type, field_context.field_data.proto_name
+  );
+
   match result {
     Ok(value) => {
       if let Value::Bool(bool_value) = value {
@@ -71,9 +81,10 @@ pub fn validate_cel(
         }
       } else {
         println!(
-          "Error during cel validation for `{}`: expected boolean result from expression, got `{:?}`",
-            field_context.field_data.proto_name, value.type_of()
-          );
+          "{} expected boolean result from expression, got `{:?}`",
+          error_prefix,
+          value.type_of()
+        );
         Err(Violation {
           message: Some("Internal server error".to_string()),
           rule_id: Some("internal_server_error".to_string()),
@@ -84,10 +95,7 @@ pub fn validate_cel(
       }
     }
     Err(e) => {
-      println!(
-        "Error during cel validation for `{}`: {:?}",
-        field_context.field_data.proto_name, e
-      );
+      println!("{} {:?}", error_prefix, e);
       Err(Violation {
         message: Some("Internal server error".to_string()),
         rule_id: Some("internal_server_error".to_string()),

@@ -305,7 +305,7 @@ impl ToTokens for ValidatorCallTemplate {
         );
 
         let context_error = format!(
-          "Failed to add context to the cel program for {} {}",
+          "Failed to add context to the Cel program for {} {}",
           program_type.to_lowercase(),
           field_rust_name
         );
