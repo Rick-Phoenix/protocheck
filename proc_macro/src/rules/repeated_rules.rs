@@ -1,4 +1,4 @@
-use prost_reflect::FieldDescriptor;
+use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -68,6 +68,13 @@ pub fn get_repeated_rules(
     unique_values = true;
   }
 
+  let mut item_is_message = false;
+  if let Kind::Message(item_desc) = field_desc.kind() {
+    if !item_desc.full_name().starts_with("google.protobuf") {
+      item_is_message = true;
+    }
+  }
+
   if repeated_rules.items.is_some() {
     let items_rules_descriptor = repeated_rules.items.clone().unwrap();
     let ignore = items_rules_descriptor.ignore();
@@ -79,19 +86,30 @@ pub fn get_repeated_rules(
         items_field_data.is_repeated_item = true;
         items_field_data.is_required = items_rules_descriptor.required();
 
-        let rules_for_single_item = get_field_rules(
-          field_rust_enum,
-          field_span,
-          field_desc,
-          &items_field_data,
-          rules_type,
-        )?;
-
-        items_templates.extend(rules_for_single_item);
-
         if !items_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(&items_field_data, &items_rules_descriptor.cel, false)?;
           items_templates.extend(cel_rules);
+        }
+
+        if item_is_message {
+          let items_message_rules = ValidatorCallTemplate {
+            field_data: items_field_data,
+            validator_path: None,
+            target_value_tokens: None,
+            kind: GeneratedCodeKind::MessageField,
+          };
+
+          items_templates.push(items_message_rules);
+        } else {
+          let rules_for_single_item = get_field_rules(
+            field_rust_enum,
+            field_span,
+            field_desc,
+            &items_field_data,
+            rules_type,
+          )?;
+
+          items_templates.extend(rules_for_single_item);
         }
       }
     }

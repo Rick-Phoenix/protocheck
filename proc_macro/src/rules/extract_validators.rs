@@ -164,7 +164,7 @@ pub fn extract_oneof_validators(
             validator_path: None,
             target_value_tokens: None,
             field_data,
-            kind: GeneratedCodeKind::NestedMessageRecursion,
+            kind: GeneratedCodeKind::MessageField,
           };
           field_validators.push(template);
           validators.insert(field_ident, field_validators);
@@ -298,7 +298,7 @@ pub fn extract_message_validators(
         continue;
       }
 
-      let mut field_data = FieldData {
+      let field_data = FieldData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         tag: field_tag,
@@ -317,33 +317,26 @@ pub fn extract_message_validators(
         is_optional,
       };
 
-      // println!(
-      //   "Field Name: {}, Is repeated: {:?}, Is Optional: {:?}",
-      //   field_name, is_repeated, is_optional
-      // );
-
       if let Kind::Message(field_message_type) = field_desc.kind() {
+        if !field_rules.cel.is_empty() {
+          validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
+        }
+
         if !is_map
           && !field_message_type
             .full_name()
             .starts_with("google.protobuf")
+          && !is_repeated
         {
-          field_data.is_repeated = false;
-          field_data.is_repeated_item = is_repeated;
-
           let template = ValidatorCallTemplate {
             validator_path: None,
             target_value_tokens: None,
             field_data,
-            kind: GeneratedCodeKind::NestedMessageRecursion,
+            kind: GeneratedCodeKind::MessageField,
           };
           validation_data.push(template);
           continue;
         }
-      }
-
-      if !field_rules.cel.is_empty() {
-        validation_data.extend(get_cel_rules(&field_data, &field_rules.cel, false).unwrap());
       }
 
       if let Some(ref rules_type) = field_rules.r#type {

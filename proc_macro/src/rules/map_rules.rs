@@ -55,6 +55,7 @@ pub fn get_map_rules(
   let mut map_field_data = map_field_data.clone();
   map_field_data.key_type = Some(key_proto_type);
   map_field_data.value_type = Some(value_proto_type);
+  map_field_data.is_repeated = false;
 
   let mut min_pairs: Option<usize> = None;
   let mut max_pairs: Option<usize> = None;
@@ -128,7 +129,7 @@ pub fn get_map_rules(
     }
   }
 
-  if map_rules.values.is_some() && !value_is_message {
+  if map_rules.values.is_some() {
     let value_rules_descriptor = map_rules.values.clone().unwrap();
     let ignore = value_rules_descriptor.ignore();
     if let Some(ref rules) = value_rules_descriptor.r#type {
@@ -139,21 +140,31 @@ pub fn get_map_rules(
         value_field_data.is_required = is_required;
         value_field_data.is_map = false;
         value_field_data.is_map_value = true;
-
         value_field_data.ignore = ignore;
-
-        let generated_value_templates = get_field_rules(
-          field_rust_enum,
-          map_field_span,
-          &value_desc,
-          &value_field_data,
-          rules,
-        )?;
-        value_rules_templates.extend(generated_value_templates);
 
         if !value_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(&value_field_data, &value_rules_descriptor.cel, false)?;
           value_rules_templates.extend(cel_rules);
+        }
+
+        if value_is_message {
+          let value_message_rules = ValidatorCallTemplate {
+            field_data: value_field_data,
+            validator_path: None,
+            target_value_tokens: None,
+            kind: GeneratedCodeKind::MessageField,
+          };
+
+          value_rules_templates.push(value_message_rules);
+        } else {
+          let generated_value_templates = get_field_rules(
+            field_rust_enum,
+            map_field_span,
+            &value_desc,
+            &value_field_data,
+            rules,
+          )?;
+          value_rules_templates.extend(generated_value_templates);
         }
       }
     }
@@ -167,7 +178,6 @@ pub fn get_map_rules(
       map_level_rules: map_level_rules_templates,
       key_rules: key_rules_templates,
       value_rules: value_rules_templates,
-      value_is_message,
     },
   })
 }

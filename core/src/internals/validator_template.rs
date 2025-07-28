@@ -6,12 +6,11 @@ use crate::{field_data::FieldData, Ident2, ProtoType, Span2, TokenStream2};
 #[derive(Debug)]
 pub enum GeneratedCodeKind {
   FieldRule,
-  NestedMessageRecursion,
+  MessageField,
   MapValidationLoop {
     map_level_rules: Vec<ValidatorCallTemplate>,
     key_rules: Vec<ValidatorCallTemplate>,
     value_rules: Vec<ValidatorCallTemplate>,
-    value_is_message: bool,
   },
   RepeatedValidationLoop {
     vec_level_rules: Vec<ValidatorCallTemplate>,
@@ -90,6 +89,15 @@ impl ToTokens for ValidatorCallTemplate {
       quote! { &self.#field_rust_ident }
     };
 
+    let (key_type_tokens, value_type_tokens) = if key_type.is_some() && value_type.is_some() {
+      (
+        quote! { Some(#key_type as i32) },
+        quote! { Some(#value_type as i32) },
+      )
+    } else {
+      (quote! { None }, quote! { None })
+    };
+
     let field_data = self.field_data.clone();
 
     match &self.kind {
@@ -137,32 +145,21 @@ impl ToTokens for ValidatorCallTemplate {
           };
         });
       }
-      GeneratedCodeKind::NestedMessageRecursion => {
+      GeneratedCodeKind::MessageField => {
         let current_nested_field_element = quote! {
           protocheck::types::protovalidate::FieldPathElement {
             field_name: Some(#field_proto_name.to_string()),
             field_number: Some(#field_tag as i32),
             field_type: Some(#field_proto_type),
-            key_type: None,
-            value_type: None,
-            subscript: None,
+            key_type: #key_type_tokens,
+            value_type: #value_type_tokens,
+            subscript: #subscript,
           }
         };
 
-        if field_is_repeated_item {
+        if field_is_optional && !field_is_in_oneof {
           tokens.extend(quote! {
-            for (#index_ident, #item_ident) in self.#field_rust_ident.iter().enumerate() {
-              let mut nested_item_element = #current_nested_field_element;
-              nested_item_element.subscript = #subscript;
-
-              #parent_messages_ident.push(nested_item_element);
-              #item_ident.nested_validate(#parent_messages_ident, #violations_ident);
-              #parent_messages_ident.pop();
-            }
-          });
-        } else if field_is_optional && !field_is_in_oneof {
-          tokens.extend(quote! {
-            if let Some(nested_msg_instance) = &self.#field_rust_ident {
+            if let Some(nested_msg_instance) = #value_ident {
               #parent_messages_ident.push(#current_nested_field_element);
               nested_msg_instance.nested_validate(#parent_messages_ident, #violations_ident);
               #parent_messages_ident.pop();
@@ -230,14 +227,7 @@ impl ToTokens for ValidatorCallTemplate {
         map_level_rules,
         key_rules,
         value_rules,
-        value_is_message,
       } => {
-        let validator_tokens = if *value_is_message {
-          quote! { #val_ident.nested_validate(#parent_messages_ident, #violations_ident); }
-        } else {
-          quote! { #(#value_rules)* }
-        };
-
         tokens.extend(quote! {
           #(#map_level_rules)*
 
@@ -246,8 +236,8 @@ impl ToTokens for ValidatorCallTemplate {
               field_name: Some(#field_proto_name.to_string()),
               field_number: Some(#field_tag as i32),
               field_type: Some(#field_proto_type),
-              key_type: Some(#key_type as i32),
-              value_type: Some(#value_type as i32),
+              key_type: #key_type_tokens,
+              value_type: #value_type_tokens,
               subscript: #subscript,
             };
 
@@ -255,7 +245,7 @@ impl ToTokens for ValidatorCallTemplate {
 
             #(#key_rules)*
 
-            #validator_tokens
+            #(#value_rules)*
 
             #parent_messages_ident.pop();
           }
