@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::{
   field_data::{FieldContext, FieldData},
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  validators::common::{get_base_violations_path, get_const_rule_path},
+  validators::{common::get_base_violations_path, static_data::const_rules::get_const_rule_path},
   ProtoType,
 };
 
