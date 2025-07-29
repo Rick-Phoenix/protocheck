@@ -14,6 +14,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   config
     .file_descriptor_set_path(descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .type_attribute(".google.protobuf.Timestamp", "#[derive(PartialOrd, Ord)]")
+    .type_attribute(".google.protobuf.Duration", "#[derive(PartialOrd, Ord)]")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 
