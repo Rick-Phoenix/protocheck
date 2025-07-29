@@ -1,7 +1,7 @@
 use quote::{quote, ToTokens};
 
 use crate::{
-  field_data::{CelRuleTemplate, FieldData, FieldKind},
+  field_data::{CelRuleTarget, FieldData, FieldKind},
   Ident2, ProtoType, Span2, TokenStream2,
 };
 
@@ -34,7 +34,7 @@ pub enum ValidatorKind {
   CelRule {
     rule_id: String,
     error_message: String,
-    rule_template: CelRuleTemplate,
+    rule_template: CelRuleTarget,
     static_program_ident: Ident2,
   },
   EnumDefinedOnly {
@@ -319,7 +319,7 @@ impl ToTokens for ValidatorTemplate {
         static_program_ident,
       } => {
         let (context_target, rule_target_tokens) = match rule_template {
-          CelRuleTemplate::Message(message_desc) => {
+          CelRuleTarget::Message(message_desc) => {
             let name = message_desc.name();
             (
               quote! { &self },
@@ -331,7 +331,7 @@ impl ToTokens for ValidatorTemplate {
               },
             )
           }
-          CelRuleTemplate::Field(_, field_data) => {
+          CelRuleTarget::Field(_, field_data) => {
             let subscript = get_subscript_tokens(field_data, &index_ident, &key_ident);
             (
               get_value_ident(field_data),

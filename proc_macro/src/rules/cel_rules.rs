@@ -1,7 +1,7 @@
 use cel_interpreter::{Context, Program, Value as CelValue};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, SerializeOptions, Value as ProstValue};
-use protocheck_core::field_data::CelRuleTemplate;
+use protocheck_core::field_data::CelRuleTarget;
 use quote::quote;
 use random_string::charsets::ALPHA_LOWER;
 use serde_json::{Serializer, Value as JsonValue};
@@ -11,18 +11,18 @@ use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
 use crate::{Ident2, Span2};
 
 pub fn get_cel_rules(
-  rule_kind: &CelRuleTemplate,
+  rule_kind: &CelRuleTarget,
   rules: &[Rule],
   static_defs: &mut Vec<TokenStream>,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
 
   let json_val: JsonValue = match rule_kind {
-    CelRuleTemplate::Message(message_desc) => {
+    CelRuleTarget::Message(message_desc) => {
       let dyn_message = DynamicMessage::new(message_desc.to_owned().clone());
       convert_prost_value_to_json_value(&ProstValue::Message(dyn_message))?
     }
-    CelRuleTemplate::Field(field_desc, field_data) => {
+    CelRuleTarget::Field(field_desc, field_data) => {
       get_default_field_prost_value(field_data, field_desc)?
     }
   };
@@ -41,6 +41,8 @@ pub fn get_cel_rules(
       ),
     )
   })?;
+
+  println!("Serialized json val: {:#?}", serialized_json_val);
 
   for rule in rules {
     let program = match Program::compile(rule.expression()) {

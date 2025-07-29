@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
-use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
+use protocheck_core::field_data::{CelRuleTarget, FieldKind};
 use regex::Regex;
 use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
@@ -157,7 +157,7 @@ pub fn extract_oneof_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleTemplate::Field(field.clone(), field_data.clone()),
+          &CelRuleTarget::Field(field.clone(), field_data.clone()),
           &field_rules.cel,
           &mut static_defs,
         )?);
@@ -282,7 +282,7 @@ pub fn extract_message_validators(
 
     if !message_rules.cel.is_empty() {
       validation_data.extend(get_cel_rules(
-        &CelRuleTemplate::Message(message_desc.clone()),
+        &CelRuleTarget::Message(message_desc.clone()),
         &message_rules.cel,
         &mut static_defs,
       )?);
@@ -363,7 +363,7 @@ pub fn extract_message_validators(
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
           validation_data.extend(get_cel_rules(
-            &CelRuleTemplate::Field(field_desc.clone(), field_data.clone()),
+            &CelRuleTarget::Field(field_desc.clone(), field_data.clone()),
             &field_rules.cel,
             &mut static_defs,
           )?);

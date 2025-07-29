@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
+use protocheck_core::field_data::{CelRuleTarget, FieldKind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -126,7 +126,7 @@ pub fn get_map_rules(
 
           if !key_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(
-              &CelRuleTemplate::Field(key_desc, key_field_data),
+              &CelRuleTarget::Field(key_desc, key_field_data),
               &key_rules_descriptor.cel,
               static_defs,
             )?;
@@ -160,7 +160,7 @@ pub fn get_map_rules(
 
           if !value_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(
-              &CelRuleTemplate::Field(value_desc, value_field_data),
+              &CelRuleTarget::Field(value_desc, value_field_data),
               &value_rules_descriptor.cel,
               static_defs,
             )?;

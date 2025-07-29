@@ -1,9 +1,13 @@
 use proc_macro2::Span;
 use prost_reflect::{FieldDescriptor, Kind};
+use protocheck_core::field_data::FieldKind;
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorTemplate};
-use crate::rules::{enum_rules::get_enum_rules, string_rules::get_string_rules};
+use crate::rules::{
+  duration_rules::get_duration_rules, enum_rules::get_enum_rules, string_rules::get_string_rules,
+  timestamp_rules::get_timestamp_rules,
+};
 
 pub fn get_field_rules(
   field_rust_enum: Option<String>,
@@ -55,6 +59,29 @@ pub fn get_field_rules(
         ))
       } else {
         let rules = get_string_rules(field_span, field_data, string_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    RulesType::Duration(duration_rules) => {
+      if !matches!(&field_data.kind, FieldKind::Duration) {
+        error = Some(field_mismatch_error(
+          field_name, "duration", field_kind, field_span,
+        ))
+      } else {
+        let rules = get_duration_rules(field_span, field_data, duration_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    RulesType::Timestamp(timestamp_rules) => {
+      if !matches!(&field_data.kind, FieldKind::Timestamp) {
+        error = Some(field_mismatch_error(
+          field_name,
+          "timestamp",
+          field_kind,
+          field_span,
+        ))
+      } else {
+        let rules = get_timestamp_rules(field_span, field_data, timestamp_rules)?;
         rules_agg.extend(rules);
       }
     }

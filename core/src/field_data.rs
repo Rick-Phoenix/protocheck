@@ -121,27 +121,27 @@ pub struct FieldData {
 }
 
 #[derive(Debug, Clone)]
-pub enum CelRuleTemplate {
+pub enum CelRuleTarget {
   Message(MessageDescriptor),
   Field(FieldDescriptor, FieldData),
 }
 
-impl CelRuleTemplate {
+impl CelRuleTarget {
   pub fn is_for_message(&self) -> bool {
-    matches!(self, CelRuleTemplate::Message(_))
+    matches!(self, CelRuleTarget::Message(_))
   }
 
   pub fn get_validation_type(&self) -> &str {
     match self {
-      CelRuleTemplate::Field(_, _) => "field",
-      CelRuleTemplate::Message(_) => "message",
+      CelRuleTarget::Field(_, _) => "field",
+      CelRuleTarget::Message(_) => "message",
     }
   }
 
   pub fn get_name(&self) -> &str {
     match self {
-      CelRuleTemplate::Field(_, field_data) => &field_data.proto_name,
-      CelRuleTemplate::Message(message_desc) => message_desc.name(),
+      CelRuleTarget::Field(_, field_data) => &field_data.proto_name,
+      CelRuleTarget::Message(message_desc) => message_desc.name(),
     }
   }
 }

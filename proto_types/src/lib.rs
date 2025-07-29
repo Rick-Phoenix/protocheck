@@ -17,6 +17,8 @@ use protobuf::field_descriptor_proto::Type as ProtoType;
 use protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore};
 use quote::{quote, ToTokens};
 
+use crate::protobuf::{Duration, Timestamp};
+
 impl ToTokens for FieldPathElement {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let field_number = &self.field_number;
@@ -112,5 +114,33 @@ impl ToTokens for Subscript {
         });
       }
     }
+  }
+}
+
+impl ToTokens for Duration {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let seconds = self.seconds;
+    let nanos = self.nanos;
+
+    tokens.extend(quote! {
+      protocheck::types::protobuf::Duration {
+          seconds: #seconds,
+          nanos: #nanos,
+      }
+    });
+  }
+}
+
+impl ToTokens for Timestamp {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let seconds = self.seconds;
+    let nanos = self.nanos;
+
+    tokens.extend(quote! {
+      protocheck::types::protobuf::Timestamp {
+          seconds: #seconds,
+          nanos: #nanos,
+      }
+    });
   }
 }
