@@ -2,7 +2,7 @@ use proc_macro2::Span;
 use prost_reflect::{FieldDescriptor, Kind};
 use syn::Error;
 
-use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorCallTemplate};
+use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorTemplate};
 use crate::rules::{enum_rules::get_enum_rules, string_rules::get_string_rules};
 
 pub fn get_field_rules(
@@ -11,24 +11,18 @@ pub fn get_field_rules(
   field_desc: &FieldDescriptor,
   field_data: &FieldData,
   field_rules: &RulesType,
-) -> Result<Vec<ValidatorCallTemplate>, Error> {
-  let mut rules_agg: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut rules_agg: Vec<ValidatorTemplate> = Vec::new();
   let mut error: Option<Error> = None;
 
   let field_name = &field_data.proto_name;
   let field_kind = &field_desc.kind();
 
+  let error_prefix = format!("Error for field {}:", field_name);
+
   match field_rules {
     RulesType::Enum(enum_rules) => {
-      if field_rust_enum.is_none() {
-        error = Some(Error::new(
-          field_span,
-          format!(
-            "Could not find the rust path to the generated enum for field {}",
-            field_name
-          ),
-        ));
-      } else if let Kind::Enum(enum_descriptor) = &field_kind {
+      if let Kind::Enum(enum_descriptor) = &field_kind {
         match field_rust_enum {
           Some(enum_ident) => {
             let rules = get_enum_rules(
@@ -43,17 +37,14 @@ pub fn get_field_rules(
           None => {
             error = Some(Error::new(
               field_span,
-              format!("Could not find enum field ident for field {}", field_name),
+              format!("{} could not find enum field ident", error_prefix),
             ))
           }
         };
       } else {
         error = Some(Error::new(
           field_span,
-          format!(
-            "Could not find enum descriptor for enum field {}",
-            field_name
-          ),
+          format!("{} could not find enum descriptor", error_prefix),
         ))
       }
     }
@@ -67,7 +58,6 @@ pub fn get_field_rules(
         rules_agg.extend(rules);
       }
     }
-    // RulesType::String(string_rules) => string_rules::get_string_rules(field_data, &string_rules),
     _ => {}
   };
 

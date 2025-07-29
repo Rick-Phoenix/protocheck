@@ -11,13 +11,13 @@ pub enum ValidatorKind {
   },
   MessageField,
   MapValidationLoop {
-    map_level_rules: Vec<ValidatorCallTemplate>,
-    key_rules: Vec<ValidatorCallTemplate>,
-    value_rules: Vec<ValidatorCallTemplate>,
+    map_level_rules: Vec<ValidatorTemplate>,
+    key_rules: Vec<ValidatorTemplate>,
+    value_rules: Vec<ValidatorTemplate>,
   },
   RepeatedValidationLoop {
-    vec_level_rules: Vec<ValidatorCallTemplate>,
-    items_rules: Vec<ValidatorCallTemplate>,
+    vec_level_rules: Vec<ValidatorTemplate>,
+    items_rules: Vec<ValidatorTemplate>,
     unique_values: bool,
     float_values: bool,
   },
@@ -38,12 +38,12 @@ pub enum ValidatorKind {
 }
 
 #[derive(Debug)]
-pub struct ValidatorCallTemplate {
+pub struct ValidatorTemplate {
   pub field_data: FieldData,
   pub kind: ValidatorKind,
 }
 
-impl ToTokens for ValidatorCallTemplate {
+impl ToTokens for ValidatorTemplate {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let field_rust_name = &self.field_data.rust_name;
     let field_proto_name = &self.field_data.proto_name;
@@ -74,7 +74,7 @@ impl ToTokens for ValidatorCallTemplate {
         let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
         quote! { Some(#key_subscript_tokens) }
       } else {
-        quote! {compile_error!("Map key type is missing during macro expansion.")}
+        quote! { compile_error!("Map key type is missing during macro expansion.") }
       }
     } else {
       quote! { None }
@@ -101,7 +101,7 @@ impl ToTokens for ValidatorCallTemplate {
       (quote! { None }, quote! { None })
     };
 
-    let field_data = self.field_data.clone();
+    let field_data = &self.field_data;
 
     match &self.kind {
       ValidatorKind::EnumDefinedOnly {
@@ -163,7 +163,7 @@ impl ToTokens for ValidatorCallTemplate {
         let is_option = field_is_optional && !field_is_in_oneof;
 
         let target_ident = if is_option {
-          let unwrapped_message_ident = Ident2::new("nested_msg_instance", Span2::call_site());
+          let unwrapped_message_ident = Ident2::new("msg_val", Span2::call_site());
           &quote! { #unwrapped_message_ident }
         } else {
           &value_ident
@@ -226,6 +226,7 @@ impl ToTokens for ValidatorCallTemplate {
         } else {
           (None, None)
         };
+
         tokens.extend(quote! {
           #(#vec_level_rules)*
 

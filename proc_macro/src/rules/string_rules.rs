@@ -1,15 +1,15 @@
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{protovalidate::StringRules, FieldData, ValidatorCallTemplate, ValidatorKind};
+use super::{protovalidate::StringRules, FieldData, ValidatorKind, ValidatorTemplate};
 use crate::Span2;
 
 pub fn get_string_rules(
   field_span: Span2,
   field_data: &FieldData,
   string_rules: &StringRules,
-) -> Result<Vec<ValidatorCallTemplate>, Error> {
-  let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut templates: Vec<ValidatorTemplate> = Vec::new();
 
   let mut min_len: Option<u64> = None;
   let mut max_len: Option<u64> = None;
@@ -17,7 +17,7 @@ pub fn get_string_rules(
 
   if let Some(len_value) = string_rules.len {
     len = Some(len_value);
-    templates.push(ValidatorCallTemplate {
+    templates.push(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
         validator_path: quote! { protocheck::validators::strings::len },
@@ -29,7 +29,7 @@ pub fn get_string_rules(
   if let Some(min_len_value) = string_rules.min_len {
     min_len = Some(min_len_value);
 
-    templates.push(ValidatorCallTemplate {
+    templates.push(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
         validator_path: quote! { protocheck::validators::strings::min_len },
@@ -41,7 +41,7 @@ pub fn get_string_rules(
   if let Some(max_len_value) = string_rules.max_len {
     max_len = Some(max_len_value);
 
-    templates.push(ValidatorCallTemplate {
+    templates.push(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
         validator_path: quote! { protocheck::validators::strings::max_len },

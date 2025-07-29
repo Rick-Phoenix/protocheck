@@ -8,7 +8,7 @@ use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
-  FieldData, MessageRules, OneofRules, ProtoType, ValidatorCallTemplate, ValidatorKind,
+  FieldData, MessageRules, OneofRules, ProtoType, ValidatorKind, ValidatorTemplate,
 };
 use crate::{
   pool_loader::{
@@ -38,8 +38,8 @@ struct OneofField {
 pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
-) -> Result<HashMap<Ident, Vec<ValidatorCallTemplate>>, Error> {
-  let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
+) -> Result<HashMap<Ident, Vec<ValidatorTemplate>>, Error> {
+  let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
 
   let oneof_name = &oneof_desc.name();
@@ -134,7 +134,7 @@ pub fn extract_oneof_validators(
       ),
     ))?;
 
-    let mut field_validators: Vec<ValidatorCallTemplate> = Vec::new();
+    let mut field_validators: Vec<ValidatorTemplate> = Vec::new();
 
     let field_options = field.options();
     let field_rules_descriptor = field_options.get_extension(&FIELD_RULES_EXT_DESCRIPTOR);
@@ -187,7 +187,7 @@ pub fn extract_oneof_validators(
           .full_name()
           .starts_with("google.protobuf")
         {
-          let template = ValidatorCallTemplate {
+          let template = ValidatorTemplate {
             field_data,
             kind: ValidatorKind::MessageField,
           };
@@ -212,8 +212,8 @@ pub fn extract_oneof_validators(
 pub fn extract_message_validators(
   input_tokens: &DeriveInput,
   message_desc: &MessageDescriptor,
-) -> Result<Vec<ValidatorCallTemplate>, Error> {
-  let mut validation_data: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut validation_data: Vec<ValidatorTemplate> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
   let mut rust_enum_paths: HashMap<String, String> = HashMap::new();
@@ -328,7 +328,7 @@ pub fn extract_message_validators(
       field_data.rust_name = name.to_string();
       field_data.proto_name = name.to_string();
 
-      validation_data.push(ValidatorCallTemplate {
+      validation_data.push(ValidatorTemplate {
         field_data,
         kind: ValidatorKind::OneofField {
           is_required: oneof_rules.required(),
@@ -406,7 +406,7 @@ pub fn extract_message_validators(
             .starts_with("google.protobuf")
           && !is_repeated
         {
-          let template = ValidatorCallTemplate {
+          let template = ValidatorTemplate {
             field_data,
             kind: ValidatorKind::MessageField,
           };

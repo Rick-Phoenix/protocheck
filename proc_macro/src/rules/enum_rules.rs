@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use prost_reflect::EnumDescriptor;
 use syn::Error;
 
-use super::{protovalidate::EnumRules, FieldData, ValidatorCallTemplate, ValidatorKind};
+use super::{protovalidate::EnumRules, FieldData, ValidatorKind, ValidatorTemplate};
 use crate::Span2;
 
 pub fn get_enum_rules(
@@ -12,15 +12,15 @@ pub fn get_enum_rules(
   enum_desc: &EnumDescriptor,
   field_data: &FieldData,
   enum_rules: &EnumRules,
-) -> Result<Vec<ValidatorCallTemplate>, Error> {
-  let mut templates: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut templates: Vec<ValidatorTemplate> = Vec::new();
 
   let mut enum_field_data = field_data.clone();
   let enum_name = enum_desc.full_name();
   enum_field_data.enum_full_name = Some(enum_name.to_string());
 
   if enum_rules.defined_only() {
-    templates.push(ValidatorCallTemplate {
+    templates.push(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::EnumDefinedOnly {
         enum_type_ident: field_type_ident.clone(),

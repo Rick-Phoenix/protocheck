@@ -2,9 +2,7 @@ use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{
-  field_rules::Type as RulesType, FieldData, Ignore, ValidatorCallTemplate, ValidatorKind,
-};
+use super::{field_rules::Type as RulesType, FieldData, Ignore, ValidatorKind, ValidatorTemplate};
 use crate::{
   rules::{
     cel_rules::{get_cel_rules, CelRuleKind},
@@ -19,10 +17,10 @@ pub fn get_map_rules(
   map_field_desc: &FieldDescriptor,
   map_field_data: &FieldData,
   field_rules: Option<&RulesType>,
-) -> Result<Option<ValidatorCallTemplate>, Error> {
-  let mut map_level_rules: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut key_rules: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut value_rules: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Option<ValidatorTemplate>, Error> {
+  let mut map_level_rules: Vec<ValidatorTemplate> = Vec::new();
+  let mut key_rules: Vec<ValidatorTemplate> = Vec::new();
+  let mut value_rules: Vec<ValidatorTemplate> = Vec::new();
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -75,7 +73,7 @@ pub fn get_map_rules(
 
     if let Some(min_pairs_value) = map_rules.min_pairs {
       min_pairs = Some(min_pairs_value);
-      map_level_rules.push(ValidatorCallTemplate {
+      map_level_rules.push(ValidatorTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::min_pairs },
           target_value_tokens: min_pairs_value.into_token_stream(),
@@ -86,7 +84,7 @@ pub fn get_map_rules(
 
     if let Some(max_pairs_value) = map_rules.max_pairs {
       max_pairs = Some(max_pairs_value);
-      map_level_rules.push(ValidatorCallTemplate {
+      map_level_rules.push(ValidatorTemplate {
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::max_pairs },
           target_value_tokens: max_pairs_value.into_token_stream(),
@@ -175,7 +173,7 @@ pub fn get_map_rules(
     let mut value_field_data = map_field_data.clone();
     value_field_data.is_map = false;
     value_field_data.is_map_value = true;
-    let value_message_rules = ValidatorCallTemplate {
+    let value_message_rules = ValidatorTemplate {
       field_data: value_field_data,
       kind: ValidatorKind::MessageField,
     };
@@ -186,7 +184,7 @@ pub fn get_map_rules(
   if map_level_rules.is_empty() && key_rules.is_empty() && value_rules.is_empty() {
     Ok(None)
   } else {
-    Ok(Some(ValidatorCallTemplate {
+    Ok(Some(ValidatorTemplate {
       field_data: map_field_data.to_owned(),
       kind: ValidatorKind::MapValidationLoop {
         map_level_rules,

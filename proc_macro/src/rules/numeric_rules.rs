@@ -1,194 +1,119 @@
-// use std::{collections::HashMap, sync::LazyLock};
-//
-// use super::CelRule;
-//
-// use crate::validator::{
-//   buf::validate::{int32_rules, int64_rules, Int32Rules, Int64Rules},
-//   CelRuleValue,
-// };
-//
-// static NUMERIC_RULES: LazyLock<HashMap<String, (String, String)>> = LazyLock::new(|| {
-//   let mut rules_map: HashMap<String, (String, String)> = HashMap::new();
-//
-//   rules_map.insert("const".to_string(), ("this != getField(rules, 'const') ? 'value must equal %s'.format([getField(rules, 'const')]) : ''".to_string(), "".to_string()));
-//   rules_map.insert("lt".to_string(), ("!has(rules.gte) && !has(rules.gt) && this >= rules.lt ? 'value must be less than %s'.format([rules.lt]) : ''".to_string(), "".to_string()));
-//   rules_map.insert("lte".to_string(), ("!has(rules.gte) && !has(rules.gt) && this > rules.lte ? 'value must be less than or equal to %s'.format([rules.lte]) : ''".to_string(), "".to_string()));
-//   rules_map.insert("gt".to_string(), ("!has(rules.lt) && !has(rules.lte) && this <= rules.gt ? 'value must be greater than %s'.format([rules.gt]) : ''".to_string(), "".to_string()));
-//   rules_map.insert("gte".to_string(), ("!has(rules.lt) && !has(rules.lte) && this < rules.gte ? 'value must be greater than or equal to %s'.format([rules.gte]) : ''".to_string(), "".to_string()));
-//
-//   rules_map
-// });
-//
-// pub fn get_int64_rules(
-//   int64_rules: &Int64Rules,
-// ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
-//   let mut rules: Vec<CelRule> = Vec::new();
-//
-//   if int64_rules.r#const.is_some() {
-//     let const_val = int64_rules.r#const();
-//     let (expression, message) = super::COMMON_RULES.get("const").unwrap();
-//     rules.push(CelRule {
-//       id: format!("int64.const"),
-//       expression: expression.to_string(),
-//       message: message.to_string(),
-//       value: CelRuleValue::I64(const_val),
-//     })
-//   }
-//
-//   if int64_rules.less_than.is_some() {
-//     match int64_rules.less_than.unwrap() {
-//       int64_rules::LessThan::Lt(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("lt").unwrap();
-//         rules.push(CelRule {
-//           id: "int64.lt".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I64(val),
-//         })
-//       }
-//       int64_rules::LessThan::Lte(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("lte").unwrap();
-//         rules.push(CelRule {
-//           id: "int64.lte".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I64(val),
-//         })
-//       }
-//     }
-//   }
-//
-//   if int64_rules.greater_than.is_some() {
-//     match int64_rules.greater_than.unwrap() {
-//       int64_rules::GreaterThan::Gt(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("gt").unwrap();
-//         rules.push(CelRule {
-//           id: "int64.gt".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I64(val),
-//         })
-//       }
-//       int64_rules::GreaterThan::Gte(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("gte").unwrap();
-//         rules.push(CelRule {
-//           id: "int64.gte".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I64(val),
-//         })
-//       }
-//     }
-//
-//     if int64_rules.r#in.len() > 0 {
-//       let value = CelRuleValue::RepeatedI64(int64_rules.r#in.clone());
-//       let (expression, message) = super::COMMON_RULES.get("in").unwrap();
-//       rules.push(CelRule {
-//         id: "int64.in".to_string(),
-//         expression: expression.to_string(),
-//         message: message.to_string(),
-//         value,
-//       })
-//     }
-//
-//     if int64_rules.not_in.len() > 0 {
-//       let value = CelRuleValue::RepeatedI64(int64_rules.not_in.clone());
-//       let (expression, message) = super::COMMON_RULES.get("not_in").unwrap();
-//       rules.push(CelRule {
-//         id: "int64.not_in".to_string(),
-//         expression: expression.to_string(),
-//         message: message.to_string(),
-//         value,
-//       })
-//     }
-//   }
-//
-//   Ok(rules)
-// }
-//
-// pub fn get_int32_rules(
-//   int32_rules: &Int32Rules,
-// ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
-//   let mut rules: Vec<CelRule> = Vec::new();
-//
-//   if int32_rules.r#const.is_some() {
-//     let const_val = int32_rules.r#const();
-//     let (expression, message) = super::COMMON_RULES.get("const").unwrap();
-//     rules.push(CelRule {
-//       id: format!("int32.const"),
-//       expression: expression.to_string(),
-//       message: message.to_string(),
-//       value: CelRuleValue::I32(const_val),
-//     })
-//   }
-//
-//   if int32_rules.less_than.is_some() {
-//     match int32_rules.less_than.unwrap() {
-//       int32_rules::LessThan::Lt(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("lt").unwrap();
-//         rules.push(CelRule {
-//           id: "int32.lt".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I32(val),
-//         })
-//       }
-//       int32_rules::LessThan::Lte(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("lte").unwrap();
-//         rules.push(CelRule {
-//           id: "int32.lte".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I32(val),
-//         })
-//       }
-//     }
-//   }
-//
-//   if int32_rules.greater_than.is_some() {
-//     match int32_rules.greater_than.unwrap() {
-//       int32_rules::GreaterThan::Gt(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("gt").unwrap();
-//         rules.push(CelRule {
-//           id: "int32.gt".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I32(val),
-//         })
-//       }
-//       int32_rules::GreaterThan::Gte(val) => {
-//         let (expression, message) = NUMERIC_RULES.get("gte").unwrap();
-//         rules.push(CelRule {
-//           id: "int32.gte".to_string(),
-//           expression: expression.to_string(),
-//           message: message.to_string(),
-//           value: CelRuleValue::I32(val),
-//         })
-//       }
-//     }
-//
-//     if int32_rules.r#in.len() > 0 {
-//       let value = CelRuleValue::RepeatedI32(int32_rules.r#in.clone());
-//       let (expression, message) = super::COMMON_RULES.get("in").unwrap();
-//       rules.push(CelRule {
-//         id: "int32.in".to_string(),
-//         expression: expression.to_string(),
-//         message: message.to_string(),
-//         value,
-//       })
-//     }
-//
-//     if int32_rules.not_in.len() > 0 {
-//       let value = CelRuleValue::RepeatedI32(int32_rules.not_in.clone());
-//       let (expression, message) = super::COMMON_RULES.get("not_in").unwrap();
-//       rules.push(CelRule {
-//         id: "int32.not_in".to_string(),
-//         expression: expression.to_string(),
-//         message: message.to_string(),
-//         value,
-//       })
-//     }
-//   }
-//
-//   Ok(rules)
-// }
+use proto_types::protovalidate::int64_rules::{GreaterThan, LessThan};
+use quote::{quote, ToTokens};
+use syn::Error;
+
+use super::{protovalidate::Int64Rules, FieldData, ValidatorKind, ValidatorTemplate};
+use crate::Span2;
+
+#[derive(Debug)]
+struct GtLt {
+  pub val: i64,
+  pub eq: bool,
+}
+
+pub fn get_int64_rules(
+  field_span: Span2,
+  field_data: &FieldData,
+  rules: &Int64Rules,
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+
+  let mut lt: Option<GtLt> = None;
+  let mut gt: Option<GtLt> = None;
+
+  let error_prefix = format!("Error for field {}:", &field_data.proto_name);
+
+  if let Some(const_val) = rules.r#const {
+    templates.push(ValidatorTemplate {
+      field_data: field_data.clone(),
+      kind: ValidatorKind::FieldRule {
+        validator_path: quote! { protocheck::validators::numeric::const },
+        target_value_tokens: const_val.to_token_stream(),
+      },
+    });
+    return Ok(templates);
+  }
+
+  if let Some(lt_rule) = rules.less_than {
+    let field_data = field_data.clone();
+    match lt_rule {
+      LessThan::Lt(val) => {
+        lt = Some(GtLt { val, eq: false });
+        templates.push(ValidatorTemplate {
+          field_data,
+          kind: ValidatorKind::FieldRule {
+            validator_path: quote! { protocheck::validators::numeric::lt },
+            target_value_tokens: val.to_token_stream(),
+          },
+        });
+      }
+      LessThan::Lte(val) => {
+        lt = Some(GtLt { val, eq: true });
+        templates.push(ValidatorTemplate {
+          field_data,
+          kind: ValidatorKind::FieldRule {
+            validator_path: quote! { protocheck::validators::numeric::lte },
+            target_value_tokens: val.to_token_stream(),
+          },
+        });
+      }
+    };
+  }
+
+  if let Some(gt_rule) = rules.greater_than {
+    let field_data = field_data.clone();
+    match gt_rule {
+      GreaterThan::Gt(val) => {
+        gt = Some(GtLt { val, eq: false });
+        templates.push(ValidatorTemplate {
+          field_data,
+          kind: ValidatorKind::FieldRule {
+            validator_path: quote! { protocheck::validators::numeric::gt },
+            target_value_tokens: val.to_token_stream(),
+          },
+        });
+      }
+      GreaterThan::Gte(val) => {
+        gt = Some(GtLt { val, eq: true });
+        templates.push(ValidatorTemplate {
+          field_data,
+          kind: ValidatorKind::FieldRule {
+            validator_path: quote! { protocheck::validators::numeric::gte },
+            target_value_tokens: val.to_token_stream(),
+          },
+        });
+      }
+    };
+  }
+
+  if let Some(gt_val) = gt {
+    if let Some(lt_val) = lt {
+      if lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
+        return Err(Error::new(
+          field_span,
+          format!("{} Lte cannot be larger than Gte", error_prefix),
+        ));
+      }
+      if !lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
+        return Err(Error::new(
+          field_span,
+          format!("{} Lt cannot be larger than or equal to Gt", error_prefix),
+        ));
+      }
+      if lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
+        return Err(Error::new(
+          field_span,
+          format!("{} Lte cannot be larger than or equal to Gt", error_prefix),
+        ));
+      }
+      if !lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
+        return Err(Error::new(
+          field_span,
+          format!("{} Lt cannot be larger than Gte", error_prefix),
+        ));
+      }
+    }
+  }
+
+  Ok(templates)
+}

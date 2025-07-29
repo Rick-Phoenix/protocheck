@@ -5,7 +5,7 @@ use prost_reflect::{
 use serde_json::{Serializer, Value as JsonValue};
 use syn::Error;
 
-use super::{FieldData, Rule, ValidatorCallTemplate, ValidatorKind};
+use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
 use crate::Span2;
 
 #[derive(Debug, Clone)]
@@ -18,8 +18,8 @@ pub fn get_cel_rules(
   rule_kind: &CelRuleKind,
   field_data: &FieldData,
   rules: &[Rule],
-) -> Result<Vec<ValidatorCallTemplate>, Error> {
-  let mut validators: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut validators: Vec<ValidatorTemplate> = Vec::new();
   let mut is_for_message = false;
 
   let json_val: JsonValue = match rule_kind {
@@ -35,6 +35,7 @@ pub fn get_cel_rules(
     true => "message",
     false => "field",
   };
+
   let error_prefix = format!(
     "Cel program error for {} {}:",
     validation_type, field_data.proto_name
@@ -70,7 +71,7 @@ pub fn get_cel_rules(
             let message = rule.message().to_string();
             let rule_id = rule.id().to_string();
 
-            validators.push(ValidatorCallTemplate {
+            validators.push(ValidatorTemplate {
               field_data: field_data.clone(),
               kind: ValidatorKind::CelRule {
                 expression,

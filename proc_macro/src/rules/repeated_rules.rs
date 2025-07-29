@@ -3,8 +3,8 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{
-  field_rules::Type as RulesType, protovalidate::Ignore, FieldData, ProtoType,
-  ValidatorCallTemplate, ValidatorKind,
+  field_rules::Type as RulesType, protovalidate::Ignore, FieldData, ProtoType, ValidatorKind,
+  ValidatorTemplate,
 };
 use crate::{
   rules::{
@@ -20,9 +20,9 @@ pub fn get_repeated_rules(
   field_span: Span2,
   field_data: &FieldData,
   field_rules: Option<&RulesType>,
-) -> Result<Option<ValidatorCallTemplate>, Error> {
-  let mut vec_level_rules: Vec<ValidatorCallTemplate> = Vec::new();
-  let mut items_rules: Vec<ValidatorCallTemplate> = Vec::new();
+) -> Result<Option<ValidatorTemplate>, Error> {
+  let mut vec_level_rules: Vec<ValidatorTemplate> = Vec::new();
+  let mut items_rules: Vec<ValidatorTemplate> = Vec::new();
 
   let mut item_is_message = false;
   if let Kind::Message(item_desc) = field_desc.kind() {
@@ -53,7 +53,7 @@ pub fn get_repeated_rules(
     if repeated_rules.min_items() > 0 {
       let rule_val = repeated_rules.min_items();
       min_items = Some(rule_val);
-      vec_level_rules.push(ValidatorCallTemplate {
+      vec_level_rules.push(ValidatorTemplate {
         field_data: field_data.clone(),
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { protocheck::validators::repeated::min_items },
@@ -65,7 +65,7 @@ pub fn get_repeated_rules(
     if repeated_rules.max_items() > 0 {
       let rule_val = repeated_rules.max_items();
       max_items = Some(rule_val);
-      vec_level_rules.push(ValidatorCallTemplate {
+      vec_level_rules.push(ValidatorTemplate {
         field_data: field_data.clone(),
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { protocheck::validators::repeated::max_items },
@@ -121,7 +121,7 @@ pub fn get_repeated_rules(
     items_field_data.is_repeated = false;
     items_field_data.is_repeated_item = true;
 
-    let items_message_rules = ValidatorCallTemplate {
+    let items_message_rules = ValidatorTemplate {
       field_data: items_field_data,
       kind: ValidatorKind::MessageField,
     };
@@ -132,7 +132,7 @@ pub fn get_repeated_rules(
   if vec_level_rules.is_empty() && items_rules.is_empty() {
     Ok(None)
   } else {
-    Ok(Some(ValidatorCallTemplate {
+    Ok(Some(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::RepeatedValidationLoop {
         vec_level_rules,

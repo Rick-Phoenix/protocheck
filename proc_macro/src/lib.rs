@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
-use protocheck_core::internals::validator_template::ValidatorCallTemplate;
+use protocheck_core::internals::validator_template::ValidatorTemplate;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
 
@@ -48,8 +48,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  let validators: Vec<ValidatorCallTemplate> = match extract_message_validators(&ast, &message_desc)
-  {
+  let validators: Vec<ValidatorTemplate> = match extract_message_validators(&ast, &message_desc) {
     Ok(validators_data) => validators_data,
     Err(e) => return e.to_compile_error().into(),
   };
@@ -137,7 +136,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     }
   };
 
-  let mut validators: HashMap<Ident, Vec<ValidatorCallTemplate>> = HashMap::new();
+  let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
 
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {

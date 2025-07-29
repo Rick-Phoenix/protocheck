@@ -11,6 +11,7 @@ pub trait ProtoValidator {
 
 pub mod cel;
 pub mod common;
+pub mod constants;
 pub mod enums;
 pub mod maps;
 pub mod oneofs;
