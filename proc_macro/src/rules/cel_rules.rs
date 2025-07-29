@@ -1,45 +1,32 @@
 use cel_interpreter::{Context, Program, Value as CelValue};
-use prost_reflect::{
-  DynamicMessage, FieldDescriptor, MessageDescriptor, SerializeOptions, Value as ProstValue,
-};
+use prost_reflect::{DynamicMessage, FieldDescriptor, SerializeOptions, Value as ProstValue};
+use protocheck_core::field_data::CelRuleTemplate;
 use serde_json::{Serializer, Value as JsonValue};
 use syn::Error;
 
 use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
 use crate::Span2;
 
-#[derive(Debug, Clone)]
-pub enum CelRuleKind<'a> {
-  Message(&'a MessageDescriptor),
-  Field(&'a FieldDescriptor),
-}
-
 pub fn get_cel_rules(
-  rule_kind: &CelRuleKind,
-  field_data: &FieldData,
+  rule_kind: &CelRuleTemplate,
   rules: &[Rule],
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
-  let mut is_for_message = false;
 
   let json_val: JsonValue = match rule_kind {
-    CelRuleKind::Message(message_desc) => {
-      is_for_message = true;
+    CelRuleTemplate::Message(message_desc) => {
       let dyn_message = DynamicMessage::new(message_desc.to_owned().clone());
       convert_prost_value_to_json_value(&ProstValue::Message(dyn_message))?
     }
-    CelRuleKind::Field(field_desc) => get_default_field_prost_value(field_data, field_desc)?,
+    CelRuleTemplate::Field(field_desc, field_data) => {
+      get_default_field_prost_value(field_data, field_desc)?
+    }
   };
 
-  let validation_type = match is_for_message {
-    true => "message",
-    false => "field",
-  };
+  let validation_type = rule_kind.get_validation_type();
+  let target_name = rule_kind.get_name();
 
-  let error_prefix = format!(
-    "Cel program error for {} {}:",
-    validation_type, field_data.proto_name
-  );
+  let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
 
   let serialized_json_val: JsonValue = serde_json::from_value(json_val).map_err(|e| {
     Error::new(
@@ -72,13 +59,12 @@ pub fn get_cel_rules(
             let rule_id = rule.id().to_string();
 
             validators.push(ValidatorTemplate {
-              field_data: field_data.clone(),
+              item_rust_name: rule_kind.get_name().to_string(),
               kind: ValidatorKind::CelRule {
                 expression,
-                message,
+                error_message: message,
                 rule_id,
-                is_for_message,
-                validation_type: validation_type.to_string(),
+                rule_template: rule_kind.clone(),
               },
             });
           } else {
@@ -115,7 +101,7 @@ fn get_default_field_prost_value(
   field_data: &FieldData,
   field_desc: &FieldDescriptor,
 ) -> Result<JsonValue, Error> {
-  let default_val = if field_data.is_repeated_item {
+  let default_val = if field_data.kind.is_repeated_item() {
     ProstValue::default_value(&field_desc.kind())
   } else {
     ProstValue::default_value_for_field(field_desc)

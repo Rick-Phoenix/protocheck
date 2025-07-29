@@ -1,3 +1,7 @@
+use proc_macro2::TokenStream;
+use prost_reflect::{FieldDescriptor, Kind, MessageDescriptor};
+use quote::{quote, ToTokens};
+
 use crate::{
   protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore},
   ProtoType,
@@ -10,16 +14,102 @@ pub struct FieldContext<'a> {
   pub subscript: Option<Subscript>,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
+pub enum FieldKind {
+  Map,
+  MapKey,
+  MapValue,
+  Repeated,
+  RepeatedItem,
+  Scalar,
+  Duration,
+  Timestamp,
+  Message,
+}
+
+impl FieldKind {
+  pub fn is_map(&self) -> bool {
+    matches!(self, FieldKind::Map)
+  }
+
+  pub fn is_map_key(&self) -> bool {
+    matches!(self, FieldKind::MapKey)
+  }
+
+  pub fn is_map_value(&self) -> bool {
+    matches!(self, FieldKind::MapValue)
+  }
+
+  pub fn is_repeated(&self) -> bool {
+    matches!(self, FieldKind::Repeated)
+  }
+
+  pub fn is_repeated_item(&self) -> bool {
+    matches!(self, FieldKind::RepeatedItem)
+  }
+
+  pub fn is_scalar(&self) -> bool {
+    matches!(self, FieldKind::Scalar)
+  }
+
+  pub fn is_timestamp(&self) -> bool {
+    matches!(self, FieldKind::Timestamp)
+  }
+
+  pub fn is_duration(&self) -> bool {
+    matches!(self, FieldKind::Duration)
+  }
+
+  pub fn is_message(&self) -> bool {
+    matches!(self, FieldKind::Message)
+  }
+}
+
+impl ToTokens for FieldKind {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    let field_kind_path = quote! { protocheck::field_data::FieldKind };
+
+    let variant_tokens = match self {
+      FieldKind::Map => quote! { Map },
+      FieldKind::MapKey => quote! { MapKey },
+      FieldKind::MapValue => quote! { MapValue },
+      FieldKind::Repeated => quote! { Repeated },
+      FieldKind::RepeatedItem => quote! { RepeatedItem },
+      FieldKind::Scalar => quote! { Scalar },
+      FieldKind::Duration => quote! { Duration },
+      FieldKind::Timestamp => quote! { Timestamp },
+      FieldKind::Message => quote! { Message },
+    };
+
+    tokens.extend(quote! { #field_kind_path::#variant_tokens });
+  }
+}
+
+impl From<&FieldDescriptor> for FieldKind {
+  fn from(field_desc: &FieldDescriptor) -> Self {
+    if field_desc.is_map() {
+      Self::Map
+    } else if field_desc.is_list() {
+      Self::Repeated
+    } else {
+      match field_desc.kind() {
+        Kind::Message(message_desc) => match message_desc.full_name() {
+          "google.protobuf.Duration" => Self::Duration,
+          "google.protobuf.Timestamp" => Self::Timestamp,
+          _ => Self::Message,
+        },
+        _ => Self::Scalar,
+      }
+    }
+  }
+}
+
+#[derive(Clone, Debug)]
 pub struct FieldData {
   pub rust_name: String,
   pub proto_name: String,
   pub tag: u32,
-  pub is_repeated: bool,
-  pub is_repeated_item: bool,
-  pub is_map: bool,
-  pub is_map_key: bool,
-  pub is_map_value: bool,
+  pub kind: FieldKind,
   pub is_required: bool,
   pub is_optional: bool,
   pub is_in_oneof: bool,
@@ -28,4 +118,30 @@ pub struct FieldData {
   pub proto_type: ProtoType,
   pub enum_full_name: Option<String>,
   pub ignore: Ignore,
+}
+
+#[derive(Debug, Clone)]
+pub enum CelRuleTemplate {
+  Message(MessageDescriptor),
+  Field(FieldDescriptor, FieldData),
+}
+
+impl CelRuleTemplate {
+  pub fn is_for_message(&self) -> bool {
+    matches!(self, CelRuleTemplate::Message(_))
+  }
+
+  pub fn get_validation_type(&self) -> &str {
+    match self {
+      CelRuleTemplate::Field(_, _) => "field",
+      CelRuleTemplate::Message(_) => "message",
+    }
+  }
+
+  pub fn get_name(&self) -> &str {
+    match self {
+      CelRuleTemplate::Field(_, field_data) => &field_data.proto_name,
+      CelRuleTemplate::Message(message_desc) => message_desc.name(),
+    }
+  }
 }

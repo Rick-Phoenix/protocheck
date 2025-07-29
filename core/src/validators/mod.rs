@@ -19,5 +19,7 @@ pub mod floats;
 pub mod maps;
 pub mod oneofs;
 pub mod repeated;
+
+#[allow(unused, dead_code)]
 pub mod static_data;
 pub mod strings;

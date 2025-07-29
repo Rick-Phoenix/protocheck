@@ -3,19 +3,18 @@ use std::{collections::HashMap, sync::LazyLock};
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
+use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
 use regex::Regex;
 use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
-  FieldData, MessageRules, OneofRules, ProtoType, ValidatorKind, ValidatorTemplate,
+  FieldData, MessageRules, OneofRules, ValidatorKind, ValidatorTemplate,
 };
 use crate::{
-  pool_loader::{
-    get_rule_extensions_descriptors, FIELD_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
-  },
+  pool_loader::{get_rule_extensions_descriptors, FIELD_RULES_EXT_DESCRIPTOR},
   rules::{
-    cel_rules::{get_cel_rules, CelRuleKind},
+    cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
@@ -103,22 +102,6 @@ pub fn extract_oneof_validators(
     fields_data.insert(data.proto_name.clone(), data);
   }
 
-  if let ProstValue::Message(oneof_rules_msg) = oneof_desc
-    .options()
-    .get_extension(&ONEOF_RULES_EXT_DESCRIPTOR)
-    .as_ref()
-  {
-    let oneof_rules =
-      OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).map_err(|e| {
-        Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
-      })?;
-    if oneof_rules.required() {
-      let mut field_data = FieldData::default();
-      field_data.rust_name = oneof_name.to_string();
-      field_data.proto_name = oneof_name.to_string();
-    }
-  }
-
   for field in oneof_desc.fields() {
     let OneofField {
       enum_ident,
@@ -161,11 +144,7 @@ pub fn extract_oneof_validators(
         tag: field.number(),
         proto_type: convert_kind_to_proto_type(&field_kind),
         is_required,
-        is_repeated: false,
-        is_repeated_item: false,
-        is_map: false,
-        is_map_key: false,
-        is_map_value: false,
+        kind: FieldKind::from(&field),
         is_in_oneof: true,
         key_type: None,
         value_type: None,
@@ -176,8 +155,7 @@ pub fn extract_oneof_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleKind::Field(&field),
-          &field_data,
+          &CelRuleTemplate::Field(field.clone(), field_data.clone()),
           &field_rules.cel,
         )?);
       }
@@ -188,8 +166,8 @@ pub fn extract_oneof_validators(
           .starts_with("google.protobuf")
         {
           let template = ValidatorTemplate {
-            field_data,
-            kind: ValidatorKind::MessageField,
+            item_rust_name: field.name().to_string(),
+            kind: ValidatorKind::MessageField { field_data },
           };
           field_validators.push(template);
           validators.insert(field_ident, field_validators);
@@ -299,14 +277,8 @@ pub fn extract_message_validators(
       })?;
 
     if !message_rules.cel.is_empty() {
-      let mut field_data = FieldData::default();
-      field_data.rust_name = message_desc.name().to_string();
-      field_data.proto_name = message_desc.name().to_string();
-      field_data.tag = 0;
-      field_data.proto_type = ProtoType::Message;
       validation_data.extend(get_cel_rules(
-        &CelRuleKind::Message(message_desc),
-        &field_data,
+        &CelRuleTemplate::Message(message_desc.clone()),
         &message_rules.cel,
       )?);
     }
@@ -323,13 +295,9 @@ pub fn extract_message_validators(
         OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice()).map_err(|e| {
           Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
         })?;
-      let name = oneof.name();
-      let mut field_data = FieldData::default();
-      field_data.rust_name = name.to_string();
-      field_data.proto_name = name.to_string();
 
       validation_data.push(ValidatorTemplate {
-        field_data,
+        item_rust_name: oneof.name().to_string(),
         kind: ValidatorKind::OneofField {
           is_required: oneof_rules.required(),
         },
@@ -378,11 +346,7 @@ pub fn extract_message_validators(
         tag: field_tag,
         proto_type: convert_kind_to_proto_type(&field_kind),
         is_required,
-        is_repeated,
-        is_repeated_item: false,
-        is_map,
-        is_map_key: false,
-        is_map_value: false,
+        kind: FieldKind::from(&field_desc),
         is_in_oneof: false,
         key_type: None,
         value_type: None,
@@ -394,8 +358,7 @@ pub fn extract_message_validators(
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
           validation_data.extend(get_cel_rules(
-            &CelRuleKind::Field(&field_desc),
-            &field_data,
+            &CelRuleTemplate::Field(field_desc.clone(), field_data.clone()),
             &field_rules.cel,
           )?);
         }
@@ -407,8 +370,8 @@ pub fn extract_message_validators(
           && !is_repeated
         {
           let template = ValidatorTemplate {
-            field_data,
-            kind: ValidatorKind::MessageField,
+            item_rust_name: field_desc.name().to_string(),
+            kind: ValidatorKind::MessageField { field_data },
           };
           validation_data.push(template);
           continue;

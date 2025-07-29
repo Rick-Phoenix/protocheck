@@ -39,7 +39,7 @@ pub fn min_pairs<K, V>(
         min_pairs,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.is_map_key),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
@@ -100,7 +100,7 @@ pub fn max_pairs<K, V>(
         max_pairs,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.is_map_key),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![

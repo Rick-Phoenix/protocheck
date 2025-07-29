@@ -1,17 +1,14 @@
 use crate::{
-  field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
   ProtoType,
 };
 
-pub fn required(field_context: FieldContext) -> Violation {
-  let elements = field_context.parent_elements.to_vec();
-  let violation = Violation {
+pub fn required(name: &str, parent_elements: &[FieldPathElement]) -> Violation {
+  let elements = parent_elements.to_vec();
+
+  Violation {
     rule_id: Some("oneof.required".to_string()),
-    message: Some(format!(
-      "at least one value for `{}` is required",
-      field_context.field_data.proto_name.clone(),
-    )),
+    message: Some(format!("at least one value for `{}` is required", name,)),
     for_key: None,
     field: Some(FieldPath { elements }),
     rule: Some(FieldPath {
@@ -24,6 +21,5 @@ pub fn required(field_context: FieldContext) -> Violation {
         value_type: None,
       }],
     }),
-  };
-  violation
+  }
 }

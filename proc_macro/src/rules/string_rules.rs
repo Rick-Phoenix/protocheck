@@ -18,8 +18,9 @@ pub fn get_string_rules(
   if let Some(len_value) = string_rules.len {
     len = Some(len_value);
     templates.push(ValidatorTemplate {
-      field_data: field_data.clone(),
+      item_rust_name: field_data.rust_name.clone(),
       kind: ValidatorKind::FieldRule {
+        field_data: field_data.clone(),
         validator_path: quote! { protocheck::validators::strings::len },
         target_value_tokens: len_value.into_token_stream(),
       },
@@ -30,8 +31,9 @@ pub fn get_string_rules(
     min_len = Some(min_len_value);
 
     templates.push(ValidatorTemplate {
-      field_data: field_data.clone(),
+      item_rust_name: field_data.rust_name.clone(),
       kind: ValidatorKind::FieldRule {
+        field_data: field_data.clone(),
         validator_path: quote! { protocheck::validators::strings::min_len },
         target_value_tokens: min_len_value.into_token_stream(),
       },
@@ -42,8 +44,9 @@ pub fn get_string_rules(
     max_len = Some(max_len_value);
 
     templates.push(ValidatorTemplate {
-      field_data: field_data.clone(),
+      item_rust_name: field_data.rust_name.clone(),
       kind: ValidatorKind::FieldRule {
+        field_data: field_data.clone(),
         validator_path: quote! { protocheck::validators::strings::max_len },
         target_value_tokens: max_len_value.into_token_stream(),
       },

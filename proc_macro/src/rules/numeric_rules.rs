@@ -25,8 +25,9 @@ pub fn get_int64_rules(
 
   if let Some(const_val) = rules.r#const {
     templates.push(ValidatorTemplate {
-      field_data: field_data.clone(),
+      item_rust_name: field_data.rust_name.clone(),
       kind: ValidatorKind::FieldRule {
+        field_data: field_data.clone(),
         validator_path: quote! { protocheck::validators::constants::constant },
         target_value_tokens: const_val.to_token_stream(),
       },
@@ -35,25 +36,26 @@ pub fn get_int64_rules(
   }
 
   if let Some(lt_rule) = rules.less_than {
-    let field_data = field_data.clone();
     match lt_rule {
       LessThan::Lt(val) => {
         lt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
-          field_data,
+          item_rust_name: field_data.rust_name.clone(),
           kind: ValidatorKind::FieldRule {
             validator_path: quote! { protocheck::validators::numeric::lt },
             target_value_tokens: val.to_token_stream(),
+            field_data: field_data.clone(),
           },
         });
       }
       LessThan::Lte(val) => {
         lt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
-          field_data,
+          item_rust_name: field_data.rust_name.clone(),
           kind: ValidatorKind::FieldRule {
             validator_path: quote! { protocheck::validators::numeric::lte },
             target_value_tokens: val.to_token_stream(),
+            field_data: field_data.clone(),
           },
         });
       }
@@ -61,25 +63,26 @@ pub fn get_int64_rules(
   }
 
   if let Some(gt_rule) = rules.greater_than {
-    let field_data = field_data.clone();
     match gt_rule {
       GreaterThan::Gt(val) => {
         gt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
-          field_data,
+          item_rust_name: field_data.rust_name.clone(),
           kind: ValidatorKind::FieldRule {
             validator_path: quote! { protocheck::validators::numeric::gt },
             target_value_tokens: val.to_token_stream(),
+            field_data: field_data.clone(),
           },
         });
       }
       GreaterThan::Gte(val) => {
         gt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
-          field_data,
+          item_rust_name: field_data.rust_name.clone(),
           kind: ValidatorKind::FieldRule {
             validator_path: quote! { protocheck::validators::numeric::gte },
             target_value_tokens: val.to_token_stream(),
+            field_data: field_data.clone(),
           },
         });
       }

@@ -13,3 +13,4 @@ proc-macro2 = { workspace = true }
 regex = { workspace = true }
 random-string = { workspace = true }
 proto_types = { path = "../proto_types/" }
+prost-reflect = { workspace = true }

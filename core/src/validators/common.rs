@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{protovalidate::FieldPathElement, ProtoType};
+use crate::{field_data::FieldKind, protovalidate::FieldPathElement, ProtoType};
 
 static MAP_KEY_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
@@ -65,18 +65,14 @@ static REPEATED_ITEM_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(
   ]
 });
 
-pub fn get_base_violations_path(
-  is_repeated_item: bool,
-  is_map_key: bool,
-  is_map_value: bool,
-) -> Vec<FieldPathElement> {
+pub fn get_base_violations_path(field_kind: &FieldKind) -> Vec<FieldPathElement> {
   let mut violations_path = vec![];
 
-  if is_repeated_item {
+  if field_kind.is_repeated_item() {
     violations_path.extend(REPEATED_ITEM_VIOLATION.clone());
-  } else if is_map_key {
+  } else if field_kind.is_map_key() {
     violations_path.extend(MAP_KEY_VIOLATION.clone());
-  } else if is_map_value {
+  } else if field_kind.is_map_value() {
     violations_path.extend(MAP_VALUE_VIOLATION.clone());
   }
 

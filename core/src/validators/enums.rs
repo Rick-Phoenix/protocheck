@@ -1,5 +1,5 @@
 use crate::{
-  field_data::{FieldContext, FieldData},
+  field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
   validators::common::get_base_violations_path,
   ProtoType,
@@ -16,24 +16,16 @@ where
 pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
-    field_type: Some(ProtoType::Enum.into()),
+    field_type: Some(ProtoType::Enum as i32),
     field_name: Some(field_context.field_data.proto_name.clone()),
     key_type: field_context.field_data.key_type.map(|t| t as i32),
     value_type: field_context.field_data.value_type.map(|t| t as i32),
     field_number: Some(field_context.field_data.tag as i32),
     subscript: field_context.subscript,
   };
-
   elements.push(current_elem);
 
-  let FieldData {
-    is_repeated_item,
-    is_map_key,
-    is_map_value,
-    ..
-  } = field_context.field_data;
-
-  let mut violations_path = get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
+  let mut violations_path = get_base_violations_path(&field_context.field_data.kind);
 
   violations_path.extend(vec![
     FieldPathElement {
@@ -61,10 +53,10 @@ pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
       field_context.field_data.proto_name.clone(),
       enum_name,
     )),
-    for_key: Some(field_context.field_data.is_map_key),
     field: Some(FieldPath { elements }),
     rule: Some(FieldPath {
       elements: violations_path,
     }),
+    for_key: None,
   }
 }

@@ -1,11 +1,12 @@
 use prost_reflect::{FieldDescriptor, Kind};
+use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, FieldData, Ignore, ValidatorKind, ValidatorTemplate};
 use crate::{
   rules::{
-    cel_rules::{get_cel_rules, CelRuleKind},
+    cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
   },
   Span2,
@@ -55,7 +56,6 @@ pub fn get_map_rules(
   let mut map_field_data = map_field_data.clone();
   map_field_data.key_type = Some(key_proto_type);
   map_field_data.value_type = Some(value_proto_type);
-  map_field_data.is_repeated = false;
 
   let mut value_is_message = false;
   if let Kind::Message(value_message_desc) = value_desc.kind() {
@@ -74,22 +74,24 @@ pub fn get_map_rules(
     if let Some(min_pairs_value) = map_rules.min_pairs {
       min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorTemplate {
+        item_rust_name: map_field_data.rust_name.clone(),
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::min_pairs },
           target_value_tokens: min_pairs_value.into_token_stream(),
+          field_data: map_field_data.clone(),
         },
-        field_data: map_field_data.clone(),
       });
     }
 
     if let Some(max_pairs_value) = map_rules.max_pairs {
       max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorTemplate {
+        item_rust_name: map_field_data.rust_name.clone(),
         kind: ValidatorKind::FieldRule {
           validator_path: quote! { macro_impl::validators::maps::max_pairs },
           target_value_tokens: max_pairs_value.into_token_stream(),
+          field_data: map_field_data.clone(),
         },
-        field_data: map_field_data.clone(),
       });
     }
 
@@ -107,9 +109,8 @@ pub fn get_map_rules(
           let is_required = key_rules_descriptor.required();
 
           let mut key_field_data = map_field_data.clone();
+          key_field_data.kind = FieldKind::MapKey;
           key_field_data.is_required = is_required;
-          key_field_data.is_map = false;
-          key_field_data.is_map_key = true;
           key_field_data.ignore = ignore;
 
           let generated_key_templates = get_field_rules(
@@ -123,8 +124,7 @@ pub fn get_map_rules(
 
           if !key_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(
-              &CelRuleKind::Field(&key_desc),
-              &key_field_data,
+              &CelRuleTemplate::Field(key_desc, key_field_data),
               &key_rules_descriptor.cel,
             )?;
             key_rules.extend(cel_rules);
@@ -140,19 +140,9 @@ pub fn get_map_rules(
           let is_required = value_rules_descriptor.required();
 
           let mut value_field_data = map_field_data.clone();
+          value_field_data.kind = FieldKind::MapValue;
           value_field_data.is_required = is_required;
-          value_field_data.is_map = false;
-          value_field_data.is_map_value = true;
           value_field_data.ignore = ignore;
-
-          if !value_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(
-              &CelRuleKind::Field(&value_desc),
-              &value_field_data,
-              &value_rules_descriptor.cel,
-            )?;
-            value_rules.extend(cel_rules);
-          }
 
           if !value_is_message {
             let generated_value_templates = get_field_rules(
@@ -164,18 +154,25 @@ pub fn get_map_rules(
             )?;
             value_rules.extend(generated_value_templates);
           }
+
+          if !value_rules_descriptor.cel.is_empty() {
+            let cel_rules = get_cel_rules(
+              &CelRuleTemplate::Field(value_desc, value_field_data),
+              &value_rules_descriptor.cel,
+            )?;
+            value_rules.extend(cel_rules);
+          }
         }
       }
     }
   }
 
   if value_is_message {
-    let mut value_field_data = map_field_data.clone();
-    value_field_data.is_map = false;
-    value_field_data.is_map_value = true;
     let value_message_rules = ValidatorTemplate {
-      field_data: value_field_data,
-      kind: ValidatorKind::MessageField,
+      item_rust_name: map_field_data.rust_name.clone(),
+      kind: ValidatorKind::MessageField {
+        field_data: map_field_data.clone(),
+      },
     };
 
     value_rules.push(value_message_rules);
@@ -185,8 +182,9 @@ pub fn get_map_rules(
     Ok(None)
   } else {
     Ok(Some(ValidatorTemplate {
-      field_data: map_field_data.to_owned(),
+      item_rust_name: map_field_data.rust_name.clone(),
       kind: ValidatorKind::MapValidationLoop {
+        field_data: map_field_data,
         map_level_rules,
         key_rules,
         value_rules,

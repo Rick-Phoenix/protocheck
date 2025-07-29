@@ -1,5 +1,5 @@
 use crate::{
-  field_data::{FieldContext, FieldData},
+  field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
   validators::common::get_base_violations_path,
   ProtoType,
@@ -18,7 +18,7 @@ pub fn f32_is_finite(
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(ProtoType::String.into()),
+      field_type: Some(ProtoType::Float as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
@@ -28,15 +28,7 @@ pub fn f32_is_finite(
 
     elements.push(current_elem);
 
-    let FieldData {
-      is_repeated_item,
-      is_map_key,
-      is_map_value,
-      ..
-    } = field_context.field_data;
-
-    let mut violation_elements =
-      get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
+    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
 
     violation_elements.extend(vec![
       FieldPathElement {
@@ -63,7 +55,7 @@ pub fn f32_is_finite(
         "{} must be a finite number",
         field_context.field_data.proto_name.clone(),
       )),
-      for_key: Some(field_context.field_data.is_map_key),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -87,7 +79,7 @@ pub fn f64_is_finite(
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(ProtoType::String.into()),
+      field_type: Some(ProtoType::Double as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
@@ -97,15 +89,7 @@ pub fn f64_is_finite(
 
     elements.push(current_elem);
 
-    let FieldData {
-      is_repeated_item,
-      is_map_key,
-      is_map_value,
-      ..
-    } = field_context.field_data;
-
-    let mut violation_elements =
-      get_base_violations_path(is_repeated_item, is_map_key, is_map_value);
+    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
 
     violation_elements.extend(vec![
       FieldPathElement {
@@ -132,7 +116,7 @@ pub fn f64_is_finite(
         "{} must be a finite number",
         field_context.field_data.proto_name.clone(),
       )),
-      for_key: Some(field_context.field_data.is_map_key),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,

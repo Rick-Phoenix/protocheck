@@ -25,12 +25,13 @@ pub fn min_items<T>(
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_data.proto_type as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      key_type: None,
+      value_type: None,
+      subscript: None,
     };
     elements.push(current_elem);
+
     let violation = Violation {
       rule_id: Some("repeated.min_items".to_string()),
       message: Some(format!(
@@ -39,8 +40,8 @@ pub fn min_items<T>(
         min_items,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.is_map_key),
       field: Some(FieldPath { elements }),
+      for_key: None,
       rule: Some(FieldPath {
         elements: vec![
           FieldPathElement {
@@ -86,10 +87,10 @@ pub fn max_items<T>(
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_data.proto_type as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      key_type: None,
+      value_type: None,
+      subscript: None,
     };
     elements.push(current_elem);
     let violation = Violation {
@@ -100,7 +101,7 @@ pub fn max_items<T>(
         max_items,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.is_map_key),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: vec![
@@ -143,10 +144,10 @@ where
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_data.proto_type as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
       subscript: field_context.subscript,
+      key_type: None,
+      value_type: None,
     };
     elements.push(current_elem);
     let violation = Violation {

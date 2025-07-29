@@ -21,8 +21,9 @@ pub fn get_enum_rules(
 
   if enum_rules.defined_only() {
     templates.push(ValidatorTemplate {
-      field_data: field_data.clone(),
+      item_rust_name: field_data.rust_name.clone(),
       kind: ValidatorKind::EnumDefinedOnly {
+        field_data: field_data.clone(),
         enum_type_ident: field_type_ident.clone(),
         enum_name: enum_name.to_string(),
       },

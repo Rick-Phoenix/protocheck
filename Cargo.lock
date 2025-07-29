@@ -490,6 +490,7 @@ dependencies = [
  "cel-interpreter",
  "proc-macro2",
  "prost",
+ "prost-reflect",
  "proto_types",
  "quote",
  "random-string",
