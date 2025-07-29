@@ -15,6 +15,7 @@ pub mod comparables;
 pub mod constants;
 pub mod containing;
 pub mod enums;
+pub mod floats;
 pub mod maps;
 pub mod oneofs;
 pub mod repeated;
