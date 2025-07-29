@@ -1,3 +1,4 @@
+use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
 use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
 use quote::{quote, ToTokens};
@@ -13,6 +14,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
+  static_defs: &mut Vec<TokenStream>,
   field_rust_enum: Option<String>,
   map_field_span: Span2,
   map_field_desc: &FieldDescriptor,
@@ -126,6 +128,7 @@ pub fn get_map_rules(
             let cel_rules = get_cel_rules(
               &CelRuleTemplate::Field(key_desc, key_field_data),
               &key_rules_descriptor.cel,
+              static_defs,
             )?;
             key_rules.extend(cel_rules);
           }
@@ -159,6 +162,7 @@ pub fn get_map_rules(
             let cel_rules = get_cel_rules(
               &CelRuleTemplate::Field(value_desc, value_field_data),
               &value_rules_descriptor.cel,
+              static_defs,
             )?;
             value_rules.extend(cel_rules);
           }

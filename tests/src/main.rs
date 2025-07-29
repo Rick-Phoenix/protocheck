@@ -26,10 +26,7 @@ fn main() {
         name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
       },
     ],
-    oneof_fields: Some(OneofFields::Post(Post {
-      tags: vec!["me".to_string()],
-      name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
-    })),
+    oneof_fields: Some(OneofFields::Field1("abab".to_string())),
     // oneof_fields: None,
   };
 

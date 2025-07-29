@@ -1,15 +1,19 @@
 use cel_interpreter::{Context, Program, Value as CelValue};
+use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, SerializeOptions, Value as ProstValue};
 use protocheck_core::field_data::CelRuleTemplate;
+use quote::quote;
+use random_string::charsets::ALPHA_LOWER;
 use serde_json::{Serializer, Value as JsonValue};
 use syn::Error;
 
 use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
-use crate::Span2;
+use crate::{Ident2, Span2};
 
 pub fn get_cel_rules(
   rule_kind: &CelRuleTemplate,
   rules: &[Rule],
+  static_defs: &mut Vec<TokenStream>,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
 
@@ -58,13 +62,37 @@ pub fn get_cel_rules(
             let message = rule.message().to_string();
             let rule_id = rule.id().to_string();
 
+            let random_string = random_string::generate(5, ALPHA_LOWER);
+            let static_program_ident = Ident2::new(
+              &format!(
+                "__CEL_{}_{}_PROGRAM_{}",
+                validation_type.to_uppercase(),
+                rule_kind.get_name(),
+                random_string
+              ),
+              Span2::call_site(),
+            );
+
+            let compilation_error = format!(
+              "Cel program failed to compile for {} {}",
+              validation_type,
+              rule_kind.get_name()
+            );
+
+            static_defs.push(quote! {
+              #[allow(non_upper_case_globals)]
+              static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
+                cel_interpreter::Program::compile(#expression).expect(#compilation_error)
+              });
+            });
+
             validators.push(ValidatorTemplate {
               item_rust_name: rule_kind.get_name().to_string(),
               kind: ValidatorKind::CelRule {
-                expression,
                 error_message: message,
                 rule_id,
                 rule_template: rule_kind.clone(),
+                static_program_ident,
               },
             });
           } else {

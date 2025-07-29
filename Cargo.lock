@@ -512,6 +512,7 @@ dependencies = [
  "proto_types",
  "protocheck_core",
  "quote",
+ "random-string",
  "regex",
  "serde",
  "serde_json",

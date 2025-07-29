@@ -1,3 +1,4 @@
+use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
 use protocheck_core::field_data::{CelRuleTemplate, FieldKind};
 use quote::{quote, ToTokens};
@@ -13,6 +14,7 @@ use crate::{
 };
 
 pub fn get_repeated_rules(
+  static_defs: &mut Vec<TokenStream>,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_span: Span2,
@@ -106,6 +108,7 @@ pub fn get_repeated_rules(
             let cel_rules = get_cel_rules(
               &CelRuleTemplate::Field(field_desc.clone(), items_field_data),
               &items_rules_descriptor.cel,
+              static_defs,
             )?;
             items_rules.extend(cel_rules);
           }

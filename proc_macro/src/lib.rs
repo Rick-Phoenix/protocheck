@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-pub(crate) use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
+pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
 use protocheck_core::internals::validator_template::ValidatorTemplate;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
@@ -48,15 +48,18 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  let validators: Vec<ValidatorTemplate> = match extract_message_validators(&ast, &message_desc) {
-    Ok(validators_data) => validators_data,
-    Err(e) => return e.to_compile_error().into(),
-  };
+  let (validators, static_defs): (Vec<ValidatorTemplate>, Vec<TokenStream2>) =
+    match extract_message_validators(&ast, &message_desc) {
+      Ok((validators_data, static_defs)) => (validators_data, static_defs),
+      Err(e) => return e.to_compile_error().into(),
+    };
 
   let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
   let struct_ident = &ast.ident;
 
   let output = quote! {
+    #(#static_defs)*
+
     #original_input_as_proc_macro2
 
     impl protocheck::validators::ProtoValidator for #struct_ident {
@@ -137,11 +140,15 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   };
 
   let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
+  let mut static_defs: Vec<TokenStream2> = Vec::new();
 
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
       match extract_oneof_validators(&ast, &oneof) {
-        Ok(validators_data) => validators = validators_data,
+        Ok((validators_data, static_definitions)) => {
+          validators = validators_data;
+          static_defs = static_definitions;
+        }
         Err(e) => return e.to_compile_error().into(),
       };
       break;
@@ -162,6 +169,8 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   let oneof_rust_ident = &ast.ident;
 
   let output = quote! {
+    #(#static_defs)*
+
     #original_input_as_proc_macro2
 
     impl protocheck::validators::ProtoValidator for #oneof_rust_ident {

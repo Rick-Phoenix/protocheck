@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::LazyLock};
 
+use proc_macro2::TokenStream;
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
@@ -37,9 +38,10 @@ struct OneofField {
 pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
-) -> Result<HashMap<Ident, Vec<ValidatorTemplate>>, Error> {
+) -> Result<(HashMap<Ident, Vec<ValidatorTemplate>>, Vec<TokenStream>), Error> {
   let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
+  let mut static_defs: Vec<TokenStream> = Vec::new();
 
   let oneof_name = &oneof_desc.name();
 
@@ -157,6 +159,7 @@ pub fn extract_oneof_validators(
         field_validators.extend(get_cel_rules(
           &CelRuleTemplate::Field(field.clone(), field_data.clone()),
           &field_rules.cel,
+          &mut static_defs,
         )?);
       }
 
@@ -184,14 +187,15 @@ pub fn extract_oneof_validators(
     }
   }
 
-  Ok(validators)
+  Ok((validators, static_defs))
 }
 
 pub fn extract_message_validators(
   input_tokens: &DeriveInput,
   message_desc: &MessageDescriptor,
-) -> Result<Vec<ValidatorTemplate>, Error> {
+) -> Result<(Vec<ValidatorTemplate>, Vec<TokenStream>), Error> {
   let mut validation_data: Vec<ValidatorTemplate> = Vec::new();
+  let mut static_defs: Vec<TokenStream> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
   let mut rust_enum_paths: HashMap<String, String> = HashMap::new();
@@ -280,6 +284,7 @@ pub fn extract_message_validators(
       validation_data.extend(get_cel_rules(
         &CelRuleTemplate::Message(message_desc.clone()),
         &message_rules.cel,
+        &mut static_defs,
       )?);
     }
   }
@@ -360,6 +365,7 @@ pub fn extract_message_validators(
           validation_data.extend(get_cel_rules(
             &CelRuleTemplate::Field(field_desc.clone(), field_data.clone()),
             &field_rules.cel,
+            &mut static_defs,
           )?);
         }
 
@@ -382,6 +388,7 @@ pub fn extract_message_validators(
 
       if is_repeated {
         let repeated_rules = get_repeated_rules(
+          &mut static_defs,
           field_rust_enum,
           &field_desc,
           field_span,
@@ -394,6 +401,7 @@ pub fn extract_message_validators(
         }
       } else if is_map {
         let map_rules = get_map_rules(
+          &mut static_defs,
           field_rust_enum,
           field_span,
           &field_desc,
@@ -418,5 +426,5 @@ pub fn extract_message_validators(
     }
   }
 
-  Ok(validation_data)
+  Ok((validation_data, static_defs))
 }

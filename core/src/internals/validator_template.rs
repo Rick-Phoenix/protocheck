@@ -1,5 +1,4 @@
 use quote::{quote, ToTokens};
-use random_string::charsets::ALPHA_LOWER;
 
 use crate::{
   field_data::{CelRuleTemplate, FieldData, FieldKind},
@@ -33,10 +32,10 @@ pub enum ValidatorKind {
     is_required: bool,
   },
   CelRule {
-    expression: String,
     rule_id: String,
     error_message: String,
     rule_template: CelRuleTemplate,
+    static_program_ident: Ident2,
   },
   EnumDefinedOnly {
     enum_type_ident: String,
@@ -314,10 +313,10 @@ impl ToTokens for ValidatorTemplate {
         });
       }
       ValidatorKind::CelRule {
-        expression,
         rule_id,
         error_message,
         rule_template,
+        static_program_ident,
       } => {
         let (context_target, rule_target_tokens) = match rule_template {
           CelRuleTemplate::Message(message_desc) => {
@@ -351,33 +350,12 @@ impl ToTokens for ValidatorTemplate {
 
         let validation_type = rule_template.get_validation_type();
 
-        let random_string = random_string::generate(5, ALPHA_LOWER);
-        let static_program_ident = Ident2::new(
-          &format!(
-            "__CEL_{}_{}_PROGRAM_{}",
-            validation_type.to_uppercase(),
-            item_rust_name,
-            random_string
-          ),
-          Span2::call_site(),
-        );
-
-        let compilation_error = format!(
-          "Cel program failed to compile for {} {}",
-          validation_type, item_rust_name
-        );
-
         let context_error = format!(
           "Failed to add context to the Cel program for {} {}",
           validation_type, item_rust_name
         );
 
         tokens.extend(quote! {
-          #[allow(non_upper_case_globals)]
-          static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-            cel_interpreter::Program::compile(#expression).expect(#compilation_error)
-          });
-
           let mut cel_context = cel_interpreter::Context::default();
           cel_context.add_variable("this", #context_target).expect(#context_error);
 
