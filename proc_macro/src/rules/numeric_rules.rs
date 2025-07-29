@@ -27,7 +27,7 @@ pub fn get_int64_rules(
     templates.push(ValidatorTemplate {
       field_data: field_data.clone(),
       kind: ValidatorKind::FieldRule {
-        validator_path: quote! { protocheck::validators::numeric::const },
+        validator_path: quote! { protocheck::validators::constants::constant },
         target_value_tokens: const_val.to_token_stream(),
       },
     });
