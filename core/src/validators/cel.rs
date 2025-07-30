@@ -39,10 +39,6 @@ impl CelRuleData<'_> {
       CelRuleTarget::Message { name, .. } => name,
     }
   }
-
-  pub fn is_for_message(&self) -> bool {
-    matches!(&self.rule_target, CelRuleTarget::Message { .. })
-  }
 }
 
 pub fn validate_cel<T>(

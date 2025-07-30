@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
-use protocheck_core::field_data::{CelRuleTemplateTarget, FieldKind};
+use protocheck_core::field_data::FieldKind;
 use regex::Regex;
 use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
@@ -13,13 +13,17 @@ use super::{
   FieldData, MessageRules, OneofRules, ValidatorKind, ValidatorTemplate,
 };
 use crate::{
-  pool_loader::{get_rule_extensions_descriptors, FIELD_RULES_EXT_DESCRIPTOR},
+  cel_rule_template::CelRuleTemplateTarget,
+  pool_loader::{
+    FIELD_RULES_EXT_DESCRIPTOR, MESSAGE_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
+  },
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
   },
+  validator_template::FieldValidator,
   Span2,
 };
 
@@ -170,7 +174,10 @@ pub fn extract_oneof_validators(
         {
           let template = ValidatorTemplate {
             item_rust_name: field.name().to_string(),
-            kind: ValidatorKind::MessageField { field_data },
+            kind: ValidatorKind::Field {
+              field_data,
+              field_validator: FieldValidator::MessageField,
+            },
           };
           field_validators.push(template);
           validators.insert(field_ident, field_validators);
@@ -264,11 +271,8 @@ pub fn extract_message_validators(
     }
   }
 
-  let (field_ext_descriptor, message_ext_descriptor, oneof_ext_descriptor) =
-    get_rule_extensions_descriptors(input_tokens)?;
-
   let message_options = message_desc.options();
-  let message_rules_descriptor = message_options.get_extension(&message_ext_descriptor);
+  let message_rules_descriptor = message_options.get_extension(&MESSAGE_RULES_EXT_DESCRIPTOR);
 
   // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
@@ -297,7 +301,7 @@ pub fn extract_message_validators(
 
     if let ProstValue::Message(oneof_rules_msg) = oneof
       .options()
-      .get_extension(&oneof_ext_descriptor)
+      .get_extension(&ONEOF_RULES_EXT_DESCRIPTOR)
       .as_ref()
     {
       let oneof_rules =
@@ -307,7 +311,7 @@ pub fn extract_message_validators(
 
       validation_data.push(ValidatorTemplate {
         item_rust_name: oneof.name().to_string(),
-        kind: ValidatorKind::OneofField {
+        kind: ValidatorKind::Oneof {
           is_required: oneof_rules.required(),
         },
       });
@@ -337,7 +341,7 @@ pub fn extract_message_validators(
     let field_tag = field_desc.number();
 
     let field_options = field_desc.options();
-    let field_rules_descriptor = field_options.get_extension(&field_ext_descriptor);
+    let field_rules_descriptor = field_options.get_extension(&FIELD_RULES_EXT_DESCRIPTOR);
 
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules =
@@ -384,7 +388,10 @@ pub fn extract_message_validators(
         {
           let template = ValidatorTemplate {
             item_rust_name: field_desc.name().to_string(),
-            kind: ValidatorKind::MessageField { field_data },
+            kind: ValidatorKind::Field {
+              field_data,
+              field_validator: FieldValidator::MessageField,
+            },
           };
           validation_data.push(template);
           continue;

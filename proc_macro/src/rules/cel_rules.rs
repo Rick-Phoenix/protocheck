@@ -4,22 +4,24 @@ use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValu
 use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
-use protocheck_core::field_data::CelRuleTemplateTarget;
 use quote::quote;
 use random_string::charsets::ALPHA_LOWER;
 use syn::Error;
 
-use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
+use super::{
+  CelRuleTemplateTarget, FieldData, FieldValidator, MessageValidator, Rule, ValidatorKind,
+  ValidatorTemplate,
+};
 use crate::{Ident2, Span2};
 
 pub fn get_cel_rules(
-  rule_kind: &CelRuleTemplateTarget,
+  rule_target: &CelRuleTemplateTarget,
   rules: &[Rule],
   static_defs: &mut Vec<TokenStream>,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
 
-  let cel_value: CelValue = match rule_kind {
+  let cel_value: CelValue = match rule_target {
     CelRuleTemplateTarget::Message(message_desc) => {
       let dyn_message = DynamicMessage::new(message_desc.clone());
       convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
@@ -29,8 +31,8 @@ pub fn get_cel_rules(
     }
   };
 
-  let validation_type = rule_kind.get_validation_type();
-  let target_name = rule_kind.get_name();
+  let validation_type = rule_target.get_validation_type();
+  let target_name = rule_target.get_name();
 
   let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
 
@@ -53,7 +55,7 @@ pub fn get_cel_rules(
       Ok(result) => {
         if let CelValue::Bool(_) = result {
           let expression = rule.expression().to_string();
-          let message = rule.message().to_string();
+          let error_message = rule.message().to_string();
           let rule_id = rule.id().to_string();
 
           let random_string = random_string::generate(5, ALPHA_LOWER);
@@ -61,7 +63,7 @@ pub fn get_cel_rules(
             &format!(
               "__CEL_{}_{}_PROGRAM_{}",
               validation_type.to_uppercase(),
-              rule_kind.get_name(),
+              rule_target.get_name(),
               random_string
             ),
             Span2::call_site(),
@@ -70,25 +72,43 @@ pub fn get_cel_rules(
           let compilation_error = format!(
             "Cel program failed to compile for {} {}",
             validation_type,
-            rule_kind.get_name()
+            rule_target.get_name()
           );
 
           static_defs.push(quote! {
-              #[allow(non_upper_case_globals)]
-              static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-                cel_interpreter::Program::compile(#expression).expect(#compilation_error)
-              });
+            #[allow(non_upper_case_globals)]
+            static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
+              cel_interpreter::Program::compile(#expression).expect(#compilation_error)
             });
-
-          validators.push(ValidatorTemplate {
-            item_rust_name: rule_kind.get_name().to_string(),
-            kind: ValidatorKind::CelRule {
-              error_message: message,
-              rule_id,
-              rule_target: rule_kind.clone(),
-              static_program_ident,
-            },
           });
+
+          match rule_target {
+            CelRuleTemplateTarget::Field(_, field_data) => {
+              validators.push(ValidatorTemplate {
+                item_rust_name: rule_target.get_name().to_string(),
+                kind: ValidatorKind::Field {
+                  field_data: field_data.clone(),
+                  field_validator: FieldValidator::Cel {
+                    rule_id,
+                    error_message,
+                    static_program_ident,
+                  },
+                },
+              });
+            }
+            CelRuleTemplateTarget::Message(_) => {
+              validators.push(ValidatorTemplate {
+                item_rust_name: rule_target.get_name().to_string(),
+                kind: ValidatorKind::Message {
+                  message_validator: MessageValidator::Cel {
+                    rule_id,
+                    error_message,
+                    static_program_ident,
+                  },
+                },
+              });
+            }
+          };
         } else {
           return Err(Error::new(
             Span2::call_site(),

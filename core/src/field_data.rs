@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use prost_reflect::{FieldDescriptor, Kind, MessageDescriptor};
+use prost_reflect::{FieldDescriptor, Kind};
 use quote::{quote, ToTokens};
 
 use crate::{
@@ -118,39 +118,4 @@ pub struct FieldData {
   pub proto_type: ProtoType,
   pub enum_full_name: Option<String>,
   pub ignore: Ignore,
-}
-
-#[derive(Debug, Clone)]
-pub enum CelRuleTemplateTarget {
-  Message(MessageDescriptor),
-  Field(FieldDescriptor, FieldData),
-}
-
-impl CelRuleTemplateTarget {
-  pub fn is_for_message(&self) -> bool {
-    matches!(self, CelRuleTemplateTarget::Message(_))
-  }
-
-  pub fn get_validation_type(&self) -> &str {
-    match self {
-      CelRuleTemplateTarget::Field(_, _) => "field",
-      CelRuleTemplateTarget::Message(_) => "message",
-    }
-  }
-
-  pub fn get_name(&self) -> &str {
-    match self {
-      CelRuleTemplateTarget::Field(_, field_data) => &field_data.proto_name,
-      CelRuleTemplateTarget::Message(message_desc) => message_desc.name(),
-    }
-  }
-
-  pub fn is_option(&self) -> bool {
-    match self {
-      CelRuleTemplateTarget::Message(_) => false,
-      CelRuleTemplateTarget::Field(_, field_data) => {
-        field_data.is_optional && !field_data.is_in_oneof
-      }
-    }
-  }
 }

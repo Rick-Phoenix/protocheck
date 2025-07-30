@@ -1,15 +1,17 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::{CelRuleTemplateTarget, FieldKind};
+use protocheck_core::field_data::FieldKind;
 use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, FieldData, Ignore, ValidatorKind, ValidatorTemplate};
 use crate::{
+  cel_rule_template::CelRuleTemplateTarget,
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
   },
+  validator_template::FieldValidator,
   Span2,
 };
 
@@ -77,10 +79,12 @@ pub fn get_map_rules(
       min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorTemplate {
         item_rust_name: map_field_data.rust_name.clone(),
-        kind: ValidatorKind::FieldRule {
-          validator_path: quote! { macro_impl::validators::maps::min_pairs },
-          target_value_tokens: min_pairs_value.into_token_stream(),
+        kind: ValidatorKind::Field {
           field_data: map_field_data.clone(),
+          field_validator: FieldValidator::Scalar {
+            validator_path: quote! { macro_impl::validators::maps::min_pairs },
+            target_value_tokens: min_pairs_value.into_token_stream(),
+          },
         },
       });
     }
@@ -89,10 +93,12 @@ pub fn get_map_rules(
       max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorTemplate {
         item_rust_name: map_field_data.rust_name.clone(),
-        kind: ValidatorKind::FieldRule {
-          validator_path: quote! { macro_impl::validators::maps::max_pairs },
-          target_value_tokens: max_pairs_value.into_token_stream(),
+        kind: ValidatorKind::Field {
           field_data: map_field_data.clone(),
+          field_validator: FieldValidator::Scalar {
+            validator_path: quote! { macro_impl::validators::maps::max_pairs },
+            target_value_tokens: max_pairs_value.into_token_stream(),
+          },
         },
       });
     }
@@ -174,8 +180,9 @@ pub fn get_map_rules(
   if value_is_message {
     let value_message_rules = ValidatorTemplate {
       item_rust_name: map_field_data.rust_name.clone(),
-      kind: ValidatorKind::MessageField {
+      kind: ValidatorKind::Field {
         field_data: map_field_data.clone(),
+        field_validator: FieldValidator::MessageField,
       },
     };
 
@@ -187,11 +194,13 @@ pub fn get_map_rules(
   } else {
     Ok(Some(ValidatorTemplate {
       item_rust_name: map_field_data.rust_name.clone(),
-      kind: ValidatorKind::MapValidationLoop {
+      kind: ValidatorKind::Field {
         field_data: map_field_data,
-        map_level_rules,
-        key_rules,
-        value_rules,
+        field_validator: FieldValidator::Map {
+          map_level_rules,
+          key_rules,
+          value_rules,
+        },
       },
     }))
   }

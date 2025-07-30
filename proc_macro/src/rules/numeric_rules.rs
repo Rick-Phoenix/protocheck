@@ -3,7 +3,7 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::Int64Rules, FieldData, ValidatorKind, ValidatorTemplate};
-use crate::Span2;
+use crate::{validator_template::FieldValidator, Span2};
 
 #[derive(Debug)]
 struct GtLt {
@@ -26,10 +26,12 @@ pub fn get_int64_rules(
   if let Some(const_val) = rules.r#const {
     templates.push(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::FieldRule {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        validator_path: quote! { protocheck::validators::constants::constant },
-        target_value_tokens: const_val.to_token_stream(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::constants::constant },
+          target_value_tokens: const_val.to_token_stream(),
+        },
       },
     });
     return Ok(templates);
@@ -41,10 +43,12 @@ pub fn get_int64_rules(
         lt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: field_data.rust_name.clone(),
-          kind: ValidatorKind::FieldRule {
-            validator_path: quote! { protocheck::validators::numeric::lt },
-            target_value_tokens: val.to_token_stream(),
+          kind: ValidatorKind::Field {
             field_data: field_data.clone(),
+            field_validator: FieldValidator::Scalar {
+              validator_path: quote! { protocheck::validators::numeric::lt },
+              target_value_tokens: val.to_token_stream(),
+            },
           },
         });
       }
@@ -52,10 +56,12 @@ pub fn get_int64_rules(
         lt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: field_data.rust_name.clone(),
-          kind: ValidatorKind::FieldRule {
-            validator_path: quote! { protocheck::validators::numeric::lte },
-            target_value_tokens: val.to_token_stream(),
+          kind: ValidatorKind::Field {
             field_data: field_data.clone(),
+            field_validator: FieldValidator::Scalar {
+              validator_path: quote! { protocheck::validators::numeric::lte },
+              target_value_tokens: val.to_token_stream(),
+            },
           },
         });
       }
@@ -68,10 +74,12 @@ pub fn get_int64_rules(
         gt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: field_data.rust_name.clone(),
-          kind: ValidatorKind::FieldRule {
-            validator_path: quote! { protocheck::validators::numeric::gt },
-            target_value_tokens: val.to_token_stream(),
+          kind: ValidatorKind::Field {
             field_data: field_data.clone(),
+            field_validator: FieldValidator::Scalar {
+              validator_path: quote! { protocheck::validators::numeric::gt },
+              target_value_tokens: val.to_token_stream(),
+            },
           },
         });
       }
@@ -79,10 +87,12 @@ pub fn get_int64_rules(
         gt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: field_data.rust_name.clone(),
-          kind: ValidatorKind::FieldRule {
-            validator_path: quote! { protocheck::validators::numeric::gte },
-            target_value_tokens: val.to_token_stream(),
+          kind: ValidatorKind::Field {
             field_data: field_data.clone(),
+            field_validator: FieldValidator::Scalar {
+              validator_path: quote! { protocheck::validators::numeric::gte },
+              target_value_tokens: val.to_token_stream(),
+            },
           },
         });
       }

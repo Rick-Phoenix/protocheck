@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::{CelRuleTemplateTarget, FieldKind};
+use protocheck_core::field_data::FieldKind;
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -9,7 +9,9 @@ use super::{
   ValidatorTemplate,
 };
 use crate::{
+  cel_rule_template::CelRuleTemplateTarget,
   rules::{cel_rules::get_cel_rules, core::get_field_rules},
+  validator_template::FieldValidator,
   Span2,
 };
 
@@ -55,10 +57,12 @@ pub fn get_repeated_rules(
       min_items = Some(rule_val);
       vec_level_rules.push(ValidatorTemplate {
         item_rust_name: field_data.rust_name.clone(),
-        kind: ValidatorKind::FieldRule {
+        kind: ValidatorKind::Field {
           field_data: field_data.clone(),
-          validator_path: quote! { protocheck::validators::repeated::min_items },
-          target_value_tokens: rule_val.to_token_stream(),
+          field_validator: FieldValidator::Scalar {
+            validator_path: quote! { protocheck::validators::repeated::min_items },
+            target_value_tokens: rule_val.to_token_stream(),
+          },
         },
       });
     }
@@ -68,10 +72,12 @@ pub fn get_repeated_rules(
       max_items = Some(rule_val);
       vec_level_rules.push(ValidatorTemplate {
         item_rust_name: field_data.rust_name.clone(),
-        kind: ValidatorKind::FieldRule {
+        kind: ValidatorKind::Field {
           field_data: field_data.clone(),
-          validator_path: quote! { protocheck::validators::repeated::max_items },
-          target_value_tokens: rule_val.to_token_stream(),
+          field_validator: FieldValidator::Scalar {
+            validator_path: quote! { protocheck::validators::repeated::max_items },
+            target_value_tokens: rule_val.to_token_stream(),
+          },
         },
       });
     }
@@ -123,8 +129,9 @@ pub fn get_repeated_rules(
 
     let items_message_rules = ValidatorTemplate {
       item_rust_name: field_desc.name().to_string(),
-      kind: ValidatorKind::MessageField {
+      kind: ValidatorKind::Field {
         field_data: items_field_data,
+        field_validator: FieldValidator::MessageField,
       },
     };
 
@@ -136,12 +143,14 @@ pub fn get_repeated_rules(
   } else {
     Ok(Some(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::RepeatedValidationLoop {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        vec_level_rules,
-        items_rules,
-        unique_values,
-        float_values,
+        field_validator: FieldValidator::Repeated {
+          vec_level_rules,
+          items_rules,
+          unique_values,
+          float_values,
+        },
       },
     }))
   }

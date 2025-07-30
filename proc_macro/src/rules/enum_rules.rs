@@ -4,7 +4,7 @@ use prost_reflect::EnumDescriptor;
 use syn::Error;
 
 use super::{protovalidate::EnumRules, FieldData, ValidatorKind, ValidatorTemplate};
-use crate::Span2;
+use crate::{validator_template::FieldValidator, Span2};
 
 pub fn get_enum_rules(
   field_type_ident: String,
@@ -22,10 +22,12 @@ pub fn get_enum_rules(
   if enum_rules.defined_only() {
     templates.push(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::EnumDefinedOnly {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        enum_type_ident: field_type_ident.clone(),
-        enum_name: enum_name.to_string(),
+        field_validator: FieldValidator::EnumDefinedOnly {
+          enum_type_ident: field_type_ident.clone(),
+          enum_name: enum_name.to_string(),
+        },
       },
     });
   }

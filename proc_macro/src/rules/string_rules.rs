@@ -2,7 +2,7 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::StringRules, FieldData, ValidatorKind, ValidatorTemplate};
-use crate::Span2;
+use crate::{validator_template::FieldValidator, Span2};
 
 pub fn get_string_rules(
   field_span: Span2,
@@ -19,10 +19,12 @@ pub fn get_string_rules(
     len = Some(len_value);
     templates.push(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::FieldRule {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        validator_path: quote! { protocheck::validators::strings::len },
-        target_value_tokens: len_value.into_token_stream(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::strings::len },
+          target_value_tokens: len_value.into_token_stream(),
+        },
       },
     });
   }
@@ -32,10 +34,12 @@ pub fn get_string_rules(
 
     templates.push(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::FieldRule {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        validator_path: quote! { protocheck::validators::strings::min_len },
-        target_value_tokens: min_len_value.into_token_stream(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::strings::min_len },
+          target_value_tokens: min_len_value.into_token_stream(),
+        },
       },
     });
   }
@@ -45,10 +49,12 @@ pub fn get_string_rules(
 
     templates.push(ValidatorTemplate {
       item_rust_name: field_data.rust_name.clone(),
-      kind: ValidatorKind::FieldRule {
+      kind: ValidatorKind::Field {
         field_data: field_data.clone(),
-        validator_path: quote! { protocheck::validators::strings::max_len },
-        target_value_tokens: max_len_value.into_token_stream(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::strings::max_len },
+          target_value_tokens: max_len_value.into_token_stream(),
+        },
       },
     });
   }
