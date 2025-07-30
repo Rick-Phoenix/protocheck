@@ -165,11 +165,11 @@ pub fn extract_oneof_validators(
         Span2::call_site(),
       );
 
-      static_defs.push(quote! {
+      let field_data_static_tokens = quote! {
         static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
           #field_data
         });
-      });
+      };
 
       let validation_data = ValidationData {
         is_required,
@@ -188,6 +188,11 @@ pub fn extract_oneof_validators(
         )?);
       }
 
+      if let Some(ref rules_type) = field_rules.r#type {
+        let rules = get_field_rules(enum_ident, &field, &validation_data, rules_type)?;
+        field_validators.extend(rules);
+      }
+
       if let Kind::Message(field_message_type) = &field_kind {
         if !field_message_type
           .full_name()
@@ -201,14 +206,11 @@ pub fn extract_oneof_validators(
             },
           };
           field_validators.push(template);
-          validators.insert(field_ident, field_validators);
-          continue;
         }
       }
 
-      if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(enum_ident, &field, &validation_data, rules_type)?;
-        field_validators.extend(rules);
+      if !field_validators.is_empty() {
+        static_defs.push(field_data_static_tokens);
       }
 
       validators.insert(field_ident, field_validators);
@@ -347,6 +349,8 @@ pub fn extract_message_validators(
       }
     }
 
+    let mut field_validators: Vec<ValidatorTemplate> = Vec::new();
+
     let field_name = field_desc.name();
     let field_span = rust_field_spans
       .get(field_name)
@@ -396,11 +400,11 @@ pub fn extract_message_validators(
         Span2::call_site(),
       );
 
-      static_defs.push(quote! {
+      let field_data_static_tokens = quote! {
         static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
           #field_data
         });
-      });
+      };
 
       let validation_data = ValidationData {
         is_required,
@@ -411,20 +415,44 @@ pub fn extract_message_validators(
         field_data_static_ident,
       };
 
-      if let Kind::Message(field_message_desc) = field_desc.kind() {
+      let field_rules_type = field_rules.r#type.as_ref();
+
+      if is_repeated {
+        let repeated_rules = get_repeated_rules(
+          &validation_data,
+          &mut static_defs,
+          field_rust_enum,
+          &field_desc,
+          field_rules_type,
+        )?;
+
+        if let Some(rules) = repeated_rules {
+          field_validators.push(rules);
+        }
+      } else if is_map {
+        let map_rules = get_map_rules(
+          &validation_data,
+          &mut static_defs,
+          field_rust_enum,
+          &field_desc,
+          field_rules_type,
+        )?;
+
+        if let Some(rules) = map_rules {
+          field_validators.push(rules);
+        }
+      } else if let Kind::Message(field_message_desc) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
-          validators.extend(get_cel_rules(
+          field_validators.extend(get_cel_rules(
             &CelRuleTemplateTarget::Field(field_desc.clone(), validation_data.clone()),
             &field_rules.cel,
             &mut static_defs,
           )?);
         }
 
-        if !is_map
-          && !field_message_desc
-            .full_name()
-            .starts_with("google.protobuf")
-          && !is_repeated
+        if !field_message_desc
+          .full_name()
+          .starts_with("google.protobuf")
         {
           let template = ValidatorTemplate {
             item_rust_name: field_desc.name().to_string(),
@@ -433,49 +461,25 @@ pub fn extract_message_validators(
               field_validator: FieldValidator::MessageField,
             },
           };
-          validators.push(template);
-          continue;
+          field_validators.push(template);
         }
-      }
-
-      let field_rules = field_rules.r#type.as_ref();
-
-      if is_repeated {
-        let repeated_rules = get_repeated_rules(
-          &validation_data,
-          &mut static_defs,
-          field_rust_enum,
-          &field_desc,
-          field_rules,
-        )?;
-
-        if let Some(rules) = repeated_rules {
-          validators.push(rules);
-        }
-      } else if is_map {
-        let map_rules = get_map_rules(
-          &validation_data,
-          &mut static_defs,
-          field_rust_enum,
-          &field_desc,
-          field_rules,
-        )?;
-
-        if let Some(rules) = map_rules {
-          validators.push(rules);
-        }
-      } else if let Some(rules_type) = field_rules {
+      } else if let Some(rules_type) = field_rules_type {
         let rules = get_field_rules(field_rust_enum, &field_desc, &validation_data, rules_type)?;
 
-        validators.extend(rules);
+        field_validators.extend(rules);
       } else if is_required {
-        validators.push(ValidatorTemplate {
+        field_validators.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.to_string(),
           kind: ValidatorKind::Field {
             validation_data,
             field_validator: FieldValidator::Required,
           },
         });
+      }
+
+      if !field_validators.is_empty() {
+        static_defs.push(field_data_static_tokens);
+        validators.extend(field_validators);
       }
     }
   }
