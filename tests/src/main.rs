@@ -16,13 +16,14 @@ fn main() {
     created_at: None,
     id: 1,
     value: vec![],
-    post: Some(Post {
-      tags: vec!["me".to_string()],
-      name: "not_alfonso".to_string(),
-      created_at: None,
-    }),
-    oneof_fields: Some(OneofFields::Field1("abab".to_string())),
-    outer_enum_field: Some(15),
+    oneof_fields: Some(OneofFields::OneofEnum2(33)),
+    // oneof_fields: Some(OneofFields::Post(Post {
+    //   tags: vec!["me".to_string()],
+    //   name: "not_alfonso".to_string(),
+    //   created_at: None,
+    // })),
+    outer_enum_field: None,
+    post: None,
   };
 
   let result = user.validate();

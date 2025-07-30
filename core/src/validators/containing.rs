@@ -3,9 +3,9 @@ use std::fmt::Debug;
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  validators::{
-    common::get_base_violations_path,
-    static_data::{in_rules::get_in_rule_path, not_in_rules::get_not_in_rule_path},
+  validators::static_data::{
+    base_violations::get_base_violations_path, in_rules::get_in_rule_path,
+    not_in_rules::get_not_in_rule_path,
   },
 };
 

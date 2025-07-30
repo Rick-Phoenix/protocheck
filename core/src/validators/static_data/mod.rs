@@ -1,3 +1,4 @@
+pub mod base_violations;
 pub mod const_rules;
 pub mod gt_rules;
 pub mod gte_rules;

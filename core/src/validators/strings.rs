@@ -1,19 +1,20 @@
+use proto_types::protovalidate::Ignore;
+
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  validators::common::get_base_violations_path,
+  validators::static_data::base_violations::get_base_violations_path,
   ProtoType,
 };
 
-pub fn max_len(
-  field_context: FieldContext,
-  value: Option<&str>,
-  max_len: u64,
-) -> Result<(), Violation> {
-  let check = match value {
-    Some(val) => val.chars().count() <= max_len as usize,
-    None => return Ok(()),
-  };
+pub fn max_len(field_context: FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let check = value.chars().count() <= max_len as usize;
 
   let plural_suffix = if max_len > 1 { "s" } else { "" };
 
@@ -70,15 +71,14 @@ pub fn max_len(
   Ok(())
 }
 
-pub fn min_len(
-  field_context: FieldContext,
-  value: Option<&str>,
-  min_len: u64,
-) -> Result<(), Violation> {
-  let check = match value {
-    Some(val) => val.chars().count() >= min_len as usize,
-    None => return Ok(()),
-  };
+pub fn min_len(field_context: FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let check = value.chars().count() >= min_len as usize;
 
   let plural_suffix = if min_len > 1 { "s" } else { "" };
 
@@ -135,11 +135,14 @@ pub fn min_len(
   Ok(())
 }
 
-pub fn len(field_context: FieldContext, value: Option<&str>, len: u64) -> Result<(), Violation> {
-  let check = match value {
-    Some(val) => val.chars().count() == len as usize,
-    None => return Ok(()),
-  };
+pub fn len(field_context: FieldContext, value: &str, len: u64) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let check = value.chars().count() == len as usize;
 
   let plural_suffix = if len > 1 { "s" } else { "" };
 

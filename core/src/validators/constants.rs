@@ -3,7 +3,9 @@ use std::fmt::Debug;
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  validators::{common::get_base_violations_path, static_data::const_rules::get_const_rule_path},
+  validators::static_data::{
+    base_violations::get_base_violations_path, const_rules::get_const_rule_path,
+  },
 };
 
 pub fn constant<T>(

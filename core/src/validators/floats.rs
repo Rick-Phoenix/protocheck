@@ -1,7 +1,7 @@
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
-  validators::common::get_base_violations_path,
+  validators::static_data::base_violations::get_base_violations_path,
   ProtoType,
 };
 

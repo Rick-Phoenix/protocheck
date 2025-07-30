@@ -10,7 +10,6 @@ pub trait ProtoValidator {
 }
 
 pub mod cel;
-pub mod common;
 pub mod comparables;
 pub mod constants;
 pub mod containing;
@@ -19,6 +18,7 @@ pub mod floats;
 pub mod maps;
 pub mod oneofs;
 pub mod repeated;
+pub mod required;
 
 #[allow(unused, dead_code)]
 pub mod static_data;

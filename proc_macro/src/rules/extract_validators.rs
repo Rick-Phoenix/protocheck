@@ -135,7 +135,7 @@ pub fn extract_oneof_validators(
         })?;
 
       let ignore = field_rules.ignore();
-      let is_required = field_rules.required();
+      let is_required = field_rules.required() && field.supports_presence();
 
       if matches!(ignore, Ignore::Always) {
         continue;
@@ -350,7 +350,7 @@ pub fn extract_message_validators(
         })?;
 
       let ignore = field_rules.ignore();
-      let is_required = field_rules.required();
+      let is_required = field_rules.required() && field_desc.supports_presence();
 
       if matches!(ignore, Ignore::Always) {
         continue;
@@ -371,7 +371,7 @@ pub fn extract_message_validators(
         is_optional,
       };
 
-      if let Kind::Message(field_message_type) = field_desc.kind() {
+      if let Kind::Message(field_message_desc) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
           validation_data.extend(get_cel_rules(
             &CelRuleTemplateTarget::Field(field_desc.clone(), field_data.clone()),
@@ -381,7 +381,7 @@ pub fn extract_message_validators(
         }
 
         if !is_map
-          && !field_message_type
+          && !field_message_desc
             .full_name()
             .starts_with("google.protobuf")
           && !is_repeated
@@ -436,6 +436,14 @@ pub fn extract_message_validators(
         )?;
 
         validation_data.extend(rules);
+      } else if is_required {
+        validation_data.push(ValidatorTemplate {
+          item_rust_name: field_data.rust_name.to_string(),
+          kind: ValidatorKind::Field {
+            field_data,
+            field_validator: FieldValidator::Required,
+          },
+        });
       }
     }
   }
