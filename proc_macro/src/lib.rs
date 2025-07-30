@@ -5,9 +5,10 @@ use std::collections::HashMap;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
-use protocheck_core::internals::validator_template::ValidatorTemplate;
+pub(crate) use proto_types::protobuf::field_descriptor_proto::Type as ProtoType;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
+use validator_template::ValidatorTemplate;
 
 use crate::{
   extract_validators::extract_oneof_validators,
@@ -18,6 +19,7 @@ mod namespaces;
 mod pool_loader;
 mod protogen;
 mod rules;
+mod validator_template;
 
 #[proc_macro_attribute]
 pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream {
