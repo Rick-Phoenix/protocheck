@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn min_items<T>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: Option<&Vec<T>>,
   min_items: u64,
 ) -> Result<(), Violation> {
@@ -69,7 +69,7 @@ pub fn min_items<T>(
 }
 
 pub fn max_items<T>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: Option<&Vec<T>>,
   max_items: u64,
 ) -> Result<(), Violation> {
@@ -130,7 +130,7 @@ pub fn max_items<T>(
 }
 
 pub fn unique<T>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: T,
   processed_values: &mut HashSet<T>,
 ) -> Result<(), Violation>
@@ -145,7 +145,7 @@ where
       field_type: Some(field_context.field_data.proto_type as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
       key_type: None,
       value_type: None,
     };
@@ -205,7 +205,7 @@ impl FloatBits for &f64 {
 }
 
 pub fn unique_floats<T, B>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: T,
   processed_values: &mut HashSet<B>,
 ) -> Result<(), Violation>
@@ -224,7 +224,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
     elements.push(current_elem);
     let violation = Violation {

@@ -7,7 +7,7 @@ use crate::{
   ProtoType,
 };
 
-pub fn max_len(field_context: FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
+pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.field_data.ignore {
     if value.is_empty() {
       return Ok(());
@@ -26,7 +26,7 @@ pub fn max_len(field_context: FieldContext, value: &str, max_len: u64) -> Result
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);
@@ -71,7 +71,7 @@ pub fn max_len(field_context: FieldContext, value: &str, max_len: u64) -> Result
   Ok(())
 }
 
-pub fn min_len(field_context: FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
+pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.field_data.ignore {
     if value.is_empty() {
       return Ok(());
@@ -90,7 +90,7 @@ pub fn min_len(field_context: FieldContext, value: &str, min_len: u64) -> Result
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);
@@ -135,7 +135,7 @@ pub fn min_len(field_context: FieldContext, value: &str, min_len: u64) -> Result
   Ok(())
 }
 
-pub fn len(field_context: FieldContext, value: &str, len: u64) -> Result<(), Violation> {
+pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.field_data.ignore {
     if value.is_empty() {
       return Ok(());
@@ -154,7 +154,7 @@ pub fn len(field_context: FieldContext, value: &str, len: u64) -> Result<(), Vio
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);

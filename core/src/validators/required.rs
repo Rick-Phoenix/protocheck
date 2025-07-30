@@ -5,7 +5,7 @@ use crate::{
   ProtoType,
 };
 
-pub fn required(field_context: FieldContext) -> Violation {
+pub fn required(field_context: &FieldContext) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
 
   let current_elem = FieldPathElement {

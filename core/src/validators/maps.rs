@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub fn min_pairs<K, V>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: Option<&HashMap<K, V>>,
   min_pairs: u64,
 ) -> Result<(), Violation> {
@@ -28,7 +28,7 @@ pub fn min_pairs<K, V>(
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
     elements.push(current_elem);
     let violation = Violation {
@@ -68,7 +68,7 @@ pub fn min_pairs<K, V>(
 }
 
 pub fn max_pairs<K, V>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: Option<&HashMap<K, V>>,
   max_pairs: u64,
 ) -> Result<(), Violation> {
@@ -89,7 +89,7 @@ pub fn max_pairs<K, V>(
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
     elements.push(current_elem);
     let violation = Violation {

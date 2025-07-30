@@ -9,7 +9,7 @@ use crate::{
   },
 };
 
-pub fn lt<T>(field_context: FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn lt<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
@@ -26,7 +26,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);
@@ -55,7 +55,7 @@ where
   Ok(())
 }
 
-pub fn lte<T>(field_context: FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn lte<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
@@ -72,7 +72,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);
@@ -101,7 +101,7 @@ where
   Ok(())
 }
 
-pub fn gt<T>(field_context: FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn gt<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
@@ -118,7 +118,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);
@@ -147,7 +147,7 @@ where
   Ok(())
 }
 
-pub fn gte<T>(field_context: FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn gte<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
@@ -164,7 +164,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);

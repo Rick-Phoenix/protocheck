@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub fn constant<T>(
-  field_context: FieldContext,
+  field_context: &FieldContext,
   value: Option<T>,
   target: T,
 ) -> Result<(), Violation>
@@ -29,7 +29,7 @@ where
       key_type: field_context.field_data.key_type.map(|t| t as i32),
       value_type: field_context.field_data.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
-      subscript: field_context.subscript,
+      subscript: field_context.subscript.clone(),
     };
 
     elements.push(current_elem);

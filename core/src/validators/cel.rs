@@ -21,7 +21,7 @@ pub enum CelRuleTarget<'a> {
     parent_elements: &'a [FieldPathElement],
   },
   Field {
-    field_context: FieldContext<'a>,
+    field_context: &'a FieldContext<'a>,
   },
 }
 

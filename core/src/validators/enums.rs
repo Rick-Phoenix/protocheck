@@ -5,7 +5,7 @@ use crate::{
   ProtoType,
 };
 
-pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
+pub fn defined_only(field_context: &FieldContext, enum_name: &str) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
     field_type: Some(ProtoType::Enum as i32),
@@ -13,7 +13,7 @@ pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
     key_type: field_context.field_data.key_type.map(|t| t as i32),
     value_type: field_context.field_data.value_type.map(|t| t as i32),
     field_number: Some(field_context.field_data.tag as i32),
-    subscript: field_context.subscript,
+    subscript: field_context.subscript.clone(),
   };
   elements.push(current_elem);
 
