@@ -22,7 +22,7 @@ fn main() {
       created_at: None,
     }),
     oneof_fields: Some(OneofFields::Field1("abab".to_string())),
-    // oneof_fields: None,
+    outer_enum_field: Some(15),
   };
 
   let result = user.validate();

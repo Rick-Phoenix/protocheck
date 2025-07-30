@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::{CelRuleTarget, FieldKind};
+use protocheck_core::field_data::{CelRuleTemplateTarget, FieldKind};
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -106,7 +106,7 @@ pub fn get_repeated_rules(
 
           if !items_rules_descriptor.cel.is_empty() {
             let cel_rules = get_cel_rules(
-              &CelRuleTarget::Field(field_desc.clone(), items_field_data),
+              &CelRuleTemplateTarget::Field(field_desc.clone(), items_field_data),
               &items_rules_descriptor.cel,
               static_defs,
             )?;

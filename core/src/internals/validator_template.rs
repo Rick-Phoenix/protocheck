@@ -1,7 +1,7 @@
 use quote::{quote, ToTokens};
 
 use crate::{
-  field_data::{CelRuleTarget, FieldData, FieldKind},
+  field_data::{CelRuleTemplateTarget, FieldData, FieldKind},
   Ident2, ProtoType, Span2, TokenStream2,
 };
 
@@ -34,7 +34,7 @@ pub enum ValidatorKind {
   CelRule {
     rule_id: String,
     error_message: String,
-    rule_template: CelRuleTarget,
+    rule_target: CelRuleTemplateTarget,
     static_program_ident: Ident2,
   },
   EnumDefinedOnly {
@@ -107,7 +107,13 @@ impl ToTokens for ValidatorTemplate {
           FieldKind::RepeatedItem => quote! { #item_ident },
           FieldKind::MapKey => quote! { #key_ident },
           FieldKind::MapValue => quote! { #val_ident },
-          _ => quote! { &self.#item_rust_ident },
+          _ => {
+            if field_data.is_optional {
+              quote! { self.#item_rust_ident.as_ref() }
+            } else {
+              quote! { &self.#item_rust_ident }
+            }
+          }
         }
       }
     };
@@ -315,11 +321,12 @@ impl ToTokens for ValidatorTemplate {
       ValidatorKind::CelRule {
         rule_id,
         error_message,
-        rule_template,
+        rule_target: rule_template,
         static_program_ident,
       } => {
+        let is_option = rule_template.is_option();
         let (context_target, rule_target_tokens) = match rule_template {
-          CelRuleTarget::Message(message_desc) => {
+          CelRuleTemplateTarget::Message(message_desc) => {
             let name = message_desc.name();
             (
               quote! { &self },
@@ -331,7 +338,7 @@ impl ToTokens for ValidatorTemplate {
               },
             )
           }
-          CelRuleTarget::Field(_, field_data) => {
+          CelRuleTemplateTarget::Field(_, field_data) => {
             let subscript = get_subscript_tokens(field_data, &index_ident, &key_ident);
             (
               get_value_ident(field_data),
@@ -348,24 +355,20 @@ impl ToTokens for ValidatorTemplate {
           }
         };
 
-        let validation_type = rule_template.get_validation_type();
-
-        let context_error = format!(
-          "Failed to add context to the Cel program for {} {}",
-          validation_type, item_rust_name
-        );
+        let target_tokens = if !is_option {
+          &quote! { Some(#context_target) }
+        } else {
+          &context_target
+        };
 
         tokens.extend(quote! {
-          let mut cel_context = cel_interpreter::Context::default();
-          cel_context.add_variable("this", #context_target).expect(#context_error);
-
           let rule_data = protocheck::validators::cel::CelRuleData {
             rule_id: #rule_id.to_string(),
             error_message: #error_message.to_string(),
             rule_target: #rule_target_tokens
           };
 
-          match protocheck::validators::cel::validate_cel(&rule_data, &#static_program_ident, cel_context) {
+          match protocheck::validators::cel::validate_cel(&rule_data, &#static_program_ident, #target_tokens) {
             Ok(_) => {},
             Err(v) => violations.push(v),
           };

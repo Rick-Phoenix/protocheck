@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
-use protocheck_core::field_data::{CelRuleTarget, FieldKind};
+use protocheck_core::field_data::{CelRuleTemplateTarget, FieldKind};
 use regex::Regex;
 use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
@@ -157,7 +157,7 @@ pub fn extract_oneof_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleTarget::Field(field.clone(), field_data.clone()),
+          &CelRuleTemplateTarget::Field(field.clone(), field_data.clone()),
           &field_rules.cel,
           &mut static_defs,
         )?);
@@ -282,7 +282,7 @@ pub fn extract_message_validators(
 
     if !message_rules.cel.is_empty() {
       validation_data.extend(get_cel_rules(
-        &CelRuleTarget::Message(message_desc.clone()),
+        &CelRuleTemplateTarget::Message(message_desc.clone()),
         &message_rules.cel,
         &mut static_defs,
       )?);
@@ -291,6 +291,10 @@ pub fn extract_message_validators(
 
   // Oneof rules
   for oneof in message_desc.oneofs() {
+    if oneof_is_synthetic(&oneof) {
+      continue;
+    }
+
     if let ProstValue::Message(oneof_rules_msg) = oneof
       .options()
       .get_extension(&oneof_ext_descriptor)
@@ -312,9 +316,12 @@ pub fn extract_message_validators(
 
   // Field Rules
   for field_desc in message_desc.fields() {
-    if field_desc.containing_oneof().is_some() {
-      continue;
+    if let Some(containing_oneof) = field_desc.containing_oneof().as_ref() {
+      if !oneof_is_synthetic(containing_oneof) {
+        continue;
+      }
     }
+
     let field_name = field_desc.name();
     let field_span = rust_field_spans
       .get(field_name)
@@ -363,7 +370,7 @@ pub fn extract_message_validators(
       if let Kind::Message(field_message_type) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
           validation_data.extend(get_cel_rules(
-            &CelRuleTarget::Field(field_desc.clone(), field_data.clone()),
+            &CelRuleTemplateTarget::Field(field_desc.clone(), field_data.clone()),
             &field_rules.cel,
             &mut static_defs,
           )?);
@@ -427,4 +434,11 @@ pub fn extract_message_validators(
   }
 
   Ok((validation_data, static_defs))
+}
+
+fn oneof_is_synthetic(oneof: &OneofDescriptor) -> bool {
+  let is_synthetic_optional_field = oneof.name().starts_with('_')
+    && oneof.fields().count() == 1
+    && oneof.name() == format!("_{}", oneof.fields().next().unwrap().name());
+  is_synthetic_optional_field
 }

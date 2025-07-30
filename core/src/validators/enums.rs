@@ -5,14 +5,6 @@ use crate::{
   ProtoType,
 };
 
-pub fn enum_contains<E>(value: i32) -> bool
-where
-  E: std::convert::TryFrom<i32>,
-  E: std::fmt::Debug + Sized,
-{
-  E::try_from(value).is_ok()
-}
-
 pub fn defined_only(field_context: FieldContext, enum_name: &str) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {

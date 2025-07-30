@@ -45,11 +45,22 @@ impl CelRuleData<'_> {
   }
 }
 
-pub fn validate_cel(
+pub fn validate_cel<T>(
   rule_data: &CelRuleData,
   program: &'static Program,
-  cel_context: Context,
-) -> Result<(), Violation> {
+  value: Option<&T>,
+) -> Result<(), Violation>
+where
+  T: serde::Serialize,
+{
+  if value.is_none() {
+    return Ok(());
+  }
+
+  let unwrapped_val = value.unwrap();
+  let mut cel_context = Context::default();
+  cel_context.add_variable("this", unwrapped_val).unwrap();
+
   let result = program.execute(&cel_context);
 
   let CelRuleData {

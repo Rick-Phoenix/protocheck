@@ -4,7 +4,7 @@ use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValu
 use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
-use protocheck_core::field_data::CelRuleTarget;
+use protocheck_core::field_data::CelRuleTemplateTarget;
 use quote::quote;
 use random_string::charsets::ALPHA_LOWER;
 use syn::Error;
@@ -13,18 +13,18 @@ use super::{FieldData, Rule, ValidatorKind, ValidatorTemplate};
 use crate::{Ident2, Span2};
 
 pub fn get_cel_rules(
-  rule_kind: &CelRuleTarget,
+  rule_kind: &CelRuleTemplateTarget,
   rules: &[Rule],
   static_defs: &mut Vec<TokenStream>,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
 
   let cel_value: CelValue = match rule_kind {
-    CelRuleTarget::Message(message_desc) => {
+    CelRuleTemplateTarget::Message(message_desc) => {
       let dyn_message = DynamicMessage::new(message_desc.clone());
       convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
     }
-    CelRuleTarget::Field(field_desc, field_data) => {
+    CelRuleTemplateTarget::Field(field_desc, field_data) => {
       get_default_field_prost_value(field_data, field_desc).unwrap()
     }
   };
@@ -85,7 +85,7 @@ pub fn get_cel_rules(
             kind: ValidatorKind::CelRule {
               error_message: message,
               rule_id,
-              rule_template: rule_kind.clone(),
+              rule_target: rule_kind.clone(),
               static_program_ident,
             },
           });
