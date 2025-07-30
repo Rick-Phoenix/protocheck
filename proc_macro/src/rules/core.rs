@@ -3,39 +3,37 @@ use prost_reflect::{FieldDescriptor, Kind};
 use protocheck_core::field_data::FieldKind;
 use syn::Error;
 
-use super::{field_rules::Type as RulesType, FieldData, ProtoType, ValidatorTemplate};
-use crate::rules::{
-  duration_rules::get_duration_rules, enum_rules::get_enum_rules, string_rules::get_string_rules,
-  timestamp_rules::get_timestamp_rules,
+use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
+use crate::{
+  rules::{
+    duration_rules::get_duration_rules, enum_rules::get_enum_rules, string_rules::get_string_rules,
+    timestamp_rules::get_timestamp_rules,
+  },
+  validation_data::ValidationData,
 };
 
 pub fn get_field_rules(
   field_rust_enum: Option<String>,
-  field_span: Span,
   field_desc: &FieldDescriptor,
-  field_data: &FieldData,
+  validation_data: &ValidationData,
   field_rules: &RulesType,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut rules_agg: Vec<ValidatorTemplate> = Vec::new();
   let mut error: Option<Error> = None;
 
-  let field_name = &field_data.proto_name;
-  let field_kind = &field_desc.kind();
+  let field_name = &validation_data.field_data.proto_name;
+  let field_proto_kind = &field_desc.kind();
+  let field_data_kind = &validation_data.field_data.kind;
+  let field_span = validation_data.field_span.clone();
 
   let error_prefix = format!("Error for field {}:", field_name);
 
   match field_rules {
     RulesType::Enum(enum_rules) => {
-      if let Kind::Enum(enum_descriptor) = &field_kind {
+      if let Kind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
-            let rules = get_enum_rules(
-              enum_ident,
-              field_span,
-              enum_descriptor,
-              field_data,
-              enum_rules,
-            )?;
+            let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
             rules_agg.extend(rules);
           }
           None => {
@@ -53,35 +51,41 @@ pub fn get_field_rules(
       }
     }
     RulesType::String(string_rules) => {
-      if !matches!(&field_kind, Kind::String) {
+      if !matches!(&field_proto_kind, Kind::String) {
         error = Some(field_mismatch_error(
-          field_name, "string", field_kind, field_span,
+          field_name,
+          "string",
+          field_proto_kind,
+          field_span,
         ))
       } else {
-        let rules = get_string_rules(field_span, field_data, string_rules)?;
+        let rules = get_string_rules(validation_data, string_rules)?;
         rules_agg.extend(rules);
       }
     }
     RulesType::Duration(duration_rules) => {
-      if !matches!(&field_data.kind, FieldKind::Duration) {
+      if !matches!(field_data_kind, FieldKind::Duration) {
         error = Some(field_mismatch_error(
-          field_name, "duration", field_kind, field_span,
+          field_name,
+          "duration",
+          field_proto_kind,
+          field_span,
         ))
       } else {
-        let rules = get_duration_rules(field_span, field_data, duration_rules)?;
+        let rules = get_duration_rules(validation_data, duration_rules)?;
         rules_agg.extend(rules);
       }
     }
     RulesType::Timestamp(timestamp_rules) => {
-      if !matches!(&field_data.kind, FieldKind::Timestamp) {
+      if !matches!(&field_data_kind, FieldKind::Timestamp) {
         error = Some(field_mismatch_error(
           field_name,
           "timestamp",
-          field_kind,
+          field_proto_kind,
           field_span,
         ))
       } else {
-        let rules = get_timestamp_rules(field_span, field_data, timestamp_rules)?;
+        let rules = get_timestamp_rules(validation_data, timestamp_rules)?;
         rules_agg.extend(rules);
       }
     }

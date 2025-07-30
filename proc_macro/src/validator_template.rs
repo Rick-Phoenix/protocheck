@@ -1,7 +1,7 @@
-use protocheck_core::field_data::{FieldData, FieldKind};
+use protocheck_core::field_data::FieldKind;
 use quote::{quote, ToTokens};
 
-use crate::{Ident2, ProtoType, Span2, TokenStream2};
+use crate::{validation_data::ValidationData, Ident2, ProtoType, Span2, TokenStream2};
 
 #[derive(Debug)]
 pub enum FieldValidator {
@@ -45,7 +45,7 @@ pub enum MessageValidator {
 #[derive(Debug)]
 pub enum ValidatorKind {
   Field {
-    field_data: FieldData,
+    validation_data: ValidationData,
     field_validator: FieldValidator,
   },
   Message {
@@ -76,9 +76,18 @@ impl ToTokens for ValidatorTemplate {
 
     match &self.kind {
       ValidatorKind::Field {
-        field_data,
+        validation_data,
         field_validator,
       } => {
+        let ValidationData {
+          is_required,
+          is_optional,
+          is_in_oneof,
+          field_data_static_ident,
+          field_data,
+          ..
+        } = validation_data;
+
         let field_proto_name = &field_data.proto_name;
         let field_tag = &field_data.tag;
         let field_proto_type = &field_data.proto_type;
@@ -105,9 +114,9 @@ impl ToTokens for ValidatorTemplate {
           _ => quote! { None },
         };
 
-        let is_option = field_data.is_optional && !field_data.is_in_oneof;
+        let is_option = *is_optional && !*is_in_oneof;
 
-        let value_ident = if field_data.is_in_oneof {
+        let value_ident = if *is_in_oneof {
           quote! { #oneof_ident }
         } else {
           match field_data.kind {
@@ -115,7 +124,7 @@ impl ToTokens for ValidatorTemplate {
             FieldKind::MapKey => quote! { #key_ident },
             FieldKind::MapValue => quote! { #val_ident },
             _ => {
-              if field_data.is_optional {
+              if *is_optional {
                 quote! { self.#item_rust_ident.as_ref() }
               } else {
                 quote! { &self.#item_rust_ident }
@@ -129,7 +138,7 @@ impl ToTokens for ValidatorTemplate {
             tokens.extend(quote! {
               if #value_ident.is_none() {
                 let field_context = protocheck::field_data::FieldContext {
-                  field_data: #field_data,
+                  field_data: &#field_data_static_ident,
                   parent_elements: #parent_messages_ident,
                   subscript: #subscript_tokens
                 };
@@ -142,10 +151,6 @@ impl ToTokens for ValidatorTemplate {
             validator_path,
             target_value_tokens,
           } => {
-            println!(
-              "Field: {}, Is Optional: {:?}",
-              field_data.proto_name, field_data.is_optional
-            );
             let unwrapped_val_ident = Ident2::new("val", Span2::call_site());
             let field_ident = if is_option {
               quote! { #unwrapped_val_ident }
@@ -155,13 +160,13 @@ impl ToTokens for ValidatorTemplate {
 
             let field_context_tokens = quote! {
               let field_context = protocheck::field_data::FieldContext {
-                field_data: #field_data,
+                field_data: &#field_data_static_ident,
                 parent_elements: #parent_messages_ident.as_slice(),
                 subscript: #subscript_tokens,
               };
             };
 
-            let required_check = field_data.is_required.then_some(quote! {
+            let required_check = is_required.then_some(quote! {
               let required_violation = protocheck::validators::required(field_context);
               #violations_ident.push(required_violation);
             });
@@ -210,7 +215,7 @@ impl ToTokens for ValidatorTemplate {
             let validator_tokens = quote! {
               if !#enum_ident_tokens::try_from(*#enum_val_ident).is_ok() {
                 let field_context = protocheck::field_data::FieldContext {
-                  field_data: #field_data,
+                  field_data: &#field_data_static_ident,
                   parent_elements: #parent_messages_ident.as_slice(),
                   subscript: #subscript_tokens,
                 };
@@ -253,7 +258,7 @@ impl ToTokens for ValidatorTemplate {
               quote! {
                 if !not_unique {
                   let field_context = protocheck::field_data::FieldContext {
-                    field_data: #field_data,
+                    field_data: &#field_data_static_ident,
                     parent_elements: #parent_messages_ident,
                     subscript: #subscript_tokens,
                   };
@@ -336,9 +341,9 @@ impl ToTokens for ValidatorTemplate {
               #parent_messages_ident.pop();
             };
 
-            let required_check = field_data.is_required.then_some(quote! {
+            let required_check = is_required.then_some(quote! {
               let field_context = protocheck::field_data::FieldContext {
-                field_data: #field_data,
+                field_data: &#field_data_static_ident,
                 parent_elements: #parent_messages_ident,
                 subscript: #subscript_tokens
               };
@@ -377,7 +382,7 @@ impl ToTokens for ValidatorTemplate {
                 error_message: #error_message.to_string(),
                 rule_target: protocheck::validators::cel::CelRuleTarget::Field {
                   field_context: protocheck::field_data::FieldContext {
-                     field_data: #field_data,
+                     field_data: &#field_data_static_ident,
                      parent_elements: #parent_messages_ident,
                      subscript: #subscript_tokens,
                   }

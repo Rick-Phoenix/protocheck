@@ -2,8 +2,8 @@ use proto_types::protovalidate::int64_rules::{GreaterThan, LessThan};
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{protovalidate::Int64Rules, FieldData, ValidatorKind, ValidatorTemplate};
-use crate::{validator_template::FieldValidator, Span2};
+use super::{protovalidate::Int64Rules, ValidatorKind, ValidatorTemplate};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 #[derive(Debug)]
 struct GtLt {
@@ -12,8 +12,7 @@ struct GtLt {
 }
 
 pub fn get_int64_rules(
-  field_span: Span2,
-  field_data: &FieldData,
+  validation_data: ValidationData,
   rules: &Int64Rules,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
@@ -21,13 +20,18 @@ pub fn get_int64_rules(
   let mut lt: Option<GtLt> = None;
   let mut gt: Option<GtLt> = None;
 
-  let error_prefix = format!("Error for field {}:", &field_data.proto_name);
+  let field_span = validation_data.field_span;
+
+  let error_prefix = format!(
+    "Error for field {}:",
+    &validation_data.field_data.proto_name
+  );
 
   if let Some(const_val) = rules.r#const {
     templates.push(ValidatorTemplate {
-      item_rust_name: field_data.rust_name.clone(),
+      item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
-        field_data: field_data.clone(),
+        validation_data: validation_data.clone(),
         field_validator: FieldValidator::Scalar {
           validator_path: quote! { protocheck::validators::constants::constant },
           target_value_tokens: const_val.to_token_stream(),
@@ -42,9 +46,9 @@ pub fn get_int64_rules(
       LessThan::Lt(val) => {
         lt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
-          item_rust_name: field_data.rust_name.clone(),
+          item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
-            field_data: field_data.clone(),
+            validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
               validator_path: quote! { protocheck::validators::numeric::lt },
               target_value_tokens: val.to_token_stream(),
@@ -55,9 +59,9 @@ pub fn get_int64_rules(
       LessThan::Lte(val) => {
         lt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
-          item_rust_name: field_data.rust_name.clone(),
+          item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
-            field_data: field_data.clone(),
+            validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
               validator_path: quote! { protocheck::validators::numeric::lte },
               target_value_tokens: val.to_token_stream(),
@@ -73,9 +77,9 @@ pub fn get_int64_rules(
       GreaterThan::Gt(val) => {
         gt = Some(GtLt { val, eq: false });
         templates.push(ValidatorTemplate {
-          item_rust_name: field_data.rust_name.clone(),
+          item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
-            field_data: field_data.clone(),
+            validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
               validator_path: quote! { protocheck::validators::numeric::gt },
               target_value_tokens: val.to_token_stream(),
@@ -86,9 +90,9 @@ pub fn get_int64_rules(
       GreaterThan::Gte(val) => {
         gt = Some(GtLt { val, eq: true });
         templates.push(ValidatorTemplate {
-          item_rust_name: field_data.rust_name.clone(),
+          item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
-            field_data: field_data.clone(),
+            validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
               validator_path: quote! { protocheck::validators::numeric::gte },
               target_value_tokens: val.to_token_stream(),

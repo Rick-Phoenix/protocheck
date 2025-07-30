@@ -33,13 +33,9 @@ impl ToTokens for FieldData {
     let proto_name = &self.proto_name;
     let tag = self.tag;
     let kind = &self.kind;
-    let is_required = self.is_required;
-    let is_optional = self.is_optional;
-    let is_in_oneof = self.is_in_oneof;
     let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
-    let enum_tokens = option_string_to_tokens(&self.enum_full_name);
     let key_type_tokens = option_to_tokens(&self.key_type);
     let value_type_tokens = option_to_tokens(&self.value_type);
 
@@ -50,12 +46,8 @@ impl ToTokens for FieldData {
         proto_type: #proto_type,
         tag: #tag,
         kind: #kind,
-        is_required: #is_required,
-        is_optional: #is_optional,
-        is_in_oneof: #is_in_oneof,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
-        enum_full_name: #enum_tokens,
         ignore: #ignore,
       }
     });

@@ -1,10 +1,11 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident as Ident2, TokenStream};
 use prost_reflect::{
   prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
 use protocheck_core::field_data::FieldKind;
+use quote::quote;
 use regex::Regex;
 use syn::{DeriveInput, Error, Ident, LitStr, Token};
 
@@ -23,6 +24,7 @@ use crate::{
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
   },
+  validation_data::ValidationData,
   validator_template::FieldValidator,
   Span2,
 };
@@ -149,19 +151,38 @@ pub fn extract_oneof_validators(
         proto_name: field_name.to_string(),
         tag: field.number(),
         proto_type: convert_kind_to_proto_type(&field_kind),
-        is_required,
         kind: FieldKind::from(&field),
-        is_in_oneof: true,
         key_type: None,
         value_type: None,
-        enum_full_name: None,
         ignore,
+      };
+
+      let field_data_static_ident = Ident2::new(
+        &format!(
+          "__VALIDATOR_FIELD_DATA_{}",
+          field.full_name().replace(".", "_").to_uppercase()
+        ),
+        Span2::call_site(),
+      );
+
+      static_defs.push(quote! {
+        static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
+          #field_data
+        });
+      });
+
+      let validation_data = ValidationData {
+        is_required,
+        is_in_oneof: true,
         is_optional: true,
+        field_data,
+        field_span,
+        field_data_static_ident,
       };
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleTemplateTarget::Field(field.clone(), field_data.clone()),
+          &CelRuleTemplateTarget::Field(field.clone(), validation_data.clone()),
           &field_rules.cel,
           &mut static_defs,
         )?);
@@ -175,7 +196,7 @@ pub fn extract_oneof_validators(
           let template = ValidatorTemplate {
             item_rust_name: field.name().to_string(),
             kind: ValidatorKind::Field {
-              field_data,
+              validation_data,
               field_validator: FieldValidator::MessageField,
             },
           };
@@ -186,7 +207,7 @@ pub fn extract_oneof_validators(
       }
 
       if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(enum_ident, field_span, &field, &field_data, rules_type)?;
+        let rules = get_field_rules(enum_ident, &field, &validation_data, rules_type)?;
         field_validators.extend(rules);
       }
 
@@ -201,7 +222,7 @@ pub fn extract_message_validators(
   input_tokens: &DeriveInput,
   message_desc: &MessageDescriptor,
 ) -> Result<(Vec<ValidatorTemplate>, Vec<TokenStream>), Error> {
-  let mut validation_data: Vec<ValidatorTemplate> = Vec::new();
+  let mut validators: Vec<ValidatorTemplate> = Vec::new();
   let mut static_defs: Vec<TokenStream> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
@@ -285,7 +306,7 @@ pub fn extract_message_validators(
       })?;
 
     if !message_rules.cel.is_empty() {
-      validation_data.extend(get_cel_rules(
+      validators.extend(get_cel_rules(
         &CelRuleTemplateTarget::Message(message_desc.clone()),
         &message_rules.cel,
         &mut static_defs,
@@ -309,7 +330,7 @@ pub fn extract_message_validators(
           Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
         })?;
 
-      validation_data.push(ValidatorTemplate {
+      validators.push(ValidatorTemplate {
         item_rust_name: oneof.name().to_string(),
         kind: ValidatorKind::Oneof {
           is_required: oneof_rules.required(),
@@ -361,20 +382,39 @@ pub fn extract_message_validators(
         proto_name: field_name.to_string(),
         tag: field_tag,
         proto_type: convert_kind_to_proto_type(&field_kind),
-        is_required,
         kind: FieldKind::from(&field_desc),
-        is_in_oneof: false,
         key_type: None,
         value_type: None,
-        enum_full_name: None,
         ignore,
+      };
+
+      let field_data_static_ident = Ident2::new(
+        &format!(
+          "__VALIDATOR_FIELD_DATA_{}",
+          field_desc.full_name().replace(".", "_").to_uppercase()
+        ),
+        Span2::call_site(),
+      );
+
+      static_defs.push(quote! {
+        static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
+          #field_data
+        });
+      });
+
+      let validation_data = ValidationData {
+        is_required,
+        is_in_oneof: false,
         is_optional,
+        field_data,
+        field_span,
+        field_data_static_ident,
       };
 
       if let Kind::Message(field_message_desc) = field_desc.kind() {
         if !field_rules.cel.is_empty() {
-          validation_data.extend(get_cel_rules(
-            &CelRuleTemplateTarget::Field(field_desc.clone(), field_data.clone()),
+          validators.extend(get_cel_rules(
+            &CelRuleTemplateTarget::Field(field_desc.clone(), validation_data.clone()),
             &field_rules.cel,
             &mut static_defs,
           )?);
@@ -389,11 +429,11 @@ pub fn extract_message_validators(
           let template = ValidatorTemplate {
             item_rust_name: field_desc.name().to_string(),
             kind: ValidatorKind::Field {
-              field_data,
+              validation_data,
               field_validator: FieldValidator::MessageField,
             },
           };
-          validation_data.push(template);
+          validators.push(template);
           continue;
         }
       }
@@ -402,45 +442,37 @@ pub fn extract_message_validators(
 
       if is_repeated {
         let repeated_rules = get_repeated_rules(
+          &validation_data,
           &mut static_defs,
           field_rust_enum,
           &field_desc,
-          field_span,
-          &field_data,
           field_rules,
         )?;
 
         if let Some(rules) = repeated_rules {
-          validation_data.push(rules);
+          validators.push(rules);
         }
       } else if is_map {
         let map_rules = get_map_rules(
+          &validation_data,
           &mut static_defs,
           field_rust_enum,
-          field_span,
           &field_desc,
-          &field_data,
           field_rules,
         )?;
 
         if let Some(rules) = map_rules {
-          validation_data.push(rules);
+          validators.push(rules);
         }
       } else if let Some(rules_type) = field_rules {
-        let rules = get_field_rules(
-          field_rust_enum,
-          field_span,
-          &field_desc,
-          &field_data,
-          rules_type,
-        )?;
+        let rules = get_field_rules(field_rust_enum, &field_desc, &validation_data, rules_type)?;
 
-        validation_data.extend(rules);
+        validators.extend(rules);
       } else if is_required {
-        validation_data.push(ValidatorTemplate {
-          item_rust_name: field_data.rust_name.to_string(),
+        validators.push(ValidatorTemplate {
+          item_rust_name: validation_data.field_data.rust_name.to_string(),
           kind: ValidatorKind::Field {
-            field_data,
+            validation_data,
             field_validator: FieldValidator::Required,
           },
         });
@@ -448,7 +480,7 @@ pub fn extract_message_validators(
     }
   }
 
-  Ok((validation_data, static_defs))
+  Ok((validators, static_defs))
 }
 
 fn oneof_is_synthetic(oneof: &OneofDescriptor) -> bool {

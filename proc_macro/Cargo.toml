@@ -18,7 +18,6 @@ bytes = { workspace = true }
 regex = { workspace = true }
 proto_types = { path = "../proto_types/" }
 protocheck_core = { path = "../core/" }
-random-string = { workspace = true }
 chrono = { workspace = true }
 
 [build-dependencies]

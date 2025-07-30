@@ -1,12 +1,11 @@
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{protovalidate::StringRules, FieldData, ValidatorKind, ValidatorTemplate};
-use crate::{validator_template::FieldValidator, Span2};
+use super::{protovalidate::StringRules, ValidatorKind, ValidatorTemplate};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 pub fn get_string_rules(
-  field_span: Span2,
-  field_data: &FieldData,
+  validation_data: &ValidationData,
   string_rules: &StringRules,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
@@ -15,12 +14,14 @@ pub fn get_string_rules(
   let mut max_len: Option<u64> = None;
   let mut len: Option<u64> = None;
 
+  let field_span = validation_data.field_span.clone();
+
   if let Some(len_value) = string_rules.len {
     len = Some(len_value);
     templates.push(ValidatorTemplate {
-      item_rust_name: field_data.rust_name.clone(),
+      item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
-        field_data: field_data.clone(),
+        validation_data: validation_data.clone(),
         field_validator: FieldValidator::Scalar {
           validator_path: quote! { protocheck::validators::strings::len },
           target_value_tokens: len_value.into_token_stream(),
@@ -33,9 +34,9 @@ pub fn get_string_rules(
     min_len = Some(min_len_value);
 
     templates.push(ValidatorTemplate {
-      item_rust_name: field_data.rust_name.clone(),
+      item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
-        field_data: field_data.clone(),
+        validation_data: validation_data.clone(),
         field_validator: FieldValidator::Scalar {
           validator_path: quote! { protocheck::validators::strings::min_len },
           target_value_tokens: min_len_value.into_token_stream(),
@@ -48,9 +49,9 @@ pub fn get_string_rules(
     max_len = Some(max_len_value);
 
     templates.push(ValidatorTemplate {
-      item_rust_name: field_data.rust_name.clone(),
+      item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
-        field_data: field_data.clone(),
+        validation_data: validation_data.clone(),
         field_validator: FieldValidator::Scalar {
           validator_path: quote! { protocheck::validators::strings::max_len },
           target_value_tokens: max_len_value.into_token_stream(),

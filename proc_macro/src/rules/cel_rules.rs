@@ -5,7 +5,6 @@ use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
 use quote::quote;
-use random_string::charsets::ALPHA_LOWER;
 use syn::Error;
 
 use super::{
@@ -26,13 +25,13 @@ pub fn get_cel_rules(
       let dyn_message = DynamicMessage::new(message_desc.clone());
       convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
     }
-    CelRuleTemplateTarget::Field(field_desc, field_data) => {
-      get_default_field_prost_value(field_data, field_desc).unwrap()
+    CelRuleTemplateTarget::Field(field_desc, validation_data) => {
+      get_default_field_prost_value(&validation_data.field_data, field_desc).unwrap()
     }
   };
 
   let validation_type = rule_target.get_validation_type();
-  let target_name = rule_target.get_name();
+  let target_name = rule_target.get_full_name();
 
   let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
 
@@ -58,36 +57,32 @@ pub fn get_cel_rules(
           let error_message = rule.message().to_string();
           let rule_id = rule.id().to_string();
 
-          let random_string = random_string::generate(5, ALPHA_LOWER);
           let static_program_ident = Ident2::new(
             &format!(
-              "__CEL_{}_{}_PROGRAM_{}",
+              "__CEL_{}_{}_PROGRAM",
               validation_type.to_uppercase(),
-              rule_target.get_name(),
-              random_string
+              target_name.to_uppercase(),
             ),
             Span2::call_site(),
           );
 
           let compilation_error = format!(
             "Cel program failed to compile for {} {}",
-            validation_type,
-            rule_target.get_name()
+            validation_type, target_name,
           );
 
           static_defs.push(quote! {
-            #[allow(non_upper_case_globals)]
             static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
               cel_interpreter::Program::compile(#expression).expect(#compilation_error)
             });
           });
 
           match rule_target {
-            CelRuleTemplateTarget::Field(_, field_data) => {
+            CelRuleTemplateTarget::Field(_, validation_data) => {
               validators.push(ValidatorTemplate {
                 item_rust_name: rule_target.get_name().to_string(),
                 kind: ValidatorKind::Field {
-                  field_data: field_data.clone(),
+                  validation_data: validation_data.clone(),
                   field_validator: FieldValidator::Cel {
                     rule_id,
                     error_message,

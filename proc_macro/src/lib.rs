@@ -20,6 +20,7 @@ mod namespaces;
 mod pool_loader;
 mod protogen;
 mod rules;
+mod validation_data;
 mod validator_template;
 
 #[proc_macro_attribute]

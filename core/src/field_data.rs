@@ -9,7 +9,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
-  pub field_data: FieldData,
+  pub field_data: &'a FieldData,
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
 }
@@ -110,12 +110,8 @@ pub struct FieldData {
   pub proto_name: String,
   pub tag: u32,
   pub kind: FieldKind,
-  pub is_required: bool,
-  pub is_optional: bool,
-  pub is_in_oneof: bool,
   pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
-  pub enum_full_name: Option<String>,
   pub ignore: Ignore,
 }
