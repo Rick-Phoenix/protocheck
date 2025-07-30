@@ -16,16 +16,11 @@ fn main() {
     created_at: None,
     id: 1,
     value: vec![],
-    posts: vec![
-      Post {
-        tags: vec!["me".to_string()],
-        name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
-      },
-      Post {
-        tags: vec!["meeeeeee".to_string()],
-        name: vec!["not_alfonso".to_string(), "also_not_alfonso".to_string()],
-      },
-    ],
+    post: Some(Post {
+      tags: vec!["me".to_string()],
+      name: "not_alfonso".to_string(),
+      created_at: None,
+    }),
     oneof_fields: Some(OneofFields::Field1("abab".to_string())),
     // oneof_fields: None,
   };

@@ -11,7 +11,7 @@ resolver = "2"
 
 [workspace.dependencies]
 cel-parser = "=0.10.1"
-cel-interpreter = "=0.10.0"
+cel-interpreter = { version = "=0.10.0", features = ["chrono"] }
 prost = "0.14.1"
 serde = { version = "1", features = ["derive"] }
 prost-reflect = { version = "0.16.0", features = ["serde"] }
@@ -24,3 +24,4 @@ prost-build = "0.14.1"
 dotenvy = "0.15.7"
 serde_json = "1"
 random-string = "1.1.0"
+chrono = { version = "0.4.41", features = ["serde"] }
