@@ -9,18 +9,11 @@ use crate::{
   },
 };
 
-pub fn in_list<T>(
-  field_context: &FieldContext,
-  value: Option<T>,
-  target: &[T],
-) -> Result<(), Violation>
+pub fn in_list<T>(field_context: &FieldContext, value: &T, target: &[T]) -> Result<(), Violation>
 where
   T: PartialEq + Debug,
 {
-  let check = match value {
-    Some(val) => target.contains(&val),
-    None => return Ok(()),
-  };
+  let check = target.contains(value);
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -61,16 +54,13 @@ where
 
 pub fn not_in_list<T>(
   field_context: &FieldContext,
-  value: Option<T>,
+  value: &T,
   target: &[T],
 ) -> Result<(), Violation>
 where
   T: PartialEq + Debug,
 {
-  let check = match value {
-    Some(val) => !target.contains(&val),
-    None => return Ok(()),
-  };
+  let check = !target.contains(value);
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
