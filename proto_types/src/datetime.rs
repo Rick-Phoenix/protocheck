@@ -1,6 +1,8 @@
 //! A date/time type which exists primarily to convert [`Timestamp`]s into an RFC 3339 formatted
 //! string.
 
+// From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/datetime.rs]
+
 use core::fmt;
 
 use crate::{Duration, Timestamp, TimestampError};

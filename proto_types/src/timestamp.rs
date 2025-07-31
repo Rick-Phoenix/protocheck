@@ -1,3 +1,4 @@
+// From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
 use super::*;
 
 impl Timestamp {

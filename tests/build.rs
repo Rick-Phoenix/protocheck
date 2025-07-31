@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let proto_files = &[
     "proto/myapp/v1/user.proto",
-    "proto_deps/buf/validate/validate.proto",
+    // "proto_deps/buf/validate/validate.proto",
     // "proto/myapp/v1/post.proto",
   ];
 
