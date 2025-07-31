@@ -7,13 +7,10 @@ use crate::{
 
 pub fn f32_is_finite(
   field_context: &FieldContext,
-  value: Option<f32>,
+  value: &f32,
   target: bool,
 ) -> Result<(), Violation> {
-  let check = match value {
-    Some(val) => val.is_nan() == target,
-    None => return Ok(()),
-  };
+  let check = !value.is_nan();
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -68,13 +65,10 @@ pub fn f32_is_finite(
 
 pub fn f64_is_finite(
   field_context: &FieldContext,
-  value: Option<f64>,
+  value: &f64,
   target: bool,
 ) -> Result<(), Violation> {
-  let check = match value {
-    Some(val) => val.is_nan() == target,
-    None => return Ok(()),
-  };
+  let check = !value.is_nan();
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();

@@ -121,7 +121,7 @@ pub fn get_duration_rules(
         validation_data: validation_data.clone(),
         field_validator: FieldValidator::Scalar {
           validator_path: quote! { protocheck::validators::containing::in_list },
-          target_value_tokens: quote! { &vec![ #(#in_list),* ] },
+          target_value_tokens: quote! { vec![ #(#in_list),* ] },
         },
       },
     });

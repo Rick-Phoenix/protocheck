@@ -8,18 +8,13 @@ use crate::{
 
 pub fn min_items<T>(
   field_context: &FieldContext,
-  value: Option<&Vec<T>>,
-  min_items: u64,
+  value: &[T],
+  min_items: &u64,
 ) -> Result<(), Violation> {
-  let val = match value {
-    Some(v) => v,
-    None => return Ok(()),
-  };
-
-  let check = val.len() >= min_items as usize;
+  let check = value.len() >= *min_items as usize;
 
   if !check {
-    let plural_suffix = if min_items > 1 { "s" } else { "" };
+    let plural_suffix = if *min_items > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
@@ -70,18 +65,13 @@ pub fn min_items<T>(
 
 pub fn max_items<T>(
   field_context: &FieldContext,
-  value: Option<&Vec<T>>,
-  max_items: u64,
+  value: &[T],
+  max_items: &u64,
 ) -> Result<(), Violation> {
-  let val = match value {
-    Some(v) => v,
-    None => return Ok(()),
-  };
-
-  let check = val.len() <= max_items as usize;
+  let check = value.len() <= *max_items as usize;
 
   if !check {
-    let plural_suffix = if max_items > 1 { "s" } else { "" };
+    let plural_suffix = if *max_items > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
@@ -131,13 +121,13 @@ pub fn max_items<T>(
 
 pub fn unique<T>(
   field_context: &FieldContext,
-  value: T,
+  value: &T,
   processed_values: &mut HashSet<T>,
 ) -> Result<(), Violation>
 where
   T: Eq + Hash + Clone + ToString,
 {
-  let check = processed_values.insert(value);
+  let check = processed_values.insert(value.clone());
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -187,26 +177,26 @@ where
 pub trait FloatBits {
   type Bits: Eq + std::hash::Hash;
 
-  fn to_bits_for_unique_check(self) -> Self::Bits;
+  fn to_bits_for_unique_check(&self) -> Self::Bits;
 }
 
 impl FloatBits for &f32 {
   type Bits = u32;
-  fn to_bits_for_unique_check(self) -> u32 {
+  fn to_bits_for_unique_check(&self) -> u32 {
     self.to_bits()
   }
 }
 
 impl FloatBits for &f64 {
   type Bits = u64;
-  fn to_bits_for_unique_check(self) -> u64 {
+  fn to_bits_for_unique_check(&self) -> u64 {
     self.to_bits()
   }
 }
 
 pub fn unique_floats<T, B>(
   field_context: &FieldContext,
-  value: T,
+  value: &T,
   processed_values: &mut HashSet<B>,
 ) -> Result<(), Violation>
 where

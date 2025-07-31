@@ -9,14 +9,11 @@ use crate::{
   },
 };
 
-pub fn lt<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn lt<T>(field_context: &FieldContext, value: &T, target: &T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
-  let check = match value {
-    Some(val) => val < target,
-    None => return Ok(()),
-  };
+  let check = *value < *target;
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -55,14 +52,11 @@ where
   Ok(())
 }
 
-pub fn lte<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn lte<T>(field_context: &FieldContext, value: &T, target: &T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
-  let check = match value {
-    Some(val) => val <= target,
-    None => return Ok(()),
-  };
+  let check = *value <= *target;
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -101,14 +95,11 @@ where
   Ok(())
 }
 
-pub fn gt<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn gt<T>(field_context: &FieldContext, value: &T, target: &T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
-  let check = match value {
-    Some(val) => val > target,
-    None => return Ok(()),
-  };
+  let check = *value > *target;
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
@@ -147,14 +138,11 @@ where
   Ok(())
 }
 
-pub fn gte<T>(field_context: &FieldContext, value: Option<T>, target: T) -> Result<(), Violation>
+pub fn gte<T>(field_context: &FieldContext, value: &T, target: &T) -> Result<(), Violation>
 where
   T: PartialOrd + Debug,
 {
-  let check = match value {
-    Some(val) => val >= target,
-    None => return Ok(()),
-  };
+  let check = *value >= *target;
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();

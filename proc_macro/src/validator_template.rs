@@ -172,7 +172,7 @@ impl ToTokens for ValidatorTemplate {
             });
 
             let validator_tokens = quote! {
-              match #validator_path(&field_context, #field_ident, #target_value_tokens) {
+              match #validator_path(&field_context, #field_ident, &#target_value_tokens) {
                 Ok(_) => {},
                 Err(v) => {
                   #violations_ident.push(v);
@@ -219,7 +219,7 @@ impl ToTokens for ValidatorTemplate {
                   parent_elements: #parent_messages_ident.as_slice(),
                   subscript: #subscript_tokens,
                 };
-                #violations_ident.push(protocheck::validators::enums::defined_only(&&field_context, #enum_name));
+                #violations_ident.push(protocheck::validators::enums::defined_only(&field_context, #enum_name));
               }
             };
 
@@ -262,7 +262,7 @@ impl ToTokens for ValidatorTemplate {
                     parent_elements: #parent_messages_ident,
                     subscript: #subscript_tokens,
                   };
-                  match protocheck::validators::repeated::#func_name(&field_context, #item_ident, &mut #hashset_ident) {
+                  match protocheck::validators::repeated::#func_name(&field_context, &#item_ident, &mut #hashset_ident) {
                     Ok(_) => {},
                     Err(v) => {
                       #not_unique = true;

@@ -8,18 +8,11 @@ use crate::{
   },
 };
 
-pub fn constant<T>(
-  field_context: &FieldContext,
-  value: Option<T>,
-  target: T,
-) -> Result<(), Violation>
+pub fn constant<T>(field_context: &FieldContext, value: &T, target: &T) -> Result<(), Violation>
 where
   T: PartialEq + Debug,
 {
-  let check = match value {
-    Some(val) => val == target,
-    None => return Ok(()),
-  };
+  let check = *value == *target;
 
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
