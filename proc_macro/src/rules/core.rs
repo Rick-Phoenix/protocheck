@@ -6,8 +6,8 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
 use crate::{
   rules::{
-    duration_rules::get_duration_rules, enum_rules::get_enum_rules, string_rules::get_string_rules,
-    timestamp_rules::get_timestamp_rules,
+    duration_rules::get_duration_rules, enum_rules::get_enum_rules, numeric_rules::get_int64_rules,
+    string_rules::get_string_rules, timestamp_rules::get_timestamp_rules,
   },
   validation_data::ValidationData,
 };
@@ -60,6 +60,19 @@ pub fn get_field_rules(
         ))
       } else {
         let rules = get_string_rules(validation_data, string_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    RulesType::Int64(int64_rules) => {
+      if !matches!(&field_proto_kind, Kind::Int64) {
+        error = Some(field_mismatch_error(
+          error_prefix,
+          "int64",
+          field_proto_kind,
+          field_span,
+        ))
+      } else {
+        let rules = get_int64_rules(validation_data, int64_rules)?;
         rules_agg.extend(rules);
       }
     }

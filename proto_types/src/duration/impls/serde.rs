@@ -1,20 +1,39 @@
 use core::fmt;
 
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use chrono::Duration as ChronoDuration;
+use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{Duration, NANOS_PER_SECOND};
+use crate::Duration;
 
 impl Serialize for Duration {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: Serializer,
   {
-    let mut self_normalized = *self;
-    self_normalized.normalize();
+    let self_normalized = self.normalized();
 
-    let seconds: f64 =
-      self_normalized.seconds as f64 + self_normalized.nanos as f64 / NANOS_PER_SECOND as f64;
-    serializer.serialize_str(&format!("{:.9}s", seconds))
+    let chrono_dur: ChronoDuration = self_normalized.try_into().map_err(|e| {
+      ser::Error::custom(format!(
+        "Failed to convert duration for serialization: {}",
+        e
+      ))
+    })?;
+
+    let seconds = chrono_dur.num_seconds();
+    let nanos = chrono_dur.subsec_nanos();
+
+    let formatted_string = if nanos == 0 {
+      // If nanos are zero, just "Xs"
+      format!("{}s", seconds)
+    } else {
+      let fractional_seconds_str = format!("{:09}", nanos);
+
+      let trimmed_fractional_seconds = fractional_seconds_str.trim_end_matches('0');
+
+      format!("{}.{}s", seconds, trimmed_fractional_seconds)
+    };
+
+    serializer.serialize_str(&formatted_string)
   }
 }
 

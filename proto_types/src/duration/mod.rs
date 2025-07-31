@@ -4,6 +4,7 @@ use quote::{quote, ToTokens};
 mod impls;
 mod units;
 
+pub use impls::DurationError;
 pub use units::*;
 
 use crate::Duration;

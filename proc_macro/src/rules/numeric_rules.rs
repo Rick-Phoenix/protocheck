@@ -13,7 +13,7 @@ use crate::{
 };
 
 pub fn get_int64_rules(
-  validation_data: ValidationData,
+  validation_data: &ValidationData,
   rules: &Int64Rules,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
@@ -51,7 +51,7 @@ pub fn get_int64_rules(
           kind: ValidatorKind::Field {
             validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::numeric::lt },
+              validator_path: quote! { protocheck::validators::comparables::lt },
               target_value_tokens: val.to_token_stream(),
             },
           },
@@ -64,7 +64,7 @@ pub fn get_int64_rules(
           kind: ValidatorKind::Field {
             validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::numeric::lte },
+              validator_path: quote! { protocheck::validators::comparables::lte },
               target_value_tokens: val.to_token_stream(),
             },
           },
@@ -82,7 +82,7 @@ pub fn get_int64_rules(
           kind: ValidatorKind::Field {
             validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::numeric::gt },
+              validator_path: quote! { protocheck::validators::comparables::gt },
               target_value_tokens: val.to_token_stream(),
             },
           },
@@ -95,7 +95,7 @@ pub fn get_int64_rules(
           kind: ValidatorKind::Field {
             validation_data: validation_data.clone(),
             field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::numeric::gte },
+              validator_path: quote! { protocheck::validators::comparables::gte },
               target_value_tokens: val.to_token_stream(),
             },
           },
