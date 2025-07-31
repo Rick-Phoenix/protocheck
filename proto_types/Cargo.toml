@@ -8,6 +8,12 @@ prost = { workspace = true }
 serde = { workspace = true }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
+chrono = { workspace = true }
+
+[features]
+std = ["chrono/std"]
+
+default = ["std"]
 
 [build-dependencies]
 prost-build = { workspace = true }
