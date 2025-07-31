@@ -113,5 +113,19 @@ pub fn get_duration_rules(
   validate_gt_lt(&gt, &lt, &error_prefix, field_span)?;
   validate_in_not_in(&rules.r#in, &rules.not_in, &error_prefix, field_span)?;
 
+  if !rules.r#in.is_empty() {
+    let in_list = rules.r#in.clone();
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::in_list },
+          target_value_tokens: quote! { &vec![ #(#in_list),* ] },
+        },
+      },
+    });
+  }
+
   Ok(templates)
 }
