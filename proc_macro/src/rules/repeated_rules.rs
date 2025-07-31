@@ -34,6 +34,8 @@ pub fn get_repeated_rules(
     }
   }
 
+  let error_prefix = format!("Error for field {}:", validation_data.full_name);
+
   let mut unique_values = false;
   let float_values = matches!(validation_data.field_data.proto_type, ProtoType::Float)
     || matches!(validation_data.field_data.proto_type, ProtoType::Double);
@@ -43,7 +45,10 @@ pub fn get_repeated_rules(
       if item_is_message {
         return Err(syn::Error::new(
           field_span,
-          "repeated.unique only works for scalar fields",
+          format!(
+            "{} repeated.unique only works for scalar fields",
+            error_prefix
+          ),
         ));
       }
 
@@ -86,7 +91,10 @@ pub fn get_repeated_rules(
     if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {
       return Err(syn::Error::new(
         field_span,
-        "repeated.min_items cannot be larger than repeated.max_items",
+        format!(
+          "{} repeated.min_items cannot be larger than repeated.max_items",
+          error_prefix
+        ),
       ));
     }
 

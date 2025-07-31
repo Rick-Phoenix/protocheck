@@ -21,12 +21,12 @@ pub fn get_field_rules(
   let mut rules_agg: Vec<ValidatorTemplate> = Vec::new();
   let mut error: Option<Error> = None;
 
-  let field_name = &validation_data.field_data.proto_name;
+  let field_name = &validation_data.full_name;
   let field_proto_kind = &field_desc.kind();
   let field_data_kind = &validation_data.field_data.kind;
   let field_span = validation_data.field_span;
 
-  let error_prefix = format!("Error for field {}:", field_name);
+  let error_prefix = &format!("Error for field {}:", field_name);
 
   match field_rules {
     RulesType::Enum(enum_rules) => {
@@ -53,7 +53,7 @@ pub fn get_field_rules(
     RulesType::String(string_rules) => {
       if !matches!(&field_proto_kind, Kind::String) {
         error = Some(field_mismatch_error(
-          field_name,
+          error_prefix,
           "string",
           field_proto_kind,
           field_span,
@@ -66,7 +66,7 @@ pub fn get_field_rules(
     RulesType::Duration(duration_rules) => {
       if !matches!(field_data_kind, FieldKind::Duration) {
         error = Some(field_mismatch_error(
-          field_name,
+          error_prefix,
           "duration",
           field_proto_kind,
           field_span,
@@ -79,7 +79,7 @@ pub fn get_field_rules(
     RulesType::Timestamp(timestamp_rules) => {
       if !matches!(&field_data_kind, FieldKind::Timestamp) {
         error = Some(field_mismatch_error(
-          field_name,
+          error_prefix,
           "timestamp",
           field_proto_kind,
           field_span,
@@ -100,7 +100,7 @@ pub fn get_field_rules(
 }
 
 pub fn field_mismatch_error(
-  field_name: &str,
+  error_prefix: &str,
   rule_type: &str,
   field_type: &Kind,
   span: Span,
@@ -108,8 +108,8 @@ pub fn field_mismatch_error(
   Error::new(
     span,
     format!(
-      "Wrong rule type for field {}. Rule type: {}, Field Type: {:#?}",
-      field_name, rule_type, field_type
+      "{} wrong rule type. Rule type: {}, Field Type: {:#?}",
+      error_prefix, rule_type, field_type
     ),
   )
 }

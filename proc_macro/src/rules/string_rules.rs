@@ -2,7 +2,11 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::StringRules, ValidatorKind, ValidatorTemplate};
-use crate::{validation_data::ValidationData, validator_template::FieldValidator};
+use crate::{
+  rules::{comparable_rules::validate_len, containing_rules::validate_in_not_in},
+  validation_data::ValidationData,
+  validator_template::FieldValidator,
+};
 
 pub fn get_string_rules(
   validation_data: &ValidationData,
@@ -10,14 +14,10 @@ pub fn get_string_rules(
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
 
-  let mut min_len: Option<u64> = None;
-  let mut max_len: Option<u64> = None;
-  let mut len: Option<u64> = None;
-
   let field_span = validation_data.field_span;
+  let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   if let Some(len_value) = string_rules.len {
-    len = Some(len_value);
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -31,8 +31,6 @@ pub fn get_string_rules(
   }
 
   if let Some(min_len_value) = string_rules.min_len {
-    min_len = Some(min_len_value);
-
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -46,8 +44,6 @@ pub fn get_string_rules(
   }
 
   if let Some(max_len_value) = string_rules.max_len {
-    max_len = Some(max_len_value);
-
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -60,19 +56,29 @@ pub fn get_string_rules(
     });
   }
 
-  if len.is_some() && (min_len.is_some() || max_len.is_some()) {
-    return Err(syn::Error::new(
-      field_span,
-      "string.len cannot be used with string.max_len or string.min_len",
-    ));
-  }
+  validate_in_not_in(
+    &string_rules.r#in,
+    &string_rules.not_in,
+    &error_prefix,
+    field_span,
+  )?;
 
-  if min_len.is_some() && max_len.is_some() && min_len.unwrap() > max_len.unwrap() {
-    return Err(syn::Error::new(
-      field_span,
-      "string.min_len cannot be larger than string.max_len",
-    ));
-  }
+  validate_len(
+    string_rules.len,
+    string_rules.min_len,
+    string_rules.max_len,
+    &error_prefix,
+    false,
+    field_span,
+  )?;
+  validate_len(
+    string_rules.len_bytes,
+    string_rules.min_bytes,
+    string_rules.max_bytes,
+    &error_prefix,
+    true,
+    field_span,
+  )?;
 
   Ok(templates)
 }

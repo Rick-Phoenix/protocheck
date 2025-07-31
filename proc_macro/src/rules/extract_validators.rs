@@ -178,6 +178,7 @@ pub fn extract_oneof_validators(
       };
 
       let validation_data = ValidationData {
+        full_name: field.full_name().to_string(),
         is_required,
         is_in_oneof: true,
         is_optional: true,
@@ -416,6 +417,7 @@ pub fn extract_message_validators(
       };
 
       let validation_data = ValidationData {
+        full_name: field_desc.full_name().to_string(),
         is_required,
         is_in_oneof: false,
         is_optional,

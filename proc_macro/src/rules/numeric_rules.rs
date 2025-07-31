@@ -3,13 +3,14 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::Int64Rules, ValidatorKind, ValidatorTemplate};
-use crate::{validation_data::ValidationData, validator_template::FieldValidator};
-
-#[derive(Debug)]
-struct GtLt {
-  pub val: i64,
-  pub eq: bool,
-}
+use crate::{
+  rules::{
+    comparable_rules::{validate_gt_lt, Gt, Lt},
+    containing_rules::validate_in_not_in,
+  },
+  validation_data::ValidationData,
+  validator_template::FieldValidator,
+};
 
 pub fn get_int64_rules(
   validation_data: ValidationData,
@@ -17,8 +18,8 @@ pub fn get_int64_rules(
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
 
-  let mut lt: Option<GtLt> = None;
-  let mut gt: Option<GtLt> = None;
+  let mut lt: Option<Lt<i64>> = None;
+  let mut gt: Option<Gt<i64>> = None;
 
   let field_span = validation_data.field_span;
 
@@ -44,7 +45,7 @@ pub fn get_int64_rules(
   if let Some(lt_rule) = rules.less_than {
     match lt_rule {
       LessThan::Lt(val) => {
-        lt = Some(GtLt { val, eq: false });
+        lt = Some(Lt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -57,7 +58,7 @@ pub fn get_int64_rules(
         });
       }
       LessThan::Lte(val) => {
-        lt = Some(GtLt { val, eq: true });
+        lt = Some(Lt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -75,7 +76,7 @@ pub fn get_int64_rules(
   if let Some(gt_rule) = rules.greater_than {
     match gt_rule {
       GreaterThan::Gt(val) => {
-        gt = Some(GtLt { val, eq: false });
+        gt = Some(Gt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -88,7 +89,7 @@ pub fn get_int64_rules(
         });
       }
       GreaterThan::Gte(val) => {
-        gt = Some(GtLt { val, eq: true });
+        gt = Some(Gt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -103,34 +104,8 @@ pub fn get_int64_rules(
     };
   }
 
-  if let Some(gt_val) = gt {
-    if let Some(lt_val) = lt {
-      if lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
-        return Err(Error::new(
-          field_span,
-          format!("{} Lte cannot be larger than Gte", error_prefix),
-        ));
-      }
-      if !lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
-        return Err(Error::new(
-          field_span,
-          format!("{} Lt cannot be larger than or equal to Gt", error_prefix),
-        ));
-      }
-      if lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
-        return Err(Error::new(
-          field_span,
-          format!("{} Lte cannot be larger than or equal to Gt", error_prefix),
-        ));
-      }
-      if !lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
-        return Err(Error::new(
-          field_span,
-          format!("{} Lt cannot be larger than Gte", error_prefix),
-        ));
-      }
-    }
-  }
+  validate_gt_lt(&gt, &lt, &error_prefix, field_span)?;
+  validate_in_not_in(&rules.r#in, &rules.not_in, &error_prefix, field_span)?;
 
   Ok(templates)
 }

@@ -1,4 +1,5 @@
 use cel_interpreter::{Context, Program, Value};
+use chrono::Utc;
 
 use crate::{
   field_data::FieldContext,
@@ -53,9 +54,25 @@ where
     return Ok(());
   }
 
+  let validator_type = rule_data.validation_type();
+  let target_name = rule_data.target_name();
+
+  let error_prefix = format!(
+    "Error during Cel validation for {} {}:",
+    validator_type, target_name
+  );
+
   let unwrapped_val = value.unwrap();
   let mut cel_context = Context::default();
-  cel_context.add_variable("this", unwrapped_val).unwrap();
+  cel_context.add_variable_from_value("now", Value::Timestamp(Utc::now().into()));
+  cel_context
+    .add_variable("this", unwrapped_val)
+    .unwrap_or_else(|e| {
+      println!(
+        "{} could not add 'this' to the program: {}",
+        error_prefix, e
+      );
+    });
 
   let result = program.execute(&cel_context);
 
@@ -64,14 +81,6 @@ where
     error_message,
     rule_target,
   } = rule_data;
-
-  let validator_type = rule_data.validation_type();
-  let target_name = rule_data.target_name();
-
-  let error_prefix = format!(
-    "Error during Cel validation for {} {}:",
-    validator_type, target_name
-  );
 
   match result {
     Ok(value) => {

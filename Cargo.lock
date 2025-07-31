@@ -525,6 +525,7 @@ name = "protocheck_core"
 version = "0.1.0"
 dependencies = [
  "cel-interpreter",
+ "chrono",
  "proc-macro2",
  "prost",
  "prost-reflect",

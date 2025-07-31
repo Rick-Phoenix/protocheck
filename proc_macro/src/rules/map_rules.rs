@@ -27,6 +27,7 @@ pub fn get_map_rules(
   let mut value_rules: Vec<ValidatorTemplate> = Vec::new();
 
   let map_field_span = validation_data.field_span;
+  let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -38,8 +39,8 @@ pub fn get_map_rules(
     return Err(Error::new(
       map_field_span,
       format!(
-        "Map field {} has no associated map entry message descriptor.",
-        map_field_desc.name()
+        "{} map field has no associated map entry message descriptor.",
+        error_prefix
       ),
     ));
   };
@@ -47,11 +48,14 @@ pub fn get_map_rules(
   let (key_desc, value_desc) = (
     key_desc.ok_or(Error::new(
       map_field_span,
-      "Map entry missing 'key' field descriptor",
+      format!("{} map entry missing 'key' field descriptor", error_prefix),
     ))?,
     value_desc.ok_or(Error::new(
       map_field_span,
-      "Map entry missing 'value' field descriptor",
+      format!(
+        "{} map entry missing 'value' field descriptor",
+        error_prefix
+      ),
     ))?,
   );
 
@@ -107,7 +111,10 @@ pub fn get_map_rules(
     if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
       return Err(syn::Error::new(
         map_field_span,
-        "map.min_pairs cannot be larger than map.max_pairs",
+        format!(
+          "{} map.min_pairs cannot be larger than map.max_pairs",
+          error_prefix
+        ),
       ));
     }
 
