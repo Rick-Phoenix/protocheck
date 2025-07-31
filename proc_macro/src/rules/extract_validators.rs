@@ -426,8 +426,15 @@ pub fn extract_message_validators(
         field_data_static_ident,
       };
 
-      let field_rules_type = field_rules.r#type.as_ref();
+      if !field_rules.cel.is_empty() {
+        field_validators.extend(get_cel_rules(
+          &CelRuleTemplateTarget::Field(field_desc.clone(), validation_data.clone()),
+          &field_rules.cel,
+          &mut static_defs,
+        )?);
+      }
 
+      let field_rules_type = field_rules.r#type.as_ref();
       if is_repeated {
         let repeated_rules = get_repeated_rules(
           &validation_data,
@@ -452,15 +459,11 @@ pub fn extract_message_validators(
         if let Some(rules) = map_rules {
           field_validators.push(rules);
         }
-      } else if let Kind::Message(field_message_desc) = field_desc.kind() {
-        if !field_rules.cel.is_empty() {
-          field_validators.extend(get_cel_rules(
-            &CelRuleTemplateTarget::Field(field_desc.clone(), validation_data.clone()),
-            &field_rules.cel,
-            &mut static_defs,
-          )?);
-        }
+      } else if let Some(rules_type) = field_rules_type {
+        let rules = get_field_rules(field_rust_enum, &field_desc, &validation_data, rules_type)?;
 
+        field_validators.extend(rules);
+      } else if let Kind::Message(field_message_desc) = field_desc.kind() {
         if !field_message_desc
           .full_name()
           .starts_with("google.protobuf")
@@ -474,10 +477,6 @@ pub fn extract_message_validators(
           };
           field_validators.push(template);
         }
-      } else if let Some(rules_type) = field_rules_type {
-        let rules = get_field_rules(field_rust_enum, &field_desc, &validation_data, rules_type)?;
-
-        field_validators.extend(rules);
       } else if is_required {
         field_validators.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.to_string(),
