@@ -19,6 +19,7 @@ pub mod maps;
 pub mod oneofs;
 pub mod repeated;
 pub mod required;
+pub mod timestamps;
 
 #[allow(unused, dead_code)]
 pub mod static_data;

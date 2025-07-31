@@ -1,5 +1,5 @@
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/duration.rs]
-use super::*;
+use super::super::super::*;
 
 impl Duration {
   /// Normalizes the duration to a canonical format.
@@ -203,7 +203,6 @@ impl FromStr for Duration {
 }
 
 mod chrono {
-
   use ::chrono::TimeDelta;
 
   use super::*;
@@ -225,7 +224,7 @@ mod chrono {
   impl TryFrom<Duration> for ::chrono::TimeDelta {
     type Error = DurationError;
 
-    fn try_from(mut value: Duration) -> Result<TimeDelta, duration::DurationError> {
+    fn try_from(mut value: Duration) -> Result<TimeDelta, DurationError> {
       value.normalize();
 
       let seconds = TimeDelta::try_seconds(value.seconds).ok_or(DurationError::OutOfRange)?;

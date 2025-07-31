@@ -1,5 +1,5 @@
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
-use super::*;
+use super::super::super::*;
 
 impl Timestamp {
   /// Normalizes the timestamp to a canonical format.
