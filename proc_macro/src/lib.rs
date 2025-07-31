@@ -11,7 +11,7 @@ use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
 use validator_template::ValidatorTemplate;
 
 use crate::{
-  extract_validators::extract_oneof_validators,
+  extract_validators::{extract_oneof_validators, OneofValidatorsOutput},
   rules::extract_validators::{self, extract_message_validators},
 };
 
@@ -149,7 +149,10 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
       match extract_oneof_validators(&ast, &oneof) {
-        Ok((validators_data, static_definitions)) => {
+        Ok(OneofValidatorsOutput {
+          validators: validators_data,
+          static_defs: static_definitions,
+        }) => {
           validators = validators_data;
           static_defs = static_definitions;
         }
@@ -203,11 +206,3 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 pub fn derive_oneof(_input: TokenStream) -> TokenStream {
   TokenStream::new()
 }
-
-// #[proc_macro_derive(
-//   ProtoMessage,
-//   attributes(field_num, reserved_nums, reserved_ranges, reserved_names, protoschema)
-// )]
-// pub fn proto_message_macro_derive(input: TokenStream) -> TokenStream {
-//   parse_proto_message(input)
-// }

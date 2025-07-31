@@ -41,10 +41,16 @@ struct OneofField {
   pub span: Span2,
 }
 
+#[derive(Debug)]
+pub struct OneofValidatorsOutput {
+  pub validators: HashMap<Ident, Vec<ValidatorTemplate>>,
+  pub static_defs: Vec<TokenStream>,
+}
+
 pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
-) -> Result<(HashMap<Ident, Vec<ValidatorTemplate>>, Vec<TokenStream>), Error> {
+) -> Result<OneofValidatorsOutput, Error> {
   let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
   let mut static_defs: Vec<TokenStream> = Vec::new();
@@ -217,7 +223,10 @@ pub fn extract_oneof_validators(
     }
   }
 
-  Ok((validators, static_defs))
+  Ok(OneofValidatorsOutput {
+    validators,
+    static_defs,
+  })
 }
 
 pub fn extract_message_validators(
