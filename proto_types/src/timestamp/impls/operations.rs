@@ -1,8 +1,49 @@
-use std::{cmp::Ordering, ops::Add};
+use std::{
+  cmp::Ordering,
+  ops::{Add, Sub},
+};
 
 use chrono::{DateTime, Utc};
 
 use crate::{Duration, Timestamp};
+
+impl<'b> Sub<&'b Duration> for &Timestamp {
+  type Output = Timestamp;
+
+  fn sub(self, rhs: &'b Duration) -> Self::Output {
+    let duration = rhs.normalized();
+
+    let mut new = Timestamp {
+      seconds: self.seconds - duration.seconds,
+      nanos: self.nanos - duration.nanos,
+    };
+
+    new.normalize();
+
+    new
+  }
+}
+
+impl Sub<Duration> for Timestamp {
+  type Output = Timestamp;
+  fn sub(self, rhs: Duration) -> Self::Output {
+    <&Timestamp as Sub<&Duration>>::sub(&self, &rhs)
+  }
+}
+
+impl<'b> Sub<&'b Duration> for Timestamp {
+  type Output = Timestamp;
+  fn sub(self, rhs: &'b Duration) -> Self::Output {
+    <&Timestamp as Sub<&Duration>>::sub(&self, rhs)
+  }
+}
+
+impl<'a> Sub<Duration> for &'a Timestamp {
+  type Output = Timestamp;
+  fn sub(self, rhs: Duration) -> Self::Output {
+    <&'a Timestamp as Sub<&Duration>>::sub(self, &rhs)
+  }
+}
 
 impl<'b> Add<&'b Duration> for &Timestamp {
   type Output = Timestamp;
