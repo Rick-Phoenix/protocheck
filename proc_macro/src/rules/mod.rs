@@ -1,5 +1,4 @@
-pub(crate) use proto_types::{protobuf, protovalidate};
-pub(crate) use protobuf::field_descriptor_proto::Type as ProtoType;
+pub(crate) use proto_types::{field_descriptor_proto::Type as ProtoType, protovalidate};
 pub(crate) use protocheck_core::field_data::FieldData;
 pub(crate) use protovalidate::{field_rules, Ignore};
 use protovalidate::{MessageRules, OneofRules, Rule};
@@ -17,6 +16,5 @@ pub mod extract_validators;
 pub mod map_rules;
 pub mod numeric_rules;
 pub mod repeated_rules;
-pub mod rules_compat;
 pub mod string_rules;
 pub mod timestamp_rules;

@@ -14,7 +14,7 @@ pub fn get_string_rules(
   let mut max_len: Option<u64> = None;
   let mut len: Option<u64> = None;
 
-  let field_span = validation_data.field_span.clone();
+  let field_span = validation_data.field_span;
 
   if let Some(len_value) = string_rules.len {
     len = Some(len_value);

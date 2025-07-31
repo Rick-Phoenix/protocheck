@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
-pub(crate) use proto_types::protobuf::field_descriptor_proto::Type as ProtoType;
+pub(crate) use proto_types::field_descriptor_proto::Type as ProtoType;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
 use validator_template::ValidatorTemplate;

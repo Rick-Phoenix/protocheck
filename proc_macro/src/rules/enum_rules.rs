@@ -38,7 +38,7 @@ pub fn get_enum_rules(
       }
       if !invalid_numbers.is_empty() {
         return Err(syn::Error::new(
-          validation_data.field_span.clone(),
+          validation_data.field_span,
           format!(
             "enum_rules.in contains values that are not in the {} enum: {:?}",
             enum_name, invalid_numbers

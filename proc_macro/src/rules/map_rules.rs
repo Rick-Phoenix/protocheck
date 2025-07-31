@@ -26,7 +26,7 @@ pub fn get_map_rules(
   let mut key_rules: Vec<ValidatorTemplate> = Vec::new();
   let mut value_rules: Vec<ValidatorTemplate> = Vec::new();
 
-  let map_field_span = validation_data.field_span.clone();
+  let map_field_span = validation_data.field_span;
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -120,7 +120,7 @@ pub fn get_map_rules(
           key_validation_data.field_data.ignore = ignore;
 
           let generated_key_templates =
-            get_field_rules(field_rust_enum.clone(), &key_desc, &validation_data, rules)?;
+            get_field_rules(field_rust_enum.clone(), &key_desc, validation_data, rules)?;
           key_rules.extend(generated_key_templates);
 
           if !key_rules_descriptor.cel.is_empty() {
@@ -145,7 +145,7 @@ pub fn get_map_rules(
 
           if !value_is_message {
             let generated_value_templates =
-              get_field_rules(field_rust_enum, &value_desc, &validation_data, rules)?;
+              get_field_rules(field_rust_enum, &value_desc, validation_data, rules)?;
             value_rules.extend(generated_value_templates);
           }
 

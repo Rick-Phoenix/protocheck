@@ -24,7 +24,7 @@ pub fn get_field_rules(
   let field_name = &validation_data.field_data.proto_name;
   let field_proto_kind = &field_desc.kind();
   let field_data_kind = &validation_data.field_data.kind;
-  let field_span = validation_data.field_span.clone();
+  let field_span = validation_data.field_span;
 
   let error_prefix = format!("Error for field {}:", field_name);
 

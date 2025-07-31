@@ -4,7 +4,7 @@ use crate::{field_descriptor_proto::Type as ProtoType, TokenStream2};
 
 impl ToTokens for ProtoType {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let path = quote! { protocheck::types::protobuf::field_descriptor_proto::Type };
+    let path = quote! { protocheck::types::field_descriptor_proto::Type };
 
     match self {
       ProtoType::Double => tokens.extend(quote! { #path::Double }),

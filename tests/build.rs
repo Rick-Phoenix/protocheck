@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   config
     .file_descriptor_set_path(final_descriptor_path.clone())
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .extern_path(".google.protobuf", "protocheck::types::protobuf")
+    .extern_path(".google.protobuf", "protocheck::types")
     .extern_path(".buf.validate", "protocheck::types::protovalidate")
     .compile_well_known_types()
     .out_dir(out_dir.clone());

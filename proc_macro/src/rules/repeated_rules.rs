@@ -25,7 +25,7 @@ pub fn get_repeated_rules(
   let mut vec_level_rules: Vec<ValidatorTemplate> = Vec::new();
   let mut items_rules: Vec<ValidatorTemplate> = Vec::new();
 
-  let field_span = validation_data.field_span.clone();
+  let field_span = validation_data.field_span;
 
   let mut item_is_message = false;
   if let Kind::Message(item_desc) = field_desc.kind() {

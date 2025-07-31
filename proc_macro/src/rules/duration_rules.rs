@@ -1,9 +1,9 @@
 use proto_types::{
-  protobuf::Duration,
   protovalidate::{
     duration_rules::{GreaterThan, LessThan},
     DurationRules,
   },
+  Duration,
 };
 use quote::{quote, ToTokens};
 use syn::Error;
@@ -26,7 +26,7 @@ pub fn get_duration_rules(
   let mut lt: Option<GtLt> = None;
   let mut gt: Option<GtLt> = None;
 
-  let field_span = validation_data.field_span.clone();
+  let field_span = validation_data.field_span;
 
   let error_prefix = format!(
     "Error for field {}:",

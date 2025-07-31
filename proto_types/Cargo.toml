@@ -9,6 +9,7 @@ serde = { workspace = true }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
 chrono = { workspace = true }
+base64 = { workspace = true }
 
 [features]
 std = ["chrono/std"]

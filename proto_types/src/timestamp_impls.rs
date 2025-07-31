@@ -1,9 +1,24 @@
 use std::{cmp::Ordering, fmt};
 
 use chrono::{DateTime, Utc};
+use quote::{quote, ToTokens};
 use serde::{de, ser};
 
-use crate::Timestamp;
+use crate::{Timestamp, TokenStream2};
+
+impl ToTokens for Timestamp {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let seconds = self.seconds;
+    let nanos = self.nanos;
+
+    tokens.extend(quote! {
+      protocheck::types::Timestamp {
+        seconds: #seconds,
+        nanos: #nanos,
+      }
+    });
+  }
+}
 
 impl ser::Serialize for Timestamp {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

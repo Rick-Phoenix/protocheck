@@ -1,8 +1,24 @@
 use core::fmt;
 
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{Duration, NANOS_PER_SECOND};
+
+impl ToTokens for Duration {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    let seconds = self.seconds;
+    let nanos = self.nanos;
+
+    tokens.extend(quote! {
+      protocheck::types::Duration {
+        seconds: #seconds,
+        nanos: #nanos,
+      }
+    });
+  }
+}
 
 impl Serialize for Duration {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
