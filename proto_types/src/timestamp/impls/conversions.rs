@@ -1,9 +1,9 @@
 use std::convert::{From, TryFrom};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, FixedOffset, Utc};
 use quote::{quote, ToTokens};
 
-use crate::{Timestamp, TokenStream2};
+use crate::{Timestamp, TimestampError, TokenStream2};
 
 impl From<DateTime<Utc>> for Timestamp {
   fn from(datetime: DateTime<Utc>) -> Self {
@@ -17,17 +17,25 @@ impl From<DateTime<Utc>> for Timestamp {
 }
 
 impl TryFrom<Timestamp> for DateTime<Utc> {
-  type Error = String;
+  type Error = TimestampError;
 
   fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
     timestamp.normalize();
 
-    DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32).ok_or_else(|| {
-      format!(
-        "Timestamp value (seconds: {}, nanos: {}) is out of DateTime<Utc> range or invalid.",
-        timestamp.seconds, timestamp.nanos
-      )
-    })
+    DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+      .ok_or(TimestampError::OutOfSystemRange(timestamp))
+  }
+}
+
+impl TryFrom<Timestamp> for DateTime<FixedOffset> {
+  type Error = TimestampError;
+
+  fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
+    timestamp.normalize();
+
+    let chrono_utc: DateTime<Utc> = timestamp.try_into()?;
+
+    Ok(chrono_utc.into())
   }
 }
 
