@@ -19,6 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut config = Config::new();
   config
     .file_descriptor_set_path(final_descriptor_path.clone())
+    .enable_type_names()
     .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     .extern_path(".google.protobuf", "protocheck::types")
     .extern_path(".buf.validate", "protocheck::types::protovalidate")

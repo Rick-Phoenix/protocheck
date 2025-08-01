@@ -65,6 +65,7 @@ where
   let unwrapped_val = value.unwrap();
   let mut cel_context = Context::default();
   cel_context.add_variable_from_value("now", Value::Timestamp(Utc::now().into()));
+
   cel_context
     .add_variable("this", unwrapped_val)
     .unwrap_or_else(|e| {
