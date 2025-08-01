@@ -1,5 +1,6 @@
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
+use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
 use serde::{Deserialize, Serialize};
 
 use crate::FieldMask;
@@ -11,6 +12,38 @@ impl FieldMask {
 
   pub fn is_empty(&self) -> bool {
     self.paths.is_empty()
+  }
+}
+
+impl From<FieldMask> for CelValue {
+  fn from(value: FieldMask) -> Self {
+    let paths = &value.paths;
+
+    let mut cel_vals: Vec<CelValue> = Vec::new();
+    for path in paths {
+      cel_vals.push(CelValue::String(path.clone().into()));
+    }
+
+    let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
+    cel_map.insert("paths".into(), CelValue::List(cel_vals.into()));
+
+    CelValue::Map(cel_map.into())
+  }
+}
+
+impl From<&FieldMask> for CelValue {
+  fn from(value: &FieldMask) -> Self {
+    let paths = &value.paths;
+
+    let mut cel_vals: Vec<CelValue> = Vec::new();
+    for path in paths {
+      cel_vals.push(CelValue::String(path.clone().into()));
+    }
+
+    let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
+    cel_map.insert("paths".into(), CelValue::List(cel_vals.into()));
+
+    CelValue::Map(cel_map.into())
   }
 }
 

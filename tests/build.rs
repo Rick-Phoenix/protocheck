@@ -20,7 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   config
     .file_descriptor_set_path(final_descriptor_path.clone())
     .enable_type_names()
-    .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
+    .message_attribute(
+      ".",
+      "#[derive(serde::Serialize, serde::Deserialize, protocheck::macros::TryIntoCelValue)]",
+    )
     .extern_path(".google.protobuf", "protocheck::types")
     .extern_path(".buf.validate", "protocheck::types::protovalidate")
     .compile_well_known_types()
