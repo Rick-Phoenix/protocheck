@@ -296,22 +296,9 @@ impl ToTokens for ValidatorTemplate {
               #(#map_level_rules)*
 
               for (#key_ident, #val_ident) in self.#item_rust_ident.iter() {
-                let map_entry_field_path_element = protocheck::types::protovalidate::FieldPathElement {
-                  field_name: Some(#field_proto_name.to_string()),
-                  field_number: Some(#field_tag as i32),
-                  field_type: Some(#field_proto_type as i32),
-                  key_type: #key_type_tokens,
-                  value_type: #value_type_tokens,
-                  subscript: #subscript_tokens,
-                };
-
-                #parent_messages_ident.push(map_entry_field_path_element);
-
                 #(#key_rules)*
 
                 #(#value_rules)*
-
-                #parent_messages_ident.pop();
               }
             });
           }

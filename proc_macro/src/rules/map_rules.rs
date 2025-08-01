@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
-  validation_data: &ValidationData,
+  validation_data: ValidationData,
   static_defs: &mut Vec<TokenStream>,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
@@ -62,9 +62,12 @@ pub fn get_map_rules(
   let key_proto_type = convert_kind_to_proto_type(&key_desc.kind());
   let value_proto_type = convert_kind_to_proto_type(&value_desc.kind());
 
-  let mut map_field_data = validation_data.field_data.clone();
-  map_field_data.key_type = Some(key_proto_type);
-  map_field_data.value_type = Some(value_proto_type);
+  let mut map_validation_data = validation_data;
+
+  map_validation_data.field_data.key_type = Some(key_proto_type);
+  map_validation_data.field_data.value_type = Some(value_proto_type);
+
+  let map_rust_name = &map_validation_data.field_data.rust_name;
 
   let mut value_is_message = false;
   if let Kind::Message(value_message_desc) = value_desc.kind() {
@@ -76,6 +79,8 @@ pub fn get_map_rules(
     }
   }
 
+  let mut ignore_values_validators = false;
+
   if let Some(RulesType::Map(map_rules)) = field_rules {
     let mut min_pairs: Option<u64> = None;
     let mut max_pairs: Option<u64> = None;
@@ -83,9 +88,9 @@ pub fn get_map_rules(
     if let Some(min_pairs_value) = map_rules.min_pairs {
       min_pairs = Some(min_pairs_value);
       map_level_rules.push(ValidatorTemplate {
-        item_rust_name: map_field_data.rust_name.clone(),
+        item_rust_name: map_rust_name.clone(),
         kind: ValidatorKind::Field {
-          validation_data: validation_data.clone(),
+          validation_data: map_validation_data.clone(),
           field_validator: FieldValidator::Scalar {
             validator_path: quote! { macro_impl::validators::maps::min_pairs },
             target_value_tokens: min_pairs_value.into_token_stream(),
@@ -97,9 +102,9 @@ pub fn get_map_rules(
     if let Some(max_pairs_value) = map_rules.max_pairs {
       max_pairs = Some(max_pairs_value);
       map_level_rules.push(ValidatorTemplate {
-        item_rust_name: map_field_data.rust_name.clone(),
+        item_rust_name: map_rust_name.clone(),
         kind: ValidatorKind::Field {
-          validation_data: validation_data.clone(),
+          validation_data: map_validation_data.clone(),
           field_validator: FieldValidator::Scalar {
             validator_path: quote! { macro_impl::validators::maps::max_pairs },
             target_value_tokens: max_pairs_value.into_token_stream(),
@@ -121,13 +126,19 @@ pub fn get_map_rules(
     if let Some(key_rules_descriptor) = map_rules.keys.as_ref() {
       let ignore = key_rules_descriptor.ignore();
       if let Some(ref rules) = key_rules_descriptor.r#type {
-        if !matches!(ignore, Ignore::Always) {
-          let mut key_validation_data = validation_data.clone();
+        if matches!(ignore, Ignore::Always) {
+          ignore_values_validators = true
+        } else {
+          let mut key_validation_data = map_validation_data.clone();
           key_validation_data.field_data.kind = FieldKind::MapKey;
           key_validation_data.field_data.ignore = ignore;
 
-          let generated_key_templates =
-            get_field_rules(field_rust_enum.clone(), &key_desc, validation_data, rules)?;
+          let generated_key_templates = get_field_rules(
+            field_rust_enum.clone(),
+            &key_desc,
+            &key_validation_data,
+            rules,
+          )?;
           key_rules.extend(generated_key_templates);
 
           if !key_rules_descriptor.cel.is_empty() {
@@ -146,13 +157,13 @@ pub fn get_map_rules(
       let ignore = value_rules_descriptor.ignore();
       if let Some(ref rules) = value_rules_descriptor.r#type {
         if !matches!(ignore, Ignore::Always) {
-          let mut values_validation_data = validation_data.clone();
+          let mut values_validation_data = map_validation_data.clone();
           values_validation_data.field_data.kind = FieldKind::MapValue;
           values_validation_data.field_data.ignore = ignore;
 
           if !value_is_message {
             let generated_value_templates =
-              get_field_rules(field_rust_enum, &value_desc, validation_data, rules)?;
+              get_field_rules(field_rust_enum, &value_desc, &values_validation_data, rules)?;
             value_rules.extend(generated_value_templates);
           }
 
@@ -169,11 +180,14 @@ pub fn get_map_rules(
     }
   }
 
-  if value_is_message {
+  if value_is_message && !ignore_values_validators {
+    let mut values_validation_data = map_validation_data.clone();
+    values_validation_data.field_data.kind = FieldKind::MapValue;
+
     let value_message_rules = ValidatorTemplate {
-      item_rust_name: map_field_data.rust_name.clone(),
+      item_rust_name: map_rust_name.clone(),
       kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
+        validation_data: values_validation_data,
         field_validator: FieldValidator::MessageField,
       },
     };
@@ -185,9 +199,9 @@ pub fn get_map_rules(
     Ok(None)
   } else {
     Ok(Some(ValidatorTemplate {
-      item_rust_name: map_field_data.rust_name.clone(),
+      item_rust_name: map_rust_name.clone(),
       kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
+        validation_data: map_validation_data.clone(),
         field_validator: FieldValidator::Map {
           map_level_rules,
           key_rules,

@@ -39,6 +39,7 @@ pub fn get_repeated_rules(
   let mut unique_values = false;
   let float_values = matches!(validation_data.field_data.proto_type, ProtoType::Float)
     || matches!(validation_data.field_data.proto_type, ProtoType::Double);
+  let mut ignore_items_validators = false;
 
   if let Some(RulesType::Repeated(repeated_rules)) = field_rules {
     if repeated_rules.unique() {
@@ -101,7 +102,9 @@ pub fn get_repeated_rules(
     if let Some(items_rules_descriptor) = repeated_rules.items.as_ref() {
       let ignore = items_rules_descriptor.ignore();
       if let Some(ref rules_type) = items_rules_descriptor.r#type {
-        if !matches!(ignore, Ignore::Always) {
+        if matches!(ignore, Ignore::Always) {
+          ignore_items_validators = true
+        } else {
           let mut items_validation_data = validation_data.clone();
           items_validation_data.field_data.kind = FieldKind::RepeatedItem;
 
@@ -114,16 +117,6 @@ pub fn get_repeated_rules(
             )?;
 
             items_rules.extend(rules_for_single_item);
-          } else {
-            let items_message_rules = ValidatorTemplate {
-              item_rust_name: field_desc.name().to_string(),
-              kind: ValidatorKind::Field {
-                validation_data: items_validation_data.clone(),
-                field_validator: FieldValidator::MessageField,
-              },
-            };
-
-            items_rules.push(items_message_rules)
           }
 
           if !items_rules_descriptor.cel.is_empty() {
@@ -137,6 +130,21 @@ pub fn get_repeated_rules(
         }
       }
     }
+  }
+
+  if item_is_message && !ignore_items_validators {
+    let mut message_items_validation_data = validation_data.clone();
+    message_items_validation_data.field_data.kind = FieldKind::RepeatedItem;
+
+    let message_items_validator = ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: message_items_validation_data,
+        field_validator: FieldValidator::MessageField,
+      },
+    };
+
+    items_rules.push(message_items_validator);
   }
 
   if vec_level_rules.is_empty() && items_rules.is_empty() {

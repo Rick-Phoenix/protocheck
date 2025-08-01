@@ -449,7 +449,7 @@ pub fn extract_message_validators(
         }
       } else if is_map {
         let map_rules = get_map_rules(
-          &validation_data,
+          validation_data,
           &mut static_defs,
           field_rust_enum,
           &field_desc,
