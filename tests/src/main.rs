@@ -4,6 +4,16 @@ mod myapp {
   }
 }
 
+const FILE_DESCRIPTOR_SET_BYTES: &[u8] =
+  include_bytes!(concat!(env!("OUT_DIR"), "/file_descriptor_set.bin"));
+
+static DESCRIPTOR_POOL: LazyLock<DescriptorPool> = LazyLock::new(|| {
+  DescriptorPool::decode(FILE_DESCRIPTOR_SET_BYTES).expect("Failed to decode file descriptor set")
+});
+
+use std::sync::LazyLock;
+
+use prost_reflect::DescriptorPool;
 // use prost_reflect::DescriptorPool;
 use protocheck::{types::Duration, validators::ProtoValidator};
 
@@ -17,9 +27,5 @@ fn main() {
 
   let result = user.validate();
   println!("{:#?}", result);
-
-  // let descriptor_pool = DescriptorPool::global();
-  // for message in descriptor_pool.all_messages() {
-  //   println!("{}", message.full_name());
-  // }
+  println!("{}", user.duration_field.unwrap());
 }
