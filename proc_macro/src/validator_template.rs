@@ -355,7 +355,13 @@ impl ToTokens for ValidatorTemplate {
             static_program_ident,
             ..
           } => {
-            let cel_validator_func = match field_data.kind {
+            let target_kind = validation_data
+              .inner_value_kind
+              .as_ref()
+              .unwrap_or(&field_data.kind)
+              .clone();
+
+            let cel_validator_func = match target_kind {
               FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
                 quote! { validate_cel_field }
               }

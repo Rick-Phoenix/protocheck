@@ -185,6 +185,7 @@ pub fn extract_oneof_validators(
         field_data,
         field_span,
         field_data_static_ident,
+        inner_value_kind: None,
       };
 
       if !field_rules.cel.is_empty() {
@@ -424,6 +425,7 @@ pub fn extract_message_validators(
         field_data,
         field_span,
         field_data_static_ident,
+        inner_value_kind: is_repeated.then(|| FieldKind::from(&field_desc)),
       };
 
       if !field_rules.cel.is_empty() {

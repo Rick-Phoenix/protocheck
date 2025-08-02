@@ -125,14 +125,14 @@ pub fn get_map_rules(
 
     if let Some(key_rules_descriptor) = map_rules.keys.as_ref() {
       let ignore = key_rules_descriptor.ignore();
-      if let Some(ref rules) = key_rules_descriptor.r#type {
-        if matches!(ignore, Ignore::Always) {
-          ignore_values_validators = true
-        } else {
-          let mut key_validation_data = map_validation_data.clone();
-          key_validation_data.field_data.kind = FieldKind::MapKey;
-          key_validation_data.field_data.ignore = ignore;
 
+      if !matches!(ignore, Ignore::Always) {
+        let mut key_validation_data = map_validation_data.clone();
+        key_validation_data.field_data.kind = FieldKind::MapKey;
+        key_validation_data.field_data.ignore = ignore;
+        key_validation_data.inner_value_kind = Some(FieldKind::from(&key_desc));
+
+        if let Some(ref rules) = key_rules_descriptor.r#type {
           let generated_key_templates = get_field_rules(
             field_rust_enum.clone(),
             &key_desc,
@@ -140,15 +140,15 @@ pub fn get_map_rules(
             rules,
           )?;
           key_rules.extend(generated_key_templates);
+        }
 
-          if !key_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(
-              &CelRuleTemplateTarget::Field(key_desc, key_validation_data),
-              &key_rules_descriptor.cel,
-              static_defs,
-            )?;
-            key_rules.extend(cel_rules);
-          }
+        if !key_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(
+            &CelRuleTemplateTarget::Field(key_desc, key_validation_data),
+            &key_rules_descriptor.cel,
+            static_defs,
+          )?;
+          key_rules.extend(cel_rules);
         }
       }
     }
@@ -156,12 +156,15 @@ pub fn get_map_rules(
     if let Some(value_rules_descriptor) = map_rules.values.as_ref() {
       let ignore = value_rules_descriptor.ignore();
 
-      let mut values_validation_data = map_validation_data.clone();
+      if matches!(ignore, Ignore::Always) {
+        ignore_values_validators = true;
+      } else {
+        let mut values_validation_data = map_validation_data.clone();
 
-      values_validation_data.field_data.kind = FieldKind::MapValue;
-      values_validation_data.field_data.ignore = ignore;
+        values_validation_data.field_data.kind = FieldKind::MapValue;
+        values_validation_data.field_data.ignore = ignore;
+        values_validation_data.inner_value_kind = Some(FieldKind::from(&value_desc));
 
-      if !matches!(ignore, Ignore::Always) {
         if let Some(ref rules) = value_rules_descriptor.r#type {
           if !value_is_message {
             let generated_value_templates =

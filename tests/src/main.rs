@@ -13,8 +13,14 @@ use crate::myapp::v1::{user::Post, User};
 fn main() {
   let mut dur_map: HashMap<String, Duration> = HashMap::new();
   dur_map.insert("abc".to_string(), Duration::new(1000, 0));
+
+  let post = Post { dur_map };
+
+  let mut posts_map: HashMap<String, Post> = HashMap::new();
+  posts_map.insert("post1".to_string(), post);
+
   let user = User {
-    post: Some(Post { dur_map }),
+    posts_map,
     details: None,
   };
 
