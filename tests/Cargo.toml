@@ -12,6 +12,7 @@ bytes = { workspace = true }
 regex = { workspace = true }
 protocheck = { path = "../protocheck/" }
 prost-reflect = { workspace = true }
+chrono = { workspace = true }
 
 [build-dependencies]
 protocheck = { path = "../protocheck/" }

@@ -1,10 +1,32 @@
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
-use prost::Message;
+use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
+use prost::Name;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Message)]
-pub struct Empty {}
+use crate::{type_url_for, Empty, PACKAGE};
+
+impl From<Empty> for CelValue {
+  fn from(_value: Empty) -> Self {
+    CelValue::Map(HashMap::<CelKey, CelValue>::new().into())
+  }
+}
+
+impl From<()> for Empty {
+  fn from(_value: ()) -> Self {
+    Empty {}
+  }
+}
+
+impl Name for Empty {
+  const PACKAGE: &'static str = PACKAGE;
+
+  const NAME: &'static str = "Empty";
+
+  fn type_url() -> String {
+    type_url_for::<Self>()
+  }
+}
 
 impl Serialize for Empty {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -24,13 +46,12 @@ impl<'de> Deserialize<'de> for Empty {
     struct EmptyVisitor;
 
     impl<'de> serde::de::Visitor<'de> for EmptyVisitor {
-      type Value = Empty; // The type this visitor will produce
+      type Value = Empty;
 
       fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("an empty object `{}`")
       }
 
-      // This method handles deserializing from a map (JSON object)
       fn visit_map<A>(self, mut _map: A) -> Result<Self::Value, A::Error>
       where
         A: serde::de::MapAccess<'de>,
@@ -42,7 +63,7 @@ impl<'de> Deserialize<'de> for Empty {
             key
           )));
         }
-        Ok(Empty {}) // Return an empty instance
+        Ok(Empty {})
       }
 
       // Also allow deserializing from unit (`()`) if needed, though `{}` is standard for JSON
@@ -54,6 +75,6 @@ impl<'de> Deserialize<'de> for Empty {
       }
     }
 
-    deserializer.deserialize_struct("Empty", &[], EmptyVisitor) // Expect a struct with no fields
+    deserializer.deserialize_unit_struct("Empty", EmptyVisitor) // Expect a struct with no fields
   }
 }

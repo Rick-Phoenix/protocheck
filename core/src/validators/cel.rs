@@ -1,6 +1,7 @@
 use cel_interpreter::{Context, Program, Value as CelValue};
 use chrono::{DateTime, FixedOffset, Utc};
 use proto_types::{Duration, DurationError, Timestamp, TimestampError};
+use thiserror::Error;
 
 use crate::{
   field_data::FieldContext,
@@ -8,6 +9,15 @@ use crate::{
   validators::static_data::base_violations::get_base_violations_path,
   ProtoType,
 };
+
+#[derive(Debug, Error)]
+pub enum CelConversionError {
+  #[error("{0}")]
+  DurationError(#[from] DurationError),
+
+  #[error("{0}")]
+  TimestampError(#[from] TimestampError),
+}
 
 #[derive(Debug)]
 pub enum CelFieldKind<'a>

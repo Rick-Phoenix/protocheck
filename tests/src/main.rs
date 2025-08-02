@@ -15,6 +15,7 @@ fn main() {
     duration_field: Some(Duration::new(1000, 0)),
     post: Some(Post { created_at: None }),
     map_field: HashMap::new(),
+    details: None,
   };
 
   let _result = user.validate();

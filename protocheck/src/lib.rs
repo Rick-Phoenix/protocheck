@@ -53,6 +53,14 @@ pub mod build {
           );
 
           config.type_attribute(oneof.full_name(), r#"#[derive(protocheck::macros::Oneof)]"#);
+          config.type_attribute(
+            oneof.full_name(),
+            r#"#[derive(serde::Serialize, serde::Deserialize)]"#,
+          );
+          config.type_attribute(
+            oneof.full_name(),
+            r#"#[derive(protocheck::macros::OneofTryIntoCelValue)]"#,
+          );
 
           for field in oneof.fields() {
             config.field_attribute(
