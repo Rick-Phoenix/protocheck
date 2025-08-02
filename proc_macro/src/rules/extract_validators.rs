@@ -329,7 +329,7 @@ pub fn extract_message_validators(
 
   // Oneof rules
   for oneof in message_desc.oneofs() {
-    if oneof_is_synthetic(&oneof) {
+    if oneof.is_synthetic() {
       continue;
     }
 
@@ -355,7 +355,7 @@ pub fn extract_message_validators(
   // Field Rules
   for field_desc in message_desc.fields() {
     if let Some(containing_oneof) = field_desc.containing_oneof().as_ref() {
-      if !oneof_is_synthetic(containing_oneof) {
+      if !containing_oneof.is_synthetic() {
         continue;
       }
     }
@@ -497,11 +497,4 @@ pub fn extract_message_validators(
   }
 
   Ok((validators, static_defs))
-}
-
-fn oneof_is_synthetic(oneof: &OneofDescriptor) -> bool {
-  let is_synthetic_optional_field = oneof.name().starts_with('_')
-    && oneof.fields().count() == 1
-    && oneof.name() == format!("_{}", oneof.fields().next().unwrap().name());
-  is_synthetic_optional_field
 }
