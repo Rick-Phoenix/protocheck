@@ -86,14 +86,16 @@ impl ToTokens for ValidatorTemplate {
           is_in_oneof,
           field_data_static_ident,
           field_data,
+          key_type,
+          value_type,
           ..
         } = validation_data;
 
-        let key_type_tokens = field_data.key_type.map_or(quote! { None }, |key_type| {
-          quote! { Some(#key_type as i32) }
+        let key_type_tokens = key_type.map_or(quote! { None }, |key_type| {
+          quote! { Some(#key_type) }
         });
-        let value_type_tokens = field_data.value_type.map_or(quote! { None }, |value_type| {
-          quote! { Some(#value_type as i32) }
+        let value_type_tokens = value_type.map_or(quote! { None }, |value_type| {
+          quote! { Some(#value_type) }
         });
 
         let subscript_tokens = match field_data.kind {
@@ -101,7 +103,7 @@ impl ToTokens for ValidatorTemplate {
             quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
           }
           FieldKind::Map | FieldKind::MapKey | FieldKind::MapValue => {
-            if let Some(key_type_enum) = field_data.key_type {
+            if let Some(key_type_enum) = key_type {
               let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
               quote! { Some(#key_subscript_tokens) }
             } else {
@@ -137,7 +139,9 @@ impl ToTokens for ValidatorTemplate {
                 let field_context = protocheck::field_data::FieldContext {
                   field_data: &#field_data_static_ident,
                   parent_elements: #parent_messages_ident,
-                  subscript: #subscript_tokens
+                  subscript: #subscript_tokens,
+                  key_type: #key_type_tokens,
+                  value_type: #value_type_tokens,
                 };
 
                 #violations_ident.push(protocheck::validators::required::required(&field_context));
@@ -160,6 +164,8 @@ impl ToTokens for ValidatorTemplate {
                 field_data: &#field_data_static_ident,
                 parent_elements: #parent_messages_ident.as_slice(),
                 subscript: #subscript_tokens,
+                key_type: #key_type_tokens,
+                value_type: #value_type_tokens,
               };
             };
 
@@ -215,6 +221,8 @@ impl ToTokens for ValidatorTemplate {
                   field_data: &#field_data_static_ident,
                   parent_elements: #parent_messages_ident.as_slice(),
                   subscript: #subscript_tokens,
+                  key_type: #key_type_tokens,
+                  value_type: #value_type_tokens,
                 };
                 #violations_ident.push(protocheck::validators::enums::defined_only(&field_context, #enum_name));
               }
@@ -258,6 +266,8 @@ impl ToTokens for ValidatorTemplate {
                     field_data: &#field_data_static_ident,
                     parent_elements: #parent_messages_ident,
                     subscript: #subscript_tokens,
+                    key_type: #key_type_tokens,
+                    value_type: #value_type_tokens,
                   };
                   match protocheck::validators::repeated::#func_name(&field_context, &#item_ident, &mut #hashset_ident) {
                     Ok(_) => {},
@@ -301,13 +311,17 @@ impl ToTokens for ValidatorTemplate {
             let field_tag = &field_data.tag;
             let field_proto_type = &field_data.proto_type;
 
+            let nested_key_type = key_type.map_or(quote! { None }, |k| quote! { Some(#k as i32) });
+            let nested_value_type =
+              value_type.map_or(quote! { None }, |v| quote! { Some(#v as i32) });
+
             let current_nested_field_element = quote! {
               protocheck::types::protovalidate::FieldPathElement {
                 field_name: Some(#field_proto_name.to_string()),
                 field_number: Some(#field_tag as i32),
                 field_type: Some(#field_proto_type as i32),
-                key_type: #key_type_tokens,
-                value_type: #value_type_tokens,
+                key_type: #nested_key_type,
+                value_type: #nested_value_type,
                 subscript: #subscript_tokens,
               }
             };
@@ -329,7 +343,9 @@ impl ToTokens for ValidatorTemplate {
               let field_context = protocheck::field_data::FieldContext {
                 field_data: &#field_data_static_ident,
                 parent_elements: #parent_messages_ident,
-                subscript: #subscript_tokens
+                subscript: #subscript_tokens,
+                key_type: #key_type_tokens,
+                value_type: #value_type_tokens,
               };
               #violations_ident.push(protocheck::validators::required::required(&field_context));
             });
@@ -378,9 +394,11 @@ impl ToTokens for ValidatorTemplate {
 
             let field_context_tokens = quote! {
               protocheck::field_data::FieldContext {
-                 field_data: &#field_data_static_ident,
-                 parent_elements: #parent_messages_ident,
-                 subscript: #subscript_tokens,
+                field_data: &#field_data_static_ident,
+                parent_elements: #parent_messages_ident,
+                subscript: #subscript_tokens,
+                key_type: #key_type_tokens,
+                value_type: #value_type_tokens,
               }
             };
 
@@ -445,7 +463,7 @@ impl ToTokens for ValidatorTemplate {
   }
 }
 
-fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident2) -> TokenStream2 {
+fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream2 {
   let subscript_path = quote! { protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {

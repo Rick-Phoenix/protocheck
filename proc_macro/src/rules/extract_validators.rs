@@ -157,9 +157,7 @@ pub fn extract_oneof_validators(
         proto_name: field_name.to_string(),
         tag: field.number(),
         proto_type: convert_kind_to_proto_type(&field_kind),
-        kind: FieldKind::from(&field),
-        key_type: None,
-        value_type: None,
+        kind: FieldKind::from_field_desc(&field),
         ignore,
       };
 
@@ -186,6 +184,8 @@ pub fn extract_oneof_validators(
         field_span,
         field_data_static_ident,
         inner_value_kind: None,
+        key_type: None,
+        value_type: None,
       };
 
       if !field_rules.cel.is_empty() {
@@ -397,9 +397,7 @@ pub fn extract_message_validators(
         proto_name: field_name.to_string(),
         tag: field_tag,
         proto_type: convert_kind_to_proto_type(&field_kind),
-        kind: FieldKind::from(&field_desc),
-        key_type: None,
-        value_type: None,
+        kind: FieldKind::from_field_desc(&field_desc),
         ignore,
       };
 
@@ -425,7 +423,9 @@ pub fn extract_message_validators(
         field_data,
         field_span,
         field_data_static_ident,
-        inner_value_kind: is_repeated.then(|| FieldKind::from(&field_desc)),
+        inner_value_kind: is_repeated.then(|| FieldKind::from_inner_field_desc(&field_desc)),
+        key_type: None,
+        value_type: None,
       };
 
       if !field_rules.cel.is_empty() {

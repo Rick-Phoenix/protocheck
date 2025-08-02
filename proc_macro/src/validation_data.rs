@@ -1,6 +1,6 @@
 use protocheck_core::field_data::FieldKind;
 
-use crate::{rules::FieldData, Ident2, Span2};
+use crate::{rules::FieldData, Ident2, ProtoType, Span2};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData {
@@ -12,4 +12,6 @@ pub(crate) struct ValidationData {
   pub field_span: Span2,
   pub field_data: FieldData,
   pub inner_value_kind: Option<FieldKind>,
+  pub key_type: Option<ProtoType>,
+  pub value_type: Option<ProtoType>,
 }

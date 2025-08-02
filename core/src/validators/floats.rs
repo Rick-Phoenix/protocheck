@@ -17,8 +17,8 @@ pub fn f32_is_finite(
     let current_elem = FieldPathElement {
       field_type: Some(ProtoType::Float as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
+      key_type: field_context.key_type.map(|t| t as i32),
+      value_type: field_context.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
       subscript: field_context.subscript.clone(),
     };
@@ -75,8 +75,8 @@ pub fn f64_is_finite(
     let current_elem = FieldPathElement {
       field_type: Some(ProtoType::Double as i32),
       field_name: Some(field_context.field_data.proto_name.clone()),
-      key_type: field_context.field_data.key_type.map(|t| t as i32),
-      value_type: field_context.field_data.value_type.map(|t| t as i32),
+      key_type: field_context.key_type.map(|t| t as i32),
+      value_type: field_context.value_type.map(|t| t as i32),
       field_number: Some(field_context.field_data.tag as i32),
       subscript: field_context.subscript.clone(),
     };

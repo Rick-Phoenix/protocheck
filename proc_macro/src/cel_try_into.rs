@@ -116,6 +116,12 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
     let field_type = &field.ty;
     let mut is_oneof = false;
 
+    println!(
+      "DEBUG: Processing field '{}' with type: {}",
+      field_name,
+      quote!(#field_type)
+    );
+
     for attr in &field.attrs {
       if attr.path().is_ident("prost") {
         let _ = attr.parse_nested_meta(|meta| {
@@ -142,7 +148,34 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           "Option" => {
             if let syn::PathArguments::AngleBracketed(type_args) = &segment.arguments {
               if let Some(syn::GenericArgument::Type(inner_type)) = type_args.args.first() {
-                if is_duration(inner_type) {
+                let target_type = if is_box(inner_type) {
+                  match get_inner_type_from_box(inner_type) {
+                    Some(t) => t,
+                    None => {
+                      return Error::new_spanned(
+                        field_ident,
+                        format!(
+                          "Could not parse the boxed type for field {} in struct {}",
+                          field_ident, struct_name
+                        ),
+                      )
+                      .to_compile_error()
+                      .into()
+                    }
+                  }
+                } else {
+                  inner_type
+                };
+
+                let is_recursive = if let Type::Path(tp) = target_type {
+                  tp.path.get_ident().map_or(false, |id| id == struct_name)
+                } else {
+                  false
+                };
+
+                println!("{:?}", is_box(inner_type));
+
+                if is_duration(target_type) {
                   tokens.extend(quote! {
                     if let Some(v) = &value.#field_ident {
                       let cel_val = cel_interpreter::Value::Duration(v.to_owned().try_into()?);
@@ -151,7 +184,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
                       #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                     }
                   });
-                } else if is_timestamp(inner_type) {
+                } else if is_timestamp(target_type) {
                   tokens.extend(quote! {
                     if let Some(v) = &value.#field_ident {
                       let cel_val = cel_interpreter::Value::Timestamp(v.to_owned().try_into()?);
@@ -160,7 +193,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
                       #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                     }
                   });
-                } else if is_primitive(inner_type) || supports_cel_into(inner_type) {
+                } else if is_primitive(target_type) || supports_cel_into(target_type) {
                   tokens.extend(quote! {
                     if let Some(v) = &value.#field_ident {
                       #fields_map_ident.insert(#field_name.into(), v.into());
@@ -168,10 +201,18 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
                       #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                     }
                   });
+                } else if is_box(inner_type) {
+                  tokens.extend(quote! {
+                    if let Some(v) = value.#field_ident.as_deref() {
+                      #fields_map_ident.insert(#field_name.into(), v.try_into_cel_value_recursive(depth + 1)?);
+                    } else {
+                      #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
+                    }
+                  });
                 } else {
                   tokens.extend(quote! {
                     if let Some(v) = &value.#field_ident {
-                      #fields_map_ident.insert(#field_name.into(), v.to_owned().try_into()?);
+                      #fields_map_ident.insert(#field_name.into(), v.try_into_cel_value_recursive(depth + 1)?);
                     } else {
                       #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                     }
@@ -183,29 +224,30 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           "Vec" => {
             if let syn::PathArguments::AngleBracketed(type_args) = &segment.arguments {
               if let Some(syn::GenericArgument::Type(inner_type)) = type_args.args.first() {
-                let cel_val = if is_duration(inner_type) {
-                  quote! {
-                    let chrono_duration: chrono::Duration = item.to_owned().try_into()?;
-                    converted.push(cel_interpreter::Value::Duration(chrono_duration.into()));
-                  }
-                } else if is_timestamp(inner_type) {
-                  quote! {
-                    let chrono_timestamp: ::chrono::DateTime<::chrono::FixedOffset> = item.to_owned().try_into()?;
-                    converted.push(cel_interpreter::Value::Timestamp(chrono_timestamp.into()));
-                  }
-                } else if is_primitive(inner_type) || supports_cel_into(inner_type) {
-                  quote! {
-                    converted.push(item.into());
-                  }
-                } else {
-                  quote! {
-                    converted.push(item.to_owned().try_into()?);
-                  }
-                };
+                let cel_val = quote! { converted.push(cel_interpreter::Value::Null); };
+                // let cel_val = if is_duration(inner_type) {
+                //   quote! {
+                //     let chrono_duration: chrono::Duration = item.to_owned().try_into()?;
+                //     converted.push(cel_interpreter::Value::Duration(chrono_duration.into()));
+                //   }
+                // } else if is_timestamp(inner_type) {
+                //   quote! {
+                //     let chrono_timestamp: ::chrono::DateTime<::chrono::FixedOffset> = item.to_owned().try_into()?;
+                //     converted.push(cel_interpreter::Value::Timestamp(chrono_timestamp.into()));
+                //   }
+                // } else if is_primitive(inner_type) || supports_cel_into(inner_type) {
+                //   quote! {
+                //     converted.push(item.into());
+                //   }
+                // } else {
+                //   quote! {
+                //     converted.push(item.to_owned().try_into_cel_value_recursive(depth + 1)?);
+                //   }
+                // };
 
                 tokens.extend(quote! {
                 let mut converted: Vec<cel_interpreter::Value> = Vec::new();
-                    for item in value.#field_ident {
+                    for item in &value.#field_ident {
                       #cel_val
                     }
 
@@ -268,23 +310,30 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
   }
 
   let expanded = quote! {
+        impl #struct_name {
+        const MAX_RECURSION_DEPTH: u32 = 10;
+
+        fn try_into_cel_value_recursive(&self, depth: u32) -> Result<::cel_interpreter::Value, protocheck::validators::cel::CelConversionError> {
+            if depth >= Self::MAX_RECURSION_DEPTH {
+                return Ok(::cel_interpreter::Value::Null);
+            }
+
+            let mut #fields_map_ident: std::collections::HashMap<cel_interpreter::objects::Key, cel_interpreter::Value> = std::collections::HashMap::new();
+            let value = self;
+            #tokens
+            Ok(cel_interpreter::Value::Map(#fields_map_ident.into()))
+        }
+    }
+
     impl TryFrom<#struct_name> for ::cel_interpreter::Value {
       type Error = protocheck::validators::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
-        let mut #fields_map_ident: std::collections::HashMap<cel_interpreter::objects::Key, cel_interpreter::Value> = std::collections::HashMap::new();
-        #tokens
-        Ok(cel_interpreter::Value::Map(#fields_map_ident.into()))
+        (&value).try_into()
       }
     }
 
-    impl <'a> TryFrom<&'a #struct_name> for ::cel_interpreter::Value {
-      type Error = protocheck::validators::cel::CelConversionError;
 
-      fn try_from(value: &'a #struct_name) -> Result<Self, Self::Error> {
-        value.clone().try_into()
-      }
-    }
   };
 
   expanded.into()
@@ -335,4 +384,28 @@ fn is_primitive(ty: &Type) -> bool {
     }
   }
   false
+}
+
+fn is_box(ty: &Type) -> bool {
+  if let Type::Path(type_path) = ty {
+    if let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "Box";
+    }
+  }
+  false
+}
+
+fn get_inner_type_from_box(ty: &Type) -> Option<&Type> {
+  if let syn::Type::Path(type_path) = ty {
+    if let Some(segment) = type_path.path.segments.last() {
+      if segment.ident == "Box" {
+        if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+          if let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
+            return Some(inner_type);
+          }
+        }
+      }
+    }
+  }
+  None
 }

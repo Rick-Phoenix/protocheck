@@ -298,8 +298,8 @@ fn create_cel_violation(
     field_type: Some(field_context.field_data.proto_type as i32),
     field_name: Some(field_context.field_data.proto_name.clone()),
     field_number: Some(field_context.field_data.tag as i32),
-    key_type: field_context.field_data.key_type.map(|t| t as i32),
-    value_type: field_context.field_data.value_type.map(|t| t as i32),
+    key_type: field_context.key_type.map(|t| t as i32),
+    value_type: field_context.value_type.map(|t| t as i32),
     subscript: field_context.subscript.clone(),
   };
   elements.push(current_elem);

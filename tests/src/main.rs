@@ -4,23 +4,23 @@ mod myapp {
   }
 }
 
-use std::collections::HashMap;
-
 use protocheck::{types::Duration, validators::ProtoValidator};
 
 use crate::myapp::v1::{user::Post, User};
 
 fn main() {
-  let mut dur_map: HashMap<String, Duration> = HashMap::new();
-  dur_map.insert("abc".to_string(), Duration::new(1000, 0));
-
-  let post = Post { dur_map };
-
-  let mut posts_map: HashMap<String, Post> = HashMap::new();
-  posts_map.insert("post1".to_string(), post);
+  let post = Post {
+    duration: Some(Duration::new(1000, 0)),
+    nested_post: None,
+  };
+  let post2 = Post {
+    duration: Some(Duration::new(1000, 0)),
+    nested_post: Some(Box::new(post.clone())),
+  };
 
   let user = User {
-    posts_map,
+    posts: Some(post2),
+    // posts: vec![post, post2],
     details: None,
   };
 

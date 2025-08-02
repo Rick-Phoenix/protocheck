@@ -64,8 +64,8 @@ pub fn get_map_rules(
 
   let mut map_validation_data = validation_data;
 
-  map_validation_data.field_data.key_type = Some(key_proto_type);
-  map_validation_data.field_data.value_type = Some(value_proto_type);
+  map_validation_data.key_type = Some(key_proto_type);
+  map_validation_data.value_type = Some(value_proto_type);
 
   let map_rust_name = &map_validation_data.field_data.rust_name;
 
@@ -130,7 +130,7 @@ pub fn get_map_rules(
         let mut key_validation_data = map_validation_data.clone();
         key_validation_data.field_data.kind = FieldKind::MapKey;
         key_validation_data.field_data.ignore = ignore;
-        key_validation_data.inner_value_kind = Some(FieldKind::from(&key_desc));
+        key_validation_data.inner_value_kind = Some(FieldKind::from_inner_field_desc(&key_desc));
 
         if let Some(ref rules) = key_rules_descriptor.r#type {
           let generated_key_templates = get_field_rules(
@@ -163,7 +163,8 @@ pub fn get_map_rules(
 
         values_validation_data.field_data.kind = FieldKind::MapValue;
         values_validation_data.field_data.ignore = ignore;
-        values_validation_data.inner_value_kind = Some(FieldKind::from(&value_desc));
+        values_validation_data.inner_value_kind =
+          Some(FieldKind::from_inner_field_desc(&value_desc));
 
         if let Some(ref rules) = value_rules_descriptor.r#type {
           if !value_is_message {

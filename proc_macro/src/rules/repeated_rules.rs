@@ -119,15 +119,15 @@ pub fn get_repeated_rules(
 
             items_rules.extend(rules_for_single_item);
           }
+        }
 
-          if !items_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(
-              &CelRuleTemplateTarget::Field(field_desc.clone(), items_validation_data),
-              &items_rules_descriptor.cel,
-              static_defs,
-            )?;
-            items_rules.extend(cel_rules);
-          }
+        if !items_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(
+            &CelRuleTemplateTarget::Field(field_desc.clone(), items_validation_data),
+            &items_rules_descriptor.cel,
+            static_defs,
+          )?;
+          items_rules.extend(cel_rules);
         }
       }
     }

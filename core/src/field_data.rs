@@ -12,6 +12,8 @@ pub struct FieldContext<'a> {
   pub field_data: &'a FieldData,
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
+  pub key_type: Option<ProtoType>,
+  pub value_type: Option<ProtoType>,
 }
 
 #[derive(Clone, Debug)]
@@ -93,23 +95,36 @@ impl ToTokens for FieldKind {
   }
 }
 
-impl From<&FieldDescriptor> for FieldKind {
-  fn from(field_desc: &FieldDescriptor) -> Self {
+impl FieldKind {
+  pub fn from_field_desc(field_desc: &FieldDescriptor) -> Self {
     if field_desc.is_map() {
-      Self::Map
+      return Self::Map;
     } else if field_desc.is_list() {
-      Self::Repeated
-    } else {
-      match field_desc.kind() {
-        Kind::Message(message_desc) => match message_desc.full_name() {
-          "google.protobuf.Duration" => Self::Duration,
-          "google.protobuf.Timestamp" => Self::Timestamp,
-          "google.protobuf.FieldMask" => Self::FieldMask,
-          "google.protobuf.Empty" => Self::Empty,
-          _ => Self::Message,
-        },
-        _ => Self::Scalar,
-      }
+      return Self::Repeated;
+    }
+
+    match field_desc.kind() {
+      Kind::Message(message_desc) => match message_desc.full_name() {
+        "google.protobuf.Duration" => Self::Duration,
+        "google.protobuf.Timestamp" => Self::Timestamp,
+        "google.protobuf.FieldMask" => Self::FieldMask,
+        "google.protobuf.Empty" => Self::Empty,
+        _ => Self::Message,
+      },
+      _ => Self::Scalar,
+    }
+  }
+
+  pub fn from_inner_field_desc(field_desc: &FieldDescriptor) -> Self {
+    match field_desc.kind() {
+      Kind::Message(message_desc) => match message_desc.full_name() {
+        "google.protobuf.Duration" => Self::Duration,
+        "google.protobuf.Timestamp" => Self::Timestamp,
+        "google.protobuf.FieldMask" => Self::FieldMask,
+        "google.protobuf.Empty" => Self::Empty,
+        _ => Self::Message,
+      },
+      _ => Self::Scalar,
     }
   }
 }
@@ -120,8 +135,6 @@ pub struct FieldData {
   pub proto_name: String,
   pub tag: u32,
   pub kind: FieldKind,
-  pub key_type: Option<ProtoType>,
-  pub value_type: Option<ProtoType>,
   pub proto_type: ProtoType,
   pub ignore: Ignore,
 }
