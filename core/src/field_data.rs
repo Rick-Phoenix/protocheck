@@ -25,6 +25,8 @@ pub enum FieldKind {
   Duration,
   Timestamp,
   Message,
+  FieldMask,
+  Empty,
 }
 
 impl FieldKind {
@@ -63,6 +65,10 @@ impl FieldKind {
   pub fn is_message(&self) -> bool {
     matches!(self, FieldKind::Message)
   }
+
+  pub fn has_validators(&self) -> bool {
+    self.is_timestamp() || self.is_duration()
+  }
 }
 
 impl ToTokens for FieldKind {
@@ -79,6 +85,8 @@ impl ToTokens for FieldKind {
       FieldKind::Duration => quote! { Duration },
       FieldKind::Timestamp => quote! { Timestamp },
       FieldKind::Message => quote! { Message },
+      FieldKind::FieldMask => quote! { FieldMask },
+      FieldKind::Empty => quote! { Empty },
     };
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });
@@ -96,6 +104,8 @@ impl From<&FieldDescriptor> for FieldKind {
         Kind::Message(message_desc) => match message_desc.full_name() {
           "google.protobuf.Duration" => Self::Duration,
           "google.protobuf.Timestamp" => Self::Timestamp,
+          "google.protobuf.FieldMask" => Self::FieldMask,
+          "google.protobuf.Empty" => Self::Empty,
           _ => Self::Message,
         },
         _ => Self::Scalar,

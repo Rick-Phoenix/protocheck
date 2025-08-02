@@ -1,6 +1,8 @@
+use std::vec;
+
 use cel_interpreter::{Context, Program, Value as CelValue};
-use chrono::{DateTime, FixedOffset, Utc};
-use proto_types::{Duration, DurationError, Timestamp, TimestampError};
+use chrono::Utc;
+use proto_types::{DurationError, TimestampError};
 use thiserror::Error;
 
 use crate::{
@@ -19,82 +21,117 @@ pub enum CelConversionError {
   TimestampError(#[from] TimestampError),
 }
 
-#[derive(Debug)]
-pub enum CelFieldKind<'a>
-// where
-//   T: serde::Serialize,
-{
-  Duration(Option<&'a Duration>),
-  Timestamp(&'a Timestamp),
-  // Other(&'a T),
-}
-
-#[derive(Debug)]
-pub struct CelField<'a> {
-  pub rule_id: String,
+pub struct CelRule {
+  pub id: String,
   pub error_message: String,
-  pub field_context: &'a FieldContext<'a>,
+  pub program: &'static Program,
 }
 
-pub fn validate_cel_field(
-  cel_field_data: &CelField<'_>,
-  program: &'static Program,
-  value: Option<&CelFieldKind<'_>>,
+pub fn validate_cel_field_with_val<T>(
+  field_context: &FieldContext,
+  rule: &CelRule,
+  value: &T,
 ) -> Result<(), Violation>
-// where
-//   T: serde::Serialize,
+where
+  T: Into<CelValue> + Clone,
 {
-  if value.is_none() {
-    return Ok(());
-  }
-
-  let CelField {
-    rule_id,
+  let CelRule {
+    id: rule_id,
     error_message,
-    field_context,
+    program,
     ..
-  } = cel_field_data;
+  } = rule;
 
   let error_prefix = format!(
     "Error during Cel validation for field {}:",
     field_context.field_data.proto_name
   );
 
-  let unwrapped_val = value.unwrap();
   let mut cel_context = Context::default();
   cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
 
-  match unwrapped_val {
-    &CelFieldKind::Duration(duration) => {
-      let chrono_duration: chrono::Duration =
-        duration
-          .unwrap()
-          .to_owned()
-          .try_into()
-          .map_err(|e: DurationError| {
-            create_cel_violation("invalid_cel_data".to_string(), e.to_string(), field_context)
-          })?;
+  cel_context.add_variable_from_value("this", value.clone().into());
 
-      let cel_duration: CelValue = CelValue::Duration(chrono_duration);
+  let result = program.execute(&cel_context);
 
-      cel_context.add_variable_from_value("this", cel_duration);
+  match result {
+    Ok(value) => {
+      if let CelValue::Bool(bool_value) = value {
+        if bool_value {
+          Ok(())
+        } else {
+          Err(create_cel_violation(
+            rule_id.to_string(),
+            error_message.to_string(),
+            field_context,
+          ))
+        }
+      } else {
+        println!(
+          "{} expected boolean result from expression, got `{:?}`",
+          error_prefix,
+          value.type_of()
+        );
+        Err(Violation {
+          message: Some("Internal server error".to_string()),
+          rule_id: Some("internal_server_error".to_string()),
+          rule: None,
+          field: None,
+          for_key: Some(false),
+        })
+      }
     }
-    &CelFieldKind::Timestamp(timestamp) => {
-      let timestamp_val: DateTime<FixedOffset> =
-        timestamp
-          .to_owned()
-          .try_into()
-          .map_err(|e: TimestampError| {
-            create_cel_violation("invalid_cel_data".to_string(), e.to_string(), field_context)
-          })?;
-      let cel_timestamp: CelValue = CelValue::Timestamp(timestamp_val);
+    Err(e) => {
+      println!("{} {:?}", error_prefix, e);
+      Err(Violation {
+        message: Some("Internal server error".to_string()),
+        rule_id: Some("internal_server_error".to_string()),
+        rule: None,
+        field: None,
+        for_key: Some(false),
+      })
+    }
+  }
+}
 
-      cel_context.add_variable_from_value("this", cel_timestamp);
-    } // CelFieldKind::Other(value) => {
-      //   cel_context.add_variable("this", value).map_err(|e| {
-      //     create_cel_violation("invalid_cel_data".to_string(), e.to_string(), field_context)
-      //   })?;
-      // }
+pub fn validate_cel_field<T>(
+  field_context: &FieldContext,
+  rule: &CelRule,
+  value: &T,
+) -> Result<(), Violation>
+where
+  T: TryInto<CelValue> + Clone,
+  CelConversionError: From<<T as TryInto<CelValue>>::Error>,
+{
+  let CelRule {
+    id: rule_id,
+    error_message,
+    program,
+    ..
+  } = rule;
+
+  let error_prefix = format!(
+    "Error during Cel validation for field {}:",
+    field_context.field_data.proto_name
+  );
+
+  let mut cel_context = Context::default();
+  cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
+
+  let cel_conversion: Result<CelValue, CelConversionError> =
+    value.clone().try_into().map_err(|e| e.into());
+
+  match cel_conversion {
+    Ok(cel_val) => {
+      cel_context.add_variable_from_value("this", cel_val);
+    }
+    Err(e) => {
+      return Err(create_cel_violation(
+        rule_id.to_string(),
+        e.to_string(),
+        field_context,
+      ));
+    }
   };
 
   let result = program.execute(&cel_context);
@@ -136,6 +173,108 @@ pub fn validate_cel_field(
         for_key: Some(false),
       })
     }
+  }
+}
+
+pub fn validate_cel_message<T>(
+  message_name: &str,
+  parent_elements: &[FieldPathElement],
+  rule: &CelRule,
+  value: &T,
+) -> Result<(), Violation>
+where
+  T: TryInto<CelValue, Error = CelConversionError> + Clone,
+{
+  let CelRule {
+    id: rule_id,
+    error_message,
+    program,
+  } = rule;
+
+  let error_prefix = format!("Error during Cel validation for field {}:", message_name);
+
+  let mut cel_context = Context::default();
+  cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
+
+  let cel_conversion: Result<CelValue, CelConversionError> = value.clone().try_into();
+
+  match cel_conversion {
+    Ok(cel_val) => {
+      cel_context.add_variable_from_value("this", cel_val);
+      let result = program.execute(&cel_context);
+
+      match result {
+        Ok(value) => {
+          if let CelValue::Bool(bool_value) = value {
+            if bool_value {
+              Ok(())
+            } else {
+              Err(create_cel_message_violation(
+                rule_id,
+                error_message,
+                parent_elements,
+              ))
+            }
+          } else {
+            println!(
+              "{} expected boolean result from expression, got `{:?}`",
+              error_prefix,
+              value.type_of()
+            );
+            Err(Violation {
+              message: Some("Internal server error".to_string()),
+              rule_id: Some("internal_server_error".to_string()),
+              rule: None,
+              field: None,
+              for_key: Some(false),
+            })
+          }
+        }
+        Err(e) => {
+          println!("{} {:?}", error_prefix, e);
+          Err(Violation {
+            message: Some("Internal server error".to_string()),
+            rule_id: Some("internal_server_error".to_string()),
+            rule: None,
+            field: None,
+            for_key: Some(false),
+          })
+        }
+      }
+    }
+    Err(e) => Err(create_cel_message_violation(
+      rule_id,
+      &e.to_string(),
+      parent_elements,
+    )),
+  }
+}
+
+pub fn create_cel_message_violation(
+  rule_id: &str,
+  error_message: &str,
+  parent_elements: &[FieldPathElement],
+) -> Violation {
+  let is_nested = !parent_elements.is_empty();
+  let field_path = is_nested.then(|| FieldPath {
+    elements: parent_elements.to_vec(),
+  });
+
+  Violation {
+    message: Some(error_message.to_string()),
+    rule_id: Some(rule_id.to_string()),
+    rule: Some(FieldPath {
+      elements: vec![FieldPathElement {
+        field_name: Some("cel".to_string()),
+        field_number: Some(23),
+        field_type: Some(ProtoType::Message as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      }],
+    }),
+    field: field_path,
+    for_key: None,
   }
 }
 

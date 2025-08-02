@@ -78,14 +78,12 @@ pub fn get_cel_rules(
           });
 
           match rule_target {
-            CelRuleTemplateTarget::Field(field_desc, validation_data) => {
+            CelRuleTemplateTarget::Field(_, validation_data) => {
               validators.push(ValidatorTemplate {
                 item_rust_name: rule_target.get_name().to_string(),
                 kind: ValidatorKind::Field {
                   validation_data: validation_data.clone(),
                   field_validator: FieldValidator::Cel {
-                    full_name: validation_data.full_name.clone(),
-                    message_full_name: field_desc.parent_message().full_name().to_string(),
                     rule_id,
                     error_message,
                     static_program_ident,
@@ -98,7 +96,7 @@ pub fn get_cel_rules(
                 item_rust_name: rule_target.get_name().to_string(),
                 kind: ValidatorKind::Message {
                   message_validator: MessageValidator::Cel {
-                    full_name: message_desc.full_name().to_string(),
+                    message_name: message_desc.full_name().to_string(),
                     rule_id,
                     error_message,
                     static_program_ident,

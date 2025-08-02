@@ -101,13 +101,14 @@ pub fn get_repeated_rules(
 
     if let Some(items_rules_descriptor) = repeated_rules.items.as_ref() {
       let ignore = items_rules_descriptor.ignore();
-      if let Some(ref rules_type) = items_rules_descriptor.r#type {
-        if matches!(ignore, Ignore::Always) {
-          ignore_items_validators = true
-        } else {
-          let mut items_validation_data = validation_data.clone();
-          items_validation_data.field_data.kind = FieldKind::RepeatedItem;
 
+      if matches!(ignore, Ignore::Always) {
+        ignore_items_validators = true
+      } else {
+        let mut items_validation_data = validation_data.clone();
+        items_validation_data.field_data.kind = FieldKind::RepeatedItem;
+
+        if let Some(ref rules_type) = items_rules_descriptor.r#type {
           if !item_is_message {
             let rules_for_single_item = get_field_rules(
               field_rust_enum,

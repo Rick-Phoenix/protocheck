@@ -22,8 +22,6 @@ pub enum FieldValidator {
     float_values: bool,
   },
   Cel {
-    full_name: String,
-    message_full_name: String,
     rule_id: String,
     error_message: String,
     static_program_ident: Ident2,
@@ -38,7 +36,7 @@ pub enum FieldValidator {
 #[derive(Debug)]
 pub enum MessageValidator {
   Cel {
-    full_name: String,
+    message_name: String,
     rule_id: String,
     error_message: String,
     static_program_ident: Ident2,
@@ -90,10 +88,6 @@ impl ToTokens for ValidatorTemplate {
           field_data,
           ..
         } = validation_data;
-
-        let field_proto_name = &field_data.proto_name;
-        let field_tag = &field_data.tag;
-        let field_proto_type = &field_data.proto_type;
 
         let key_type_tokens = field_data.key_type.map_or(quote! { None }, |key_type| {
           quote! { Some(#key_type as i32) }
@@ -361,38 +355,51 @@ impl ToTokens for ValidatorTemplate {
             static_program_ident,
             ..
           } => {
-            let cel_field_enum_tokens = match field_data.kind {
-              FieldKind::Duration => {
-                quote! { protocheck::validators::cel::CelFieldKind::Duration(#value_ident) }
+            let cel_validator_func = match field_data.kind {
+              FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
+                quote! { validate_cel_field }
               }
-              FieldKind::Timestamp => {
-                quote! { protocheck::validators::cel::CelFieldKind::Timestamp(&#value_ident) }
-              }
-              _ => {
-                if !is_option {
-                  quote! { protocheck::validators::cel::CelFieldKind::Other(Some(&#value_ident)) }
-                } else {
-                  quote! { protocheck::validators::cel::CelFieldKind::Other(#value_ident) }
-                }
+              _ => quote! { validate_cel_field_with_val },
+            };
+
+            let rule_tokens = quote! {
+              protocheck::validators::cel::CelRule {
+                id: #rule_id.to_string(),
+                error_message: #error_message.to_string(),
+                program: &#static_program_ident,
               }
             };
 
-            tokens.extend(quote! {
-              let rule_data = protocheck::validators::cel::CelField {
-                rule_id: #rule_id.to_string(),
-                error_message: #error_message.to_string(),
-                field_context: &protocheck::field_data::FieldContext {
-                   field_data: &#field_data_static_ident,
-                   parent_elements: #parent_messages_ident,
-                   subscript: #subscript_tokens,
-                },
-              };
+            let field_context_tokens = quote! {
+              protocheck::field_data::FieldContext {
+                 field_data: &#field_data_static_ident,
+                 parent_elements: #parent_messages_ident,
+                 subscript: #subscript_tokens,
+              }
+            };
 
-              match protocheck::validators::cel::validate_cel_field(&rule_data, &#static_program_ident, Some(&#cel_field_enum_tokens)) {
-                Ok(_) => {},
-                Err(v) => violations.push(v),
-              };
-            });
+            if is_option {
+              tokens.extend(quote! {
+                if let Some(val) = #value_ident {
+                  let field_context = #field_context_tokens;
+                  let rule = #rule_tokens;
+
+                  match protocheck::validators::cel::#cel_validator_func(&field_context, &rule, val) {
+                    Ok(_) => {},
+                    Err(v) => violations.push(v),
+                  };
+                }
+              });
+            } else {
+              tokens.extend(quote! {
+                let field_context = #field_context_tokens;
+                let rule = #rule_tokens;
+                match protocheck::validators::cel::#cel_validator_func(&field_context, &rule,  #value_ident) {
+                  Ok(_) => {},
+                  Err(v) => violations.push(v),
+                };
+              });
+            }
           }
         }
       }
@@ -401,20 +408,16 @@ impl ToTokens for ValidatorTemplate {
           rule_id,
           error_message,
           static_program_ident,
-          full_name,
+          message_name,
         } => {
           tokens.extend(quote! {
-            let rule_data = protocheck::validators::cel::CelRuleData {
-              rule_id: #rule_id.to_string(),
+            let rule = protocheck::validators::cel::CelRule {
+              id: #rule_id.to_string(),
               error_message: #error_message.to_string(),
-              rule_target: protocheck::validators::cel::CelRuleTarget::Message {
-                name: #item_rust_name.to_string(),
-                parent_elements: #parent_messages_ident,
-                full_name: #full_name.to_string()
-              }
+              program: &#static_program_ident,
             };
 
-            match protocheck::validators::cel::validate_cel(&crate::DESCRIPTOR_POOL, &rule_data, &#static_program_ident, Some(self)) {
+            match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
               Ok(_) => {},
               Err(v) => violations.push(v),
             };

@@ -43,6 +43,7 @@ where
 pub trait FloatBits {
   type Bits: Eq + std::hash::Hash;
 
+  #[allow(dead_code)]
   fn to_bits_for_unique_check(&self) -> Self::Bits;
 }
 
@@ -60,7 +61,7 @@ impl FloatBits for &f64 {
   }
 }
 
-pub fn validate_in_not_in_floats<T, B>(
+pub fn _validate_in_not_in_floats<T, B>(
   in_list: &[T],
   not_in_list: &[T],
   error_prefix: &str,

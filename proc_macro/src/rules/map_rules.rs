@@ -155,26 +155,28 @@ pub fn get_map_rules(
 
     if let Some(value_rules_descriptor) = map_rules.values.as_ref() {
       let ignore = value_rules_descriptor.ignore();
-      if let Some(ref rules) = value_rules_descriptor.r#type {
-        if !matches!(ignore, Ignore::Always) {
-          let mut values_validation_data = map_validation_data.clone();
-          values_validation_data.field_data.kind = FieldKind::MapValue;
-          values_validation_data.field_data.ignore = ignore;
 
+      let mut values_validation_data = map_validation_data.clone();
+
+      values_validation_data.field_data.kind = FieldKind::MapValue;
+      values_validation_data.field_data.ignore = ignore;
+
+      if !matches!(ignore, Ignore::Always) {
+        if let Some(ref rules) = value_rules_descriptor.r#type {
           if !value_is_message {
             let generated_value_templates =
               get_field_rules(field_rust_enum, &value_desc, &values_validation_data, rules)?;
             value_rules.extend(generated_value_templates);
           }
+        }
 
-          if !value_rules_descriptor.cel.is_empty() {
-            let cel_rules = get_cel_rules(
-              &CelRuleTemplateTarget::Field(value_desc, values_validation_data),
-              &value_rules_descriptor.cel,
-              static_defs,
-            )?;
-            value_rules.extend(cel_rules);
-          }
+        if !value_rules_descriptor.cel.is_empty() {
+          let cel_rules = get_cel_rules(
+            &CelRuleTemplateTarget::Field(value_desc, values_validation_data),
+            &value_rules_descriptor.cel,
+            static_defs,
+          )?;
+          value_rules.extend(cel_rules);
         }
       }
     }

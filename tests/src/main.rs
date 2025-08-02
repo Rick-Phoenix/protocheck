@@ -11,13 +11,13 @@ use protocheck::{types::Duration, validators::ProtoValidator};
 use crate::myapp::v1::{user::Post, User};
 
 fn main() {
+  let mut dur_map: HashMap<String, Duration> = HashMap::new();
+  dur_map.insert("abc".to_string(), Duration::new(1000, 0));
   let user = User {
-    duration_field: Some(Duration::new(1000, 0)),
-    post: Some(Post { created_at: None }),
-    map_field: HashMap::new(),
+    post: Some(Post { dur_map }),
     details: None,
   };
 
   let _result = user.validate();
-  // println!("{:#?}", result);
+  println!("{:#?}", _result);
 }
