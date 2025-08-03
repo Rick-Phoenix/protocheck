@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, DeriveInput, Type};
+use syn::{parse_macro_input, DeriveInput, Error, Type};
 
 use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
@@ -19,65 +19,75 @@ enum OuterType {
   Scalar,
 }
 
-impl OuterType {
-  fn from_type(ty: &Type) -> Self {
+impl TryFrom<&Type> for OuterType {
+  type Error = ();
+
+  fn try_from(ty: &Type) -> Result<Self, Self::Error> {
     if is_option(ty) {
-      let inner = get_inner_type(ty).expect("Failed to unwrap inner in is_option");
+      let inner = get_inner_type(ty)?;
       if is_box(inner) {
-        Self::Option {
-          inner: CelConversionKind::from_type(
-            get_inner_type(inner).expect("Failed to unwrap nested inner in is_box"),
-          ),
+        Ok(Self::Option {
+          inner: CelConversionKind::from(get_inner_type(inner)?),
           is_box: true,
-        }
+        })
       } else {
-        Self::Option {
-          inner: CelConversionKind::from_type(inner),
+        Ok(Self::Option {
+          inner: CelConversionKind::from(inner),
           is_box: false,
-        }
+        })
       }
     } else if is_vec(ty) {
-      Self::Vec(CelConversionKind::from_type(
-        get_inner_type(ty).expect("Failed to unwrap inner type in is_vec"),
-      ))
+      Ok(Self::Vec(CelConversionKind::from(get_inner_type(ty)?)))
     } else if is_hashmap(ty) {
-      Self::HashMap(CelConversionKind::from_type(
-        get_hashmap_value_type(ty).expect("Failed to unwrap inner type in is_hashmap"),
-      ))
+      Ok(Self::HashMap(CelConversionKind::from(
+        get_hashmap_value_type(ty)?,
+      )))
     } else {
-      Self::Scalar
+      Ok(Self::Scalar)
     }
   }
 }
 
-fn get_inner_type(ty: &Type) -> Option<&Type> {
+fn get_inner_type(ty: &Type) -> Result<&Type, ()> {
+  let mut output: Option<&Type> = None;
   if let syn::Type::Path(type_path) = ty {
     if let Some(segment) = type_path.path.segments.last() {
       if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
         if let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
-          return Some(inner_type);
+          output = Some(inner_type);
         }
       }
     }
   }
-  None
+
+  if let Some(output_type) = output {
+    Ok(output_type)
+  } else {
+    Err(())
+  }
 }
 
-fn get_hashmap_value_type(ty: &Type) -> Option<&Type> {
+fn get_hashmap_value_type(ty: &Type) -> Result<&Type, ()> {
+  let mut hashmap_value_type: Option<&Type> = None;
   if let syn::Type::Path(type_path) = ty {
     if let Some(segment) = type_path.path.segments.last() {
       if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
         if let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
-          return Some(value_type);
+          hashmap_value_type = Some(value_type);
         }
       }
     }
   }
-  None
+
+  if let Some(output_type) = hashmap_value_type {
+    Ok(output_type)
+  } else {
+    Err(())
+  }
 }
 
-impl CelConversionKind {
-  pub fn from_type(ty: &Type) -> Self {
+impl From<&Type> for CelConversionKind {
+  fn from(ty: &Type) -> Self {
     if supports_cel_into(ty) {
       Self::DirectConversion
     } else {
@@ -122,13 +132,12 @@ pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
     }
 
     if let syn::Fields::Unnamed(fields) = &variant.fields {
-      if fields.unnamed.len() == 1 {
-        let variant_type = &fields.unnamed.get(0).unwrap().ty;
-
-        let into_expression = if is_box(variant_type) {
+      if let Some(variant_type) = &fields.unnamed.get(0) {
+        let type_ident = &variant_type.ty;
+        let into_expression = if is_box(type_ident) {
           quote! { (*val).try_into_cel_value_recursive(depth + 1)? }
         } else {
-          match CelConversionKind::from_type(variant_type) {
+          match CelConversionKind::from(type_ident) {
             CelConversionKind::DirectConversion => {
               quote! { val.to_owned().into() }
             }
@@ -214,7 +223,20 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         }
       });
     } else {
-      let outer_type = OuterType::from_type(field_type);
+      let outer_type = match OuterType::try_from(field_type) {
+        Ok(ty) => ty,
+        Err(_) => {
+          return Error::new_spanned(
+            field,
+            format!(
+              "Could not parse the outer type for field {} in struct {}",
+              field_name, struct_name
+            ),
+          )
+          .to_compile_error()
+          .into()
+        }
+      };
 
       match outer_type {
         OuterType::Option { inner, is_box } => {
@@ -336,9 +358,10 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 }
 
 fn type_matches_path(ty: &Type, target_path: &str) -> bool {
-  let path: syn::Path =
-    syn::parse_str(target_path).expect("Failed to unwrap type in type_matches_path");
-  ty.to_token_stream().to_string() == path.to_token_stream().to_string()
+  if let Ok(path) = syn::parse_str::<syn::Path>(target_path) {
+    return ty.to_token_stream().to_string() == path.to_token_stream().to_string();
+  }
+  false
 }
 
 fn is_option(ty: &Type) -> bool {
