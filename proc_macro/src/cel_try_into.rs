@@ -5,8 +5,6 @@ use syn::{parse_macro_input, DeriveInput, Type};
 use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
 enum CelConversionKind {
-  Duration,
-  Timestamp,
   DirectConversion,
   TryIntoConversion,
 }
@@ -82,10 +80,6 @@ impl CelConversionKind {
   pub fn from_type(ty: &Type) -> Self {
     if supports_cel_into(ty) {
       Self::DirectConversion
-    } else if type_matches_path(ty, "protocheck::types::Duration") {
-      Self::Duration
-    } else if type_matches_path(ty, "protocheck::types::Timestamp") {
-      Self::Timestamp
     } else {
       Self::TryIntoConversion
     }
@@ -132,25 +126,14 @@ pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
         let variant_type = &fields.unnamed.get(0).unwrap().ty;
 
         let into_expression = if is_box(variant_type) {
-          quote! { Ok((#proto_name.to_string(), (*val).try_into_cel_value_recursive(depth + 1)?)) }
+          quote! { (*val).try_into_cel_value_recursive(depth + 1)? }
         } else {
-          let target_type = CelConversionKind::from_type(variant_type);
-          match target_type {
-            CelConversionKind::Duration => {
-              quote! {
-                let chrono_duration: chrono::Duration = val.to_owned().try_into()?;
-                Ok((#proto_name.to_string(), cel_interpreter::Value::Duration(chrono_duration.into())))
-              }
-            }
-            CelConversionKind::Timestamp => {
-              quote! { let chrono_timestamp: ::chrono::DateTime<::chrono::FixedOffset> = val.to_owned().try_into()?;
-              Ok((#proto_name.to_string(), cel_interpreter::Value::Timestamp(chrono_timestamp.into()))) }
-            }
+          match CelConversionKind::from_type(variant_type) {
             CelConversionKind::DirectConversion => {
-              quote! { Ok((#proto_name.to_string(), val.to_owned().into())) }
+              quote! { val.to_owned().into() }
             }
             CelConversionKind::TryIntoConversion => {
-              quote! { Ok((#proto_name.to_string(), val.to_owned().try_into()?)) }
+              quote! { val.to_owned().try_into()? }
             }
           }
         };
@@ -160,7 +143,7 @@ pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
             if depth >= #max_recursion_depth {
               Ok((#proto_name.to_string(), cel_interpreter::Value::Null))
             } else {
-              #into_expression
+              Ok((#proto_name.to_string(), #into_expression))
             }
           }
         };
@@ -245,26 +228,6 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             });
           } else {
             match inner {
-              CelConversionKind::Duration => {
-                tokens.extend(quote! {
-                  if let Some(v) = &value.#field_ident {
-                    let cel_val = cel_interpreter::Value::Duration(v.to_owned().try_into()?);
-                    #fields_map_ident.insert(#field_name.into(), cel_val);
-                  } else {
-                    #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
-                  }
-                });
-              }
-              CelConversionKind::Timestamp => {
-                tokens.extend(quote! {
-                  if let Some(v) = &value.#field_ident {
-                    let cel_val = cel_interpreter::Value::Timestamp(v.to_owned().try_into()?);
-                    #fields_map_ident.insert(#field_name.into(), cel_val);
-                  } else {
-                    #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
-                  }
-                });
-              }
               CelConversionKind::DirectConversion => {
                 tokens.extend(quote! {
                   if let Some(v) = &value.#field_ident {
@@ -276,30 +239,18 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
               }
               CelConversionKind::TryIntoConversion => {
                 tokens.extend(quote! {
-                    if let Some(v) = &value.#field_ident {
-                      #fields_map_ident.insert(#field_name.into(), v.try_into_cel_value_recursive(depth + 1)?);
-                    } else {
-                      #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
-                    }
-                  });
+                  if let Some(v) = value.#field_ident {
+                    #fields_map_ident.insert(#field_name.into(), v.try_into()?);
+                  } else {
+                    #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
+                  }
+                });
               }
             }
           }
         }
         OuterType::Vec(kind) => {
           let cel_val = match kind {
-            CelConversionKind::Duration => {
-              quote! {
-                let chrono_duration: chrono::Duration = item.to_owned().try_into()?;
-                converted.push(cel_interpreter::Value::Duration(chrono_duration.into()));
-              }
-            }
-            CelConversionKind::Timestamp => {
-              quote! {
-                let chrono_timestamp: ::chrono::DateTime<::chrono::FixedOffset> = item.to_owned().try_into()?;
-                converted.push(cel_interpreter::Value::Timestamp(chrono_timestamp.into()));
-              }
-            }
             CelConversionKind::DirectConversion => {
               quote! {
                 converted.push(item.into());
@@ -324,16 +275,6 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
         OuterType::HashMap(value_kind) => {
           let cel_val = match value_kind {
-            CelConversionKind::Duration => {
-              quote! {
-                cel_interpreter::Value::Duration(v.to_owned().try_into()?);
-              }
-            }
-            CelConversionKind::Timestamp => {
-              quote! {
-                  cel_interpreter::Value::Timestamp(v.to_owned().try_into()?);
-              }
-            }
             CelConversionKind::DirectConversion => {
               quote! {
                 v.into();
@@ -389,8 +330,6 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         value.clone().try_into_cel_value_recursive(0)
       }
     }
-
-
   };
 
   expanded.into()

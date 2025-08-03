@@ -15,23 +15,29 @@ fn main() {
   let post = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
+      outer_duration: None,
       post_oneof: None,
     }))),
     id: 2,
+    outer_duration: None,
   };
   let post2 = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
+      outer_duration: None,
       post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
     }))),
     id: 2,
+    outer_duration: None,
   };
   let post3 = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
+      outer_duration: None,
       post_oneof: Some(PostOneof::NestedPost(Box::new(post.clone()))),
     }))),
     id: 2,
+    outer_duration: None,
   };
 
   let user = User {
