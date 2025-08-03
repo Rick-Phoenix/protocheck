@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use prost_reflect::EnumDescriptor;
+use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::EnumRules, ValidatorKind, ValidatorTemplate};
@@ -21,6 +22,21 @@ pub fn get_enum_rules(
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let field_span = validation_data.field_span;
+
+  if let Some(const_val) = enum_rules.r#const {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::constants::constant },
+          target_value_tokens: const_val.to_token_stream(),
+        },
+      },
+    });
+
+    return Ok(templates);
+  }
 
   if enum_rules.defined_only() {
     templates.push(ValidatorTemplate {
@@ -59,6 +75,34 @@ pub fn get_enum_rules(
         ));
       }
     }
+
+    let in_list = enum_rules.r#in.clone();
+
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::in_list },
+          target_value_tokens: quote! { vec![ #(#in_list),* ] },
+        },
+      },
+    });
+  }
+
+  if !enum_rules.not_in.is_empty() {
+    let not_in_list = enum_rules.not_in.clone();
+
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::not_in_list },
+          target_value_tokens: quote! { vec![ #(#not_in_list),* ] },
+        },
+      },
+    });
   }
 
   Ok(templates)

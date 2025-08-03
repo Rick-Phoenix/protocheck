@@ -6,8 +6,9 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
 use crate::{
   rules::{
-    duration_rules::get_duration_rules, enum_rules::get_enum_rules, numeric_rules::get_int64_rules,
-    string_rules::get_string_rules, timestamp_rules::get_timestamp_rules,
+    any_rules::get_any_rules, bool_rules::get_bool_rules, duration_rules::get_duration_rules,
+    enum_rules::get_enum_rules, numeric_rules::get_int64_rules, string_rules::get_string_rules,
+    timestamp_rules::get_timestamp_rules,
   },
   validation_data::ValidationData,
 };
@@ -99,6 +100,32 @@ pub fn get_field_rules(
         ))
       } else {
         let rules = get_timestamp_rules(validation_data, timestamp_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    RulesType::Any(any_rules) => {
+      if !matches!(&field_data_kind, FieldKind::Any) {
+        error = Some(field_mismatch_error(
+          error_prefix,
+          "any",
+          field_proto_kind,
+          field_span,
+        ))
+      } else {
+        let rules = get_any_rules(validation_data, any_rules)?;
+        rules_agg.extend(rules);
+      }
+    }
+    RulesType::Bool(bool_rules) => {
+      if !matches!(&field_proto_kind, Kind::Bool) {
+        error = Some(field_mismatch_error(
+          error_prefix,
+          "bool",
+          field_proto_kind,
+          field_span,
+        ))
+      } else {
+        let rules = get_bool_rules(validation_data, bool_rules)?;
         rules_agg.extend(rules);
       }
     }
