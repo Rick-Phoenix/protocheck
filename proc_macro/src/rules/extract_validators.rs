@@ -72,21 +72,23 @@ pub fn extract_oneof_validators(
       for attr in &variant.attrs {
         if attr.path().is_ident("protocheck") {
           let _ = attr.parse_nested_meta(|meta| {
-            if meta.input.peek(Token![=]) && meta.path.is_ident("proto_name") {
-              let proto_field_name = meta
-                .value()
-                .map_err(|e| {
-                  Error::new_spanned(attr, format!("Failed to parse the proto_name attribute's value tokens: {}", e))
-                })?
-                .parse::<LitStr>()
-                .map_err(|e| {
-                  Error::new_spanned(
-                    attr,
-                    format!("Failed to parse the value for the proto_name attribute into a string literal: {}", e),
-                  )
-                })?;
-              let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-              field_ident_entry.proto_name = proto_field_name.value();
+            if meta.path.is_ident("proto_name") {
+              if let Ok(proto_name_tokens) = meta.value() {
+                let proto_field_name = proto_name_tokens
+                  .parse::<LitStr>()
+                  .map_err(|e| {
+                    Error::new_spanned(
+                      attr,
+                      format!(
+                      "Could not extract proto_name attribute for variant {} in oneof enum {}: {}",
+                      variant.ident, oneof_name, e
+                    ),
+                    )
+                  })?
+                  .value();
+                let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
+                field_ident_entry.proto_name = proto_field_name;
+              }
             }
 
             Ok(())
