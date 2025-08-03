@@ -142,6 +142,15 @@ fn get_default_field_prost_value(
 }
 
 fn convert_prost_value_to_cel_value(prost_value: &ProstValue) -> Result<CelValue, Error> {
+  convert_prost_value_to_cel_value_recursive(prost_value, 0)
+}
+
+const MAX_RECURSION_DEPTH: usize = 5;
+
+fn convert_prost_value_to_cel_value_recursive(
+  prost_value: &ProstValue,
+  depth: usize,
+) -> Result<CelValue, Error> {
   match prost_value {
     ProstValue::F64(v) => Ok(CelValue::Float(*v)),
     ProstValue::F32(v) => Ok(CelValue::Float(*v as f64)),
@@ -171,7 +180,7 @@ fn convert_prost_value_to_cel_value(prost_value: &ProstValue) -> Result<CelValue
           prost_reflect::MapKey::U64(v) => CelKey::Uint(*v),
           prost_reflect::MapKey::Bool(v) => CelKey::Bool(*v),
         };
-        let cel_val = convert_prost_value_to_cel_value(val)?;
+        let cel_val = convert_prost_value_to_cel_value_recursive(val, depth + 1)?;
         cel_map.insert(cel_key, cel_val);
       }
       Ok(CelValue::Map(cel_map.into()))
@@ -186,14 +195,19 @@ fn convert_prost_value_to_cel_value(prost_value: &ProstValue) -> Result<CelValue
       } else if full_name == "google.protobuf.Duration" {
         Ok(CelValue::Duration(chrono::Duration::default()))
       } else {
+        if depth >= MAX_RECURSION_DEPTH {
+          return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));
+        }
         let mut cel_map = HashMap::new();
         for field in msg_desc.fields() {
           if field.containing_oneof().is_some() {
             continue;
           }
           let cel_field_name = CelKey::String(Arc::new(field.name().to_string()));
-          let cel_field_value =
-            convert_prost_value_to_cel_value(&ProstValue::default_value(&field.kind()))?;
+          let cel_field_value = convert_prost_value_to_cel_value_recursive(
+            &ProstValue::default_value(&field.kind()),
+            depth + 1,
+          )?;
           cel_map.insert(cel_field_name, cel_field_value);
         }
         Ok(CelValue::Map(cel_map.into()))

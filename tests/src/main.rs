@@ -6,22 +6,36 @@ mod myapp {
 
 use protocheck::{types::Duration, validators::ProtoValidator};
 
-use crate::myapp::v1::{user::Post, User};
+use crate::myapp::v1::{
+  user::{post::PostOneof, Post},
+  User,
+};
 
 fn main() {
   let post = Post {
-    duration: Some(Duration::new(1000, 0)),
-    nested_post: None,
+    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
+      id: 3,
+      post_oneof: None,
+    }))),
+    id: 2,
   };
   let post2 = Post {
-    duration: Some(Duration::new(1000, 0)),
-    nested_post: Some(Box::new(post.clone())),
+    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
+      id: 3,
+      post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
+    }))),
+    id: 2,
+  };
+  let post3 = Post {
+    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
+      id: 3,
+      post_oneof: Some(PostOneof::NestedPost(Box::new(post.clone()))),
+    }))),
+    id: 2,
   };
 
   let user = User {
-    posts: Some(post2),
-    // posts: vec![post, post2],
-    details: None,
+    posts: vec![post, post2, post3],
   };
 
   let _result = user.validate();

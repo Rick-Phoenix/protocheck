@@ -72,24 +72,20 @@ where
           error_prefix,
           value.type_of()
         );
-        Err(Violation {
-          message: Some("Internal server error".to_string()),
-          rule_id: Some("internal_server_error".to_string()),
-          rule: None,
-          field: None,
-          for_key: Some(false),
-        })
+        Err(create_cel_violation(
+          "internal_server_error".to_string(),
+          "internal server error".to_string(),
+          field_context,
+        ))
       }
     }
     Err(e) => {
       println!("{} {:?}", error_prefix, e);
-      Err(Violation {
-        message: Some("Internal server error".to_string()),
-        rule_id: Some("internal_server_error".to_string()),
-        rule: None,
-        field: None,
-        for_key: Some(false),
-      })
+      Err(create_cel_violation(
+        "internal_server_error".to_string(),
+        "internal server error".to_string(),
+        field_context,
+      ))
     }
   }
 }
@@ -154,24 +150,20 @@ where
           error_prefix,
           value.type_of()
         );
-        Err(Violation {
-          message: Some("Internal server error".to_string()),
-          rule_id: Some("internal_server_error".to_string()),
-          rule: None,
-          field: None,
-          for_key: Some(false),
-        })
+        Err(create_cel_violation(
+          "internal_server_error".to_string(),
+          "internal server error".to_string(),
+          field_context,
+        ))
       }
     }
     Err(e) => {
       println!("{} {:?}", error_prefix, e);
-      Err(Violation {
-        message: Some("Internal server error".to_string()),
-        rule_id: Some("internal_server_error".to_string()),
-        rule: None,
-        field: None,
-        for_key: Some(false),
-      })
+      Err(create_cel_violation(
+        "internal_server_error".to_string(),
+        "internal server error".to_string(),
+        field_context,
+      ))
     }
   }
 }
@@ -232,13 +224,11 @@ where
         }
         Err(e) => {
           println!("{} {:?}", error_prefix, e);
-          Err(Violation {
-            message: Some("Internal server error".to_string()),
-            rule_id: Some("internal_server_error".to_string()),
-            rule: None,
-            field: None,
-            for_key: Some(false),
-          })
+          Err(create_cel_message_violation(
+            "internal_server_error",
+            "internal server error",
+            parent_elements,
+          ))
         }
       }
     }
