@@ -10,6 +10,7 @@ use super::{
 };
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
+  extract_validators::field_is_boxed,
   rules::{cel_rules::get_cel_rules, core::get_field_rules},
   validation_data::ValidationData,
   validator_template::FieldValidator,
@@ -123,7 +124,11 @@ pub fn get_repeated_rules(
 
         if !items_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
-            &CelRuleTemplateTarget::Field(field_desc.clone(), items_validation_data),
+            &CelRuleTemplateTarget::Field {
+              field_desc: field_desc.clone(),
+              validation_data: items_validation_data,
+              is_boxed: field_is_boxed(field_desc, field_desc.parent_message()),
+            },
             &items_rules_descriptor.cel,
             static_defs,
           )?;

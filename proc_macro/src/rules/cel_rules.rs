@@ -4,6 +4,7 @@ use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValu
 use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
+use proto_types::{Empty, FieldMask};
 use quote::quote;
 use syn::Error;
 
@@ -25,9 +26,11 @@ pub fn get_cel_rules(
       let dyn_message = DynamicMessage::new(message_desc.clone());
       convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
     }
-    CelRuleTemplateTarget::Field(field_desc, validation_data) => {
-      get_default_field_prost_value(&validation_data.field_data, field_desc).unwrap()
-    }
+    CelRuleTemplateTarget::Field {
+      field_desc,
+      validation_data,
+      ..
+    } => get_default_field_prost_value(&validation_data.field_data, field_desc).unwrap(),
   };
 
   let validation_type = rule_target.get_validation_type();
@@ -78,7 +81,11 @@ pub fn get_cel_rules(
           });
 
           match rule_target {
-            CelRuleTemplateTarget::Field(_, validation_data) => {
+            CelRuleTemplateTarget::Field {
+              validation_data,
+              is_boxed,
+              ..
+            } => {
               validators.push(ValidatorTemplate {
                 item_rust_name: rule_target.get_name().to_string(),
                 kind: ValidatorKind::Field {
@@ -87,6 +94,7 @@ pub fn get_cel_rules(
                     rule_id,
                     error_message,
                     static_program_ident,
+                    is_boxed: *is_boxed,
                   },
                 },
               });
@@ -145,7 +153,7 @@ fn convert_prost_value_to_cel_value(prost_value: &ProstValue) -> Result<CelValue
   convert_prost_value_to_cel_value_recursive(prost_value, 0)
 }
 
-const MAX_RECURSION_DEPTH: usize = 5;
+const MAX_RECURSION_DEPTH: usize = 10;
 
 fn convert_prost_value_to_cel_value_recursive(
   prost_value: &ProstValue,
@@ -189,28 +197,32 @@ fn convert_prost_value_to_cel_value_recursive(
       let msg_desc = dynamic_msg.descriptor();
       let full_name = msg_desc.full_name();
 
-      if full_name == "google.protobuf.Timestamp" {
-        let utc: DateTime<Utc> = Utc::now();
-        Ok(CelValue::Timestamp(utc.fixed_offset()))
-      } else if full_name == "google.protobuf.Duration" {
-        Ok(CelValue::Duration(chrono::Duration::default()))
-      } else {
-        if depth >= MAX_RECURSION_DEPTH {
-          return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));
+      match full_name {
+        "google.protobuf.Timestamp" => {
+          let utc: DateTime<Utc> = Utc::now();
+          Ok(CelValue::Timestamp(utc.fixed_offset()))
         }
-        let mut cel_map = HashMap::new();
-        for field in msg_desc.fields() {
-          if field.containing_oneof().is_some() {
-            continue;
+        "google.protobuf.Empty" => Ok(Empty {}.into()),
+        "google.protobuf.FieldMask" => Ok(FieldMask::new(vec![]).into()),
+        "google.protobuf.Duration" => Ok(CelValue::Duration(chrono::Duration::default())),
+        _ => {
+          if depth >= MAX_RECURSION_DEPTH {
+            return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));
           }
-          let cel_field_name = CelKey::String(Arc::new(field.name().to_string()));
-          let cel_field_value = convert_prost_value_to_cel_value_recursive(
-            &ProstValue::default_value(&field.kind()),
-            depth + 1,
-          )?;
-          cel_map.insert(cel_field_name, cel_field_value);
+          let mut cel_map = HashMap::new();
+          for field in msg_desc.fields() {
+            if field.containing_oneof().is_some() {
+              continue;
+            }
+            let cel_field_name = CelKey::String(Arc::new(field.name().to_string()));
+            let cel_field_value = convert_prost_value_to_cel_value_recursive(
+              &ProstValue::default_value(&field.kind()),
+              depth + 1,
+            )?;
+            cel_map.insert(cel_field_name, cel_field_value);
+          }
+          Ok(CelValue::Map(cel_map.into()))
         }
-        Ok(CelValue::Map(cel_map.into()))
       }
     }
   }

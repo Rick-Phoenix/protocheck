@@ -7,6 +7,7 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, Ignore, ValidatorKind, ValidatorTemplate};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
+  extract_validators::field_is_boxed,
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
@@ -144,7 +145,11 @@ pub fn get_map_rules(
 
         if !key_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
-            &CelRuleTemplateTarget::Field(key_desc, key_validation_data),
+            &CelRuleTemplateTarget::Field {
+              field_desc: key_desc,
+              validation_data: key_validation_data,
+              is_boxed: false,
+            },
             &key_rules_descriptor.cel,
             static_defs,
           )?;
@@ -176,7 +181,11 @@ pub fn get_map_rules(
 
         if !value_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
-            &CelRuleTemplateTarget::Field(value_desc, values_validation_data),
+            &CelRuleTemplateTarget::Field {
+              is_boxed: field_is_boxed(&value_desc, map_field_desc.parent_message()),
+              field_desc: value_desc,
+              validation_data: values_validation_data,
+            },
             &value_rules_descriptor.cel,
             static_defs,
           )?;

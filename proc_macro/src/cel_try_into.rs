@@ -96,7 +96,7 @@ impl From<&Type> for CelConversionKind {
   }
 }
 
-pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
+pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
   let enum_name = &ast.ident;
 
@@ -135,20 +135,20 @@ pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
       if let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
         let into_expression = if is_box(type_ident) {
-          quote! { (*val).try_into_cel_value_recursive(depth + 1)? }
+          quote! { (*oneof_val).try_into_cel_value_recursive(depth + 1)? }
         } else {
           match CelConversionKind::from(type_ident) {
             CelConversionKind::DirectConversion => {
-              quote! { val.to_owned().into() }
+              quote! { oneof_val.to_owned().into() }
             }
             CelConversionKind::TryIntoConversion => {
-              quote! { val.to_owned().try_into()? }
+              quote! { oneof_val.to_owned().try_into()? }
             }
           }
         };
 
         let arm = quote! {
-          #enum_name::#variant_ident(val) => {
+          #enum_name::#variant_ident(oneof_val) => {
             if depth >= #max_recursion_depth {
               Ok((#proto_name.to_string(), cel_interpreter::Value::Null))
             } else {
@@ -242,8 +242,8 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         OuterType::Option { inner, is_box } => {
           if is_box {
             tokens.extend(quote! {
-              if let Some(v) = value.#field_ident.as_deref() {
-                #fields_map_ident.insert(#field_name.into(), (*v).try_into_cel_value_recursive(depth + 1)?);
+              if let Some(boxed_val) = value.#field_ident.as_deref() {
+                #fields_map_ident.insert(#field_name.into(), (*boxed_val).try_into_cel_value_recursive(depth + 1)?);
               } else {
                 #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
               }
@@ -261,8 +261,8 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
               }
               CelConversionKind::TryIntoConversion => {
                 tokens.extend(quote! {
-                  if let Some(v) = value.#field_ident {
-                    #fields_map_ident.insert(#field_name.into(), v.try_into()?);
+                  if let Some(v) = &value.#field_ident {
+                    #fields_map_ident.insert(#field_name.into(), v.to_owned().try_into()?);
                   } else {
                     #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                   }

@@ -25,6 +25,7 @@ pub enum FieldValidator {
     rule_id: String,
     error_message: String,
     static_program_ident: Ident2,
+    is_boxed: bool,
   },
   EnumDefinedOnly {
     enum_type_ident: String,
@@ -369,7 +370,7 @@ impl ToTokens for ValidatorTemplate {
             rule_id,
             error_message,
             static_program_ident,
-            ..
+            is_boxed,
           } => {
             let target_kind = validation_data
               .inner_value_kind
@@ -402,13 +403,19 @@ impl ToTokens for ValidatorTemplate {
               }
             };
 
+            let value_tokens = if *is_boxed {
+              quote! { &(**val) }
+            } else {
+              quote! { val }
+            };
+
             if is_option {
               tokens.extend(quote! {
                 if let Some(val) = #value_ident {
                   let field_context = #field_context_tokens;
                   let rule = #rule_tokens;
 
-                  match protocheck::validators::cel::#cel_validator_func(&field_context, &rule, val) {
+                  match protocheck::validators::cel::#cel_validator_func(&field_context, &rule, #value_tokens) {
                     Ok(_) => {},
                     Err(v) => violations.push(v),
                   };
@@ -418,7 +425,7 @@ impl ToTokens for ValidatorTemplate {
               tokens.extend(quote! {
                 let field_context = #field_context_tokens;
                 let rule = #rule_tokens;
-                match protocheck::validators::cel::#cel_validator_func(&field_context, &rule,  #value_ident) {
+                match protocheck::validators::cel::#cel_validator_func(&field_context, &rule,  #value_tokens) {
                   Ok(_) => {},
                   Err(v) => violations.push(v),
                 };

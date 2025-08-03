@@ -7,13 +7,13 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use crate::{type_url_for, Empty, PACKAGE};
 
 impl From<Empty> for CelValue {
-  fn from(_value: Empty) -> Self {
+  fn from(_: Empty) -> Self {
     CelValue::Map(HashMap::<CelKey, CelValue>::new().into())
   }
 }
 
 impl From<()> for Empty {
-  fn from(_value: ()) -> Self {
+  fn from(_: ()) -> Self {
     Empty {}
   }
 }

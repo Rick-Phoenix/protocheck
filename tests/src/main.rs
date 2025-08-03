@@ -12,19 +12,22 @@ use crate::myapp::v1::{
 };
 
 fn main() {
+  let test_duration = Duration::default();
+
   let post = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
-      outer_duration: None,
+      outer_duration: Some(test_duration),
       post_oneof: None,
     }))),
     id: 2,
     outer_duration: None,
   };
+
   let post2 = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
-      outer_duration: None,
+      outer_duration: Some(test_duration),
       post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
     }))),
     id: 2,
@@ -33,8 +36,8 @@ fn main() {
   let post3 = Post {
     post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
       id: 3,
-      outer_duration: None,
-      post_oneof: Some(PostOneof::NestedPost(Box::new(post.clone()))),
+      outer_duration: Some(test_duration),
+      post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
     }))),
     id: 2,
     outer_duration: None,

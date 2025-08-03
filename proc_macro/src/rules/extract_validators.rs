@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use proc_macro2::{Ident as Ident2, TokenStream};
 use prost_reflect::{
-  prost::Message, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
+  prost::Message, FieldDescriptor, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
 use protocheck_core::field_data::FieldKind;
 use quote::quote;
@@ -178,7 +178,11 @@ pub fn extract_oneof_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleTemplateTarget::Field(field.clone(), validation_data.clone()),
+          &CelRuleTemplateTarget::Field {
+            field_desc: field.clone(),
+            validation_data: validation_data.clone(),
+            is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
+          },
           &field_rules.cel,
           &mut static_defs,
         )?);
@@ -382,7 +386,11 @@ pub fn extract_message_validators(
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
-          &CelRuleTemplateTarget::Field(field_desc.clone(), validation_data.clone()),
+          &CelRuleTemplateTarget::Field {
+            field_desc: field_desc.clone(),
+            validation_data: validation_data.clone(),
+            is_boxed: field_is_boxed(&field_desc, message_desc),
+          },
           &field_rules.cel,
           &mut static_defs,
         )?);
@@ -449,4 +457,11 @@ pub fn extract_message_validators(
   }
 
   Ok((validators, static_defs))
+}
+
+pub fn field_is_boxed(field_desc: &FieldDescriptor, message_desc: &MessageDescriptor) -> bool {
+  if let Kind::Message(field_message_desc) = field_desc.kind() {
+    return field_message_desc.full_name() == message_desc.full_name();
+  }
+  false
 }
