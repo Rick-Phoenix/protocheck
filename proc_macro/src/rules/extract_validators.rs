@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::LazyLock};
+use std::collections::HashMap;
 
 use proc_macro2::{Ident as Ident2, TokenStream};
 use prost_reflect::{
@@ -6,14 +6,14 @@ use prost_reflect::{
 };
 use protocheck_core::field_data::FieldKind;
 use quote::quote;
-use regex::Regex;
-use syn::{DeriveInput, Error, Ident, LitStr, Token};
+use syn::{DeriveInput, Error, Ident};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
   FieldData, MessageRules, OneofRules, ValidatorKind, ValidatorTemplate,
 };
 use crate::{
+  attribute_extractors::{extract_proto_name_attribute, ProstAttrData},
   cel_rule_template::CelRuleTemplateTarget,
   pool_loader::{
     FIELD_RULES_EXT_DESCRIPTOR, MESSAGE_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
@@ -28,10 +28,6 @@ use crate::{
   validator_template::FieldValidator,
   Span2,
 };
-
-static MAP_ENUM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-  Regex::new(r"^[^,]+,\s*enumeration\(([^)]+)\)$").expect("Failed to compile MAP_ENUM_REGEX")
-});
 
 #[derive(Clone, Debug)]
 struct OneofField {
@@ -71,42 +67,32 @@ pub fn extract_oneof_validators(
 
       for attr in &variant.attrs {
         if attr.path().is_ident("protocheck") {
-          let _ = attr.parse_nested_meta(|meta| {
-            if meta.path.is_ident("proto_name") {
-              if let Ok(proto_name_tokens) = meta.value() {
-                let proto_field_name = proto_name_tokens
-                  .parse::<LitStr>()
-                  .map_err(|e| {
-                    Error::new_spanned(
-                      attr,
-                      format!(
-                      "Could not extract proto_name attribute for variant {} in oneof enum {}: {}",
-                      variant.ident, oneof_name, e
-                    ),
-                    )
-                  })?
-                  .value();
+          attr.parse_nested_meta(|meta| {
+            let proto_field_name =
+              extract_proto_name_attribute(oneof_name, attr, &variant.ident, meta)?;
+            let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
+            field_ident_entry.proto_name = proto_field_name;
+
+            Ok(())
+          })?;
+        } else if attr.path().is_ident("prost") {
+          match attr.parse_args::<ProstAttrData>() {
+            Ok(parsed_data) => {
+              if let Some(enum_name) = parsed_data.enum_path {
                 let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-                field_ident_entry.proto_name = proto_field_name;
+                field_ident_entry.enum_ident = Some(enum_name);
               }
             }
-
-            Ok(())
-          });
-        } else if attr.path().is_ident("prost") {
-          let _ = attr.parse_nested_meta(|meta| {
-            if meta.path.is_ident("enumeration") && meta.input.peek(Token![=]) {
-              let enum_name = meta.value().map_err(|e| {
-                Error::new_spanned(attr, format!("Failed to parse the enumeration attribute's value tokens: {}", e))
-              })?.parse::<LitStr>().map_err(|e| {
-                Error::new_spanned(attr, format!("Failed to parse the value for the enumeration attribute to a string literal: {}", e))
-              })?;
-              let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-              field_ident_entry.enum_ident = Some(enum_name.value());
+            Err(e) => {
+              return Err(Error::new_spanned(
+                attr,
+                format!(
+                  "Could not extract the 'enumeration' attribute for variant {} in oneof {}: {}",
+                  &variant.ident, oneof_name, e
+                ),
+              ))
             }
-
-            Ok(())
-          });
+          };
         }
       }
     }
@@ -248,58 +234,22 @@ pub fn extract_message_validators(
       if let Some(ident) = &field.ident {
         for attr in &field.attrs {
           if attr.path().is_ident("prost") {
-            let _ = attr.parse_nested_meta(|meta| {
-              if meta.input.peek(Token![=]) {
-                if meta.path.is_ident("enumeration") {
-                  let enum_name = meta
-                    .value()
-                    .map_err(|e| {
-                      Error::new_spanned(
-                        attr,
-                        format!(
-                          "Failed to parse the enumeration attribute's value tokens: {}",
-                          e
-                        ),
-                      )
-                    })?
-                    .parse::<LitStr>()
-                    .map_err(|e| {
-                      Error::new_spanned(
-                        attr,
-                        format!(
-                          "Failed to parse the enumeration attribute to a string literal: {}",
-                          e
-                        ),
-                      )
-                    })?;
-                  rust_enum_paths.insert(ident.to_string(), enum_name.value());
-                } else if meta.path.is_ident("map") {
-                  let attr_content = meta
-                    .value()
-                    .map_err(|e| {
-                      Error::new_spanned(
-                        attr,
-                        format!("Failed to parse the map attribute's value tokens: {}", e),
-                      )
-                    })?
-                    .parse::<LitStr>()
-                    .map_err(|e| {
-                      Error::new_spanned(
-                        attr,
-                        format!("Failed to parse map attribute to a string literal: {}", e),
-                      )
-                    })?
-                    .value();
-                  if let Some(captures) = MAP_ENUM_REGEX.captures(&attr_content) {
-                    if let Some(enum_name) = captures.get(1) {
-                      rust_enum_paths.insert(ident.to_string(), enum_name.as_str().into());
-                    }
-                  }
+            match attr.parse_args::<ProstAttrData>() {
+              Ok(parsed_data) => {
+                if let Some(enum_name) = parsed_data.enum_path {
+                  rust_enum_paths.insert(ident.to_string(), enum_name.as_str().into());
                 }
               }
-
-              Ok(())
-            });
+              Err(e) => {
+                return Err(Error::new_spanned(
+                  attr,
+                  format!(
+                    "Could not extract the 'enumeration' attribute for field {} in struct {}: {}",
+                    ident, input_tokens.ident, e
+                  ),
+                ))
+              }
+            };
           }
         }
         rust_field_spans.insert(ident.to_string(), ident.span());

@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, DeriveInput, Error, LitStr, Type};
+use syn::{parse_macro_input, DeriveInput, Type};
 
-use crate::{Ident2, Span2, TokenStream2};
+use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
 enum CelConversionKind {
   Duration,
@@ -115,27 +115,15 @@ pub(crate) fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
     for attr in variant.attrs.iter() {
       if attr.path().is_ident("protocheck") {
         match attr.parse_nested_meta(|meta| {
-          if meta.path.is_ident("proto_name") {
-            if let Ok(proto_name_tokens) = meta.value() {
-              proto_name = proto_name_tokens
-                .parse::<LitStr>()
-                .map_err(|e| {
-                  Error::new_spanned(
-                    attr,
-                    format!(
-                      "Could not extract proto_name attribute for variant {} in oneof enum {}: {}",
-                      variant_ident, enum_name, e
-                    ),
-                  )
-                })?
-                .value();
-            }
-          }
+          proto_name =
+            extract_proto_name_attribute(&enum_name.to_string(), attr, variant_ident, meta)?;
           Ok(())
         }) {
           Ok(_) => {}
           Err(e) => return e.to_compile_error().into(),
         };
+
+        break;
       }
     }
 

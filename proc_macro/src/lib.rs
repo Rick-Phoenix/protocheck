@@ -15,6 +15,7 @@ use crate::{
   rules::extract_validators::{self, extract_message_validators},
 };
 
+mod attribute_extractors;
 mod cel_rule_template;
 mod cel_try_into;
 mod namespaces;
