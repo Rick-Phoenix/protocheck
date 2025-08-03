@@ -5,11 +5,7 @@ use crate::{
   ProtoType,
 };
 
-pub fn f32_is_finite(
-  field_context: &FieldContext,
-  value: &f32,
-  target: bool,
-) -> Result<(), Violation> {
+pub fn f32_is_finite(field_context: &FieldContext, value: &f32, _: ()) -> Result<(), Violation> {
   let check = !value.is_nan();
 
   if !check {
@@ -63,11 +59,7 @@ pub fn f32_is_finite(
   Ok(())
 }
 
-pub fn f64_is_finite(
-  field_context: &FieldContext,
-  value: &f64,
-  target: bool,
-) -> Result<(), Violation> {
+pub fn f64_is_finite(field_context: &FieldContext, value: &f64, _: ()) -> Result<(), Violation> {
   let check = !value.is_nan();
 
   if !check {

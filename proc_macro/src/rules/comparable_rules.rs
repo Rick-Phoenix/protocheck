@@ -30,28 +30,28 @@ where
 {
   if let Some(gt_val) = gt {
     if let Some(lt_val) = lt {
-      if lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
+      if lt_val.eq && gt_val.eq && lt_val.val < gt_val.val {
         return Err(Error::new(
           field_span,
-          format!("{} Lte cannot be larger than Gte", error_prefix),
+          format!("{} Lte cannot be smaller than Gte", error_prefix),
         ));
       }
-      if !lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
+      if !lt_val.eq && !gt_val.eq && lt_val.val <= gt_val.val {
         return Err(Error::new(
           field_span,
-          format!("{} Lt cannot be larger than or equal to Gt", error_prefix),
+          format!("{} Lt cannot be smaller than or equal to Gt", error_prefix),
         ));
       }
-      if lt_val.eq && !gt_val.eq && lt_val.val >= gt_val.val {
+      if lt_val.eq && !gt_val.eq && lt_val.val <= gt_val.val {
         return Err(Error::new(
           field_span,
-          format!("{} Lte cannot be larger than or equal to Gt", error_prefix),
+          format!("{} Lte cannot be smaller than or equal to Gt", error_prefix),
         ));
       }
-      if !lt_val.eq && gt_val.eq && lt_val.val > gt_val.val {
+      if !lt_val.eq && gt_val.eq && lt_val.val < gt_val.val {
         return Err(Error::new(
           field_span,
-          format!("{} Lt cannot be larger than Gte", error_prefix),
+          format!("{} Lt cannot be smaller than Gte", error_prefix),
         ));
       }
     }

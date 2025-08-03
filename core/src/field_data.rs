@@ -27,8 +27,7 @@ pub enum FieldKind {
   Duration,
   Timestamp,
   Message,
-  FieldMask,
-  Empty,
+  Any,
 }
 
 impl FieldKind {
@@ -87,8 +86,7 @@ impl ToTokens for FieldKind {
       FieldKind::Duration => quote! { Duration },
       FieldKind::Timestamp => quote! { Timestamp },
       FieldKind::Message => quote! { Message },
-      FieldKind::FieldMask => quote! { FieldMask },
-      FieldKind::Empty => quote! { Empty },
+      FieldKind::Any => quote! { Any },
     };
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });
@@ -107,8 +105,7 @@ impl FieldKind {
       Kind::Message(message_desc) => match message_desc.full_name() {
         "google.protobuf.Duration" => Self::Duration,
         "google.protobuf.Timestamp" => Self::Timestamp,
-        "google.protobuf.FieldMask" => Self::FieldMask,
-        "google.protobuf.Empty" => Self::Empty,
+        "google.protobuf.Any" => Self::Any,
         _ => Self::Message,
       },
       _ => Self::Scalar,
@@ -120,8 +117,7 @@ impl FieldKind {
       Kind::Message(message_desc) => match message_desc.full_name() {
         "google.protobuf.Duration" => Self::Duration,
         "google.protobuf.Timestamp" => Self::Timestamp,
-        "google.protobuf.FieldMask" => Self::FieldMask,
-        "google.protobuf.Empty" => Self::Empty,
+        "google.protobuf.Any" => Self::Any,
         _ => Self::Message,
       },
       _ => Self::Scalar,

@@ -127,5 +127,19 @@ pub fn get_duration_rules(
     });
   }
 
+  if !rules.not_in.is_empty() {
+    let not_in_list = rules.not_in.clone();
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::not_in_list },
+          target_value_tokens: quote! { vec![ #(#not_in_list),* ] },
+        },
+      },
+    });
+  }
+
   Ok(templates)
 }

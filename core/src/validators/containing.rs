@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use proto_types::Any;
+
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPath, FieldPathElement, Violation},
@@ -8,6 +10,22 @@ use crate::{
     not_in_rules::get_not_in_rule_path,
   },
 };
+
+pub fn any_in_list(
+  field_context: &FieldContext,
+  value: &Any,
+  target: &[String],
+) -> Result<(), Violation> {
+  in_list(field_context, &value.type_url, target)
+}
+
+pub fn any_not_in_list(
+  field_context: &FieldContext,
+  value: &Any,
+  target: &[String],
+) -> Result<(), Violation> {
+  not_in_list(field_context, &value.type_url, target)
+}
 
 pub fn in_list<T>(field_context: &FieldContext, value: &T, target: &[T]) -> Result<(), Violation>
 where

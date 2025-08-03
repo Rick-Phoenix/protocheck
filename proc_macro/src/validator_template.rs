@@ -382,6 +382,9 @@ impl ToTokens for ValidatorTemplate {
               FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
                 quote! { validate_cel_field }
               }
+              FieldKind::Any => {
+                quote! { compile_error!("Any is not supported for Cel validation") }
+              }
               _ => quote! { validate_cel_field_with_val },
             };
 
