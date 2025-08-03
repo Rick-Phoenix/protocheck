@@ -1,33 +1,41 @@
-// use super::CelRule;
-// use super::CelRuleValue;
-// use crate::validator::buf::validate::AnyRules;
-//
-// pub fn get_any_rules(any_rules: &AnyRules) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
-//   let mut rules: Vec<CelRule> = Vec::new();
-//
-//   if any_rules.r#in.len() > 0 {
-//     let in_values = any_rules.r#in.clone();
-//
-//     let (expression, message) = super::COMMON_RULES.get("in").unwrap();
-//     rules.push(CelRule {
-//       id: "any.in".to_string(),
-//       message: message.to_string(),
-//       expression: expression.to_string(),
-//       value: CelRuleValue::RepeatedString(in_values),
-//     });
-//   }
-//
-//   if any_rules.not_in.len() > 0 {
-//     let not_in_values = any_rules.not_in.clone();
-//
-//     let (expression, message) = super::COMMON_RULES.get("not_in").unwrap();
-//     rules.push(CelRule {
-//       id: "any.not_in".to_string(),
-//       message: message.to_string(),
-//       expression: expression.to_string(),
-//       value: CelRuleValue::RepeatedString(not_in_values),
-//     });
-//   }
-//
-//   Ok(rules)
-// }
+use proto_types::protovalidate::AnyRules;
+use quote::quote;
+use syn::Error;
+
+use super::{ValidatorKind, ValidatorTemplate};
+use crate::{
+  rules::containing_rules::validate_in_not_in, validation_data::ValidationData,
+  validator_template::FieldValidator,
+};
+
+pub fn get_any_rules(
+  validation_data: &ValidationData,
+  rules: &AnyRules,
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+
+  let field_span = validation_data.field_span;
+
+  let error_prefix = format!(
+    "Error for field {}:",
+    &validation_data.field_data.proto_name
+  );
+
+  validate_in_not_in(&rules.r#in, &rules.not_in, &error_prefix, field_span)?;
+
+  if !rules.r#in.is_empty() {
+    let in_list = rules.r#in.clone();
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::in_list },
+          target_value_tokens: quote! { vec![ #(#in_list),* ] },
+        },
+      },
+    });
+  }
+
+  Ok(templates)
+}
