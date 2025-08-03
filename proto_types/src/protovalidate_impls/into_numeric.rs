@@ -1,6 +1,8 @@
 use crate::protovalidate::{
+  double_rules::{GreaterThan as DoubleGreaterThan, LessThan as DoubleLessThan},
   fixed32_rules::{GreaterThan as Fixed32GreaterThan, LessThan as Fixed32LessThan},
   fixed64_rules::{GreaterThan as Fixed64GreaterThan, LessThan as Fixed64LessThan},
+  float_rules::{GreaterThan as FloatGreaterThan, LessThan as FloatLessThan},
   int32_rules::{GreaterThan as I32GreaterThan, LessThan as I32LessThan},
   int64_rules::{GreaterThan as I64GreaterThan, LessThan as I64LessThan},
   s_fixed32_rules::{GreaterThan as SFixed32GreaterThan, LessThan as SFixed32LessThan},
@@ -23,6 +25,24 @@ pub enum NumericGreaterThan<T> {
 
 pub trait IntoNumeric<T> {
   fn into_numeric(self) -> T;
+}
+
+impl IntoNumeric<NumericLessThan<f32>> for FloatLessThan {
+  fn into_numeric(self) -> NumericLessThan<f32> {
+    match self {
+      Self::Lt(v) => NumericLessThan::Lt(v),
+      Self::Lte(v) => NumericLessThan::Lte(v),
+    }
+  }
+}
+
+impl IntoNumeric<NumericLessThan<f64>> for DoubleLessThan {
+  fn into_numeric(self) -> NumericLessThan<f64> {
+    match self {
+      Self::Lt(v) => NumericLessThan::Lt(v),
+      Self::Lte(v) => NumericLessThan::Lte(v),
+    }
+  }
 }
 
 impl IntoNumeric<NumericLessThan<i64>> for I64LessThan {
@@ -111,6 +131,24 @@ impl IntoNumeric<NumericLessThan<u64>> for Fixed64LessThan {
     match self {
       Self::Lt(v) => NumericLessThan::Lt(v),
       Self::Lte(v) => NumericLessThan::Lte(v),
+    }
+  }
+}
+
+impl IntoNumeric<NumericGreaterThan<f32>> for FloatGreaterThan {
+  fn into_numeric(self) -> NumericGreaterThan<f32> {
+    match self {
+      Self::Gt(v) => NumericGreaterThan::Gt(v),
+      Self::Gte(v) => NumericGreaterThan::Gte(v),
+    }
+  }
+}
+
+impl IntoNumeric<NumericGreaterThan<f64>> for DoubleGreaterThan {
+  fn into_numeric(self) -> NumericGreaterThan<f64> {
+    match self {
+      Self::Gt(v) => NumericGreaterThan::Gt(v),
+      Self::Gte(v) => NumericGreaterThan::Gte(v),
     }
   }
 }
