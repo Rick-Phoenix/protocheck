@@ -30,6 +30,12 @@ pub fn get_field_rules(
 
   let error_prefix = &format!("Error for field {}:", field_name);
 
+  field_rules.matches_type(
+    &validation_data.field_data.proto_type,
+    field_span,
+    error_prefix,
+  )?;
+
   match field_rules {
     RulesType::Enum(enum_rules) => {
       if let Kind::Enum(enum_descriptor) = &field_proto_kind {
@@ -53,17 +59,8 @@ pub fn get_field_rules(
       }
     }
     RulesType::String(string_rules) => {
-      if !matches!(&field_proto_kind, Kind::String) {
-        error = Some(field_mismatch_error(
-          error_prefix,
-          "string",
-          field_proto_kind,
-          field_span,
-        ))
-      } else {
-        let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
-        rules_agg.extend(rules);
-      }
+      let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
+      rules_agg.extend(rules);
     }
     RulesType::Duration(duration_rules) => {
       if !matches!(field_data_kind, FieldKind::Duration) {
@@ -105,17 +102,8 @@ pub fn get_field_rules(
       }
     }
     RulesType::Bool(bool_rules) => {
-      if !matches!(&field_proto_kind, Kind::Bool) {
-        error = Some(field_mismatch_error(
-          error_prefix,
-          "bool",
-          field_proto_kind,
-          field_span,
-        ))
-      } else {
-        let rules = get_bool_rules(validation_data, bool_rules)?;
-        rules_agg.extend(rules);
-      }
+      let rules = get_bool_rules(validation_data, bool_rules)?;
+      rules_agg.extend(rules);
     }
     _ => {}
   };
