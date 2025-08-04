@@ -1,31 +1,18 @@
 use proto_types::{
-  protovalidate::{
-    duration_rules::{GreaterThan, LessThan},
-    DurationRules,
-  },
-  Duration,
+  protovalidate::DurationRules,
+  protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules},
 };
 use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{ValidatorKind, ValidatorTemplate};
-use crate::{
-  rules::{
-    comparable_rules::{validate_gt_lt, Gt, Lt},
-    containing_rules::validate_in_not_in,
-  },
-  validation_data::ValidationData,
-  validator_template::FieldValidator,
-};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 pub fn get_duration_rules(
   validation_data: &ValidationData,
   rules: &DurationRules,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
-
-  let mut lt: Option<Lt<Duration>> = None;
-  let mut gt: Option<Gt<Duration>> = None;
 
   let field_span = validation_data.field_span;
 
@@ -48,10 +35,11 @@ pub fn get_duration_rules(
     return Ok(templates);
   }
 
-  if let Some(lt_rule) = rules.less_than {
+  let comparable_rules = rules.comparable_rules(field_span, &error_prefix)?;
+
+  if let Some(lt_rule) = comparable_rules.less_than {
     match lt_rule {
-      LessThan::Lt(val) => {
-        lt = Some(Lt { val, eq: false });
+      ComparableLessThan::Lt(val) => {
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -63,8 +51,7 @@ pub fn get_duration_rules(
           },
         });
       }
-      LessThan::Lte(val) => {
-        lt = Some(Lt { val, eq: true });
+      ComparableLessThan::Lte(val) => {
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -79,10 +66,9 @@ pub fn get_duration_rules(
     };
   }
 
-  if let Some(gt_rule) = rules.greater_than {
+  if let Some(gt_rule) = comparable_rules.greater_than {
     match gt_rule {
-      GreaterThan::Gt(val) => {
-        gt = Some(Gt { val, eq: false });
+      ComparableGreaterThan::Gt(val) => {
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -94,8 +80,7 @@ pub fn get_duration_rules(
           },
         });
       }
-      GreaterThan::Gte(val) => {
-        gt = Some(Gt { val, eq: true });
+      ComparableGreaterThan::Gte(val) => {
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -110,11 +95,12 @@ pub fn get_duration_rules(
     };
   }
 
-  validate_gt_lt(&gt, &lt, &error_prefix, field_span)?;
-  validate_in_not_in(&rules.r#in, &rules.not_in, &error_prefix, field_span)?;
+  let ContainingRules {
+    in_list,
+    not_in_list,
+  } = rules.containing_rules(field_span, &error_prefix)?;
 
-  if !rules.r#in.is_empty() {
-    let in_list = rules.r#in.clone();
+  if !in_list.is_empty() {
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -127,8 +113,7 @@ pub fn get_duration_rules(
     });
   }
 
-  if !rules.not_in.is_empty() {
-    let not_in_list = rules.not_in.clone();
+  if !not_in_list.is_empty() {
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {

@@ -1,12 +1,9 @@
-use proto_types::protovalidate::AnyRules;
+use proto_types::{protovalidate::AnyRules, protovalidate_impls::ContainingRules};
 use quote::quote;
 use syn::Error;
 
 use super::{ValidatorKind, ValidatorTemplate};
-use crate::{
-  rules::containing_rules::validate_in_not_in, validation_data::ValidationData,
-  validator_template::FieldValidator,
-};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 pub fn get_any_rules(
   validation_data: &ValidationData,
@@ -21,10 +18,12 @@ pub fn get_any_rules(
     &validation_data.field_data.proto_name
   );
 
-  validate_in_not_in(&rules.r#in, &rules.not_in, &error_prefix, field_span)?;
+  let ContainingRules {
+    in_list,
+    not_in_list,
+  } = rules.containing_rules(field_span, &error_prefix)?;
 
-  if !rules.r#in.is_empty() {
-    let in_list = rules.r#in.clone();
+  if !in_list.is_empty() {
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -37,8 +36,7 @@ pub fn get_any_rules(
     });
   }
 
-  if !rules.not_in.is_empty() {
-    let not_in_list = rules.not_in.clone();
+  if !not_in_list.is_empty() {
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {

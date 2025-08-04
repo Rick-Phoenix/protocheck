@@ -1,28 +1,18 @@
-use proto_types::{
-  protovalidate::{
-    timestamp_rules::{GreaterThan, LessThan},
-    TimestampRules,
-  },
-  Timestamp,
+use proto_types::protovalidate::{
+  timestamp_rules::{GreaterThan, LessThan},
+  TimestampRules,
 };
 use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{ValidatorKind, ValidatorTemplate};
-use crate::{
-  rules::comparable_rules::{validate_gt_lt, Gt, Lt},
-  validation_data::ValidationData,
-  validator_template::FieldValidator,
-};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 pub fn get_timestamp_rules(
   validation_data: &ValidationData,
   rules: &TimestampRules,
 ) -> Result<Vec<ValidatorTemplate>, Error> {
   let mut templates: Vec<ValidatorTemplate> = Vec::new();
-
-  let mut lt: Option<Lt<Timestamp>> = None;
-  let mut gt: Option<Gt<Timestamp>> = None;
 
   let field_span = validation_data.field_span;
 
@@ -65,10 +55,11 @@ pub fn get_timestamp_rules(
     });
   }
 
-  if let Some(lt_rule) = rules.less_than {
+  let (greater_than, less_than) = rules.comparable_rules(field_span, &error_prefix)?;
+
+  if let Some(lt_rule) = less_than {
     match lt_rule {
       LessThan::Lt(val) => {
-        lt = Some(Lt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -81,7 +72,6 @@ pub fn get_timestamp_rules(
         });
       }
       LessThan::Lte(val) => {
-        lt = Some(Lt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -95,37 +85,24 @@ pub fn get_timestamp_rules(
       }
       LessThan::LtNow(val) => {
         if val {
-          if let Some(ref gt_rule) = gt {
-            if gt_rule.val.is_future() {
-              return Err(Error::new(
-                field_span,
-                format!(
-                  "{} gt or gte cannot be in the future if lt_now is true",
-                  error_prefix
-                ),
-              ));
-            }
-
-            templates.push(ValidatorTemplate {
-              item_rust_name: validation_data.field_data.rust_name.clone(),
-              kind: ValidatorKind::Field {
-                validation_data: validation_data.clone(),
-                field_validator: FieldValidator::Scalar {
-                  validator_path: quote! { protocheck::validators::timestamps::lt_now },
-                  target_value_tokens: quote! { () },
-                },
+          templates.push(ValidatorTemplate {
+            item_rust_name: validation_data.field_data.rust_name.clone(),
+            kind: ValidatorKind::Field {
+              validation_data: validation_data.clone(),
+              field_validator: FieldValidator::Scalar {
+                validator_path: quote! { protocheck::validators::timestamps::lt_now },
+                target_value_tokens: quote! { () },
               },
-            });
-          }
+            },
+          });
         }
       }
     };
   }
 
-  if let Some(gt_rule) = rules.greater_than {
+  if let Some(gt_rule) = greater_than {
     match gt_rule {
       GreaterThan::Gt(val) => {
-        gt = Some(Gt { val, eq: false });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -138,7 +115,6 @@ pub fn get_timestamp_rules(
         });
       }
       GreaterThan::Gte(val) => {
-        gt = Some(Gt { val, eq: true });
         templates.push(ValidatorTemplate {
           item_rust_name: validation_data.field_data.rust_name.clone(),
           kind: ValidatorKind::Field {
@@ -152,34 +128,20 @@ pub fn get_timestamp_rules(
       }
       GreaterThan::GtNow(val) => {
         if val {
-          if let Some(ref lt_rule) = lt {
-            if lt_rule.val.is_past() {
-              return Err(Error::new(
-                field_span,
-                format!(
-                  "{} lt or lte cannot be in the past if gt_now is true",
-                  error_prefix
-                ),
-              ));
-            }
-
-            templates.push(ValidatorTemplate {
-              item_rust_name: validation_data.field_data.rust_name.clone(),
-              kind: ValidatorKind::Field {
-                validation_data: validation_data.clone(),
-                field_validator: FieldValidator::Scalar {
-                  validator_path: quote! { protocheck::validators::timestamps::gt_now },
-                  target_value_tokens: quote! { () },
-                },
+          templates.push(ValidatorTemplate {
+            item_rust_name: validation_data.field_data.rust_name.clone(),
+            kind: ValidatorKind::Field {
+              validation_data: validation_data.clone(),
+              field_validator: FieldValidator::Scalar {
+                validator_path: quote! { protocheck::validators::timestamps::gt_now },
+                target_value_tokens: quote! { () },
               },
-            });
-          }
+            },
+          });
         }
       }
     };
   }
-
-  validate_gt_lt(&gt, &lt, &error_prefix, field_span)?;
 
   Ok(templates)
 }

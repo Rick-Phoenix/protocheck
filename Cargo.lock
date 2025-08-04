@@ -508,6 +508,7 @@ dependencies = [
  "prost-build",
  "quote",
  "serde",
+ "syn",
 ]
 
 [[package]]

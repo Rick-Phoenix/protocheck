@@ -1,14 +1,12 @@
 use std::collections::HashSet;
 
 use prost_reflect::EnumDescriptor;
+use proto_types::protovalidate_impls::ContainingRules;
 use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{protovalidate::EnumRules, ValidatorKind, ValidatorTemplate};
-use crate::{
-  rules::containing_rules::validate_in_not_in, validation_data::ValidationData,
-  validator_template::FieldValidator,
-};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
 
 pub fn get_enum_rules(
   field_type_ident: String,
@@ -51,14 +49,12 @@ pub fn get_enum_rules(
     });
   }
 
-  validate_in_not_in(
-    &enum_rules.r#in,
-    &enum_rules.not_in,
-    &error_prefix,
-    field_span,
-  )?;
+  let ContainingRules {
+    in_list,
+    not_in_list,
+  } = enum_rules.containing_rules(field_span, &error_prefix)?;
 
-  if !enum_rules.r#in.is_empty() {
+  if !in_list.is_empty() {
     let enum_values: HashSet<i32> = enum_desc.values().map(|e| e.number()).collect();
     for n in enum_rules.r#in.iter() {
       let mut invalid_numbers: Vec<i32> = Vec::new();
@@ -76,8 +72,6 @@ pub fn get_enum_rules(
       }
     }
 
-    let in_list = enum_rules.r#in.clone();
-
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
@@ -90,9 +84,7 @@ pub fn get_enum_rules(
     });
   }
 
-  if !enum_rules.not_in.is_empty() {
-    let not_in_list = enum_rules.not_in.clone();
-
+  if !not_in_list.is_empty() {
     templates.push(ValidatorTemplate {
       item_rust_name: validation_data.field_data.rust_name.clone(),
       kind: ValidatorKind::Field {
