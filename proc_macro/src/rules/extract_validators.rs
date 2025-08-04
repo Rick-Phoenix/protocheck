@@ -189,7 +189,13 @@ pub fn extract_oneof_validators(
       }
 
       if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(enum_ident, &field, &validation_data, rules_type)?;
+        let rules = get_field_rules(
+          &mut static_defs,
+          enum_ident,
+          &field,
+          &validation_data,
+          rules_type,
+        )?;
         field_validators.extend(rules);
       }
 
@@ -422,7 +428,13 @@ pub fn extract_message_validators(
           field_validators.push(rules);
         }
       } else if let Some(rules_type) = field_rules_type {
-        let rules = get_field_rules(field_rust_enum, &field_desc, &validation_data, rules_type)?;
+        let rules = get_field_rules(
+          &mut static_defs,
+          field_rust_enum,
+          &field_desc,
+          &validation_data,
+          rules_type,
+        )?;
 
         field_validators.extend(rules);
       } else if let Kind::Message(field_message_desc) = field_desc.kind() {

@@ -4,6 +4,8 @@ use proc_macro2::Span;
 use quote::ToTokens;
 use syn::Error;
 
+use crate::protovalidate::{BytesRules, StringRules};
+
 pub enum ComparableLessThan<T> {
   Lt(T),
   Lte(T),
@@ -38,45 +40,117 @@ pub enum ComparableGreaterThan<T> {
   Gte(T),
 }
 
-pub fn validate_len(
-  len: Option<u64>,
-  min_len: Option<u64>,
-  max_len: Option<u64>,
-  error_prefix: &str,
-  is_bytes: bool,
-  field_span: Span,
-) -> Result<(), Error> {
-  let (len_name, min_name, max_name) = if is_bytes {
-    ("len_bytes", "min_bytes", "max_bytes")
-  } else {
-    ("len", "min_len", "max_len")
-  };
+pub struct LengthRules {
+  pub len: Option<u64>,
+  pub min_len: Option<u64>,
+  pub max_len: Option<u64>,
+}
 
-  if len.is_some() && (min_len.is_some() || max_len.is_some()) {
-    return Err(syn::Error::new(
-      field_span,
-      format!(
-        "{} {} cannot be used with {} or {}",
-        error_prefix, len_name, min_name, max_name
-      ),
-    ));
-  }
+impl BytesRules {
+  pub fn length_rules(&self, field_span: Span, error_prefix: &str) -> Result<LengthRules, Error> {
+    let len = self.len;
+    let min_len = self.min_len;
+    let max_len = self.max_len;
 
-  if let Some(min) = min_len {
-    if let Some(max) = max_len {
-      if min > max {
-        return Err(syn::Error::new(
-          field_span,
-          format!(
-            "{} {} cannot be larger than {}",
-            error_prefix, min_name, max_name
-          ),
-        ));
+    if len.is_some() && (min_len.is_some() || max_len.is_some()) {
+      return Err(syn::Error::new(
+        field_span,
+        format!(
+          "{} len cannot be used with min_len or max_len",
+          error_prefix,
+        ),
+      ));
+    }
+
+    if let Some(min) = min_len {
+      if let Some(max) = max_len {
+        if min > max {
+          return Err(syn::Error::new(
+            field_span,
+            format!("{} min_len cannot be larger than max_len", error_prefix,),
+          ));
+        }
       }
     }
+
+    Ok(LengthRules {
+      len,
+      min_len,
+      max_len,
+    })
+  }
+}
+
+impl StringRules {
+  pub fn length_rules(&self, field_span: Span, error_prefix: &str) -> Result<LengthRules, Error> {
+    let len = self.len;
+    let min_len = self.min_len;
+    let max_len = self.max_len;
+
+    if len.is_some() && (min_len.is_some() || max_len.is_some()) {
+      return Err(syn::Error::new(
+        field_span,
+        format!(
+          "{} len cannot be used with min_len or max_len",
+          error_prefix,
+        ),
+      ));
+    }
+
+    if let Some(min) = min_len {
+      if let Some(max) = max_len {
+        if min > max {
+          return Err(syn::Error::new(
+            field_span,
+            format!("{} min_len cannot be larger than max_len", error_prefix,),
+          ));
+        }
+      }
+    }
+
+    Ok(LengthRules {
+      len,
+      min_len,
+      max_len,
+    })
   }
 
-  Ok(())
+  pub fn bytes_length_rules(
+    &self,
+    field_span: Span,
+    error_prefix: &str,
+  ) -> Result<LengthRules, Error> {
+    let len = self.len_bytes;
+    let min_len = self.min_bytes;
+    let max_len = self.max_bytes;
+
+    if len.is_some() && (min_len.is_some() || max_len.is_some()) {
+      return Err(syn::Error::new(
+        field_span,
+        format!(
+          "{} len_bytes cannot be used with min_bytes or max_bytes",
+          error_prefix,
+        ),
+      ));
+    }
+
+    if let Some(min) = min_len {
+      if let Some(max) = max_len {
+        if min > max {
+          return Err(syn::Error::new(
+            field_span,
+            format!("{} min_bytes cannot be larger than max_bytes", error_prefix,),
+          ));
+        }
+      }
+    }
+
+    Ok(LengthRules {
+      len,
+      min_len,
+      max_len,
+    })
+  }
 }
 
 pub struct ComparableRules<T>

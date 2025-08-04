@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true }
+bytes = { workspace = true }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
 syn = { workspace = true }

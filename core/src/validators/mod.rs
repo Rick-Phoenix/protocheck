@@ -9,6 +9,7 @@ pub trait ProtoValidator {
   );
 }
 
+pub mod bytes;
 pub mod cel;
 pub mod comparables;
 pub mod constants;

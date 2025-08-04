@@ -112,6 +112,7 @@ pub fn get_repeated_rules(
         if let Some(ref rules_type) = items_rules_descriptor.r#type {
           if !item_is_message {
             let rules_for_single_item = get_field_rules(
+              static_defs,
               field_rust_enum,
               field_desc,
               &items_validation_data,

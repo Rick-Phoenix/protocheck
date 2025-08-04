@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut config = Config::new();
   config
     .file_descriptor_set_path(descriptor_path.clone())
+    .bytes(["."])
     .extern_path(".google.protobuf", "crate::protobuf")
     .compile_well_known_types()
     .out_dir(out_dir.clone());

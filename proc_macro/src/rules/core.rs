@@ -1,4 +1,4 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use prost_reflect::{FieldDescriptor, Kind};
 use protocheck_core::field_data::FieldKind;
 use syn::Error;
@@ -7,13 +7,14 @@ use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
 use crate::{
   rules::{
     any_rules::get_any_rules, bool_rules::get_bool_rules, duration_rules::get_duration_rules,
-    enum_rules::get_enum_rules, numeric_rules::get_int64_rules, string_rules::get_string_rules,
+    enum_rules::get_enum_rules, string_rules::get_string_rules,
     timestamp_rules::get_timestamp_rules,
   },
   validation_data::ValidationData,
 };
 
 pub fn get_field_rules(
+  static_defs: &mut Vec<TokenStream>,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
@@ -60,20 +61,7 @@ pub fn get_field_rules(
           field_span,
         ))
       } else {
-        let rules = get_string_rules(validation_data, string_rules)?;
-        rules_agg.extend(rules);
-      }
-    }
-    RulesType::Int64(int64_rules) => {
-      if !matches!(&field_proto_kind, Kind::Int64) {
-        error = Some(field_mismatch_error(
-          error_prefix,
-          "int64",
-          field_proto_kind,
-          field_span,
-        ))
-      } else {
-        let rules = get_int64_rules(validation_data, int64_rules)?;
+        let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
         rules_agg.extend(rules);
       }
     }

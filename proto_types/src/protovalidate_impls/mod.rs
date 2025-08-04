@@ -4,7 +4,7 @@ mod into_comparable;
 mod numeric_rules;
 
 pub use comparable_rules::{
-  validate_len, ComparableGreaterThan, ComparableLessThan, ComparableRules,
+  ComparableGreaterThan, ComparableLessThan, ComparableRules, LengthRules,
 };
 pub use containing_rules::ContainingRules;
 pub use numeric_rules::NumericRules;

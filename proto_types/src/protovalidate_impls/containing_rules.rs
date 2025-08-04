@@ -1,11 +1,11 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
-use proc_macro2::Span;
-use quote::ToTokens;
-use syn::Error;
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, ToTokens};
+use syn::{Error, LitByteStr};
 
 use crate::{
-  protovalidate::{AnyRules, DurationRules, EnumRules, StringRules},
+  protovalidate::{AnyRules, BytesRules, DurationRules, EnumRules, StringRules},
   Duration,
 };
 
@@ -86,6 +86,32 @@ impl StringRules {
       in_list,
       not_in_list,
     })
+  }
+}
+
+impl BytesRules {
+  pub fn containing_rules(
+    &self,
+    field_span: Span,
+    error_prefix: &str,
+  ) -> Result<(Option<TokenStream>, Option<TokenStream>), Error> {
+    let in_list = self.r#in.clone();
+    let not_in_list = self.not_in.clone();
+
+    validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+
+    let in_list_lit_byte_str = in_list
+      .iter()
+      .map(|b| LitByteStr::new(b, Span::call_site()));
+
+    let not_in_list_lit_byte_str = not_in_list
+      .iter()
+      .map(|b| LitByteStr::new(b, Span::call_site()));
+
+    let in_list_tokens = quote! { vec![ #(#in_list_lit_byte_str),* ] };
+    let not_in_list_tokens = quote! { vec![ #(#not_in_list_lit_byte_str),* ] };
+
+    Ok((Some(in_list_tokens), Some(not_in_list_tokens)))
   }
 }
 

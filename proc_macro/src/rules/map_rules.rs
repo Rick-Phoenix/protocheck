@@ -135,6 +135,7 @@ pub fn get_map_rules(
 
         if let Some(ref rules) = key_rules_descriptor.r#type {
           let generated_key_templates = get_field_rules(
+            static_defs,
             field_rust_enum.clone(),
             &key_desc,
             &key_validation_data,
@@ -173,8 +174,13 @@ pub fn get_map_rules(
 
         if let Some(ref rules) = value_rules_descriptor.r#type {
           if !value_is_message {
-            let generated_value_templates =
-              get_field_rules(field_rust_enum, &value_desc, &values_validation_data, rules)?;
+            let generated_value_templates = get_field_rules(
+              static_defs,
+              field_rust_enum,
+              &value_desc,
+              &values_validation_data,
+              rules,
+            )?;
             value_rules.extend(generated_value_templates);
           }
         }

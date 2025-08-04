@@ -1,169 +1,178 @@
-// use super::CelRule;
-// use super::CelRuleValue;
-// use crate::validator::buf::validate;
-// use crate::validator::buf::validate::BytesRules;
-// use regex::Regex;
-//
-// pub fn get_bytes_rules(
-//   bytes_rules: &BytesRules,
-// ) -> Result<Vec<CelRule>, Box<dyn std::error::Error>> {
-//   let mut rules: Vec<CelRule> = Vec::new();
-//
-//   if bytes_rules.r#const.is_some() {
-//     let const_value = bytes_rules.r#const.clone().unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.const".to_string(),
-//       message: "".to_string(),
-//       // Different for bytes
-//       expression: "this != getField(rules, 'const') ? 'value must be %x'.format([getField(rules, 'const')]) : ''".to_string(),
-//       value: CelRuleValue::Bytes(const_value),
-//     });
-//   }
-//
-//   if bytes_rules.len.is_some() {
-//     let len_value = bytes_rules.len.unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.len".to_string(),
-//       message: "".to_string(),
-//       expression:
-//         "uint(this.size()) != rules.len ? 'value length must be %s bytes'.format([rules.len]) : ''"
-//           .to_string(),
-//       value: CelRuleValue::U64(len_value),
-//     });
-//   }
-//
-//   if bytes_rules.max_len.is_some() {
-//     let max_len_value = bytes_rules.max_len.unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.max_len".to_string(),
-//       message: "".to_string(),
-//       expression: "uint(this.size()) > rules.max_len ? 'value must be at most %s bytes'.format([rules.max_len]) : ''".to_string(),
-//       value: CelRuleValue::U64(max_len_value),
-//     });
-//   }
-//
-//   if bytes_rules.min_len.is_some() {
-//     let min_len_value = bytes_rules.min_len.unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.min_len".to_string(),
-//       message: "".to_string(),
-//       expression: "uint(this.size()) < rules.min_len ? 'value length must be at least %s bytes'.format([rules.min_len]) : ''".to_string(),
-//       value: CelRuleValue::U64(min_len_value),
-//     });
-//   }
-//
-//   if bytes_rules.pattern.is_some() {
-//     let pattern_value = bytes_rules.pattern.clone().unwrap();
-//
-//     let compiled_regex = Regex::new(&pattern_value)?;
-//     rules.push(CelRule {
-//       id: "bytes.pattern".to_string(),
-//       message: "".to_string(),
-//       expression: "!string(this).matches(rules.pattern) ? 'value must match regex pattern `%s`'.format([rules.pattern]) : ''".to_string(),
-//       value: CelRuleValue::Regex(Box::new(compiled_regex)),
-//     });
-//   }
-//
-//   if bytes_rules.prefix.is_some() {
-//     let prefix_value = bytes_rules.prefix.clone().unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.prefix".to_string(),
-//       message: "".to_string(),
-//       expression: "!this.startsWith(rules.prefix) ? 'value does not have prefix %x'.format([rules.prefix]) : ''".to_string(),
-//       value: CelRuleValue::Bytes(prefix_value),
-//     });
-//   }
-//
-//   if bytes_rules.suffix.is_some() {
-//     let suffix_value = bytes_rules.suffix.clone().unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.suffix".to_string(),
-//       message: "".to_string(),
-//       expression:
-//         "!this.endsWith(rules.suffix) ? 'value does not have suffix %x'.format([rules.suffix]) : ''"
-//           .to_string(),
-//       value: CelRuleValue::Bytes(suffix_value),
-//     });
-//   }
-//
-//   if bytes_rules.contains.is_some() {
-//     let contains_value = bytes_rules.contains.clone().unwrap();
-//
-//     rules.push(CelRule {
-//       id: "bytes.contains".to_string(),
-//       message: "".to_string(),
-//       expression:
-//         "!this.contains(rules.contains) ? 'value does not contain %x'.format([rules.contains]) : ''"
-//           .to_string(),
-//       value: CelRuleValue::Bytes(contains_value),
-//     });
-//   }
-//
-//   if bytes_rules.r#in.len() > 0 {
-//     let in_value = bytes_rules.r#in.clone();
-//
-//     rules.push(CelRule {
-//       id: "bytes.in".to_string(),
-//       message: "".to_string(),
-//       // Different for bytes
-//       expression: "getField(rules, 'in').size() > 0 && !(this in getField(rules, 'in')) ? 'value must be in list %s'.format([getField(rules, 'in')]) : ''".to_string(),
-//       value: CelRuleValue::RepeatedBytes(in_value),
-//     });
-//   }
-//
-//   if bytes_rules.not_in.len() > 0 {
-//     let not_in_value = bytes_rules.not_in.clone();
-//     let (expression, message) = super::COMMON_RULES.get("not_in").unwrap();
-//     rules.push(CelRule {
-//       id: "bytes.not_in".to_string(),
-//       message: message.to_string(),
-//       expression: expression.to_string(),
-//       value: CelRuleValue::RepeatedBytes(not_in_value),
-//     });
-//   }
-//
-//   if let Some(well_known) = bytes_rules.well_known {
-//     let mut get_well_known =
-//       |wk: &str, message: &str, expression: &str| -> Result<(), Box<dyn std::error::Error>> {
-//         rules.push(CelRule {
-//           id: format!("bytes.{}", wk).to_string(),
-//           message: message.to_string(),
-//           expression: expression.to_string(),
-//           value: CelRuleValue::Bool(true),
-//         });
-//
-//         Ok(())
-//       };
-//     match well_known {
-//       validate::bytes_rules::WellKnown::Ip(_) => {
-//         get_well_known(
-//           "ip",
-//           "value must be a valid IP address",
-//           "!rules.ip || this.size() == 0 || this.size() == 4 || this.size() == 16",
-//         )?;
-//       }
-//       validate::bytes_rules::WellKnown::Ipv4(_) => {
-//         get_well_known(
-//           "ipv4",
-//           "value must be a valid IPv4 address",
-//           "!rules.ipv4 || this.size() == 0 || this.size() == 4",
-//         )?;
-//       }
-//       validate::bytes_rules::WellKnown::Ipv6(_) => {
-//         get_well_known(
-//           "ipv6",
-//           "value must be a valid IPv6 address",
-//           "!rules.ipv6 || this.size() == 0 || this.size() == 16",
-//         )?;
-//       }
-//     };
-//   }
-//
-//   Ok(rules)
-// }
+use proc_macro2::{Span, TokenStream};
+use prost_reflect::FieldDescriptor;
+use proto_types::{protovalidate::BytesRules, protovalidate_impls::LengthRules};
+use quote::{format_ident, quote, ToTokens};
+use regex::Regex;
+use syn::{Error, LitByteStr};
+
+use super::{ValidatorKind, ValidatorTemplate};
+use crate::{validation_data::ValidationData, validator_template::FieldValidator};
+
+pub fn get_bytes_rules(
+  static_defs: &mut Vec<TokenStream>,
+  field_desc: &FieldDescriptor,
+  validation_data: &ValidationData,
+  rules: &BytesRules,
+) -> Result<Vec<ValidatorTemplate>, Error> {
+  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+
+  let field_span = validation_data.field_span;
+  let error_prefix = format!("Error for field {}:", validation_data.full_name);
+
+  if let Some(const_val) = &rules.r#const {
+    let const_val_tokens = LitByteStr::new(const_val, Span::call_site());
+
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::constants::constant },
+          target_value_tokens: const_val_tokens.to_token_stream(),
+        },
+      },
+    });
+    return Ok(templates);
+  }
+
+  let (in_list, not_in_list) = rules.containing_rules(field_span, &error_prefix)?;
+
+  let LengthRules {
+    len,
+    min_len,
+    max_len,
+  } = rules.length_rules(field_span, &error_prefix)?;
+
+  if let Some(ref pattern) = rules.pattern {
+    Regex::new(pattern).map_err(|e| {
+      Error::new(
+        field_span,
+        format!("{} invalid regex pattern: {}", error_prefix, e),
+      )
+    })?;
+
+    let static_regex_ident = format_ident!("__{}_REGEX", field_desc.full_name());
+    static_defs.push(quote! {
+      static #static_regex_ident: std::sync::LazyLock<regex::Regex> = LazyLock::new(|| {
+        regex::Regex::new(#pattern).unwrap()
+      });
+    });
+
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::pattern },
+          target_value_tokens: quote! { #static_regex_ident },
+        },
+      },
+    });
+  }
+
+  if let Some(in_list_tokens) = in_list {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::in_list },
+          target_value_tokens: in_list_tokens,
+        },
+      },
+    });
+  }
+
+  if let Some(not_in_list_tokens) = not_in_list {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::containing::not_in_list },
+          target_value_tokens: not_in_list_tokens,
+        },
+      },
+    });
+  }
+
+  if let Some(len_value) = len {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::len },
+          target_value_tokens: len_value.into_token_stream(),
+        },
+      },
+    });
+  }
+
+  if let Some(min_len_value) = min_len {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::min_len },
+          target_value_tokens: min_len_value.into_token_stream(),
+        },
+      },
+    });
+  }
+
+  if let Some(max_len_value) = max_len {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::max_len },
+          target_value_tokens: max_len_value.into_token_stream(),
+        },
+      },
+    });
+  }
+
+  if let Some(ref contains_val) = rules.contains {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::contains },
+          target_value_tokens: LitByteStr::new(contains_val, Span::call_site()).to_token_stream(),
+        },
+      },
+    });
+  }
+
+  if let Some(ref prefix) = rules.prefix {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::prefix },
+          target_value_tokens: LitByteStr::new(prefix, Span::call_site()).to_token_stream(),
+        },
+      },
+    });
+  }
+
+  if let Some(ref suffix) = rules.suffix {
+    templates.push(ValidatorTemplate {
+      item_rust_name: validation_data.field_data.rust_name.clone(),
+      kind: ValidatorKind::Field {
+        validation_data: validation_data.clone(),
+        field_validator: FieldValidator::Scalar {
+          validator_path: quote! { protocheck::validators::bytes::suffix },
+          target_value_tokens: LitByteStr::new(suffix, Span::call_site()).to_token_stream(),
+        },
+      },
+    });
+  }
+
+  Ok(templates)
+}
