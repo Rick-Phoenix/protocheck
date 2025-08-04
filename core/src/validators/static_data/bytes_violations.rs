@@ -106,7 +106,7 @@ pub(crate) static BYTES_PATTERN_VIOLATION: LazyLock<Vec<FieldPathElement>> = Laz
     FieldPathElement {
       field_name: Some("pattern".to_string()),
       field_number: Some(6),
-      field_type: Some(ProtoType::String as i32),
+      field_type: Some(ProtoType::Bytes as i32),
       key_type: None,
       value_type: None,
       subscript: None,
@@ -127,7 +127,7 @@ pub(crate) static BYTES_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> = Lazy
     FieldPathElement {
       field_name: Some("prefix".to_string()),
       field_number: Some(5),
-      field_type: Some(ProtoType::String as i32),
+      field_type: Some(ProtoType::Bytes as i32),
       key_type: None,
       value_type: None,
       subscript: None,
@@ -148,7 +148,7 @@ pub(crate) static BYTES_SUFFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> = Lazy
     FieldPathElement {
       field_name: Some("suffix".to_string()),
       field_number: Some(6),
-      field_type: Some(ProtoType::String as i32),
+      field_type: Some(ProtoType::Bytes as i32),
       key_type: None,
       value_type: None,
       subscript: None,
@@ -170,6 +170,69 @@ pub(crate) static BYTES_CONTAINS_VIOLATION: LazyLock<Vec<FieldPathElement>> = La
       field_name: Some("contains".to_string()),
       field_number: Some(7),
       field_type: Some(ProtoType::Bytes as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static BYTES_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("bytes".to_string()),
+      field_number: Some(15),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ip".to_string()),
+      field_number: Some(10),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static BYTES_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("bytes".to_string()),
+      field_number: Some(15),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ipv4".to_string()),
+      field_number: Some(11),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static BYTES_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("bytes".to_string()),
+      field_number: Some(15),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ipv6".to_string()),
+      field_number: Some(12),
+      field_type: Some(ProtoType::Bool as i32),
       key_type: None,
       value_type: None,
       subscript: None,

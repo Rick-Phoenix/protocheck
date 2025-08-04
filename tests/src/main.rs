@@ -4,7 +4,10 @@ mod myapp {
   }
 }
 
-use protocheck::{types::Duration, validators::ProtoValidator};
+use protocheck::{
+  types::{field_descriptor_proto::Type, Duration},
+  validators::ProtoValidator,
+};
 
 use crate::myapp::v1::{
   user::{post::PostOneof, Post},

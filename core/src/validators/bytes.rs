@@ -8,10 +8,11 @@ use crate::{
   validators::static_data::{
     base_violations::{get_base_violations_path, get_violation_elements},
     bytes_violations::{
-      parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION,
-      BYTES_MIN_LEN_VIOLATION, BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION,
-      BYTES_SUFFIX_VIOLATION,
+      parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION, BYTES_IPV6_VIOLATION,
+      BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION, BYTES_MIN_LEN_VIOLATION,
+      BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION, BYTES_SUFFIX_VIOLATION,
     },
+    well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
   },
 };
 
@@ -23,6 +24,108 @@ fn format_bytes_for_error(bytes: &[u8]) -> String {
       format!("0x{}", hex_string)
     }
   }
+}
+
+pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let string_val = parse_bytes_input(value, field_context)?;
+  let check = is_valid_ip(string_val);
+
+  if !check {
+    let elements = get_violation_elements(field_context);
+
+    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+
+    rule_elements.extend(BYTES_IP_VIOLATION.clone());
+
+    let violation = Violation {
+      rule_id: Some("bytes.ip".to_string()),
+      message: Some(format!(
+        "{} must be a valid ip address",
+        field_context.field_data.proto_name.clone(),
+      )),
+      for_key: None,
+      field: Some(FieldPath { elements }),
+      rule: Some(FieldPath {
+        elements: rule_elements,
+      }),
+    };
+    return Err(violation);
+  };
+  Ok(())
+}
+
+pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let string_val = parse_bytes_input(value, field_context)?;
+  let check = is_valid_ipv4(string_val);
+
+  if !check {
+    let elements = get_violation_elements(field_context);
+
+    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+
+    rule_elements.extend(BYTES_IPV4_VIOLATION.clone());
+
+    let violation = Violation {
+      rule_id: Some("bytes.ipv4".to_string()),
+      message: Some(format!(
+        "{} must be a valid ipv4 address",
+        field_context.field_data.proto_name.clone(),
+      )),
+      for_key: None,
+      field: Some(FieldPath { elements }),
+      rule: Some(FieldPath {
+        elements: rule_elements,
+      }),
+    };
+    return Err(violation);
+  };
+  Ok(())
+}
+
+pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
+  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+    if value.is_empty() {
+      return Ok(());
+    }
+  }
+
+  let string_val = parse_bytes_input(value, field_context)?;
+  let check = is_valid_ipv6(string_val);
+
+  if !check {
+    let elements = get_violation_elements(field_context);
+
+    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+
+    rule_elements.extend(BYTES_IPV6_VIOLATION.clone());
+
+    let violation = Violation {
+      rule_id: Some("bytes.ipv6".to_string()),
+      message: Some(format!(
+        "{} must be a valid ipv6 address",
+        field_context.field_data.proto_name.clone(),
+      )),
+      for_key: None,
+      field: Some(FieldPath { elements }),
+      rule: Some(FieldPath {
+        elements: rule_elements,
+      }),
+    };
+    return Err(violation);
+  };
+  Ok(())
 }
 
 pub fn pattern(

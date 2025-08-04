@@ -1,6 +1,9 @@
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
-use proto_types::protovalidate_impls::{ContainingRules, LengthRules};
+use proto_types::{
+  protovalidate::string_rules::WellKnown,
+  protovalidate_impls::{ContainingRules, LengthRules},
+};
 use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::Error;
@@ -231,6 +234,67 @@ pub fn get_string_rules(
         },
       },
     });
+  }
+
+  if let Some(well_known_kind) = rules.well_known {
+    let validator_path = match well_known_kind {
+      WellKnown::Email(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::email })
+      }
+      WellKnown::Hostname(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::hostname })
+      }
+      WellKnown::Ip(enabled) => enabled.then_some(quote! { protocheck::validators::strings::ip }),
+      WellKnown::Ipv4(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ipv4 })
+      }
+      WellKnown::Ipv6(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ipv6 })
+      }
+      WellKnown::Uri(enabled) => enabled.then_some(quote! { protocheck::validators::strings::uri }),
+      WellKnown::UriRef(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::uri_ref })
+      }
+      WellKnown::Address(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::address })
+      }
+      WellKnown::Uuid(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::uuid })
+      }
+      WellKnown::Tuuid(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::tuuid })
+      }
+      WellKnown::IpWithPrefixlen(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ip_with_prefix_len })
+      }
+      WellKnown::Ipv4WithPrefixlen(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ipv4_with_prefix_len })
+      }
+      WellKnown::Ipv6WithPrefixlen(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ipv6_with_prefix_len })
+      }
+      WellKnown::IpPrefix(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ip_prefix })
+      }
+      WellKnown::Ipv4Prefix(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ipv4_prefix })
+      }
+      WellKnown::Ipv6Prefix(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::ip6_prefix })
+      }
+      WellKnown::HostAndPort(enabled) => {
+        enabled.then_some(quote! { protocheck::validators::strings::host_and_port })
+      }
+      WellKnown::WellKnownRegex(well_known_regex) => {
+        let strict = rules.strict();
+
+        match well_known_regex {
+          1 => Some(quote! { protocheck::validators::strings::header_name }),
+          2 => Some(quote! { protocheck::validators::strings::header_value }),
+          _ => None,
+        }
+      }
+    };
   }
 
   Ok(templates)

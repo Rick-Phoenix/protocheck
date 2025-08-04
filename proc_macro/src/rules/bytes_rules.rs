@@ -1,6 +1,9 @@
 use proc_macro2::{Span, TokenStream};
 use prost_reflect::FieldDescriptor;
-use proto_types::{protovalidate::BytesRules, protovalidate_impls::LengthRules};
+use proto_types::{
+  protovalidate::{bytes_rules::WellKnown, BytesRules},
+  protovalidate_impls::LengthRules,
+};
 use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{Error, LitByteStr};
@@ -172,6 +175,20 @@ pub fn get_bytes_rules(
         },
       },
     });
+  }
+
+  if let Some(well_known) = rules.well_known {
+    let validator_path = match well_known {
+      WellKnown::Ip(enabled) => enabled.then_some(quote! {
+        protocheck::validators::bytes::ip
+      }),
+      WellKnown::Ipv4(enabled) => enabled.then_some(quote! {
+        protocheck::validators::bytes::ipv4
+      }),
+      WellKnown::Ipv6(enabled) => enabled.then_some(quote! {
+        protocheck::validators::bytes::ipv6
+      }),
+    };
   }
 
   Ok(templates)

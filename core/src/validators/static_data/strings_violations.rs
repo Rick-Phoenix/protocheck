@@ -240,3 +240,390 @@ pub(crate) static STRING_NOT_CONTAINS_VIOLATION: LazyLock<Vec<FieldPathElement>>
       },
     ]
   });
+
+pub(crate) static STRING_EMAIL_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("email".to_string()),
+      field_number: Some(12),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_HOSTNAME_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("hostname".to_string()),
+        field_number: Some(13),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ip".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ipv4".to_string()),
+      field_number: Some(15),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("ipv6".to_string()),
+      field_number: Some(16),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_URI_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("uri".to_string()),
+      field_number: Some(17),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_URI_REF_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("uri_ref".to_string()),
+      field_number: Some(18),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_ADDRESS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("address".to_string()),
+      field_number: Some(21),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_UUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("uuid".to_string()),
+      field_number: Some(22),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_TUUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("tuuid".to_string()),
+      field_number: Some(33),
+      field_type: Some(ProtoType::Bool as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+pub(crate) static STRING_IP_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ip_with_prefixlen".to_string()),
+        field_number: Some(26),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IPV4_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ipv4_with_prefixlen".to_string()),
+        field_number: Some(27),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IPV6_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ipv6_with_prefixlen".to_string()),
+        field_number: Some(28),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IP_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ip_prefix".to_string()),
+        field_number: Some(29),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IPV4_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ipv4_prefix".to_string()),
+        field_number: Some(30),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_IPV6_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("ipv6_prefix".to_string()),
+        field_number: Some(31),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_HOST_AND_PORT_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("host_and_port".to_string()),
+        field_number: Some(32),
+        field_type: Some(ProtoType::Bool as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
+
+pub(crate) static STRING_WELL_KNOWN_REGEX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+  LazyLock::new(|| {
+    vec![
+      FieldPathElement {
+        field_name: Some("string".to_string()),
+        field_number: Some(14),
+        field_type: Some(ProtoType::Message as i32),
+        subscript: None,
+        key_type: None,
+        value_type: None,
+      },
+      FieldPathElement {
+        field_name: Some("well_known_regex".to_string()),
+        field_number: Some(24),
+        field_type: Some(ProtoType::Enum as i32),
+        key_type: None,
+        value_type: None,
+        subscript: None,
+      },
+    ]
+  });
