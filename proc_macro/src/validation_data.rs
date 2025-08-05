@@ -177,7 +177,7 @@ impl ValidationData {
 
     self.is_required.then_some(quote! {
       #field_context_tokens
-      let required_violation = protocheck::validators::required(&#field_context_ident);
+      let required_violation = protocheck::validators::required::required(&#field_context_ident);
       #violations_ident.push(required_violation);
     })
   }
