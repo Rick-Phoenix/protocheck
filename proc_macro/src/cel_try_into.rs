@@ -4,19 +4,28 @@ use syn::{parse_macro_input, DeriveInput, Error, Type};
 
 use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
-enum CelConversionKind {
-  DirectConversion,
-  TryIntoConversion,
-}
-
 enum OuterType {
   Option {
-    inner: CelConversionKind,
+    conversion_tokens: Option<TokenStream2>,
     is_box: bool,
   },
-  Vec(CelConversionKind),
-  HashMap(CelConversionKind),
+  Vec {
+    conversion_tokens: TokenStream2,
+  },
+  HashMap {
+    conversion_tokens: TokenStream2,
+  },
   Scalar,
+}
+
+fn get_conversion_tokens(ty: &Type) -> TokenStream2 {
+  if supports_cel_into(ty) {
+    quote! { to_owned().into() }
+  } else if is_bytes(ty) {
+    quote! { to_vec().into() }
+  } else {
+    quote! { to_owned().try_into()? }
+  }
 }
 
 impl TryFrom<&Type> for OuterType {
@@ -27,21 +36,25 @@ impl TryFrom<&Type> for OuterType {
       let inner = get_inner_type(ty)?;
       if is_box(inner) {
         Ok(Self::Option {
-          inner: CelConversionKind::from(get_inner_type(inner)?),
+          conversion_tokens: None,
           is_box: true,
         })
       } else {
         Ok(Self::Option {
-          inner: CelConversionKind::from(inner),
+          conversion_tokens: Some(get_conversion_tokens(inner)),
           is_box: false,
         })
       }
     } else if is_vec(ty) {
-      Ok(Self::Vec(CelConversionKind::from(get_inner_type(ty)?)))
+      let inner = get_inner_type(ty)?;
+      Ok(Self::Vec {
+        conversion_tokens: get_conversion_tokens(inner),
+      })
     } else if is_hashmap(ty) {
-      Ok(Self::HashMap(CelConversionKind::from(
-        get_hashmap_value_type(ty)?,
-      )))
+      let value_type = get_hashmap_value_type(ty)?;
+      Ok(Self::HashMap {
+        conversion_tokens: get_conversion_tokens(value_type),
+      })
     } else {
       Ok(Self::Scalar)
     }
@@ -86,16 +99,6 @@ fn get_hashmap_value_type(ty: &Type) -> Result<&Type, ()> {
   }
 }
 
-impl From<&Type> for CelConversionKind {
-  fn from(ty: &Type) -> Self {
-    if supports_cel_into(ty) {
-      Self::DirectConversion
-    } else {
-      Self::TryIntoConversion
-    }
-  }
-}
-
 pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
   let enum_name = &ast.ident;
@@ -134,23 +137,18 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
     if let syn::Fields::Unnamed(fields) = &variant.fields {
       if let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
+
         let into_expression = if is_box(type_ident) {
           quote! { (*oneof_val).try_into_cel_value_recursive(depth + 1)? }
         } else {
-          match CelConversionKind::from(type_ident) {
-            CelConversionKind::DirectConversion => {
-              quote! { oneof_val.to_owned().into() }
-            }
-            CelConversionKind::TryIntoConversion => {
-              quote! { oneof_val.to_owned().try_into()? }
-            }
-          }
+          let conversion_tokens = get_conversion_tokens(type_ident);
+          quote! { oneof_val.#conversion_tokens }
         };
 
         let arm = quote! {
           #enum_name::#variant_ident(oneof_val) => {
             if depth >= #max_recursion_depth {
-              Ok((#proto_name.to_string(), cel_interpreter::Value::Null))
+              Ok((#proto_name.to_string(), ::cel_interpreter::Value::Null))
             } else {
               Ok((#proto_name.to_string(), #into_expression))
             }
@@ -163,11 +161,11 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #enum_name {
-      pub fn try_into_cel_value(&self) -> Result<(String, ::cel_interpreter::Value), protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value(&self) -> Result<(String, ::cel_interpreter::Value), ::protocheck::validators::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), ::protocheck::validators::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -239,85 +237,48 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
       };
 
       match outer_type {
-        OuterType::Option { inner, is_box } => {
+        OuterType::Option {
+          conversion_tokens,
+          is_box,
+        } => {
           if is_box {
             tokens.extend(quote! {
               if let Some(boxed_val) = value.#field_ident.as_deref() {
                 #fields_map_ident.insert(#field_name.into(), (*boxed_val).try_into_cel_value_recursive(depth + 1)?);
               } else {
-                #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
+                #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
               }
             });
           } else {
-            match inner {
-              CelConversionKind::DirectConversion => {
-                tokens.extend(quote! {
-                  if let Some(v) = &value.#field_ident {
-                    #fields_map_ident.insert(#field_name.into(), v.to_owned().into());
-                  } else {
-                    #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
-                  }
-                });
+            tokens.extend(quote! {
+              if let Some(v) = &value.#field_ident {
+                #fields_map_ident.insert(#field_name.into(), v.#conversion_tokens);
+              } else {
+                #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
               }
-              CelConversionKind::TryIntoConversion => {
-                tokens.extend(quote! {
-                  if let Some(v) = &value.#field_ident {
-                    #fields_map_ident.insert(#field_name.into(), v.to_owned().try_into()?);
-                  } else {
-                    #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
-                  }
-                });
-              }
-            }
+            });
           }
         }
-        OuterType::Vec(kind) => {
-          let cel_val = match kind {
-            CelConversionKind::DirectConversion => {
-              quote! {
-                converted.push(item.to_owned().into());
-              }
-            }
-            CelConversionKind::TryIntoConversion => {
-              quote! {
-                converted.push(item.to_owned().try_into_cel_value_recursive(depth + 1)?);
-              }
-            }
-          };
-
+        OuterType::Vec { conversion_tokens } => {
           tokens.extend(quote! {
-            let mut converted: Vec<cel_interpreter::Value> = Vec::new();
+            let mut converted: Vec<::cel_interpreter::Value> = Vec::new();
             for item in &value.#field_ident {
-              #cel_val
+              converted.push(item.#conversion_tokens);
             }
 
-            #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::List(converted.into()));
+            #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::List(converted.into()));
           });
         }
 
-        OuterType::HashMap(value_kind) => {
-          let cel_val = match value_kind {
-            CelConversionKind::DirectConversion => {
-              quote! {
-                v.to_owned().into();
-              }
-            }
-            CelConversionKind::TryIntoConversion => {
-              quote! {
-                v.to_owned().try_into()?;
-              }
-            }
-          };
-
+        OuterType::HashMap { conversion_tokens } => {
           tokens.extend(quote! {
-            let mut field_map: std::collections::HashMap<cel_interpreter::objects::Key, cel_interpreter::Value> = std::collections::HashMap::new();
+            let mut field_map: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
 
             for (k, v) in &value.#field_ident {
-              let cel_val = #cel_val;
-              field_map.insert(k.clone().into(), cel_val);
+              field_map.insert(k.clone().into(), v.#conversion_tokens;);
             }
 
-            #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Map(field_map.into()));
+            #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
           });
         }
         OuterType::Scalar => {
@@ -331,22 +292,22 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #struct_name {
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, ::protocheck::validators::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::cel_interpreter::Value::Null);
         }
 
-        let mut #fields_map_ident: std::collections::HashMap<cel_interpreter::objects::Key, cel_interpreter::Value> = std::collections::HashMap::new();
+        let mut #fields_map_ident: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
         let value = self;
 
         #tokens
 
-        Ok(cel_interpreter::Value::Map(#fields_map_ident.into()))
+        Ok(::cel_interpreter::Value::Map(#fields_map_ident.into()))
       }
     }
 
     impl TryFrom<#struct_name> for ::cel_interpreter::Value {
-      type Error = protocheck::validators::cel::CelConversionError;
+      type Error = ::protocheck::validators::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
         value.clone().try_into_cel_value_recursive(0)
@@ -362,6 +323,16 @@ fn type_matches_path(ty: &Type, target_path: &str) -> bool {
     return ty.to_token_stream().to_string() == path.to_token_stream().to_string();
   }
   false
+}
+
+fn supports_cel_into(ty: &Type) -> bool {
+  is_primitive(ty)
+    || type_matches_path(ty, "protocheck::types::FieldMask")
+    || type_matches_path(ty, "protocheck::types::Empty")
+}
+
+fn is_bytes(ty: &Type) -> bool {
+  type_matches_path(ty, "::prost::bytes::Bytes")
 }
 
 fn is_option(ty: &Type) -> bool {
@@ -398,12 +369,6 @@ fn is_hashmap(ty: &Type) -> bool {
     }
   }
   false
-}
-
-fn supports_cel_into(ty: &Type) -> bool {
-  is_primitive(ty)
-    || type_matches_path(ty, "protocheck::types::FieldMask")
-    || type_matches_path(ty, "protocheck::types::Empty")
 }
 
 fn is_primitive(ty: &Type) -> bool {
