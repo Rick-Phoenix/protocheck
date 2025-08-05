@@ -1,15 +1,9 @@
-use protocheck_core::field_data::FieldKind;
 use quote::{quote, ToTokens};
 
 use crate::{validation_data::ValidationData, Ident2, ProtoType, Span2, TokenStream2};
 
 #[derive(Debug)]
 pub enum FieldValidator {
-  Scalar {
-    validator_path: TokenStream2,
-    target_value_tokens: TokenStream2,
-  },
-  MessageField,
   Map {
     map_level_rules: Vec<ValidatorTemplate>,
     key_rules: Vec<ValidatorTemplate>,
@@ -21,226 +15,58 @@ pub enum FieldValidator {
     unique_values: bool,
     float_values: bool,
   },
-  Cel {
-    rule_id: String,
-    error_message: String,
-    static_program_ident: Ident2,
-    is_boxed: bool,
-  },
-  EnumDefinedOnly {
-    enum_type_ident: String,
-    enum_name: String,
-  },
-  Required,
-}
-
-#[derive(Debug)]
-pub enum MessageValidator {
-  Cel {
-    message_name: String,
-    rule_id: String,
-    error_message: String,
-    static_program_ident: Ident2,
-  },
 }
 
 #[derive(Debug)]
 pub enum ValidatorKind {
+  PureTokens(TokenStream2),
   Field {
     validation_data: ValidationData,
     field_validator: FieldValidator,
   },
-  Message {
-    message_validator: MessageValidator,
-  },
   Oneof {
     is_required: bool,
+    field_name: String,
+    item_rust_ident: Ident2,
+    violations_ident: Ident2,
+    parent_messages_ident: Ident2,
   },
 }
 
 #[derive(Debug)]
 pub struct ValidatorTemplate {
-  pub item_rust_name: String,
   pub kind: ValidatorKind,
 }
 
 impl ToTokens for ValidatorTemplate {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let item_rust_name = &self.item_rust_name;
-    let item_rust_ident = Ident2::new(item_rust_name, Span2::call_site());
-    let parent_messages_ident = Ident2::new("parent_messages", Span2::call_site());
-    let violations_ident = Ident2::new("violations", Span2::call_site());
-    let index_ident = Ident2::new("idx", Span2::call_site());
-    let item_ident = Ident2::new("item", Span2::call_site());
-    let key_ident = Ident2::new("key", Span2::call_site());
-    let val_ident = Ident2::new("val", Span2::call_site());
-    let oneof_ident = Ident2::new("val", Span2::call_site());
-
     match &self.kind {
+      ValidatorKind::PureTokens(validator_tokens) => {
+        tokens.extend(quote! {
+          #validator_tokens
+        });
+      }
       ValidatorKind::Field {
         validation_data,
         field_validator,
       } => {
+        let key_type_tokens = validation_data.key_type_tokens();
+        let value_type_tokens = validation_data.value_type_tokens();
+        let subscript_tokens = validation_data.subscript_tokens();
+
         let ValidationData {
-          is_required,
-          is_optional,
-          is_in_oneof,
           field_data_static_ident,
-          field_data,
-          key_type,
-          value_type,
+          key_ident,
+          map_value_ident,
+          index_ident,
+          item_ident,
+          parent_messages_ident,
+          violations_ident,
+          item_rust_ident,
           ..
         } = validation_data;
 
-        let key_type_tokens = key_type.map_or(quote! { None }, |key_type| {
-          quote! { Some(#key_type) }
-        });
-        let value_type_tokens = value_type.map_or(quote! { None }, |value_type| {
-          quote! { Some(#value_type) }
-        });
-
-        let subscript_tokens = match field_data.kind {
-          FieldKind::RepeatedItem | FieldKind::Repeated => {
-            quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
-          }
-          FieldKind::Map | FieldKind::MapKey | FieldKind::MapValue => {
-            if let Some(key_type_enum) = key_type {
-              let key_subscript_tokens = generate_key_subscript(key_type_enum, &key_ident);
-              quote! { Some(#key_subscript_tokens) }
-            } else {
-              quote! { compile_error!("Map key type is missing during macro expansion.") }
-            }
-          }
-          _ => quote! { None },
-        };
-
-        let is_option = *is_optional && !*is_in_oneof;
-
-        let value_ident = if *is_in_oneof {
-          quote! { #oneof_ident }
-        } else {
-          match field_data.kind {
-            FieldKind::RepeatedItem => quote! { #item_ident },
-            FieldKind::MapKey => quote! { #key_ident },
-            FieldKind::MapValue => quote! { #val_ident },
-            _ => {
-              if *is_optional {
-                quote! { self.#item_rust_ident.as_ref() }
-              } else {
-                quote! { &self.#item_rust_ident }
-              }
-            }
-          }
-        };
-
         match field_validator {
-          FieldValidator::Required => {
-            tokens.extend(quote! {
-              if #value_ident.is_none() {
-                let field_context = protocheck::field_data::FieldContext {
-                  field_data: &#field_data_static_ident,
-                  parent_elements: #parent_messages_ident,
-                  subscript: #subscript_tokens,
-                  key_type: #key_type_tokens,
-                  value_type: #value_type_tokens,
-                };
-
-                #violations_ident.push(protocheck::validators::required::required(&field_context));
-              }
-            });
-          }
-          FieldValidator::Scalar {
-            validator_path,
-            target_value_tokens,
-          } => {
-            let unwrapped_val_ident = Ident2::new("val", Span2::call_site());
-            let field_ident = if is_option {
-              quote! { #unwrapped_val_ident }
-            } else {
-              quote! { #value_ident }
-            };
-
-            let field_context_tokens = quote! {
-              let field_context = protocheck::field_data::FieldContext {
-                field_data: &#field_data_static_ident,
-                parent_elements: #parent_messages_ident.as_slice(),
-                subscript: #subscript_tokens,
-                key_type: #key_type_tokens,
-                value_type: #value_type_tokens,
-              };
-            };
-
-            let required_check = is_required.then_some(quote! {
-              let required_violation = protocheck::validators::required(&field_context);
-              #violations_ident.push(required_violation);
-            });
-
-            let validator_tokens = quote! {
-              match #validator_path(&field_context, #field_ident, &#target_value_tokens) {
-                Ok(_) => {},
-                Err(v) => {
-                  #violations_ident.push(v);
-                },
-              };
-            };
-
-            if is_option {
-              tokens.extend(quote! {
-                #field_context_tokens
-                match #value_ident {
-                  Some(#unwrapped_val_ident) => {
-                    #validator_tokens
-                  },
-                  None => { #required_check }
-                };
-              });
-            } else {
-              tokens.extend(quote! {
-                #field_context_tokens
-                #validator_tokens
-              });
-            }
-          }
-          FieldValidator::EnumDefinedOnly {
-            enum_type_ident,
-            enum_name,
-          } => {
-            let enum_ident_tokens: TokenStream2 = enum_type_ident
-          .parse()
-          .unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", enum_type_ident, enum_name)) });
-
-            let enum_val_ident = if is_option {
-              let unwrapped_val_ident = Ident2::new("enum_val", Span2::call_site());
-              &quote! { #unwrapped_val_ident }
-            } else {
-              &value_ident
-            };
-
-            let validator_tokens = quote! {
-              if !#enum_ident_tokens::try_from(*#enum_val_ident).is_ok() {
-                let field_context = protocheck::field_data::FieldContext {
-                  field_data: &#field_data_static_ident,
-                  parent_elements: #parent_messages_ident.as_slice(),
-                  subscript: #subscript_tokens,
-                  key_type: #key_type_tokens,
-                  value_type: #value_type_tokens,
-                };
-                #violations_ident.push(protocheck::validators::enums::defined_only(&field_context, #enum_name));
-              }
-            };
-
-            if is_option {
-              tokens.extend(quote! {
-                if let Some(#enum_val_ident) = #value_ident {
-                  #validator_tokens
-                }
-              });
-            } else {
-              tokens.extend(quote! {
-                #validator_tokens
-              });
-            }
-          }
           FieldValidator::Repeated {
             vec_level_rules,
             items_rules,
@@ -281,15 +107,22 @@ impl ToTokens for ValidatorTemplate {
               }
             });
 
-            tokens.extend(quote! {
-              #(#vec_level_rules)*
+            let has_loop = *unique_values || !items_rules.is_empty();
+            println!("Has Loop: {:?}", has_loop);
 
-              #values_hashset_tokens
+            let loop_tokens = has_loop.then_some(quote! {
               for (#index_ident, #item_ident) in self.#item_rust_ident.iter().enumerate() {
                 #(#items_rules)*
 
                 #unique_values_check_tokens
               }
+            });
+
+            tokens.extend(quote! {
+              #(#vec_level_rules)*
+
+              #values_hashset_tokens
+              #loop_tokens
             });
           }
           FieldValidator::Map {
@@ -297,170 +130,33 @@ impl ToTokens for ValidatorTemplate {
             key_rules,
             value_rules,
           } => {
-            tokens.extend(quote! {
-              #(#map_level_rules)*
-
-              for (#key_ident, #val_ident) in self.#item_rust_ident.iter() {
+            let has_loop = !key_rules.is_empty() || !value_rules.is_empty();
+            let loop_tokens = has_loop.then_some(quote! {
+              for (#key_ident, #map_value_ident) in self.#item_rust_ident.iter() {
                 #(#key_rules)*
 
                 #(#value_rules)*
               }
             });
-          }
-          FieldValidator::MessageField => {
-            let field_proto_name = &field_data.proto_name;
-            let field_tag = &field_data.tag;
-            let field_proto_type = &field_data.proto_type;
 
-            let nested_key_type = key_type.map_or(quote! { None }, |k| quote! { Some(#k as i32) });
-            let nested_value_type =
-              value_type.map_or(quote! { None }, |v| quote! { Some(#v as i32) });
+            tokens.extend(quote! {
+              #(#map_level_rules)*
 
-            let current_nested_field_element = quote! {
-              protocheck::types::protovalidate::FieldPathElement {
-                field_name: Some(#field_proto_name.to_string()),
-                field_number: Some(#field_tag as i32),
-                field_type: Some(#field_proto_type as i32),
-                key_type: #nested_key_type,
-                value_type: #nested_value_type,
-                subscript: #subscript_tokens,
-              }
-            };
-
-            let target_ident = if is_option {
-              let unwrapped_message_ident = Ident2::new("msg_val", Span2::call_site());
-              &quote! { #unwrapped_message_ident }
-            } else {
-              &value_ident
-            };
-
-            let validator_tokens = quote! {
-              #parent_messages_ident.push(#current_nested_field_element);
-              #target_ident.nested_validate(#parent_messages_ident, #violations_ident);
-              #parent_messages_ident.pop();
-            };
-
-            let required_check = is_required.then_some(quote! {
-              let field_context = protocheck::field_data::FieldContext {
-                field_data: &#field_data_static_ident,
-                parent_elements: #parent_messages_ident,
-                subscript: #subscript_tokens,
-                key_type: #key_type_tokens,
-                value_type: #value_type_tokens,
-              };
-              #violations_ident.push(protocheck::validators::required::required(&field_context));
+              #loop_tokens
             });
-
-            if is_option {
-              tokens.extend(quote! {
-                match #value_ident {
-                  Some(#target_ident) => {
-                    #validator_tokens
-                  },
-                  None => { #required_check }
-                };
-              });
-            } else {
-              tokens.extend(quote! {
-                #validator_tokens
-              });
-            }
-          }
-          FieldValidator::Cel {
-            rule_id,
-            error_message,
-            static_program_ident,
-            is_boxed,
-          } => {
-            let target_kind = validation_data
-              .inner_value_kind
-              .as_ref()
-              .unwrap_or(&field_data.kind)
-              .clone();
-
-            let cel_validator_func = match target_kind {
-              FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
-                quote! { validate_cel_field }
-              }
-              FieldKind::Any => {
-                quote! { compile_error!("Any is not supported for Cel validation") }
-              }
-              _ => quote! { validate_cel_field_with_val },
-            };
-
-            let rule_tokens = quote! {
-              protocheck::validators::cel::CelRule {
-                id: #rule_id.to_string(),
-                error_message: #error_message.to_string(),
-                program: &#static_program_ident,
-              }
-            };
-
-            let field_context_tokens = quote! {
-              protocheck::field_data::FieldContext {
-                field_data: &#field_data_static_ident,
-                parent_elements: #parent_messages_ident,
-                subscript: #subscript_tokens,
-                key_type: #key_type_tokens,
-                value_type: #value_type_tokens,
-              }
-            };
-
-            let value_tokens = if *is_boxed {
-              quote! { &(**val) }
-            } else {
-              quote! { val }
-            };
-
-            if is_option {
-              tokens.extend(quote! {
-                if let Some(val) = #value_ident {
-                  let field_context = #field_context_tokens;
-                  let rule = #rule_tokens;
-
-                  match protocheck::validators::cel::#cel_validator_func(&field_context, &rule, #value_tokens) {
-                    Ok(_) => {},
-                    Err(v) => violations.push(v),
-                  };
-                }
-              });
-            } else {
-              tokens.extend(quote! {
-                let field_context = #field_context_tokens;
-                let rule = #rule_tokens;
-                match protocheck::validators::cel::#cel_validator_func(&field_context, &rule,  #value_tokens) {
-                  Ok(_) => {},
-                  Err(v) => violations.push(v),
-                };
-              });
-            }
           }
         }
       }
-      ValidatorKind::Message { message_validator } => match message_validator {
-        MessageValidator::Cel {
-          rule_id,
-          error_message,
-          static_program_ident,
-          message_name,
-        } => {
-          tokens.extend(quote! {
-            let rule = protocheck::validators::cel::CelRule {
-              id: #rule_id.to_string(),
-              error_message: #error_message.to_string(),
-              program: &#static_program_ident,
-            };
 
-            match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
-              Ok(_) => {},
-              Err(v) => violations.push(v),
-            };
-          });
-        }
-      },
-      ValidatorKind::Oneof { is_required } => {
+      ValidatorKind::Oneof {
+        is_required,
+        field_name,
+        item_rust_ident,
+        violations_ident,
+        parent_messages_ident,
+      } => {
         let required_check = is_required.then_some(quote! {
-          #violations_ident.push(protocheck::validators::oneofs::required(#item_rust_name, #parent_messages_ident.as_slice()));
+          #violations_ident.push(protocheck::validators::oneofs::required(#field_name, #parent_messages_ident.as_slice()));
         });
         tokens.extend(quote! {
           match &self.#item_rust_ident {
@@ -473,7 +169,7 @@ impl ToTokens for ValidatorTemplate {
   }
 }
 
-fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream2 {
+pub fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream2 {
   let subscript_path = quote! { protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {

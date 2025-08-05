@@ -253,7 +253,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
               CelConversionKind::DirectConversion => {
                 tokens.extend(quote! {
                   if let Some(v) = &value.#field_ident {
-                    #fields_map_ident.insert(#field_name.into(), v.into());
+                    #fields_map_ident.insert(#field_name.into(), v.to_owned().into());
                   } else {
                     #fields_map_ident.insert(#field_name.into(), cel_interpreter::Value::Null);
                   }
@@ -275,7 +275,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           let cel_val = match kind {
             CelConversionKind::DirectConversion => {
               quote! {
-                converted.push(item.into());
+                converted.push(item.to_owned().into());
               }
             }
             CelConversionKind::TryIntoConversion => {
@@ -299,7 +299,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           let cel_val = match value_kind {
             CelConversionKind::DirectConversion => {
               quote! {
-                v.into();
+                v.to_owned().into();
               }
             }
             CelConversionKind::TryIntoConversion => {
@@ -322,7 +322,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         }
         OuterType::Scalar => {
           tokens.extend(quote! {
-            #fields_map_ident.insert(#field_name.into(), value.#field_ident.into());
+            #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_owned().into());
           });
         }
       };

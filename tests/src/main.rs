@@ -4,50 +4,30 @@ mod myapp {
   }
 }
 
-use protocheck::{
-  types::{field_descriptor_proto::Type, Duration},
-  validators::ProtoValidator,
-};
+use std::collections::HashMap;
+
+use protocheck::{types::Duration, validators::ProtoValidator};
 
 use crate::myapp::v1::{
-  user::{post::PostOneof, Post},
+  user::{self, Friend},
   User,
 };
 
 fn main() {
-  let test_duration = Duration::default();
-
-  let post = Post {
-    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
-      id: 3,
-      outer_duration: Some(test_duration),
-      post_oneof: None,
-    }))),
-    id: 2,
-    outer_duration: None,
-  };
-
-  let post2 = Post {
-    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
-      id: 3,
-      outer_duration: Some(test_duration),
-      post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
-    }))),
-    id: 2,
-    outer_duration: None,
-  };
-  let post3 = Post {
-    post_oneof: Some(PostOneof::NestedPost(Box::new(Post {
-      id: 3,
-      outer_duration: Some(test_duration),
-      post_oneof: Some(PostOneof::Duration(Duration::new(1000, 0))),
-    }))),
-    id: 2,
-    outer_duration: None,
-  };
+  let mut friends: HashMap<String, Friend> = HashMap::new();
+  friends.insert(
+    "friend1".to_string(),
+    Friend {
+      name: "alfio".to_string(),
+    },
+  );
 
   let user = User {
-    posts: vec![post, post2, post3],
+    values: Some(user::Values::NestedUser(Box::new(User {
+      values: None,
+      duration_field: Some(Duration::default()),
+    }))),
+    duration_field: None,
   };
 
   let _result = user.validate();

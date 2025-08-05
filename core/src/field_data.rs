@@ -14,6 +14,7 @@ pub struct FieldContext<'a> {
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
+  pub field_kind: FieldKind,
 }
 
 #[derive(Clone, Debug)]
@@ -31,10 +32,6 @@ pub enum FieldKind {
 }
 
 impl FieldKind {
-  pub fn is_map(&self) -> bool {
-    matches!(self, FieldKind::Map)
-  }
-
   pub fn is_map_key(&self) -> bool {
     matches!(self, FieldKind::MapKey)
   }
@@ -43,32 +40,12 @@ impl FieldKind {
     matches!(self, FieldKind::MapValue)
   }
 
-  pub fn is_repeated(&self) -> bool {
-    matches!(self, FieldKind::Repeated)
-  }
-
   pub fn is_repeated_item(&self) -> bool {
     matches!(self, FieldKind::RepeatedItem)
   }
 
   pub fn is_scalar(&self) -> bool {
     matches!(self, FieldKind::Scalar)
-  }
-
-  pub fn is_timestamp(&self) -> bool {
-    matches!(self, FieldKind::Timestamp)
-  }
-
-  pub fn is_duration(&self) -> bool {
-    matches!(self, FieldKind::Duration)
-  }
-
-  pub fn is_message(&self) -> bool {
-    matches!(self, FieldKind::Message)
-  }
-
-  pub fn has_validators(&self) -> bool {
-    self.is_timestamp() || self.is_duration()
   }
 }
 
@@ -111,18 +88,6 @@ impl FieldKind {
       _ => Self::Scalar,
     }
   }
-
-  pub fn from_inner_field_desc(field_desc: &FieldDescriptor) -> Self {
-    match field_desc.kind() {
-      Kind::Message(message_desc) => match message_desc.full_name() {
-        "google.protobuf.Duration" => Self::Duration,
-        "google.protobuf.Timestamp" => Self::Timestamp,
-        "google.protobuf.Any" => Self::Any,
-        _ => Self::Message,
-      },
-      _ => Self::Scalar,
-    }
-  }
 }
 
 #[derive(Clone, Debug)]
@@ -130,7 +95,6 @@ pub struct FieldData {
   pub rust_name: String,
   pub proto_name: String,
   pub tag: u32,
-  pub kind: FieldKind,
   pub proto_type: ProtoType,
   pub ignore: Ignore,
 }

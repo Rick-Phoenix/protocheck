@@ -25,7 +25,7 @@ pub fn get_field_rules(
 
   let field_name = &validation_data.full_name;
   let field_proto_kind = &field_desc.kind();
-  let field_data_kind = &validation_data.field_data.kind;
+  let field_data_kind = &validation_data.field_kind;
   let field_span = validation_data.field_span;
 
   let error_prefix = &format!("Error for field {}:", field_name);
@@ -37,6 +37,10 @@ pub fn get_field_rules(
   )?;
 
   match field_rules {
+    RulesType::String(string_rules) => {
+      let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
+      rules_agg.extend(rules);
+    }
     RulesType::Enum(enum_rules) => {
       if let Kind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
@@ -57,10 +61,6 @@ pub fn get_field_rules(
           format!("{} could not find enum descriptor", error_prefix),
         ))
       }
-    }
-    RulesType::String(string_rules) => {
-      let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
-      rules_agg.extend(rules);
     }
     RulesType::Duration(duration_rules) => {
       if !matches!(field_data_kind, FieldKind::Duration) {

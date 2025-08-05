@@ -5,7 +5,7 @@ use prost_reflect::{
   prost::Message, FieldDescriptor, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
 use protocheck_core::field_data::FieldKind;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{DeriveInput, Error, Ident};
 
 use super::{
@@ -25,7 +25,6 @@ use crate::{
     repeated_rules::get_repeated_rules,
   },
   validation_data::ValidationData,
-  validator_template::FieldValidator,
   Span2,
 };
 
@@ -145,7 +144,6 @@ pub fn extract_oneof_validators(
         proto_name: field_name.to_string(),
         tag: field.number(),
         proto_type: convert_kind_to_proto_type(&field_kind),
-        kind: FieldKind::from_field_desc(&field),
         ignore,
       };
 
@@ -163,6 +161,15 @@ pub fn extract_oneof_validators(
         });
       };
 
+      let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
+      let field_context_ident = format_ident!("field_context");
+      let index_ident = format_ident!("idx");
+      let item_ident = format_ident!("item");
+      let key_ident = format_ident!("key");
+      let map_value_ident = format_ident!("val");
+      let violations_ident = format_ident!("violations");
+      let parent_messages_ident = format_ident!("parent_messages");
+
       let validation_data = ValidationData {
         full_name: field.full_name().to_string(),
         is_required,
@@ -171,17 +178,25 @@ pub fn extract_oneof_validators(
         field_data,
         field_span,
         field_data_static_ident,
-        inner_value_kind: None,
         key_type: None,
         value_type: None,
+        violations_ident: violations_ident.clone(),
+        field_context_ident,
+        item_ident,
+        parent_messages_ident: parent_messages_ident.clone(),
+        key_ident,
+        map_value_ident,
+        index_ident,
+        item_rust_ident: item_rust_ident.clone(),
+        field_kind: FieldKind::from_field_desc(&field),
       };
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
           &CelRuleTemplateTarget::Field {
-            field_desc: field.clone(),
-            validation_data: validation_data.clone(),
+            field_desc: &field,
             is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
+            validation_data: &validation_data,
           },
           &field_rules.cel,
           &mut static_defs,
@@ -204,12 +219,10 @@ pub fn extract_oneof_validators(
           .full_name()
           .starts_with("google.protobuf")
         {
+          let validator_tokens = validation_data.get_message_field_validator_tokens();
+
           let template = ValidatorTemplate {
-            item_rust_name: field.name().to_string(),
-            kind: ValidatorKind::Field {
-              validation_data,
-              field_validator: FieldValidator::MessageField,
-            },
+            kind: ValidatorKind::PureTokens(validator_tokens),
           };
           field_validators.push(template);
         }
@@ -270,6 +283,9 @@ pub fn extract_message_validators(
   let message_options = message_desc.options();
   let message_rules_descriptor = message_options.get_extension(&MESSAGE_RULES_EXT_DESCRIPTOR);
 
+  let violations_ident = format_ident!("violations");
+  let parent_messages_ident = format_ident!("parent_messages");
+
   // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice())
@@ -282,7 +298,11 @@ pub fn extract_message_validators(
 
     if !message_rules.cel.is_empty() {
       validators.extend(get_cel_rules(
-        &CelRuleTemplateTarget::Message(message_desc.clone()),
+        &CelRuleTemplateTarget::Message {
+          message_desc,
+          parent_messages_ident: &parent_messages_ident,
+          violations_ident: &violations_ident,
+        },
         &message_rules.cel,
         &mut static_defs,
       )?);
@@ -305,18 +325,22 @@ pub fn extract_message_validators(
           Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
         })?;
 
+      let item_rust_ident = Ident2::new(oneof.name(), Span2::call_site());
       validators.push(ValidatorTemplate {
-        item_rust_name: oneof.name().to_string(),
         kind: ValidatorKind::Oneof {
           is_required: oneof_rules.required(),
+          field_name: oneof.name().to_string(),
+          parent_messages_ident: parent_messages_ident.clone(),
+          violations_ident: violations_ident.clone(),
+          item_rust_ident,
         },
       });
     }
   }
 
   // Field Rules
-  for field_desc in message_desc.fields() {
-    if let Some(containing_oneof) = field_desc.containing_oneof().as_ref() {
+  for field in message_desc.fields() {
+    if let Some(containing_oneof) = field.containing_oneof().as_ref() {
       if !containing_oneof.is_synthetic() {
         continue;
       }
@@ -324,7 +348,14 @@ pub fn extract_message_validators(
 
     let mut field_validators: Vec<ValidatorTemplate> = Vec::new();
 
-    let field_name = field_desc.name();
+    let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
+    let field_context_ident = format_ident!("field_context");
+    let index_ident = format_ident!("idx");
+    let item_ident = format_ident!("item");
+    let key_ident = format_ident!("key");
+    let value_ident = format_ident!("val");
+
+    let field_name = field.name();
     let field_span = rust_field_spans
       .get(field_name)
       .cloned()
@@ -332,13 +363,13 @@ pub fn extract_message_validators(
 
     let field_rust_enum = rust_enum_paths.get(field_name).cloned();
 
-    let field_kind = field_desc.kind();
-    let is_repeated = field_desc.is_list();
-    let is_map = field_desc.is_map();
-    let is_optional = field_desc.supports_presence();
-    let field_tag = field_desc.number();
+    let field_kind = field.kind();
+    let is_repeated = field.is_list();
+    let is_map = field.is_map();
+    let is_optional = field.supports_presence();
+    let field_tag = field.number();
 
-    let field_options = field_desc.options();
+    let field_options = field.options();
     let field_rules_descriptor = field_options.get_extension(&FIELD_RULES_EXT_DESCRIPTOR);
 
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
@@ -348,7 +379,7 @@ pub fn extract_message_validators(
         })?;
 
       let ignore = field_rules.ignore();
-      let is_required = field_rules.required() && field_desc.supports_presence();
+      let is_required = field_rules.required() && field.supports_presence();
 
       if matches!(ignore, Ignore::Always) {
         continue;
@@ -359,14 +390,13 @@ pub fn extract_message_validators(
         proto_name: field_name.to_string(),
         tag: field_tag,
         proto_type: convert_kind_to_proto_type(&field_kind),
-        kind: FieldKind::from_field_desc(&field_desc),
         ignore,
       };
 
       let field_data_static_ident = Ident2::new(
         &format!(
           "__VALIDATOR_FIELD_DATA_{}",
-          field_desc.full_name().replace(".", "_").to_uppercase()
+          field.full_name().replace(".", "_").to_uppercase()
         ),
         Span2::call_site(),
       );
@@ -378,24 +408,32 @@ pub fn extract_message_validators(
       };
 
       let validation_data = ValidationData {
-        full_name: field_desc.full_name().to_string(),
+        full_name: field.full_name().to_string(),
         is_required,
         is_in_oneof: false,
         is_optional,
         field_data,
         field_span,
         field_data_static_ident,
-        inner_value_kind: is_repeated.then(|| FieldKind::from_inner_field_desc(&field_desc)),
         key_type: None,
         value_type: None,
+        violations_ident: violations_ident.clone(),
+        parent_messages_ident: parent_messages_ident.clone(),
+        item_rust_ident: item_rust_ident.clone(),
+        index_ident,
+        map_value_ident: value_ident,
+        key_ident,
+        item_ident,
+        field_context_ident,
+        field_kind: FieldKind::from_field_desc(&field),
       };
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
           &CelRuleTemplateTarget::Field {
-            field_desc: field_desc.clone(),
-            validation_data: validation_data.clone(),
-            is_boxed: field_is_boxed(&field_desc, message_desc),
+            field_desc: &field,
+            is_boxed: field_is_boxed(&field, message_desc),
+            validation_data: &validation_data,
           },
           &field_rules.cel,
           &mut static_defs,
@@ -408,7 +446,7 @@ pub fn extract_message_validators(
           &validation_data,
           &mut static_defs,
           field_rust_enum,
-          &field_desc,
+          &field,
           field_rules_type,
         )?;
 
@@ -420,7 +458,7 @@ pub fn extract_message_validators(
           validation_data,
           &mut static_defs,
           field_rust_enum,
-          &field_desc,
+          &field,
           field_rules_type,
         )?;
 
@@ -431,33 +469,27 @@ pub fn extract_message_validators(
         let rules = get_field_rules(
           &mut static_defs,
           field_rust_enum,
-          &field_desc,
+          &field,
           &validation_data,
           rules_type,
         )?;
 
         field_validators.extend(rules);
-      } else if let Kind::Message(field_message_desc) = field_desc.kind() {
+      } else if let Kind::Message(field_message_desc) = field.kind() {
         if !field_message_desc
           .full_name()
           .starts_with("google.protobuf")
         {
+          let validator_tokens = validation_data.get_message_field_validator_tokens();
+
           let template = ValidatorTemplate {
-            item_rust_name: field_desc.name().to_string(),
-            kind: ValidatorKind::Field {
-              validation_data,
-              field_validator: FieldValidator::MessageField,
-            },
+            kind: ValidatorKind::PureTokens(validator_tokens),
           };
           field_validators.push(template);
         }
       } else if is_required {
         field_validators.push(ValidatorTemplate {
-          item_rust_name: validation_data.field_data.rust_name.to_string(),
-          kind: ValidatorKind::Field {
-            validation_data,
-            field_validator: FieldValidator::Required,
-          },
+          kind: ValidatorKind::PureTokens(validation_data.get_required_only_validator()),
         });
       }
 

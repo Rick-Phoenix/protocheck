@@ -46,7 +46,7 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     let (type_name, violation_path) = get_in_rule_path(&field_context.field_data.proto_type);
 
@@ -59,7 +59,7 @@ where
         field_context.field_data.proto_name.clone(),
         target
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -93,7 +93,7 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     let (type_name, violation_path) = get_not_in_rule_path(&field_context.field_data.proto_type);
 
@@ -106,7 +106,7 @@ where
         field_context.field_data.proto_name.clone(),
         target
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,

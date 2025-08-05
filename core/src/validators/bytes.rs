@@ -39,7 +39,7 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut rule_elements = get_base_violations_path(&field_context.field_kind);
 
     rule_elements.extend(BYTES_IP_VIOLATION.clone());
 
@@ -73,7 +73,7 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut rule_elements = get_base_violations_path(&field_context.field_kind);
 
     rule_elements.extend(BYTES_IPV4_VIOLATION.clone());
 
@@ -107,7 +107,7 @@ pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut rule_elements = get_base_violations_path(&field_context.field_kind);
 
     rule_elements.extend(BYTES_IPV6_VIOLATION.clone());
 
@@ -146,7 +146,7 @@ pub fn pattern(
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut rule_elements = get_base_violations_path(&field_context.field_kind);
 
     rule_elements.extend(BYTES_PATTERN_VIOLATION.clone());
 
@@ -157,7 +157,7 @@ pub fn pattern(
         field_context.field_data.proto_name.clone(),
         pattern
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: rule_elements,
@@ -184,7 +184,7 @@ pub fn contains(
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     violation_elements.extend(BYTES_CONTAINS_VIOLATION.clone());
 
@@ -195,7 +195,7 @@ pub fn contains(
         field_context.field_data.proto_name.clone(),
         format_bytes_for_error(pattern)
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -222,7 +222,7 @@ pub fn suffix(
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     violation_elements.extend(BYTES_SUFFIX_VIOLATION.clone());
 
@@ -233,7 +233,7 @@ pub fn suffix(
         field_context.field_data.proto_name.clone(),
         format_bytes_for_error(suffix)
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -260,7 +260,7 @@ pub fn prefix(
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     violation_elements.extend(BYTES_PREFIX_VIOLATION.clone());
 
@@ -271,7 +271,7 @@ pub fn prefix(
         field_context.field_data.proto_name.clone(),
         format_bytes_for_error(prefix)
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -296,7 +296,7 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut rule_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut rule_elements = get_base_violations_path(&field_context.field_kind);
 
     rule_elements.extend(BYTES_MAX_LEN_VIOLATION.clone());
 
@@ -308,7 +308,7 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
         max_len,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: rule_elements,
@@ -333,7 +333,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     violation_elements.extend(BYTES_MIN_LEN_VIOLATION.clone());
 
@@ -345,7 +345,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
         min_len,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,
@@ -370,7 +370,7 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
   if !check {
     let elements = get_violation_elements(field_context);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_data.kind);
+    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
 
     violation_elements.extend(BYTES_LEN_VIOLATION.clone());
 
@@ -382,7 +382,7 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
         len,
         plural_suffix
       )),
-      for_key: Some(field_context.field_data.kind.is_map_key()),
+      for_key: None,
       field: Some(FieldPath { elements }),
       rule: Some(FieldPath {
         elements: violation_elements,

@@ -17,7 +17,7 @@ pub fn defined_only(field_context: &FieldContext, enum_name: &str) -> Violation 
   };
   elements.push(current_elem);
 
-  let mut violations_path = get_base_violations_path(&field_context.field_data.kind);
+  let mut violations_path = get_base_violations_path(&field_context.field_kind);
 
   violations_path.extend(vec![
     FieldPathElement {

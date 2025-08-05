@@ -9,12 +9,12 @@ use crate::{
 pub fn min_items<T>(
   field_context: &FieldContext,
   value: &[T],
-  min_items: &u64,
+  min_items: u64,
 ) -> Result<(), Violation> {
-  let check = value.len() >= *min_items as usize;
+  let check = value.len() >= min_items as usize;
 
   if !check {
-    let plural_suffix = if *min_items > 1 { "s" } else { "" };
+    let plural_suffix = if min_items > 1 { "s" } else { "" };
 
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {

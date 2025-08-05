@@ -60,7 +60,7 @@ where
         if bool_value {
           Ok(())
         } else {
-          Err(create_cel_violation(
+          Err(create_cel_field_violation(
             rule_id.to_string(),
             error_message.to_string(),
             field_context,
@@ -72,7 +72,7 @@ where
           error_prefix,
           value.type_of()
         );
-        Err(create_cel_violation(
+        Err(create_cel_field_violation(
           "internal_server_error".to_string(),
           "internal server error".to_string(),
           field_context,
@@ -81,7 +81,7 @@ where
     }
     Err(e) => {
       println!("{} {:?}", error_prefix, e);
-      Err(create_cel_violation(
+      Err(create_cel_field_violation(
         "internal_server_error".to_string(),
         "internal server error".to_string(),
         field_context,
@@ -122,7 +122,7 @@ where
       cel_context.add_variable_from_value("this", cel_val);
     }
     Err(e) => {
-      return Err(create_cel_violation(
+      return Err(create_cel_field_violation(
         rule_id.to_string(),
         e.to_string(),
         field_context,
@@ -138,7 +138,7 @@ where
         if bool_value {
           Ok(())
         } else {
-          Err(create_cel_violation(
+          Err(create_cel_field_violation(
             rule_id.to_string(),
             error_message.to_string(),
             field_context,
@@ -150,7 +150,7 @@ where
           error_prefix,
           value.type_of()
         );
-        Err(create_cel_violation(
+        Err(create_cel_field_violation(
           "internal_server_error".to_string(),
           "internal server error".to_string(),
           field_context,
@@ -159,7 +159,7 @@ where
     }
     Err(e) => {
       println!("{} {:?}", error_prefix, e);
-      Err(create_cel_violation(
+      Err(create_cel_field_violation(
         "internal_server_error".to_string(),
         "internal server error".to_string(),
         field_context,
@@ -268,20 +268,11 @@ pub fn create_cel_message_violation(
   }
 }
 
-fn create_cel_violation(
+fn create_cel_field_violation(
   rule_id: String,
   error_message: String,
   field_context: &FieldContext<'_>,
 ) -> Violation {
-  let cel_violation = FieldPathElement {
-    field_name: Some("cel".to_string()),
-    field_number: Some(23),
-    field_type: Some(ProtoType::Message as i32),
-    key_type: None,
-    value_type: None,
-    subscript: None,
-  };
-
   let mut elements = field_context.parent_elements.to_vec();
 
   let current_elem = FieldPathElement {
@@ -294,7 +285,17 @@ fn create_cel_violation(
   };
   elements.push(current_elem);
 
-  let mut violations_path = get_base_violations_path(&field_context.field_data.kind);
+  let mut violations_path = get_base_violations_path(&field_context.field_kind);
+
+  let cel_violation = FieldPathElement {
+    field_name: Some("cel".to_string()),
+    field_number: Some(23),
+    field_type: Some(ProtoType::Message as i32),
+    key_type: None,
+    value_type: None,
+    subscript: None,
+  };
+
   violations_path.push(cel_violation);
 
   Violation {
@@ -304,6 +305,6 @@ fn create_cel_violation(
       elements: violations_path,
     }),
     field: Some(FieldPath { elements }),
-    for_key: Some(field_context.field_data.kind.is_map_key()),
+    for_key: field_context.field_kind.is_map_key().then_some(true),
   }
 }

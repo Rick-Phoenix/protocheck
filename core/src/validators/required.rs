@@ -18,7 +18,7 @@ pub fn required(field_context: &FieldContext) -> Violation {
   };
   elements.push(current_elem);
 
-  let mut violations_path = get_base_violations_path(&field_context.field_data.kind);
+  let mut violations_path = get_base_violations_path(&field_context.field_kind);
 
   let required_violation_path = FieldPathElement {
     field_type: Some(ProtoType::Bool as i32),
@@ -40,6 +40,6 @@ pub fn required(field_context: &FieldContext) -> Violation {
       elements: violations_path,
     }),
     field: Some(FieldPath { elements }),
-    for_key: Some(field_context.field_data.kind.is_map_key()),
+    for_key: None,
   }
 }

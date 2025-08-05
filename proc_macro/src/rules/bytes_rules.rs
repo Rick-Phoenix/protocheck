@@ -9,7 +9,7 @@ use regex::Regex;
 use syn::{Error, LitByteStr};
 
 use super::{ValidatorKind, ValidatorTemplate};
-use crate::{validation_data::ValidationData, validator_template::FieldValidator};
+use crate::validation_data::ValidationData;
 
 pub fn get_bytes_rules(
   static_defs: &mut Vec<TokenStream>,
@@ -26,15 +26,11 @@ pub fn get_bytes_rules(
     let const_val_tokens = LitByteStr::new(const_val, Span::call_site());
 
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::constants::constant },
-          target_value_tokens: const_val_tokens.to_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(
+        validation_data.get_constant_validator(const_val_tokens.to_token_stream()),
+      ),
     });
+
     return Ok(templates);
   }
 
@@ -45,6 +41,9 @@ pub fn get_bytes_rules(
     min_len,
     max_len,
   } = rules.length_rules(field_span, &error_prefix)?;
+
+  let field_context_ident = &validation_data.field_context_ident;
+  let value_ident = validation_data.value_ident();
 
   if let Some(ref pattern) = rules.pattern {
     Regex::new(pattern).map_err(|e| {
@@ -61,134 +60,123 @@ pub fn get_bytes_rules(
       });
     });
 
+    let validator_expression_tokens = quote! {
+      protocheck::validators::bytes::pattern(&#field_context_ident, #value_ident, #static_regex_ident )
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::pattern },
-          target_value_tokens: quote! { #static_regex_ident },
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(in_list_tokens) = in_list {
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::containing::in_list },
-          target_value_tokens: in_list_tokens,
-        },
-      },
+      kind: ValidatorKind::PureTokens(validation_data.get_not_in_list_validator(in_list_tokens)),
     });
   }
 
   if let Some(not_in_list_tokens) = not_in_list {
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::containing::not_in_list },
-          target_value_tokens: not_in_list_tokens,
-        },
-      },
+      kind: ValidatorKind::PureTokens(
+        validation_data.get_not_in_list_validator(not_in_list_tokens),
+      ),
     });
   }
 
   if let Some(len_value) = len {
+    let validator_expression_tokens = quote! {
+          protocheck::validators::bytes::len(&#field_context_ident, #value_ident, #len_value)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::len },
-          target_value_tokens: len_value.into_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(min_len_value) = min_len {
+    let validator_expression_tokens = quote! {
+          protocheck::validators::bytes::min_len(&#field_context_ident, #value_ident, #min_len_value)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::min_len },
-          target_value_tokens: min_len_value.into_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(max_len_value) = max_len {
+    let validator_expression_tokens = quote! {
+          protocheck::validators::bytes::max_len(&#field_context_ident, #value_ident, #max_len_value)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::max_len },
-          target_value_tokens: max_len_value.into_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(ref contains_val) = rules.contains {
+    let contains_val_tokens = LitByteStr::new(contains_val, Span::call_site()).to_token_stream();
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::bytes::contains(&#field_context_ident, #value_ident, #contains_val_tokens)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::contains },
-          target_value_tokens: LitByteStr::new(contains_val, Span::call_site()).to_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(ref prefix) = rules.prefix {
+    let prefix_tokens = LitByteStr::new(prefix, Span::call_site()).to_token_stream();
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::bytes::prefix(&#field_context_ident, #value_ident, #prefix_tokens)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::prefix },
-          target_value_tokens: LitByteStr::new(prefix, Span::call_site()).to_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(ref suffix) = rules.suffix {
+    let suffix_tokens = LitByteStr::new(suffix, Span::call_site()).to_token_stream();
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::bytes::suffix(&#field_context_ident, #value_ident, #suffix_tokens)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::bytes::suffix },
-          target_value_tokens: LitByteStr::new(suffix, Span::call_site()).to_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(validator_tokens),
     });
   }
 
   if let Some(well_known) = rules.well_known {
     let validator_path = match well_known {
       WellKnown::Ip(enabled) => enabled.then_some(quote! {
-        protocheck::validators::bytes::ip
+        ip
       }),
       WellKnown::Ipv4(enabled) => enabled.then_some(quote! {
-        protocheck::validators::bytes::ipv4
+        ipv4
       }),
       WellKnown::Ipv6(enabled) => enabled.then_some(quote! {
-        protocheck::validators::bytes::ipv6
+        ipv6
       }),
     };
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::bytes::#validator_path(&#field_context_ident, #value_ident)
+    };
+    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+
+    templates.push(ValidatorTemplate {
+      kind: ValidatorKind::PureTokens(validator_tokens),
+    });
   }
 
   Ok(templates)

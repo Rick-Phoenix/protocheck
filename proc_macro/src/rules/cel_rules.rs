@@ -5,14 +5,12 @@ use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
 use proto_types::{Empty, FieldMask};
+use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
-use super::{
-  CelRuleTemplateTarget, FieldData, FieldValidator, MessageValidator, Rule, ValidatorKind,
-  ValidatorTemplate,
-};
-use crate::{Ident2, Span2};
+use super::{CelRuleTemplateTarget, Rule, ValidatorKind, ValidatorTemplate};
+use crate::{validation_data::ValidationData, Ident2, Span2};
 
 pub fn get_cel_rules(
   rule_target: &CelRuleTemplateTarget,
@@ -22,21 +20,23 @@ pub fn get_cel_rules(
   let mut validators: Vec<ValidatorTemplate> = Vec::new();
 
   let cel_value: CelValue = match rule_target {
-    CelRuleTemplateTarget::Message(message_desc) => {
-      let dyn_message = DynamicMessage::new(message_desc.clone());
+    CelRuleTemplateTarget::Message { message_desc, .. } => {
+      let dyn_message = DynamicMessage::new((*message_desc).clone());
       convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
     }
     CelRuleTemplateTarget::Field {
       field_desc,
       validation_data,
       ..
-    } => get_default_field_prost_value(&validation_data.field_data, field_desc).unwrap(),
+    } => get_default_field_prost_value(validation_data, field_desc).unwrap(),
   };
 
   let validation_type = rule_target.get_validation_type();
   let target_name = rule_target.get_full_name();
 
   let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
+
+  let (parent_messages_ident, violations_ident) = rule_target.get_idents();
 
   for rule in rules {
     let program = match Program::compile(rule.expression()) {
@@ -80,36 +80,77 @@ pub fn get_cel_rules(
             });
           });
 
+          let rule_tokens = quote! {
+            protocheck::validators::cel::CelRule {
+              id: #rule_id.to_string(),
+              error_message: #error_message.to_string(),
+              program: &#static_program_ident,
+            }
+          };
+
           match rule_target {
             CelRuleTemplateTarget::Field {
-              validation_data,
               is_boxed,
+              validation_data,
               ..
             } => {
-              validators.push(ValidatorTemplate {
-                item_rust_name: rule_target.get_name().to_string(),
-                kind: ValidatorKind::Field {
-                  validation_data: validation_data.clone(),
-                  field_validator: FieldValidator::Cel {
-                    rule_id,
-                    error_message,
-                    static_program_ident,
-                    is_boxed: *is_boxed,
-                  },
-                },
-              });
+              let field_context_ident = &validation_data.field_context_ident;
+              let value_ident = &validation_data.value_ident();
+              let field_context_tokens = validation_data.field_context_tokens();
+
+              let value_tokens = if *is_boxed {
+                quote! { &(**val) }
+              } else if validation_data.is_option() {
+                quote! { val }
+              } else {
+                quote! { #value_ident }
+              };
+
+              let cel_validator_func = match validation_data.field_kind {
+                FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
+                  quote! { validate_cel_field }
+                }
+                FieldKind::Any => {
+                  quote! { compile_error!("Any is not supported for Cel validation") }
+                }
+                _ => quote! { validate_cel_field_with_val },
+              };
+
+              let validator_tokens = quote! {
+                let rule = #rule_tokens;
+                #field_context_tokens
+
+                match protocheck::validators::cel::#cel_validator_func(&#field_context_ident, &rule, #value_tokens) {
+                  Ok(_) => {}
+                  Err(v) => #violations_ident.push(v)
+                };
+              };
+
+              if validation_data.is_option() {
+                validators.push(ValidatorTemplate {
+                  kind: ValidatorKind::PureTokens(quote! {
+                    if let Some(val) = #value_ident {
+                      #validator_tokens
+                    }
+                  }),
+                });
+              } else {
+                validators.push(ValidatorTemplate {
+                  kind: ValidatorKind::PureTokens(validator_tokens),
+                });
+              }
             }
-            CelRuleTemplateTarget::Message(message_desc) => {
+            CelRuleTemplateTarget::Message { message_desc, .. } => {
+              let message_name = message_desc.full_name();
               validators.push(ValidatorTemplate {
-                item_rust_name: rule_target.get_name().to_string(),
-                kind: ValidatorKind::Message {
-                  message_validator: MessageValidator::Cel {
-                    message_name: message_desc.full_name().to_string(),
-                    rule_id,
-                    error_message,
-                    static_program_ident,
-                  },
-                },
+                kind: ValidatorKind::PureTokens(quote! {
+                  let rule = #rule_tokens;
+
+                  match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
+                    Ok(_) => {}
+                    Err(v) => #violations_ident.push(v)
+                  };
+                }),
               });
             }
           };
@@ -137,10 +178,10 @@ pub fn get_cel_rules(
 }
 
 fn get_default_field_prost_value(
-  field_data: &FieldData,
+  validation_data: &ValidationData,
   field_desc: &FieldDescriptor,
 ) -> Result<CelValue, Error> {
-  let default_val = if field_data.kind.is_repeated_item() {
+  let default_val = if validation_data.field_kind.is_repeated_item() {
     ProstValue::default_value(&field_desc.kind())
   } else {
     ProstValue::default_value_for_field(field_desc)

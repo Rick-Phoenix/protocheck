@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut config = Config::new();
   config
     .file_descriptor_set_path(final_descriptor_path.clone())
-    .bytes(&["."])
+    .bytes(["."])
     .enable_type_names()
     .message_attribute(
       ".",

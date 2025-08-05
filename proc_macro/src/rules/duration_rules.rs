@@ -6,7 +6,7 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{ValidatorKind, ValidatorTemplate};
-use crate::{validation_data::ValidationData, validator_template::FieldValidator};
+use crate::validation_data::ValidationData;
 
 pub fn get_duration_rules(
   validation_data: &ValidationData,
@@ -23,15 +23,11 @@ pub fn get_duration_rules(
 
   if let Some(const_val) = rules.r#const {
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::constants::constant },
-          target_value_tokens: const_val.to_token_stream(),
-        },
-      },
+      kind: ValidatorKind::PureTokens(
+        validation_data.get_constant_validator(const_val.to_token_stream()),
+      ),
     });
+
     return Ok(templates);
   }
 
@@ -39,28 +35,18 @@ pub fn get_duration_rules(
 
   if let Some(lt_rule) = comparable_rules.less_than {
     match lt_rule {
-      ComparableLessThan::Lt(val) => {
+      ComparableLessThan::Lt(lt_val) => {
         templates.push(ValidatorTemplate {
-          item_rust_name: validation_data.field_data.rust_name.clone(),
-          kind: ValidatorKind::Field {
-            validation_data: validation_data.clone(),
-            field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::comparables::lt },
-              target_value_tokens: val.to_token_stream(),
-            },
-          },
+          kind: ValidatorKind::PureTokens(
+            validation_data.get_lt_validator(lt_val.to_token_stream()),
+          ),
         });
       }
-      ComparableLessThan::Lte(val) => {
+      ComparableLessThan::Lte(lte_val) => {
         templates.push(ValidatorTemplate {
-          item_rust_name: validation_data.field_data.rust_name.clone(),
-          kind: ValidatorKind::Field {
-            validation_data: validation_data.clone(),
-            field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::comparables::lte },
-              target_value_tokens: val.to_token_stream(),
-            },
-          },
+          kind: ValidatorKind::PureTokens(
+            validation_data.get_lte_validator(lte_val.to_token_stream()),
+          ),
         });
       }
     };
@@ -68,28 +54,18 @@ pub fn get_duration_rules(
 
   if let Some(gt_rule) = comparable_rules.greater_than {
     match gt_rule {
-      ComparableGreaterThan::Gt(val) => {
+      ComparableGreaterThan::Gt(gt_val) => {
         templates.push(ValidatorTemplate {
-          item_rust_name: validation_data.field_data.rust_name.clone(),
-          kind: ValidatorKind::Field {
-            validation_data: validation_data.clone(),
-            field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::comparables::gt },
-              target_value_tokens: val.to_token_stream(),
-            },
-          },
+          kind: ValidatorKind::PureTokens(
+            validation_data.get_gt_validator(gt_val.to_token_stream()),
+          ),
         });
       }
-      ComparableGreaterThan::Gte(val) => {
+      ComparableGreaterThan::Gte(gte_val) => {
         templates.push(ValidatorTemplate {
-          item_rust_name: validation_data.field_data.rust_name.clone(),
-          kind: ValidatorKind::Field {
-            validation_data: validation_data.clone(),
-            field_validator: FieldValidator::Scalar {
-              validator_path: quote! { protocheck::validators::comparables::gte },
-              target_value_tokens: val.to_token_stream(),
-            },
-          },
+          kind: ValidatorKind::PureTokens(
+            validation_data.get_gte_validator(gte_val.to_token_stream()),
+          ),
         });
       }
     };
@@ -101,28 +77,18 @@ pub fn get_duration_rules(
   } = rules.containing_rules(field_span, &error_prefix)?;
 
   if !in_list.is_empty() {
+    let in_list_tokens = quote! { vec![ #(#in_list),* ] };
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::containing::in_list },
-          target_value_tokens: quote! { vec![ #(#in_list),* ] },
-        },
-      },
+      kind: ValidatorKind::PureTokens(validation_data.get_in_list_validator(in_list_tokens)),
     });
   }
 
   if !not_in_list.is_empty() {
+    let not_in_list_tokens = quote! { vec![ #(#not_in_list),* ] };
     templates.push(ValidatorTemplate {
-      item_rust_name: validation_data.field_data.rust_name.clone(),
-      kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
-        field_validator: FieldValidator::Scalar {
-          validator_path: quote! { protocheck::validators::containing::not_in_list },
-          target_value_tokens: quote! { vec![ #(#not_in_list),* ] },
-        },
-      },
+      kind: ValidatorKind::PureTokens(
+        validation_data.get_not_in_list_validator(not_in_list_tokens),
+      ),
     });
   }
 

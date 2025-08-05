@@ -32,7 +32,6 @@ impl ToTokens for FieldData {
     let rust_name = &self.rust_name;
     let proto_name = &self.proto_name;
     let tag = self.tag;
-    let kind = &self.kind;
     let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
@@ -42,7 +41,6 @@ impl ToTokens for FieldData {
         proto_name: #proto_name.to_string(),
         proto_type: #proto_type,
         tag: #tag,
-        kind: #kind,
         ignore: #ignore,
       }
     });
