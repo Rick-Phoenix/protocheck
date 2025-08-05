@@ -233,9 +233,9 @@ impl ValidationData {
       let #field_context_ident = protocheck::field_data::FieldContext {
         field_data: &#field_data_static_ident,
         parent_elements: #parent_messages_ident.as_slice(),
-        subscript: #subscript_tokens,
-        key_type: #key_type_tokens,
-        value_type: #value_type_tokens,
+        subscript: &#subscript_tokens,
+        key_type: &#key_type_tokens,
+        value_type: &#value_type_tokens,
         field_kind: &#field_kind,
       };
     }

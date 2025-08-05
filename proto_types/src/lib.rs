@@ -14,6 +14,7 @@ mod datetime;
 pub mod protovalidate_impls;
 mod type_url;
 
+#[allow(unused_imports)]
 pub use empty::*;
 mod empty;
 

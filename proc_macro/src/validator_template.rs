@@ -21,7 +21,7 @@ pub enum FieldValidator {
 pub enum ValidatorKind {
   PureTokens(TokenStream2),
   Field {
-    validation_data: ValidationData,
+    validation_data: Box<ValidationData>,
     field_validator: FieldValidator,
   },
   Oneof {
@@ -64,7 +64,7 @@ impl ToTokens for ValidatorTemplate {
           violations_ident,
           item_rust_ident,
           ..
-        } = validation_data;
+        } = &**validation_data;
 
         match field_validator {
           FieldValidator::Repeated {

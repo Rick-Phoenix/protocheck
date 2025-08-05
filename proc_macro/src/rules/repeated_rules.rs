@@ -110,7 +110,7 @@ pub fn get_repeated_rules(
               static_defs,
               field_rust_enum,
               field_desc,
-              &validation_data,
+              validation_data,
               rules_type,
             )?;
 
@@ -122,7 +122,7 @@ pub fn get_repeated_rules(
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
-              validation_data: &validation_data,
+              validation_data: validation_data,
               is_boxed: field_is_boxed(field_desc, field_desc.parent_message()),
             },
             &items_rules_descriptor.cel,
@@ -149,7 +149,7 @@ pub fn get_repeated_rules(
   } else {
     Ok(Some(ValidatorTemplate {
       kind: ValidatorKind::Field {
-        validation_data: validation_data.clone(),
+        validation_data: Box::new(validation_data.clone()),
         field_validator: FieldValidator::Repeated {
           vec_level_rules,
           items_rules,

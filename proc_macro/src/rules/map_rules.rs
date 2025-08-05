@@ -216,7 +216,7 @@ pub fn get_map_rules(
   } else {
     Ok(Some(ValidatorTemplate {
       kind: ValidatorKind::Field {
-        validation_data: map_validation_data.clone(),
+        validation_data: Box::new(map_validation_data.clone()),
         field_validator: FieldValidator::Map {
           map_level_rules,
           key_rules,

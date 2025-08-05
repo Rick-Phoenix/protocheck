@@ -11,9 +11,9 @@ use crate::{
 pub struct FieldContext<'a> {
   pub field_data: &'a FieldData,
   pub parent_elements: &'a [FieldPathElement],
-  pub subscript: Option<Subscript>,
-  pub key_type: Option<ProtoType>,
-  pub value_type: Option<ProtoType>,
+  pub subscript: &'a Option<Subscript>,
+  pub key_type: &'a Option<ProtoType>,
+  pub value_type: &'a Option<ProtoType>,
   pub field_kind: &'a FieldKind,
 }
 

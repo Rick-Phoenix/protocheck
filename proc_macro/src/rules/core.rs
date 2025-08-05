@@ -31,7 +31,7 @@ pub fn get_field_rules(
   let error_prefix = &format!("Error for field {}:", field_name);
 
   field_rules.matches_type(
-    &validation_data.field_kind.inner_type(),
+    validation_data.field_kind.inner_type(),
     field_span,
     error_prefix,
   )?;
