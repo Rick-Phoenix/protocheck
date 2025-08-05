@@ -5,7 +5,6 @@ use quote::{quote, ToTokens};
 use syn::Error;
 
 use crate::{
-  field_descriptor_proto::Type as ProtoType,
   protovalidate::{
     DoubleRules, Fixed32Rules, Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules,
     SFixed64Rules, SInt32Rules, SInt64Rules, UInt32Rules, UInt64Rules,
@@ -32,15 +31,12 @@ pub trait NumericRules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ComparableRules<Self::Unit>, Error>;
-  fn matches_type(&self, ty: &ProtoType) -> bool;
 }
 
 impl NumericRules for FloatRules {
   type Unit = f32;
   const UNIT_NAME: &'static str = "float";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Float)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -79,9 +75,7 @@ impl NumericRules for FloatRules {
 impl NumericRules for DoubleRules {
   type Unit = f64;
   const UNIT_NAME: &'static str = "double";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Double)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -120,9 +114,7 @@ impl NumericRules for DoubleRules {
 impl NumericRules for Int64Rules {
   type Unit = i64;
   const UNIT_NAME: &'static str = "int64";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Int64)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -159,9 +151,7 @@ impl NumericRules for Int64Rules {
 impl NumericRules for SInt64Rules {
   type Unit = i64;
   const UNIT_NAME: &'static str = "sint64";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Sint64)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -198,9 +188,7 @@ impl NumericRules for SInt64Rules {
 impl NumericRules for SFixed64Rules {
   type Unit = i64;
   const UNIT_NAME: &'static str = "sfixed64";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Sfixed64)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -237,9 +225,7 @@ impl NumericRules for SFixed64Rules {
 impl NumericRules for Int32Rules {
   type Unit = i32;
   const UNIT_NAME: &'static str = "int32";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Int32)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -276,9 +262,7 @@ impl NumericRules for Int32Rules {
 impl NumericRules for SInt32Rules {
   type Unit = i32;
   const UNIT_NAME: &'static str = "sint32";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Sint32)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -315,9 +299,7 @@ impl NumericRules for SInt32Rules {
 impl NumericRules for SFixed32Rules {
   type Unit = i32;
   const UNIT_NAME: &'static str = "sfixed32";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Sfixed32)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -354,9 +336,7 @@ impl NumericRules for SFixed32Rules {
 impl NumericRules for UInt64Rules {
   type Unit = u64;
   const UNIT_NAME: &'static str = "uint64";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Uint64)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -393,9 +373,7 @@ impl NumericRules for UInt64Rules {
 impl NumericRules for Fixed64Rules {
   type Unit = u64;
   const UNIT_NAME: &'static str = "fixed64";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Fixed64)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -432,9 +410,7 @@ impl NumericRules for Fixed64Rules {
 impl NumericRules for UInt32Rules {
   type Unit = u32;
   const UNIT_NAME: &'static str = "uint32";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Uint32)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
@@ -471,9 +447,7 @@ impl NumericRules for UInt32Rules {
 impl NumericRules for Fixed32Rules {
   type Unit = u32;
   const UNIT_NAME: &'static str = "fixed32";
-  fn matches_type(&self, ty: &ProtoType) -> bool {
-    matches!(ty, ProtoType::Fixed32)
-  }
+
   fn constant(&self) -> Option<Self::Unit> {
     self.r#const
   }
