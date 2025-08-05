@@ -1,17 +1,19 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
+use proto_types::protovalidate::FieldRules;
+use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
-use super::{
-  field_rules::Type as RulesType, protovalidate::Ignore, ValidatorKind, ValidatorTemplate,
-};
+use super::{field_rules::Type as RulesType, protovalidate::Ignore};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_boxed,
-  rules::{cel_rules::get_cel_rules, core::get_field_rules},
-  validation_data::ValidationData,
-  validator_template::FieldValidator,
+  rules::{
+    cel_rules::get_cel_rules,
+    core::{convert_kind_to_proto_type, get_field_rules},
+  },
+  validation_data::{RepeatedValidator, ValidationData},
 };
 
 pub fn get_repeated_rules(
@@ -19,10 +21,11 @@ pub fn get_repeated_rules(
   static_defs: &mut Vec<TokenStream>,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
-  field_rules: Option<&RulesType>,
-) -> Result<Option<ValidatorTemplate>, Error> {
-  let mut vec_level_rules: Vec<ValidatorTemplate> = Vec::new();
-  let mut items_rules: Vec<ValidatorTemplate> = Vec::new();
+  field_rules: &FieldRules,
+) -> Result<TokenStream, Error> {
+  let mut vec_level_rules: TokenStream = TokenStream::new();
+  let mut items_rules: TokenStream = TokenStream::new();
+  let mut items_context_tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
 
@@ -39,7 +42,19 @@ pub fn get_repeated_rules(
   let float_values = validation_data.field_kind.inner_type().is_float();
   let mut ignore_items_validators = false;
 
-  if let Some(RulesType::Repeated(repeated_rules)) = field_rules {
+  if !field_rules.cel.is_empty() {
+    vec_level_rules.extend(get_cel_rules(
+      &CelRuleTemplateTarget::Field {
+        field_desc,
+        is_boxed: false,
+        validation_data,
+      },
+      &field_rules.cel,
+      static_defs,
+    )?);
+  }
+
+  if let Some(RulesType::Repeated(repeated_rules)) = field_rules.r#type.as_ref() {
     if repeated_rules.unique() {
       if !validation_data.field_kind.is_scalar() {
         return Err(syn::Error::new(
@@ -55,7 +70,7 @@ pub fn get_repeated_rules(
     }
 
     let value_ident = validation_data.value_ident();
-    let field_context_ident = &validation_data.field_context_ident;
+    let field_context_ident = &validation_data.field_context_ident();
 
     let mut min_items: Option<u64> = None;
     let mut max_items: Option<u64> = None;
@@ -69,9 +84,7 @@ pub fn get_repeated_rules(
       };
       let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-      vec_level_rules.push(ValidatorTemplate {
-        kind: ValidatorKind::PureTokens(validator_tokens),
-      });
+      vec_level_rules.extend(validator_tokens);
     }
 
     if repeated_rules.max_items() > 0 {
@@ -83,9 +96,7 @@ pub fn get_repeated_rules(
       };
       let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-      vec_level_rules.push(ValidatorTemplate {
-        kind: ValidatorKind::PureTokens(validator_tokens),
-      });
+      vec_level_rules.extend(validator_tokens);
     }
 
     if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {
@@ -104,17 +115,22 @@ pub fn get_repeated_rules(
       if matches!(ignore, Ignore::Always) {
         ignore_items_validators = true
       } else {
+        let mut items_validation_data = validation_data.clone();
+        let individual_item_proto_type = convert_kind_to_proto_type(&field_desc.kind());
+        items_validation_data.field_kind =
+          FieldKind::RepeatedItem(individual_item_proto_type.into());
+
         if let Some(ref rules_type) = items_rules_descriptor.r#type {
           if !item_is_message {
-            let rules_for_single_item = get_field_rules(
+            let items_rules_tokens = get_field_rules(
               static_defs,
               field_rust_enum,
               field_desc,
-              validation_data,
+              &items_validation_data,
               rules_type,
             )?;
 
-            items_rules.extend(rules_for_single_item);
+            items_rules.extend(items_rules_tokens);
           }
         }
 
@@ -122,13 +138,17 @@ pub fn get_repeated_rules(
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
-              validation_data: validation_data,
+              validation_data: &items_validation_data,
               is_boxed: field_is_boxed(field_desc, field_desc.parent_message()),
             },
             &items_rules_descriptor.cel,
             static_defs,
           )?;
           items_rules.extend(cel_rules);
+        }
+
+        if !items_rules.is_empty() {
+          items_context_tokens = items_validation_data.field_context_tokens();
         }
       }
     }
@@ -137,26 +157,14 @@ pub fn get_repeated_rules(
   if item_is_message && !ignore_items_validators {
     let validator_tokens = validation_data.get_message_field_validator_tokens();
 
-    let message_items_validator = ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    };
-
-    items_rules.push(message_items_validator);
+    items_rules.extend(validator_tokens);
   }
 
-  if vec_level_rules.is_empty() && items_rules.is_empty() {
-    Ok(None)
-  } else {
-    Ok(Some(ValidatorTemplate {
-      kind: ValidatorKind::Field {
-        validation_data: Box::new(validation_data.clone()),
-        field_validator: FieldValidator::Repeated {
-          vec_level_rules,
-          items_rules,
-          unique_values,
-          float_values,
-        },
-      },
-    }))
-  }
+  Ok(validation_data.aggregate_vec_rules(&RepeatedValidator {
+    vec_level_rules,
+    items_rules,
+    unique_values,
+    float_values,
+    items_context_tokens,
+  }))
 }

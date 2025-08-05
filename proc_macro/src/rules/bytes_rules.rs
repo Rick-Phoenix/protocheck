@@ -8,7 +8,6 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{Error, LitByteStr};
 
-use super::{ValidatorKind, ValidatorTemplate};
 use crate::validation_data::ValidationData;
 
 pub fn get_bytes_rules(
@@ -16,8 +15,8 @@ pub fn get_bytes_rules(
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
   rules: &BytesRules,
-) -> Result<Vec<ValidatorTemplate>, Error> {
-  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
@@ -25,13 +24,12 @@ pub fn get_bytes_rules(
   if let Some(const_val) = &rules.r#const {
     let const_val_tokens = LitByteStr::new(const_val, Span::call_site());
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_constant_validator(const_val_tokens.to_token_stream()),
-      ),
-    });
+    let validator_tokens =
+      validation_data.get_constant_validator(const_val_tokens.to_token_stream());
 
-    return Ok(templates);
+    tokens.extend(validator_tokens);
+
+    return Ok(tokens);
   }
 
   let (in_list, not_in_list) = rules.containing_rules(field_span, &error_prefix)?;
@@ -42,7 +40,7 @@ pub fn get_bytes_rules(
     max_len,
   } = rules.length_rules(field_span, &error_prefix)?;
 
-  let field_context_ident = &validation_data.field_context_ident;
+  let field_context_ident = &validation_data.field_context_ident();
   let value_ident = validation_data.value_ident();
 
   if let Some(ref pattern) = rules.pattern {
@@ -65,23 +63,19 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(in_list_tokens) = in_list {
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validation_data.get_not_in_list_validator(in_list_tokens)),
-    });
+    let validator_tokens = validation_data.get_not_in_list_validator(in_list_tokens);
+
+    tokens.extend(validator_tokens);
   }
 
   if let Some(not_in_list_tokens) = not_in_list {
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_not_in_list_validator(not_in_list_tokens),
-      ),
-    });
+    let validator_tokens = validation_data.get_not_in_list_validator(not_in_list_tokens);
+
+    tokens.extend(validator_tokens);
   }
 
   if let Some(len_value) = len {
@@ -90,9 +84,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(min_len_value) = min_len {
@@ -101,9 +93,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(max_len_value) = max_len {
@@ -112,9 +102,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(ref contains_val) = rules.contains {
@@ -125,9 +113,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(ref prefix) = rules.prefix {
@@ -138,9 +124,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(ref suffix) = rules.suffix {
@@ -151,9 +135,7 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   if let Some(well_known) = rules.well_known {
@@ -174,10 +156,8 @@ pub fn get_bytes_rules(
     };
     let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
-  Ok(templates)
+  Ok(tokens)
 }

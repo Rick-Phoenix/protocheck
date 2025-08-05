@@ -10,7 +10,7 @@ use syn::{DeriveInput, Error, Ident};
 
 use super::{
   protovalidate::{FieldRules, Ignore},
-  FieldData, MessageRules, OneofRules, ValidatorKind, ValidatorTemplate,
+  MessageRules, OneofRules,
 };
 use crate::{
   attribute_extractors::{extract_proto_name_attribute, ProstAttrData},
@@ -38,7 +38,7 @@ struct OneofField {
 
 #[derive(Debug)]
 pub struct OneofValidatorsOutput {
-  pub validators: HashMap<Ident, Vec<ValidatorTemplate>>,
+  pub validators: HashMap<Ident, TokenStream>,
   pub static_defs: Vec<TokenStream>,
 }
 
@@ -46,7 +46,7 @@ pub fn extract_oneof_validators(
   input_tokens: &DeriveInput,
   oneof_desc: &OneofDescriptor,
 ) -> Result<OneofValidatorsOutput, Error> {
-  let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
+  let mut validators: HashMap<Ident, TokenStream> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
   let mut static_defs: Vec<TokenStream> = Vec::new();
 
@@ -118,7 +118,7 @@ pub fn extract_oneof_validators(
       ),
     ))?;
 
-    let mut field_validators: Vec<ValidatorTemplate> = Vec::new();
+    let mut field_validators = TokenStream::new();
 
     let field_options = field.options();
     let field_rules_descriptor = field_options.get_extension(&FIELD_RULES_EXT_DESCRIPTOR);
@@ -138,27 +138,6 @@ pub fn extract_oneof_validators(
 
       let field_name = field.name();
 
-      let field_data = FieldData {
-        rust_name: field_name.to_string(),
-        proto_name: field_name.to_string(),
-        tag: field.number(),
-        ignore,
-      };
-
-      let field_data_static_ident = Ident2::new(
-        &format!(
-          "__VALIDATOR_FIELD_DATA_{}",
-          field.full_name().replace(".", "_").to_uppercase()
-        ),
-        Span2::call_site(),
-      );
-
-      let field_data_static_tokens = quote! {
-        static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
-          #field_data
-        });
-      };
-
       let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
       let field_context_ident = format_ident!("field_context");
       let index_ident = format_ident!("idx");
@@ -167,15 +146,20 @@ pub fn extract_oneof_validators(
       let map_value_ident = format_ident!("val");
       let violations_ident = format_ident!("violations");
       let parent_messages_ident = format_ident!("parent_messages");
+      let map_key_context_ident = format_ident!("key_context");
+      let map_value_context_ident = format_ident!("value_context");
+      let vec_item_context_ident = format_ident!("item_context");
 
       let validation_data = ValidationData {
         full_name: field.full_name().to_string(),
         is_required,
         is_in_oneof: true,
         is_optional: true,
-        field_data,
         field_span,
-        field_data_static_ident,
+        rust_name: field_name.to_string(),
+        proto_name: field_name.to_string(),
+        tag: field.number(),
+        ignore,
         key_type: None,
         value_type: None,
         violations_ident: violations_ident.clone(),
@@ -187,6 +171,9 @@ pub fn extract_oneof_validators(
         index_ident,
         item_rust_ident: item_rust_ident.clone(),
         field_kind: FieldKind::Single(get_field_type(&field)),
+        map_key_context_ident,
+        map_value_context_ident,
+        vec_item_context_ident,
       };
 
       if !field_rules.cel.is_empty() {
@@ -219,15 +206,8 @@ pub fn extract_oneof_validators(
         {
           let validator_tokens = validation_data.get_message_field_validator_tokens();
 
-          let template = ValidatorTemplate {
-            kind: ValidatorKind::PureTokens(validator_tokens),
-          };
-          field_validators.push(template);
+          field_validators.extend(validator_tokens);
         }
-      }
-
-      if !field_validators.is_empty() {
-        static_defs.push(field_data_static_tokens);
       }
 
       validators.insert(field_ident, field_validators);
@@ -243,8 +223,8 @@ pub fn extract_oneof_validators(
 pub fn extract_message_validators(
   input_tokens: &DeriveInput,
   message_desc: &MessageDescriptor,
-) -> Result<(Vec<ValidatorTemplate>, Vec<TokenStream>), Error> {
-  let mut validators: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<(TokenStream, Vec<TokenStream>), Error> {
+  let mut validators: TokenStream = TokenStream::new();
   let mut static_defs: Vec<TokenStream> = Vec::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
@@ -295,15 +275,15 @@ pub fn extract_message_validators(
       })?;
 
     if !message_rules.cel.is_empty() {
-      validators.extend(get_cel_rules(
-        &CelRuleTemplateTarget::Message {
-          message_desc,
-          parent_messages_ident: &parent_messages_ident,
-          violations_ident: &violations_ident,
-        },
-        &message_rules.cel,
-        &mut static_defs,
-      )?);
+      // validators.extend(get_cel_rules(
+      //   &CelRuleTemplateTarget::Message {
+      //     message_desc,
+      //     parent_messages_ident: &parent_messages_ident,
+      //     violations_ident: &violations_ident,
+      //   },
+      //   &message_rules.cel,
+      //   &mut static_defs,
+      // )?);
     }
   }
 
@@ -324,14 +304,17 @@ pub fn extract_message_validators(
         })?;
 
       let item_rust_ident = Ident2::new(oneof.name(), Span2::call_site());
-      validators.push(ValidatorTemplate {
-        kind: ValidatorKind::Oneof {
-          is_required: oneof_rules.required(),
-          field_name: oneof.name().to_string(),
-          parent_messages_ident: parent_messages_ident.clone(),
-          violations_ident: violations_ident.clone(),
-          item_rust_ident,
-        },
+      let field_name = oneof.name();
+
+      let required_check = oneof_rules.required().then_some(quote! {
+        #violations_ident.push(protocheck::validators::oneofs::required(#field_name, #parent_messages_ident.as_slice()));
+      });
+
+      validators.extend(quote! {
+        match &self.#item_rust_ident {
+          Some(oneof) => { oneof.nested_validate(#parent_messages_ident, #violations_ident); },
+          None => { #required_check }
+        };
       });
     }
   }
@@ -344,7 +327,7 @@ pub fn extract_message_validators(
       }
     }
 
-    let mut field_validators: Vec<ValidatorTemplate> = Vec::new();
+    let mut field_validators = TokenStream::new();
 
     let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
     let field_context_ident = format_ident!("field_context");
@@ -352,6 +335,9 @@ pub fn extract_message_validators(
     let item_ident = format_ident!("item");
     let key_ident = format_ident!("key");
     let value_ident = format_ident!("val");
+    let map_key_context_ident = format_ident!("key_context");
+    let map_value_context_ident = format_ident!("value_context");
+    let vec_item_context_ident = format_ident!("item_context");
 
     let field_name = field.name();
     let field_span = rust_field_spans
@@ -382,41 +368,16 @@ pub fn extract_message_validators(
         continue;
       }
 
-      let field_data = FieldData {
+      let validation_data = ValidationData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         tag: field_tag,
         ignore,
-      };
-
-      let field_data_static_ident = Ident2::new(
-        &format!(
-          "__VALIDATOR_FIELD_DATA_{}",
-          field.full_name().replace(".", "_").to_uppercase()
-        ),
-        Span2::call_site(),
-      );
-
-      let field_data_static_tokens = quote! {
-        static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
-          #field_data
-        });
-      };
-
-      let field_kind = if is_repeated {
-        FieldKind::RepeatedItem(get_field_type(&field))
-      } else {
-        FieldKind::Single(get_field_type(&field))
-      };
-
-      let validation_data = ValidationData {
         full_name: field.full_name().to_string(),
         is_required,
         is_in_oneof: false,
         is_optional,
-        field_data,
         field_span,
-        field_data_static_ident,
         key_type: None,
         value_type: None,
         violations_ident: violations_ident.clone(),
@@ -427,20 +388,23 @@ pub fn extract_message_validators(
         key_ident,
         item_ident,
         field_context_ident,
-        field_kind,
+        field_kind: FieldKind::Single(get_field_type(&field)),
+        map_key_context_ident,
+        map_value_context_ident,
+        vec_item_context_ident,
       };
 
-      if !field_rules.cel.is_empty() {
-        field_validators.extend(get_cel_rules(
-          &CelRuleTemplateTarget::Field {
-            field_desc: &field,
-            is_boxed: field_is_boxed(&field, message_desc),
-            validation_data: &validation_data,
-          },
-          &field_rules.cel,
-          &mut static_defs,
-        )?);
-      }
+      // if !is_repeated && !is_map && !field_rules.cel.is_empty() {
+      //   field_validators.extend(get_cel_rules(
+      //     &CelRuleTemplateTarget::Field {
+      //       field_desc: &field,
+      //       is_boxed: field_is_boxed(&field, message_desc),
+      //       validation_data: &validation_data,
+      //     },
+      //     &field_rules.cel,
+      //     &mut static_defs,
+      //   )?);
+      // }
 
       let field_rules_type = field_rules.r#type.as_ref();
       if is_repeated {
@@ -449,24 +413,20 @@ pub fn extract_message_validators(
           &mut static_defs,
           field_rust_enum,
           &field,
-          field_rules_type,
+          &field_rules,
         )?;
 
-        if let Some(rules) = repeated_rules {
-          field_validators.push(rules);
-        }
+        field_validators.extend(repeated_rules);
       } else if is_map {
         let map_rules = get_map_rules(
           validation_data,
           &mut static_defs,
           field_rust_enum,
           &field,
-          field_rules_type,
+          &field_rules,
         )?;
 
-        if let Some(rules) = map_rules {
-          field_validators.push(rules);
-        }
+        field_validators.extend(map_rules);
       } else if let Some(rules_type) = field_rules_type {
         let rules = get_field_rules(
           &mut static_defs,
@@ -484,19 +444,14 @@ pub fn extract_message_validators(
         {
           let validator_tokens = validation_data.get_message_field_validator_tokens();
 
-          let template = ValidatorTemplate {
-            kind: ValidatorKind::PureTokens(validator_tokens),
-          };
-          field_validators.push(template);
+          field_validators.extend(validator_tokens);
         }
       } else if is_required {
-        field_validators.push(ValidatorTemplate {
-          kind: ValidatorKind::PureTokens(validation_data.get_required_only_validator()),
-        });
+        let validator_tokens = validation_data.get_required_only_validator();
+        field_validators.extend(validator_tokens);
       }
 
       if !field_validators.is_empty() {
-        static_defs.push(field_data_static_tokens);
         validators.extend(field_validators);
       }
     }

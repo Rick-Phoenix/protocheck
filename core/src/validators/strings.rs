@@ -34,7 +34,7 @@ pub fn header_name(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -53,7 +53,7 @@ pub fn header_name(
       rule_id: Some("string.well_known_regex.header_name".to_string()),
       message: Some(format!(
         "{} must be a valid HTTP header name",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -71,7 +71,7 @@ pub fn header_value(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -90,7 +90,7 @@ pub fn header_value(
       rule_id: Some("string.well_known_regex.header_value".to_string()),
       message: Some(format!(
         "{} must be a valid HTTP header value",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -104,7 +104,7 @@ pub fn header_value(
 }
 
 pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -123,7 +123,7 @@ pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Vi
       rule_id: Some("string.host_and_port".to_string()),
       message: Some(format!(
         "{} must be a valid pair of host (hostname or IP address) and port",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -137,7 +137,7 @@ pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Vi
 }
 
 pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -156,7 +156,7 @@ pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violat
       rule_id: Some("string.ip_prefix".to_string()),
       message: Some(format!(
         "{} must be a valid ip prefix",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -170,7 +170,7 @@ pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violat
 }
 
 pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -189,7 +189,7 @@ pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
       rule_id: Some("string.ipv4_prefix".to_string()),
       message: Some(format!(
         "{} must be a valid ipv4 prefix",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -203,7 +203,7 @@ pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -222,7 +222,7 @@ pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
       rule_id: Some("string.ipv6_prefix".to_string()),
       message: Some(format!(
         "{} must be a valid ipv6 prefix",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -236,7 +236,7 @@ pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -255,7 +255,7 @@ pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(
       rule_id: Some("string.ip_with_prefixlen".to_string()),
       message: Some(format!(
         "{} must be a valid ip address with prefix length",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -269,7 +269,7 @@ pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(
 }
 
 pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -288,7 +288,7 @@ pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
       rule_id: Some("string.ipv6_with_prefixlen".to_string()),
       message: Some(format!(
         "{} must be a valid ipv6 address with prefix length",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -302,7 +302,7 @@ pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -321,7 +321,7 @@ pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
       rule_id: Some("string.ipv4_with_prefixlen".to_string()),
       message: Some(format!(
         "{} must be a valid ipv4 address with prefix length",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -335,7 +335,7 @@ pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -354,7 +354,7 @@ pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation>
       rule_id: Some("string.tuuid".to_string()),
       message: Some(format!(
         "{} must be a valid trimmed uuid",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -368,7 +368,7 @@ pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation>
 }
 
 pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -387,7 +387,7 @@ pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
       rule_id: Some("string.uuid".to_string()),
       message: Some(format!(
         "{} must be a valid uuid",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -401,7 +401,7 @@ pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -420,7 +420,7 @@ pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violatio
       rule_id: Some("string.address".to_string()),
       message: Some(format!(
         "{} must be a valid hostname or ip address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -434,7 +434,7 @@ pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -453,7 +453,7 @@ pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violatio
       rule_id: Some("string.uri_ref".to_string()),
       message: Some(format!(
         "{} must be a valid URI reference",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -467,7 +467,7 @@ pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -486,7 +486,7 @@ pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
       rule_id: Some("string.uri".to_string()),
       message: Some(format!(
         "{} must be a valid URI",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -500,7 +500,7 @@ pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -519,7 +519,7 @@ pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violati
       rule_id: Some("string.hostname".to_string()),
       message: Some(format!(
         "{} must be a valid hostname",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -533,7 +533,7 @@ pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violati
 }
 
 pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -552,7 +552,7 @@ pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
       rule_id: Some("string.ip".to_string()),
       message: Some(format!(
         "{} must be a valid ip address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -566,7 +566,7 @@ pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -585,7 +585,7 @@ pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
       rule_id: Some("string.ipv4".to_string()),
       message: Some(format!(
         "{} must be a valid ipv4 address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -599,7 +599,7 @@ pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -618,7 +618,7 @@ pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
       rule_id: Some("string.ipv6".to_string()),
       message: Some(format!(
         "{} must be a valid ipv6 address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -632,7 +632,7 @@ pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn email(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -651,7 +651,7 @@ pub fn email(field_context: &FieldContext, value: &str) -> Result<(), Violation>
       rule_id: Some("string.email".to_string()),
       message: Some(format!(
         "{} must be a valid email address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -669,7 +669,7 @@ pub fn pattern(
   value: &str,
   pattern: &Regex,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -688,7 +688,7 @@ pub fn pattern(
       rule_id: Some("string.pattern".to_string()),
       message: Some(format!(
         "{} match the following regex: `{}`",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         pattern
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -703,7 +703,7 @@ pub fn pattern(
 }
 
 pub fn contains(field_context: &FieldContext, value: &str, pattern: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -722,7 +722,7 @@ pub fn contains(field_context: &FieldContext, value: &str, pattern: &str) -> Res
       rule_id: Some("string.contains".to_string()),
       message: Some(format!(
         "{} must contain the '{}' substring",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         pattern
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -741,7 +741,7 @@ pub fn not_contains(
   value: &str,
   pattern: &str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -760,7 +760,7 @@ pub fn not_contains(
       rule_id: Some("string.not_contains".to_string()),
       message: Some(format!(
         "{} must not contain the '{}' substring",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         pattern
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -775,7 +775,7 @@ pub fn not_contains(
 }
 
 pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -794,7 +794,7 @@ pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result
       rule_id: Some("string.prefix".to_string()),
       message: Some(format!(
         "{} must contain the '{}' prefix",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         prefix
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -809,7 +809,7 @@ pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result
 }
 
 pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -828,7 +828,7 @@ pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result
       rule_id: Some("string.suffix".to_string()),
       message: Some(format!(
         "{} must contain the '{}' suffix",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         suffix
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -843,7 +843,7 @@ pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result
 }
 
 pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -864,7 +864,7 @@ pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Resul
       rule_id: Some("string.max_len".to_string()),
       message: Some(format!(
         "{} cannot be longer than {} character{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         max_len,
         plural_suffix
       )),
@@ -880,7 +880,7 @@ pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Resul
 }
 
 pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -901,7 +901,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
       rule_id: Some("string.min_len".to_string()),
       message: Some(format!(
         "{} cannot be shorter than {} character{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         min_len,
         plural_suffix
       )),
@@ -917,7 +917,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
 }
 
 pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -938,7 +938,7 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
       rule_id: Some("string.len".to_string()),
       message: Some(format!(
         "{} must be exactly {} character{} long",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         len,
         plural_suffix
       )),
@@ -954,7 +954,7 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
 }
 
 pub fn len_bytes(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -975,7 +975,7 @@ pub fn len_bytes(field_context: &FieldContext, value: &str, len: u64) -> Result<
       rule_id: Some("string.len_bytes".to_string()),
       message: Some(format!(
         "{} must be exactly {} byte{} long",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         len,
         plural_suffix
       )),
@@ -991,7 +991,7 @@ pub fn len_bytes(field_context: &FieldContext, value: &str, len: u64) -> Result<
 }
 
 pub fn min_bytes(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -1012,7 +1012,7 @@ pub fn min_bytes(field_context: &FieldContext, value: &str, min_len: u64) -> Res
       rule_id: Some("string.min_bytes".to_string()),
       message: Some(format!(
         "{} cannot be shorter than {} bytes{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         min_len,
         plural_suffix
       )),
@@ -1028,7 +1028,7 @@ pub fn min_bytes(field_context: &FieldContext, value: &str, min_len: u64) -> Res
 }
 
 pub fn max_bytes(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -1049,7 +1049,7 @@ pub fn max_bytes(field_context: &FieldContext, value: &str, max_len: u64) -> Res
       rule_id: Some("string.max_bytes".to_string()),
       message: Some(format!(
         "{} cannot be longer than {} byte{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         max_len,
         plural_suffix
       )),

@@ -27,7 +27,7 @@ fn format_bytes_for_error(bytes: &[u8]) -> String {
 }
 
 pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -47,7 +47,7 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
       rule_id: Some("bytes.ip".to_string()),
       message: Some(format!(
         "{} must be a valid ip address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -61,7 +61,7 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -81,7 +81,7 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
       rule_id: Some("bytes.ipv4".to_string()),
       message: Some(format!(
         "{} must be a valid ipv4 address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -95,7 +95,7 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -115,7 +115,7 @@ pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
       rule_id: Some("bytes.ipv6".to_string()),
       message: Some(format!(
         "{} must be a valid ipv6 address",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -133,7 +133,7 @@ pub fn pattern(
   value: &Bytes,
   pattern: &Regex,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -154,8 +154,7 @@ pub fn pattern(
       rule_id: Some("bytes.pattern".to_string()),
       message: Some(format!(
         "{} match the following regex: `{}`",
-        field_context.field_data.proto_name.clone(),
-        pattern
+        field_context.proto_name, pattern
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -173,7 +172,7 @@ pub fn contains(
   value: &Bytes,
   pattern: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -192,7 +191,7 @@ pub fn contains(
       rule_id: Some("bytes.contains".to_string()),
       message: Some(format!(
         "{} must contain '{}'",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
         format_bytes_for_error(pattern)
       )),
       for_key: None,
@@ -211,7 +210,7 @@ pub fn suffix(
   value: &Bytes,
   suffix: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -230,7 +229,7 @@ pub fn suffix(
       rule_id: Some("bytes.suffix".to_string()),
       message: Some(format!(
         "{} must end with '{}'",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
         format_bytes_for_error(suffix)
       )),
       for_key: None,
@@ -249,7 +248,7 @@ pub fn prefix(
   value: &Bytes,
   prefix: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -268,7 +267,7 @@ pub fn prefix(
       rule_id: Some("bytes.prefix".to_string()),
       message: Some(format!(
         "{} must start with '{}'",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name,
         format_bytes_for_error(prefix)
       )),
       for_key: None,
@@ -283,7 +282,7 @@ pub fn prefix(
 }
 
 pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -304,9 +303,7 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
       rule_id: Some("bytes.max_len".to_string()),
       message: Some(format!(
         "{} cannot be longer than {} byte{}",
-        field_context.field_data.proto_name.clone(),
-        max_len,
-        plural_suffix
+        field_context.proto_name, max_len, plural_suffix
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -320,7 +317,7 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
 }
 
 pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -341,9 +338,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
       rule_id: Some("bytes.min_len".to_string()),
       message: Some(format!(
         "{} cannot be shorter than {} byte{}",
-        field_context.field_data.proto_name.clone(),
-        min_len,
-        plural_suffix
+        field_context.proto_name, min_len, plural_suffix
       )),
       for_key: None,
       field: Some(FieldPath { elements }),
@@ -357,7 +352,7 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
 }
 
 pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.field_data.ignore {
+  if let Ignore::IfZeroValue = field_context.ignore {
     if value.is_empty() {
       return Ok(());
     }
@@ -378,9 +373,7 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
       rule_id: Some("bytes.len".to_string()),
       message: Some(format!(
         "{} must be exactly {} byte{} long",
-        field_context.field_data.proto_name.clone(),
-        len,
-        plural_suffix
+        field_context.proto_name, len, plural_suffix
       )),
       for_key: None,
       field: Some(FieldPath { elements }),

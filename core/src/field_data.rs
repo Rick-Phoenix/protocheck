@@ -9,7 +9,10 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
-  pub field_data: &'a FieldData,
+  pub rust_name: &'a str,
+  pub proto_name: &'a str,
+  pub tag: u32,
+  pub ignore: &'a Ignore,
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: &'a Option<Subscript>,
   pub key_type: &'a Option<ProtoType>,
@@ -52,6 +55,10 @@ impl FieldKind {
   pub fn is_scalar(&self) -> bool {
     matches!(self, FieldKind::Single(_))
   }
+
+  pub fn is_in_loop(&self) -> bool {
+    self.is_map_key() || self.is_map_value() || self.is_repeated_item()
+  }
 }
 
 impl ToTokens for FieldKind {
@@ -67,12 +74,4 @@ impl ToTokens for FieldKind {
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });
   }
-}
-
-#[derive(Clone, Debug)]
-pub struct FieldData {
-  pub rust_name: String,
-  pub proto_name: String,
-  pub tag: u32,
-  pub ignore: Ignore,
 }

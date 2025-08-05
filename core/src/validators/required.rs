@@ -10,8 +10,8 @@ pub fn required(field_context: &FieldContext) -> Violation {
 
   let current_elem = FieldPathElement {
     field_type: Some(field_context.field_kind.inner_type().into()),
-    field_name: Some(field_context.field_data.proto_name.clone()),
-    field_number: Some(field_context.field_data.tag as i32),
+    field_name: Some(field_context.proto_name.to_string()),
+    field_number: Some(field_context.tag as i32),
     key_type: field_context.key_type.map(|t| t as i32),
     value_type: field_context.value_type.map(|t| t as i32),
     subscript: field_context.subscript.clone(),
@@ -31,10 +31,7 @@ pub fn required(field_context: &FieldContext) -> Violation {
   violations_path.push(required_violation_path);
 
   Violation {
-    message: Some(format!(
-      "{} is required",
-      field_context.field_data.proto_name
-    )),
+    message: Some(format!("{} is required", field_context.proto_name)),
     rule_id: Some("field.required".to_string()),
     rule: Some(FieldPath {
       elements: violations_path,

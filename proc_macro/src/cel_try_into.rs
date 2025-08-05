@@ -275,7 +275,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             let mut field_map: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
 
             for (k, v) in &value.#field_ident {
-              field_map.insert(k.clone().into(), v.#conversion_tokens;);
+              field_map.insert(k.clone().into(), v.#conversion_tokens);
             }
 
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));

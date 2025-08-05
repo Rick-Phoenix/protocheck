@@ -1,9 +1,8 @@
 pub(crate) use proto_types::{field_descriptor_proto::Type as ProtoType, protovalidate};
-pub(crate) use protocheck_core::field_data::FieldData;
 pub(crate) use protovalidate::{field_rules, Ignore};
 use protovalidate::{MessageRules, OneofRules, Rule};
 
-use crate::{cel_rule_template::*, validator_template::*};
+use crate::cel_rule_template::*;
 
 pub mod any_rules;
 pub mod bool_rules;

@@ -19,10 +19,10 @@ pub fn min_pairs<K, V>(
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(ProtoType::Message as i32),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
     elements.push(current_elem);
@@ -30,7 +30,7 @@ pub fn min_pairs<K, V>(
       rule_id: Some("map.min_pairs".to_string()),
       message: Some(format!(
         "map field `{}` requires at least {} item{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         min_pairs,
         plural_suffix
       )),
@@ -75,10 +75,10 @@ pub fn max_pairs<K, V>(
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(ProtoType::Message as i32),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
     elements.push(current_elem);
@@ -86,7 +86,7 @@ pub fn max_pairs<K, V>(
       rule_id: Some("map.max_pairs".to_string()),
       message: Some(format!(
         "map field `{}` cannot have more than {} item{}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         max_pairs,
         plural_suffix
       )),

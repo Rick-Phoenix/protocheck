@@ -1,25 +1,20 @@
+use proc_macro2::TokenStream;
 use proto_types::protovalidate::BoolRules;
 use quote::ToTokens;
 use syn::Error;
 
-use super::{ValidatorKind, ValidatorTemplate};
 use crate::validation_data::ValidationData;
 
 pub fn get_bool_rules(
   validation_data: &ValidationData,
   rules: &BoolRules,
-) -> Result<Vec<ValidatorTemplate>, Error> {
-  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   if let Some(const_val) = rules.r#const {
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_constant_validator(const_val.to_token_stream()),
-      ),
-    });
-
-    return Ok(templates);
+    let validator_tokens = validation_data.get_constant_validator(const_val.to_token_stream());
+    tokens.extend(validator_tokens);
   }
 
-  Ok(templates)
+  Ok(tokens)
 }

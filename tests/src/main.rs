@@ -8,28 +8,14 @@ use std::collections::HashMap;
 
 use protocheck::{types::Duration, validators::ProtoValidator};
 
-use crate::myapp::v1::{
-  user::{self, Friend},
-  User,
-};
+use crate::myapp::v1::{user::Person, User};
 
 fn main() {
-  let mut friends: HashMap<String, Friend> = HashMap::new();
-  friends.insert(
-    "friend1".to_string(),
-    Friend {
-      name: "alfio".to_string(),
-    },
-  );
+  let mut friends: HashMap<String, String> = HashMap::new();
+  friends.insert("friend1".to_string(), "alfio".to_string());
 
-  let user = User {
-    values: Some(user::Values::NestedUser(Box::new(User {
-      values: None,
-      duration_field: Some(Duration::default()),
-    }))),
-    duration_field: None,
-  };
+  let person = Person { friends };
 
-  let _result = user.validate();
+  let _result = person.validate();
   println!("{:#?}", _result);
 }

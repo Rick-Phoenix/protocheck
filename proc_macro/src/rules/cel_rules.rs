@@ -8,15 +8,15 @@ use proto_types::{Empty, FieldMask, FieldType};
 use quote::quote;
 use syn::Error;
 
-use super::{CelRuleTemplateTarget, Rule, ValidatorKind, ValidatorTemplate};
+use super::{CelRuleTemplateTarget, Rule};
 use crate::{validation_data::ValidationData, Ident2, Span2};
 
 pub fn get_cel_rules(
   rule_target: &CelRuleTemplateTarget,
   rules: &[Rule],
   static_defs: &mut Vec<TokenStream>,
-) -> Result<Vec<ValidatorTemplate>, Error> {
-  let mut validators: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   let cel_value: CelValue = match rule_target {
     CelRuleTemplateTarget::Message { message_desc, .. } => {
@@ -37,7 +37,7 @@ pub fn get_cel_rules(
 
   let (parent_messages_ident, violations_ident) = rule_target.get_idents();
 
-  for rule in rules {
+  for (index, rule) in rules.iter().enumerate() {
     let program = match Program::compile(rule.expression()) {
       Ok(prog) => prog,
       Err(e) => {
@@ -61,9 +61,10 @@ pub fn get_cel_rules(
 
           let static_program_ident = Ident2::new(
             &format!(
-              "__CEL_{}_{}_PROGRAM",
+              "__CEL_{}_{}_PROGRAM_{}",
               validation_type.to_uppercase(),
               target_name.to_uppercase(),
+              index
             ),
             Span2::call_site(),
           );
@@ -93,9 +94,8 @@ pub fn get_cel_rules(
               validation_data,
               ..
             } => {
-              let field_context_ident = &validation_data.field_context_ident;
+              let field_context_ident = &validation_data.field_context_ident();
               let value_ident = &validation_data.value_ident();
-              let field_context_tokens = validation_data.field_context_tokens();
 
               let value_tokens = if *is_boxed {
                 quote! { &(**val) }
@@ -117,7 +117,6 @@ pub fn get_cel_rules(
 
               let validator_tokens = quote! {
                 let rule = #rule_tokens;
-                #field_context_tokens
 
                 match protocheck::validators::cel::#cel_validator_func(&#field_context_ident, &rule, #value_tokens) {
                   Ok(_) => {}
@@ -125,32 +124,20 @@ pub fn get_cel_rules(
                 };
               };
 
-              if validation_data.is_option() {
-                validators.push(ValidatorTemplate {
-                  kind: ValidatorKind::PureTokens(quote! {
-                    if let Some(val) = #value_ident {
-                      #validator_tokens
-                    }
-                  }),
-                });
-              } else {
-                validators.push(ValidatorTemplate {
-                  kind: ValidatorKind::PureTokens(validator_tokens),
-                });
-              }
+              tokens.extend(validator_tokens);
             }
             CelRuleTemplateTarget::Message { message_desc, .. } => {
               let message_name = message_desc.full_name();
-              validators.push(ValidatorTemplate {
-                kind: ValidatorKind::PureTokens(quote! {
-                  let rule = #rule_tokens;
+              let validator_tokens = quote! {
+                let rule = #rule_tokens;
 
-                  match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
-                    Ok(_) => {}
-                    Err(v) => #violations_ident.push(v)
-                  };
-                }),
-              });
+                match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
+                  Ok(_) => {}
+                  Err(v) => #violations_ident.push(v)
+                };
+              };
+
+              tokens.extend(validator_tokens);
             }
           };
         } else {
@@ -173,7 +160,7 @@ pub fn get_cel_rules(
     };
   }
 
-  Ok(validators)
+  Ok(tokens)
 }
 
 fn get_default_field_prost_value(

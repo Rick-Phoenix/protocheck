@@ -8,7 +8,6 @@ pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as Toke
 pub(crate) use proto_types::field_descriptor_proto::Type as ProtoType;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
-use validator_template::ValidatorTemplate;
 
 use crate::{
   extract_validators::{extract_oneof_validators, OneofValidatorsOutput},
@@ -23,7 +22,6 @@ mod pool_loader;
 mod protogen;
 mod rules;
 mod validation_data;
-mod validator_template;
 
 #[proc_macro_derive(OneofTryIntoCelValue)]
 pub fn oneof_try_into_cel_value_derive(input: TokenStream) -> TokenStream {
@@ -64,7 +62,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  let (validators, static_defs): (Vec<ValidatorTemplate>, Vec<TokenStream2>) =
+  let (validators, static_defs): (TokenStream2, Vec<TokenStream2>) =
     match extract_message_validators(&ast, &message_desc) {
       Ok((validators_data, static_defs)) => (validators_data, static_defs),
       Err(e) => return e.to_compile_error().into(),
@@ -94,16 +92,16 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
       fn nested_validate(
         &self,
         parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
-        violations: &mut Vec<protocheck::types::protovalidate::Violation>,
+        violations: &mut Vec<protocheck::types::protovalidate::Violation>
       ) {
 
-        #(#validators)*
+        #validators
 
       }
     }
   };
 
-  // eprintln!("{}", output);
+  eprintln!("{}", output);
 
   output.into()
 }
@@ -155,7 +153,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     }
   };
 
-  let mut validators: HashMap<Ident, Vec<ValidatorTemplate>> = HashMap::new();
+  let mut validators: HashMap<Ident, TokenStream2> = HashMap::new();
   let mut static_defs: Vec<TokenStream2> = Vec::new();
 
   for oneof in message_desc.oneofs() {
@@ -179,7 +177,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   for (ident, validator) in validators {
     validators_tokens.extend(quote! {
       Self::#ident(val) => {
-        #(#validator)*
+        #validator
       },
     });
   }

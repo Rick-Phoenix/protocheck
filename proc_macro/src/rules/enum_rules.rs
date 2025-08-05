@@ -6,7 +6,7 @@ use proto_types::protovalidate_impls::ContainingRules;
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use super::{protovalidate::EnumRules, ValidatorKind, ValidatorTemplate};
+use super::protovalidate::EnumRules;
 use crate::validation_data::ValidationData;
 
 pub fn get_enum_rules(
@@ -14,8 +14,8 @@ pub fn get_enum_rules(
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   enum_rules: &EnumRules,
-) -> Result<Vec<ValidatorTemplate>, Error> {
-  let mut templates: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   let enum_name = enum_desc.name();
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
@@ -23,33 +23,29 @@ pub fn get_enum_rules(
   let field_span = validation_data.field_span;
 
   if let Some(const_val) = enum_rules.r#const {
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_constant_validator(const_val.to_token_stream()),
-      ),
-    });
+    let validator_tokens = validation_data.get_constant_validator(const_val.to_token_stream());
 
-    return Ok(templates);
+    tokens.extend(validator_tokens);
+
+    return Ok(tokens);
   }
 
   if enum_rules.defined_only() {
     let enum_ident_tokens: TokenStream = field_type_ident.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", field_type_ident, enum_name)) });
 
     let violations_ident = &validation_data.violations_ident;
-    let field_context_ident = &validation_data.field_context_ident;
+    let field_context_ident = &validation_data.field_context_ident();
     let field_context_tokens = validation_data.field_context_tokens();
     let value_ident = validation_data.value_ident();
 
-    let validator_expression_tokens = quote! {
+    let validator_tokens = quote! {
       if !#enum_ident_tokens::try_from(*#value_ident).is_ok() {
         #field_context_tokens
         #violations_ident.push(protocheck::validators::enums::defined_only(&#field_context_ident, #enum_name));
       }
     };
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(validator_expression_tokens),
-    });
+    tokens.extend(validator_tokens);
   }
 
   let ContainingRules {
@@ -75,20 +71,17 @@ pub fn get_enum_rules(
       }
     }
 
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_in_list_validator(quote! { vec![ #(#in_list),* ] }),
-      ),
-    });
+    let validator_tokens = validation_data.get_in_list_validator(quote! { vec![ #(#in_list),* ] });
+
+    tokens.extend(validator_tokens);
   }
 
   if !not_in_list.is_empty() {
-    templates.push(ValidatorTemplate {
-      kind: ValidatorKind::PureTokens(
-        validation_data.get_not_in_list_validator(quote! { vec![ #(#not_in_list),* ] }),
-      ),
-    });
+    let validator_tokens =
+      validation_data.get_not_in_list_validator(quote! { vec![ #(#not_in_list),* ] });
+
+    tokens.extend(validator_tokens);
   }
 
-  Ok(templates)
+  Ok(tokens)
 }

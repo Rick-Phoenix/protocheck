@@ -44,7 +44,7 @@ where
 
   let error_prefix = format!(
     "Error during Cel validation for field {}:",
-    field_context.field_data.proto_name
+    field_context.proto_name
   );
 
   let mut cel_context = Context::default();
@@ -108,7 +108,7 @@ where
 
   let error_prefix = format!(
     "Error during Cel validation for field {}:",
-    field_context.field_data.proto_name
+    field_context.proto_name
   );
 
   let mut cel_context = Context::default();
@@ -277,8 +277,8 @@ fn create_cel_field_violation(
 
   let current_elem = FieldPathElement {
     field_type: Some(field_context.field_kind.inner_type().into()),
-    field_name: Some(field_context.field_data.proto_name.clone()),
-    field_number: Some(field_context.field_data.tag as i32),
+    field_name: Some(field_context.proto_name.to_string()),
+    field_number: Some(field_context.tag as i32),
     key_type: field_context.key_type.map(|t| t as i32),
     value_type: field_context.value_type.map(|t| t as i32),
     subscript: field_context.subscript.clone(),

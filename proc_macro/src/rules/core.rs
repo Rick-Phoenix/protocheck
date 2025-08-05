@@ -3,7 +3,7 @@ use prost_reflect::{FieldDescriptor, Kind};
 use proto_types::FieldType;
 use syn::Error;
 
-use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
+use super::{field_rules::Type as RulesType, ProtoType};
 use crate::{
   rules::{
     any_rules::get_any_rules, bool_rules::get_bool_rules, bytes_rules::get_bytes_rules,
@@ -20,8 +20,8 @@ pub fn get_field_rules(
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
   field_rules: &RulesType,
-) -> Result<Vec<ValidatorTemplate>, Error> {
-  let mut rules_agg: Vec<ValidatorTemplate> = Vec::new();
+) -> Result<TokenStream, Error> {
+  let mut rules_tokens = TokenStream::new();
   let mut error: Option<&str> = None;
 
   let field_name = &validation_data.full_name;
@@ -39,62 +39,62 @@ pub fn get_field_rules(
   match field_rules {
     RulesType::Float(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Double(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Int32(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Int64(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Uint32(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Uint64(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Sint32(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Sint64(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Fixed32(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Fixed64(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Sfixed32(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Sfixed64(rules) => {
       let rules = get_numeric_rules(validation_data, rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::String(string_rules) => {
       let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Enum(enum_rules) => {
       if let Kind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
             let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
-            rules_agg.extend(rules);
+            rules_tokens.extend(rules);
           }
           None => error = Some("could not find enum field ident"),
         };
@@ -104,23 +104,23 @@ pub fn get_field_rules(
     }
     RulesType::Duration(duration_rules) => {
       let rules = get_duration_rules(validation_data, duration_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Timestamp(timestamp_rules) => {
       let rules = get_timestamp_rules(validation_data, timestamp_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Any(any_rules) => {
       let rules = get_any_rules(validation_data, any_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Bool(bool_rules) => {
       let rules = get_bool_rules(validation_data, bool_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     RulesType::Bytes(bytes_rules) => {
       let rules = get_bytes_rules(static_defs, field_desc, validation_data, bytes_rules)?;
-      rules_agg.extend(rules);
+      rules_tokens.extend(rules);
     }
     _ => {}
   };
@@ -129,7 +129,7 @@ pub fn get_field_rules(
     return Err(Error::new(field_span, format!("{} {}", error_prefix, err)));
   }
 
-  Ok(rules_agg)
+  Ok(rules_tokens)
 }
 
 pub fn get_field_type(field_desc: &FieldDescriptor) -> FieldType {

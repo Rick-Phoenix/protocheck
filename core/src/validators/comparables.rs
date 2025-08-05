@@ -19,10 +19,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -38,8 +38,7 @@ where
       rule_id: Some(format!("{}.lt", type_name)),
       message: Some(format!(
         "{} must be less than {:?}",
-        field_context.field_data.proto_name.clone(),
-        target
+        field_context.proto_name, target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -62,10 +61,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -81,8 +80,7 @@ where
       rule_id: Some(format!("{}.lte", type_name)),
       message: Some(format!(
         "{} must be less than or equal to {:?}",
-        field_context.field_data.proto_name.clone(),
-        target
+        field_context.proto_name, target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -105,10 +103,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -124,8 +122,7 @@ where
       rule_id: Some(format!("{}.gt", type_name)),
       message: Some(format!(
         "{} must be greater than {:?}",
-        field_context.field_data.proto_name.clone(),
-        target
+        field_context.proto_name, target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),
@@ -148,10 +145,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -167,8 +164,7 @@ where
       rule_id: Some(format!("{}.gte", type_name)),
       message: Some(format!(
         "{} must be greater than or equal to {:?}",
-        field_context.field_data.proto_name.clone(),
-        target
+        field_context.proto_name, target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
       field: Some(FieldPath { elements }),

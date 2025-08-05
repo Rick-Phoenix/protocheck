@@ -37,10 +37,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -56,7 +56,7 @@ where
       rule_id: Some(format!("{}.in", type_name)),
       message: Some(format!(
         "{} has to be one of these values: {:?}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
@@ -84,10 +84,10 @@ where
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
       field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.field_data.proto_name.clone()),
+      field_name: Some(field_context.proto_name.to_string()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.field_data.tag as i32),
+      field_number: Some(field_context.tag as i32),
       subscript: field_context.subscript.clone(),
     };
 
@@ -103,7 +103,7 @@ where
       rule_id: Some(format!("{}.not_in", type_name)),
       message: Some(format!(
         "{} cannot be one of these values: {:?}",
-        field_context.field_data.proto_name.clone(),
+        field_context.proto_name.clone(),
         target
       )),
       for_key: field_context.field_kind.is_map_key().then_some(true),
