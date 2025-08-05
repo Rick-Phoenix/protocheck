@@ -2,18 +2,18 @@ use proc_macro2::Span;
 use syn::Error;
 
 use crate::{
-  field_descriptor_proto::Type as ProtoType,
   protovalidate::{
-    field_rules::Type as RulesType, BoolRules, BytesRules, DoubleRules, EnumRules, Fixed32Rules,
-    Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules, SFixed64Rules, SInt32Rules,
-    SInt64Rules, StringRules, UInt32Rules, UInt64Rules,
+    field_rules::Type as RulesType, AnyRules, BoolRules, BytesRules, DoubleRules, DurationRules,
+    EnumRules, Fixed32Rules, Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules,
+    SFixed64Rules, SInt32Rules, SInt64Rules, StringRules, TimestampRules, UInt32Rules, UInt64Rules,
   },
+  FieldType,
 };
 
 impl RulesType {
   pub fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -44,10 +44,10 @@ impl RulesType {
 }
 
 pub trait RuleMatches {
-  const RULE_TYPE: ProtoType;
+  const RULE_TYPE: FieldType;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error>;
@@ -56,8 +56,8 @@ pub trait RuleMatches {
 fn get_wrong_rule_error(
   field_span: Span,
   error_prefix: &str,
-  expected: &ProtoType,
-  actual: &ProtoType,
+  expected: &FieldType,
+  actual: &FieldType,
 ) -> Error {
   Error::new(
     field_span,
@@ -68,11 +68,74 @@ fn get_wrong_rule_error(
   )
 }
 
-impl RuleMatches for FloatRules {
-  const RULE_TYPE: ProtoType = ProtoType::Float;
+impl RuleMatches for DurationRules {
+  const RULE_TYPE: FieldType = FieldType::Duration;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
+    field_span: Span,
+    error_prefix: &str,
+  ) -> Result<(), Error> {
+    if !matches!(*field_type, Self::RULE_TYPE) {
+      Err(get_wrong_rule_error(
+        field_span,
+        error_prefix,
+        &Self::RULE_TYPE,
+        field_type,
+      ))
+    } else {
+      Ok(())
+    }
+  }
+}
+
+impl RuleMatches for TimestampRules {
+  const RULE_TYPE: FieldType = FieldType::Timestamp;
+  fn matches_type(
+    &self,
+    field_type: &FieldType,
+    field_span: Span,
+    error_prefix: &str,
+  ) -> Result<(), Error> {
+    if !matches!(*field_type, Self::RULE_TYPE) {
+      Err(get_wrong_rule_error(
+        field_span,
+        error_prefix,
+        &Self::RULE_TYPE,
+        field_type,
+      ))
+    } else {
+      Ok(())
+    }
+  }
+}
+
+impl RuleMatches for AnyRules {
+  const RULE_TYPE: FieldType = FieldType::Any;
+  fn matches_type(
+    &self,
+    field_type: &FieldType,
+    field_span: Span,
+    error_prefix: &str,
+  ) -> Result<(), Error> {
+    if !matches!(*field_type, Self::RULE_TYPE) {
+      Err(get_wrong_rule_error(
+        field_span,
+        error_prefix,
+        &Self::RULE_TYPE,
+        field_type,
+      ))
+    } else {
+      Ok(())
+    }
+  }
+}
+
+impl RuleMatches for FloatRules {
+  const RULE_TYPE: FieldType = FieldType::Float;
+  fn matches_type(
+    &self,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -90,10 +153,10 @@ impl RuleMatches for FloatRules {
 }
 
 impl RuleMatches for DoubleRules {
-  const RULE_TYPE: ProtoType = ProtoType::Double;
+  const RULE_TYPE: FieldType = FieldType::Double;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -111,10 +174,10 @@ impl RuleMatches for DoubleRules {
 }
 
 impl RuleMatches for Int32Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Int32;
+  const RULE_TYPE: FieldType = FieldType::Int32;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -132,10 +195,10 @@ impl RuleMatches for Int32Rules {
 }
 
 impl RuleMatches for Int64Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Int64;
+  const RULE_TYPE: FieldType = FieldType::Int64;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -153,10 +216,10 @@ impl RuleMatches for Int64Rules {
 }
 
 impl RuleMatches for UInt32Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Uint32;
+  const RULE_TYPE: FieldType = FieldType::Uint32;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -174,10 +237,10 @@ impl RuleMatches for UInt32Rules {
 }
 
 impl RuleMatches for UInt64Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Uint64;
+  const RULE_TYPE: FieldType = FieldType::Uint64;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -195,10 +258,10 @@ impl RuleMatches for UInt64Rules {
 }
 
 impl RuleMatches for SInt32Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Sint32;
+  const RULE_TYPE: FieldType = FieldType::Sint32;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -216,10 +279,10 @@ impl RuleMatches for SInt32Rules {
 }
 
 impl RuleMatches for SInt64Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Sint64;
+  const RULE_TYPE: FieldType = FieldType::Sint64;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -237,10 +300,10 @@ impl RuleMatches for SInt64Rules {
 }
 
 impl RuleMatches for Fixed32Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Fixed32;
+  const RULE_TYPE: FieldType = FieldType::Fixed32;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -258,10 +321,10 @@ impl RuleMatches for Fixed32Rules {
 }
 
 impl RuleMatches for Fixed64Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Fixed64;
+  const RULE_TYPE: FieldType = FieldType::Fixed64;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -279,10 +342,10 @@ impl RuleMatches for Fixed64Rules {
 }
 
 impl RuleMatches for SFixed32Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Sfixed32;
+  const RULE_TYPE: FieldType = FieldType::Sfixed32;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -300,10 +363,10 @@ impl RuleMatches for SFixed32Rules {
 }
 
 impl RuleMatches for SFixed64Rules {
-  const RULE_TYPE: ProtoType = ProtoType::Sfixed64;
+  const RULE_TYPE: FieldType = FieldType::Sfixed64;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -321,10 +384,10 @@ impl RuleMatches for SFixed64Rules {
 }
 
 impl RuleMatches for BoolRules {
-  const RULE_TYPE: ProtoType = ProtoType::Bool;
+  const RULE_TYPE: FieldType = FieldType::Bool;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -342,10 +405,10 @@ impl RuleMatches for BoolRules {
 }
 
 impl RuleMatches for EnumRules {
-  const RULE_TYPE: ProtoType = ProtoType::Enum;
+  const RULE_TYPE: FieldType = FieldType::Enum;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -363,10 +426,10 @@ impl RuleMatches for EnumRules {
 }
 
 impl RuleMatches for StringRules {
-  const RULE_TYPE: ProtoType = ProtoType::String;
+  const RULE_TYPE: FieldType = FieldType::String;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {
@@ -384,10 +447,10 @@ impl RuleMatches for StringRules {
 }
 
 impl RuleMatches for BytesRules {
-  const RULE_TYPE: ProtoType = ProtoType::Bytes;
+  const RULE_TYPE: FieldType = FieldType::Bytes;
   fn matches_type(
     &self,
-    field_type: &ProtoType,
+    field_type: &FieldType,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(), Error> {

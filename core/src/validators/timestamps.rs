@@ -27,7 +27,7 @@ pub fn within(
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
     violation_elements.extend(vec![
       FieldPathElement {
@@ -82,7 +82,7 @@ pub fn lt_now(field_context: &FieldContext, value: Timestamp, _: ()) -> Result<(
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
     violation_elements.extend(vec![
       FieldPathElement {
@@ -136,7 +136,7 @@ pub fn gt_now(field_context: &FieldContext, value: Timestamp, _: ()) -> Result<(
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
     violation_elements.extend(vec![
       FieldPathElement {

@@ -276,7 +276,7 @@ fn create_cel_field_violation(
   let mut elements = field_context.parent_elements.to_vec();
 
   let current_elem = FieldPathElement {
-    field_type: Some(field_context.field_data.proto_type as i32),
+    field_type: Some(field_context.field_kind.inner_type().into()),
     field_name: Some(field_context.field_data.proto_name.clone()),
     field_number: Some(field_context.field_data.tag as i32),
     key_type: field_context.key_type.map(|t| t as i32),
@@ -285,7 +285,7 @@ fn create_cel_field_violation(
   };
   elements.push(current_elem);
 
-  let mut violations_path = get_base_violations_path(&field_context.field_kind);
+  let mut violations_path = get_base_violations_path(field_context.field_kind);
 
   let cel_violation = FieldPathElement {
     field_name: Some("cel".to_string()),

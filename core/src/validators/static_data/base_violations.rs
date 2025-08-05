@@ -72,7 +72,7 @@ static REPEATED_ITEM_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(
 pub fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElement> {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
-    field_type: Some(ProtoType::String as i32),
+    field_type: Some(field_context.field_kind.inner_type().into()),
     field_name: Some(field_context.field_data.proto_name.clone()),
     key_type: field_context.key_type.map(|t| t as i32),
     value_type: field_context.value_type.map(|t| t as i32),

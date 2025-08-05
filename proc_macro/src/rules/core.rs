@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::FieldKind;
+use proto_types::FieldType;
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, ProtoType, ValidatorTemplate};
@@ -26,13 +26,12 @@ pub fn get_field_rules(
 
   let field_name = &validation_data.full_name;
   let field_proto_kind = &field_desc.kind();
-  let field_data_kind = &validation_data.field_kind;
   let field_span = validation_data.field_span;
 
   let error_prefix = &format!("Error for field {}:", field_name);
 
   field_rules.matches_type(
-    &validation_data.field_data.proto_type,
+    &validation_data.field_kind.inner_type(),
     field_span,
     error_prefix,
   )?;
@@ -104,28 +103,16 @@ pub fn get_field_rules(
       }
     }
     RulesType::Duration(duration_rules) => {
-      if !matches!(field_data_kind, FieldKind::Duration) {
-        error = Some("cannot use duration rules on a field that is not a Duration")
-      } else {
-        let rules = get_duration_rules(validation_data, duration_rules)?;
-        rules_agg.extend(rules);
-      }
+      let rules = get_duration_rules(validation_data, duration_rules)?;
+      rules_agg.extend(rules);
     }
     RulesType::Timestamp(timestamp_rules) => {
-      if !matches!(&field_data_kind, FieldKind::Timestamp) {
-        error = Some("cannot use timestamp rules on a field that is not a Timestamp")
-      } else {
-        let rules = get_timestamp_rules(validation_data, timestamp_rules)?;
-        rules_agg.extend(rules);
-      }
+      let rules = get_timestamp_rules(validation_data, timestamp_rules)?;
+      rules_agg.extend(rules);
     }
     RulesType::Any(any_rules) => {
-      if !matches!(&field_data_kind, FieldKind::Any) {
-        error = Some("cannot use 'any' rules on a field that is not Any")
-      } else {
-        let rules = get_any_rules(validation_data, any_rules)?;
-        rules_agg.extend(rules);
-      }
+      let rules = get_any_rules(validation_data, any_rules)?;
+      rules_agg.extend(rules);
     }
     RulesType::Bool(bool_rules) => {
       let rules = get_bool_rules(validation_data, bool_rules)?;
@@ -143,6 +130,33 @@ pub fn get_field_rules(
   }
 
   Ok(rules_agg)
+}
+
+pub fn get_field_type(field_desc: &FieldDescriptor) -> FieldType {
+  match field_desc.kind() {
+    Kind::Message(message_desc) => match message_desc.full_name() {
+      "google.protobuf.Duration" => FieldType::Duration,
+      "google.protobuf.Timestamp" => FieldType::Timestamp,
+      "google.protobuf.Any" => FieldType::Any,
+      _ => FieldType::Message,
+    },
+    Kind::Double => FieldType::Double,
+    Kind::Float => FieldType::Float,
+    Kind::Int32 => FieldType::Int32,
+    Kind::Int64 => FieldType::Int64,
+    Kind::Uint32 => FieldType::Uint32,
+    Kind::Uint64 => FieldType::Uint64,
+    Kind::Sint32 => FieldType::Sint32,
+    Kind::Sint64 => FieldType::Sint64,
+    Kind::Fixed32 => FieldType::Fixed32,
+    Kind::Fixed64 => FieldType::Fixed64,
+    Kind::Sfixed32 => FieldType::Sfixed32,
+    Kind::Sfixed64 => FieldType::Sfixed64,
+    Kind::Bool => FieldType::Bool,
+    Kind::String => FieldType::String,
+    Kind::Bytes => FieldType::Bytes,
+    Kind::Enum(_) => FieldType::Enum,
+  }
 }
 
 pub fn convert_kind_to_proto_type(kind: &Kind) -> ProtoType {

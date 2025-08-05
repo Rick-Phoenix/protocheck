@@ -1,12 +1,10 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
-use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
 use super::{
-  field_rules::Type as RulesType, protovalidate::Ignore, ProtoType, ValidatorKind,
-  ValidatorTemplate,
+  field_rules::Type as RulesType, protovalidate::Ignore, ValidatorKind, ValidatorTemplate,
 };
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
@@ -38,8 +36,7 @@ pub fn get_repeated_rules(
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let mut unique_values = false;
-  let float_values = matches!(validation_data.field_data.proto_type, ProtoType::Float)
-    || matches!(validation_data.field_data.proto_type, ProtoType::Double);
+  let float_values = validation_data.field_kind.inner_type().is_float();
   let mut ignore_items_validators = false;
 
   if let Some(RulesType::Repeated(repeated_rules)) = field_rules {
@@ -107,16 +104,13 @@ pub fn get_repeated_rules(
       if matches!(ignore, Ignore::Always) {
         ignore_items_validators = true
       } else {
-        let mut items_validation_data = validation_data.clone();
-        items_validation_data.field_kind = FieldKind::RepeatedItem;
-
         if let Some(ref rules_type) = items_rules_descriptor.r#type {
           if !item_is_message {
             let rules_for_single_item = get_field_rules(
               static_defs,
               field_rust_enum,
               field_desc,
-              &items_validation_data,
+              &validation_data,
               rules_type,
             )?;
 
@@ -128,7 +122,7 @@ pub fn get_repeated_rules(
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
-              validation_data: &items_validation_data,
+              validation_data: &validation_data,
               is_boxed: field_is_boxed(field_desc, field_desc.parent_message()),
             },
             &items_rules_descriptor.cel,
@@ -141,9 +135,6 @@ pub fn get_repeated_rules(
   }
 
   if item_is_message && !ignore_items_validators {
-    let mut validation_data = validation_data.clone();
-    validation_data.field_kind = FieldKind::RepeatedItem;
-
     let validator_tokens = validation_data.get_message_field_validator_tokens();
 
     let message_items_validator = ValidatorTemplate {

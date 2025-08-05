@@ -126,7 +126,7 @@ impl ValidationData {
 
     let field_proto_name = &self.field_data.proto_name;
     let field_tag = self.field_data.tag;
-    let field_proto_type = self.field_data.proto_type;
+    let field_proto_type: ProtoType = self.field_kind.inner_type().into();
 
     let nested_key_type = self.key_type_tokens_as_i32();
     let nested_value_type = self.value_type_tokens_as_i32();
@@ -236,7 +236,7 @@ impl ValidationData {
         subscript: #subscript_tokens,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
-        field_kind: #field_kind,
+        field_kind: &#field_kind,
       };
     }
   }
@@ -267,11 +267,11 @@ impl ValidationData {
 
   pub fn subscript_tokens(&self) -> TokenStream {
     match self.field_kind {
-      FieldKind::RepeatedItem => {
+      FieldKind::RepeatedItem(_) => {
         let index_ident = &self.index_ident;
         quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
-      FieldKind::MapKey | FieldKind::MapValue => {
+      FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
         if let Some(key_type_enum) = self.key_type {
           let key_subscript_tokens = generate_key_subscript(&key_type_enum, &self.key_ident);
           quote! { Some(#key_subscript_tokens) }
@@ -292,9 +292,9 @@ impl ValidationData {
       ..
     } = self;
     match self.field_kind {
-      FieldKind::RepeatedItem => quote! { #item_ident },
-      FieldKind::MapKey => quote! { #key_ident },
-      FieldKind::MapValue => quote! { #map_value_ident },
+      FieldKind::RepeatedItem(_) => quote! { #item_ident },
+      FieldKind::MapKey(_) => quote! { #key_ident },
+      FieldKind::MapValue(_) => quote! { #map_value_ident },
       _ => {
         if self.is_in_oneof {
           quote! { val }

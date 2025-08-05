@@ -4,8 +4,7 @@ use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValu
 use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
-use proto_types::{Empty, FieldMask};
-use protocheck_core::field_data::FieldKind;
+use proto_types::{Empty, FieldMask, FieldType};
 use quote::quote;
 use syn::Error;
 
@@ -106,11 +105,11 @@ pub fn get_cel_rules(
                 quote! { #value_ident }
               };
 
-              let cel_validator_func = match validation_data.field_kind {
-                FieldKind::Message | FieldKind::Timestamp | FieldKind::Duration => {
+              let cel_validator_func = match validation_data.field_kind.inner_type() {
+                FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
                   quote! { validate_cel_field }
                 }
-                FieldKind::Any => {
+                FieldType::Any => {
                   quote! { compile_error!("Any is not supported for Cel validation") }
                 }
                 _ => quote! { validate_cel_field_with_val },

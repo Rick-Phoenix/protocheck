@@ -85,7 +85,7 @@ impl Duration {
 }
 
 impl Name for Duration {
-  const PACKAGE: &'static str = PACKAGE;
+  const PACKAGE: &'static str = PACKAGE_PREFIX;
 
   const NAME: &'static str = "Duration";
 

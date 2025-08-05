@@ -17,7 +17,7 @@ where
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_data.proto_type as i32),
+      field_type: Some(field_context.field_kind.inner_type().into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
@@ -27,9 +27,9 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
-    let (type_name, const_violation) = get_const_rule_path(&field_context.field_data.proto_type);
+    let (type_name, const_violation) = get_const_rule_path(field_context.field_kind.inner_type());
 
     violation_elements.extend(const_violation);
 

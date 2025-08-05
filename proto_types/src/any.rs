@@ -45,7 +45,7 @@ impl Any {
 }
 
 impl Name for Any {
-  const PACKAGE: &'static str = PACKAGE;
+  const PACKAGE: &'static str = PACKAGE_PREFIX;
 
   const NAME: &'static str = "Any";
 

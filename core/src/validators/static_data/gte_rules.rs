@@ -1,21 +1,25 @@
 use std::sync::LazyLock;
 
+use proto_types::FieldType;
+
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_gte_rule_path(kind: &ProtoType) -> (&str, Vec<FieldPathElement>) {
+pub(crate) fn get_gte_rule_path(kind: &FieldType) -> (&str, Vec<FieldPathElement>) {
   match kind {
-    ProtoType::Float => ("float", FLOAT_GTE_VIOLATION.clone()),
-    ProtoType::Double => ("double", DOUBLE_GTE_VIOLATION.clone()),
-    ProtoType::Int32 => ("int32", INT32_GTE_VIOLATION.clone()),
-    ProtoType::Int64 => ("int64", INT64_GTE_VIOLATION.clone()),
-    ProtoType::Uint32 => ("uint32", UINT32_GTE_VIOLATION.clone()),
-    ProtoType::Uint64 => ("uint64", UINT64_GTE_VIOLATION.clone()),
-    ProtoType::Sint32 => ("sint32", SINT32_GTE_VIOLATION.clone()),
-    ProtoType::Sint64 => ("sint64", SINT64_GTE_VIOLATION.clone()),
-    ProtoType::Fixed32 => ("fixed32", FIXED32_GTE_VIOLATION.clone()),
-    ProtoType::Fixed64 => ("fixed64", FIXED64_GTE_VIOLATION.clone()),
-    ProtoType::Sfixed32 => ("sfixed32", SFIXED32_GTE_VIOLATION.clone()),
-    ProtoType::Sfixed64 => ("sfixed64", SFIXED64_GTE_VIOLATION.clone()),
+    FieldType::Float => ("float", FLOAT_GTE_VIOLATION.clone()),
+    FieldType::Double => ("double", DOUBLE_GTE_VIOLATION.clone()),
+    FieldType::Int32 => ("int32", INT32_GTE_VIOLATION.clone()),
+    FieldType::Int64 => ("int64", INT64_GTE_VIOLATION.clone()),
+    FieldType::Uint32 => ("uint32", UINT32_GTE_VIOLATION.clone()),
+    FieldType::Uint64 => ("uint64", UINT64_GTE_VIOLATION.clone()),
+    FieldType::Sint32 => ("sint32", SINT32_GTE_VIOLATION.clone()),
+    FieldType::Sint64 => ("sint64", SINT64_GTE_VIOLATION.clone()),
+    FieldType::Fixed32 => ("fixed32", FIXED32_GTE_VIOLATION.clone()),
+    FieldType::Fixed64 => ("fixed64", FIXED64_GTE_VIOLATION.clone()),
+    FieldType::Sfixed32 => ("sfixed32", SFIXED32_GTE_VIOLATION.clone()),
+    FieldType::Sfixed64 => ("sfixed64", SFIXED64_GTE_VIOLATION.clone()),
+    FieldType::Duration => ("duration", DURATION_GTE_VIOLATION.clone()),
+    FieldType::Timestamp => ("timestamp", TIMESTAMP_GTE_VIOLATION.clone()),
     _ => ("", vec![]),
   }
 }

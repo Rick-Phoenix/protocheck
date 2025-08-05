@@ -9,7 +9,7 @@ pub fn required(field_context: &FieldContext) -> Violation {
   let mut elements = field_context.parent_elements.to_vec();
 
   let current_elem = FieldPathElement {
-    field_type: Some(field_context.field_data.proto_type as i32),
+    field_type: Some(field_context.field_kind.inner_type().into()),
     field_name: Some(field_context.field_data.proto_name.clone()),
     field_number: Some(field_context.field_data.tag as i32),
     key_type: field_context.key_type.map(|t| t as i32),
@@ -18,7 +18,7 @@ pub fn required(field_context: &FieldContext) -> Violation {
   };
   elements.push(current_elem);
 
-  let mut violations_path = get_base_violations_path(&field_context.field_kind);
+  let mut violations_path = get_base_violations_path(field_context.field_kind);
 
   let required_violation_path = FieldPathElement {
     field_type: Some(ProtoType::Bool as i32),

@@ -15,7 +15,7 @@ enum OuterType {
   HashMap {
     conversion_tokens: TokenStream2,
   },
-  Scalar,
+  Normal,
 }
 
 fn get_conversion_tokens(ty: &Type) -> TokenStream2 {
@@ -56,7 +56,7 @@ impl TryFrom<&Type> for OuterType {
         conversion_tokens: get_conversion_tokens(value_type),
       })
     } else {
-      Ok(Self::Scalar)
+      Ok(Self::Normal)
     }
   }
 }
@@ -281,7 +281,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
           });
         }
-        OuterType::Scalar => {
+        OuterType::Normal => {
           tokens.extend(quote! {
             #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_owned().into());
           });

@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
+use proto_types::FieldType;
 use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
@@ -128,7 +129,7 @@ pub fn get_map_rules(
 
       if !matches!(ignore, Ignore::Always) {
         let mut key_validation_data = map_validation_data.clone();
-        key_validation_data.field_kind = FieldKind::MapKey;
+        key_validation_data.field_kind = FieldKind::MapKey(key_proto_type.into());
         key_validation_data.field_data.ignore = ignore;
 
         if let Some(ref rules) = key_rules_descriptor.r#type {
@@ -165,7 +166,7 @@ pub fn get_map_rules(
       } else {
         let mut values_validation_data = map_validation_data.clone();
 
-        values_validation_data.field_kind = FieldKind::MapValue;
+        values_validation_data.field_kind = FieldKind::MapValue(value_proto_type.into());
         values_validation_data.field_data.ignore = ignore;
 
         if let Some(ref rules) = value_rules_descriptor.r#type {
@@ -199,7 +200,7 @@ pub fn get_map_rules(
 
   if value_is_message && !ignore_values_validators {
     let mut validation_data = map_validation_data.clone();
-    validation_data.field_kind = FieldKind::MapValue;
+    validation_data.field_kind = FieldKind::MapValue(FieldType::Message);
 
     let validator_tokens = validation_data.get_message_field_validator_tokens();
 

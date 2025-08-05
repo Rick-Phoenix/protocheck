@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use prost_reflect::{FieldDescriptor, Kind};
+use proto_types::FieldType;
 use quote::{quote, ToTokens};
 
 use crate::{
@@ -14,38 +14,43 @@ pub struct FieldContext<'a> {
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,
   pub value_type: Option<ProtoType>,
-  pub field_kind: FieldKind,
+  pub field_kind: &'a FieldKind,
 }
 
 #[derive(Clone, Debug)]
 pub enum FieldKind {
-  Map,
-  MapKey,
-  MapValue,
-  Repeated,
-  RepeatedItem,
-  Scalar,
-  Duration,
-  Timestamp,
-  Message,
-  Any,
+  MapKey(FieldType),
+  MapValue(FieldType),
+  RepeatedItem(FieldType),
+  Single(FieldType),
+}
+
+impl FieldKind {
+  pub fn inner_type(&self) -> &FieldType {
+    match self {
+      FieldKind::MapKey(field_type) => field_type,
+      FieldKind::MapValue(field_type) => field_type,
+      FieldKind::RepeatedItem(field_type) => field_type,
+      FieldKind::Single(field_type) => field_type,
+    }
+  }
 }
 
 impl FieldKind {
   pub fn is_map_key(&self) -> bool {
-    matches!(self, FieldKind::MapKey)
+    matches!(self, FieldKind::MapKey(_))
   }
 
   pub fn is_map_value(&self) -> bool {
-    matches!(self, FieldKind::MapValue)
+    matches!(self, FieldKind::MapValue(_))
   }
 
   pub fn is_repeated_item(&self) -> bool {
-    matches!(self, FieldKind::RepeatedItem)
+    matches!(self, FieldKind::RepeatedItem(_))
   }
 
   pub fn is_scalar(&self) -> bool {
-    matches!(self, FieldKind::Scalar)
+    matches!(self, FieldKind::Single(_))
   }
 }
 
@@ -54,39 +59,13 @@ impl ToTokens for FieldKind {
     let field_kind_path = quote! { protocheck::field_data::FieldKind };
 
     let variant_tokens = match self {
-      FieldKind::Map => quote! { Map },
-      FieldKind::MapKey => quote! { MapKey },
-      FieldKind::MapValue => quote! { MapValue },
-      FieldKind::Repeated => quote! { Repeated },
-      FieldKind::RepeatedItem => quote! { RepeatedItem },
-      FieldKind::Scalar => quote! { Scalar },
-      FieldKind::Duration => quote! { Duration },
-      FieldKind::Timestamp => quote! { Timestamp },
-      FieldKind::Message => quote! { Message },
-      FieldKind::Any => quote! { Any },
+      FieldKind::MapKey(v) => quote! { MapKey(#v) },
+      FieldKind::MapValue(v) => quote! { MapValue(#v) },
+      FieldKind::RepeatedItem(v) => quote! { RepeatedItem(#v) },
+      FieldKind::Single(v) => quote! { Single(#v) },
     };
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });
-  }
-}
-
-impl FieldKind {
-  pub fn from_field_desc(field_desc: &FieldDescriptor) -> Self {
-    if field_desc.is_map() {
-      return Self::Map;
-    } else if field_desc.is_list() {
-      return Self::Repeated;
-    }
-
-    match field_desc.kind() {
-      Kind::Message(message_desc) => match message_desc.full_name() {
-        "google.protobuf.Duration" => Self::Duration,
-        "google.protobuf.Timestamp" => Self::Timestamp,
-        "google.protobuf.Any" => Self::Any,
-        _ => Self::Message,
-      },
-      _ => Self::Scalar,
-    }
   }
 }
 
@@ -95,6 +74,5 @@ pub struct FieldData {
   pub rust_name: String,
   pub proto_name: String,
   pub tag: u32,
-  pub proto_type: ProtoType,
   pub ignore: Ignore,
 }

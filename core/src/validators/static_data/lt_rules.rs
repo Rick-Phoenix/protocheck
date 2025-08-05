@@ -1,21 +1,25 @@
 use std::sync::LazyLock;
 
+use proto_types::FieldType;
+
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_lt_rule_path(kind: &ProtoType) -> (&str, Vec<FieldPathElement>) {
+pub(crate) fn get_lt_rule_path(kind: &FieldType) -> (&str, Vec<FieldPathElement>) {
   match kind {
-    ProtoType::Float => ("float", FLOAT_LT_VIOLATION.clone()),
-    ProtoType::Double => ("double", DOUBLE_LT_VIOLATION.clone()),
-    ProtoType::Int32 => ("int32", INT32_LT_VIOLATION.clone()),
-    ProtoType::Int64 => ("int64", INT64_LT_VIOLATION.clone()),
-    ProtoType::Uint32 => ("uint32", UINT32_LT_VIOLATION.clone()),
-    ProtoType::Uint64 => ("uint64", UINT64_LT_VIOLATION.clone()),
-    ProtoType::Sint32 => ("sint32", SINT32_LT_VIOLATION.clone()),
-    ProtoType::Sint64 => ("sint64", SINT64_LT_VIOLATION.clone()),
-    ProtoType::Fixed32 => ("fixed32", FIXED32_LT_VIOLATION.clone()),
-    ProtoType::Fixed64 => ("fixed64", FIXED64_LT_VIOLATION.clone()),
-    ProtoType::Sfixed32 => ("sfixed32", SFIXED32_LT_VIOLATION.clone()),
-    ProtoType::Sfixed64 => ("sfixed64", SFIXED64_LT_VIOLATION.clone()),
+    FieldType::Float => ("float", FLOAT_LT_VIOLATION.clone()),
+    FieldType::Double => ("double", DOUBLE_LT_VIOLATION.clone()),
+    FieldType::Int32 => ("int32", INT32_LT_VIOLATION.clone()),
+    FieldType::Int64 => ("int64", INT64_LT_VIOLATION.clone()),
+    FieldType::Uint32 => ("uint32", UINT32_LT_VIOLATION.clone()),
+    FieldType::Uint64 => ("uint64", UINT64_LT_VIOLATION.clone()),
+    FieldType::Sint32 => ("sint32", SINT32_LT_VIOLATION.clone()),
+    FieldType::Sint64 => ("sint64", SINT64_LT_VIOLATION.clone()),
+    FieldType::Fixed32 => ("fixed32", FIXED32_LT_VIOLATION.clone()),
+    FieldType::Fixed64 => ("fixed64", FIXED64_LT_VIOLATION.clone()),
+    FieldType::Sfixed32 => ("sfixed32", SFIXED32_LT_VIOLATION.clone()),
+    FieldType::Sfixed64 => ("sfixed64", SFIXED64_LT_VIOLATION.clone()),
+    FieldType::Duration => ("duration", DURATION_LT_VIOLATION.clone()),
+    FieldType::Timestamp => ("timestamp", TIMESTAMP_LT_VIOLATION.clone()),
     _ => ("", vec![]),
   }
 }

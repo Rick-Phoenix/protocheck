@@ -32,14 +32,12 @@ impl ToTokens for FieldData {
     let rust_name = &self.rust_name;
     let proto_name = &self.proto_name;
     let tag = self.tag;
-    let proto_type = &self.proto_type;
     let ignore = &self.ignore;
 
     tokens.extend(quote! {
       protocheck::field_data::FieldData {
         rust_name: #rust_name.to_string(),
         proto_name: #proto_name.to_string(),
-        proto_type: #proto_type,
         tag: #tag,
         ignore: #ignore,
       }

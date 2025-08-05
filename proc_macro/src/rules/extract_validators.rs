@@ -20,7 +20,7 @@ use crate::{
   },
   rules::{
     cel_rules::get_cel_rules,
-    core::{convert_kind_to_proto_type, get_field_rules},
+    core::{get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
   },
@@ -137,13 +137,11 @@ pub fn extract_oneof_validators(
       }
 
       let field_name = field.name();
-      let field_kind = field.kind();
 
       let field_data = FieldData {
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         tag: field.number(),
-        proto_type: convert_kind_to_proto_type(&field_kind),
         ignore,
       };
 
@@ -188,7 +186,7 @@ pub fn extract_oneof_validators(
         map_value_ident,
         index_ident,
         item_rust_ident: item_rust_ident.clone(),
-        field_kind: FieldKind::from_field_desc(&field),
+        field_kind: FieldKind::Single(get_field_type(&field)),
       };
 
       if !field_rules.cel.is_empty() {
@@ -214,7 +212,7 @@ pub fn extract_oneof_validators(
         field_validators.extend(rules);
       }
 
-      if let Kind::Message(field_message_type) = &field_kind {
+      if let Kind::Message(field_message_type) = &field.kind() {
         if !field_message_type
           .full_name()
           .starts_with("google.protobuf")
@@ -363,7 +361,6 @@ pub fn extract_message_validators(
 
     let field_rust_enum = rust_enum_paths.get(field_name).cloned();
 
-    let field_kind = field.kind();
     let is_repeated = field.is_list();
     let is_map = field.is_map();
     let is_optional = field.supports_presence();
@@ -389,7 +386,6 @@ pub fn extract_message_validators(
         rust_name: field_name.to_string(),
         proto_name: field_name.to_string(),
         tag: field_tag,
-        proto_type: convert_kind_to_proto_type(&field_kind),
         ignore,
       };
 
@@ -405,6 +401,12 @@ pub fn extract_message_validators(
         static #field_data_static_ident: std::sync::LazyLock<protocheck::field_data::FieldData> = std::sync::LazyLock::new(|| {
           #field_data
         });
+      };
+
+      let field_kind = if is_repeated {
+        FieldKind::RepeatedItem(get_field_type(&field))
+      } else {
+        FieldKind::Single(get_field_type(&field))
       };
 
       let validation_data = ValidationData {
@@ -425,7 +427,7 @@ pub fn extract_message_validators(
         key_ident,
         item_ident,
         field_context_ident,
-        field_kind: FieldKind::from_field_desc(&field),
+        field_kind,
       };
 
       if !field_rules.cel.is_empty() {

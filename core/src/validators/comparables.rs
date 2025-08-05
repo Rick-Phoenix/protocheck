@@ -5,7 +5,7 @@ use crate::{
   protovalidate::{FieldPath, FieldPathElement, Violation},
   validators::static_data::{
     base_violations::get_base_violations_path, gt_rules::get_gt_rule_path,
-    lt_rules::get_lt_rule_path, lte_rules::get_lte_rule_path,
+    gte_rules::get_gte_rule_path, lt_rules::get_lt_rule_path, lte_rules::get_lte_rule_path,
   },
 };
 
@@ -18,7 +18,7 @@ where
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_data.proto_type as i32),
+      field_type: Some(field_context.field_kind.inner_type().into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
@@ -28,9 +28,9 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
-    let (type_name, violation_path) = get_lt_rule_path(&field_context.field_data.proto_type);
+    let (type_name, violation_path) = get_lt_rule_path(field_context.field_kind.inner_type());
 
     violation_elements.extend(violation_path);
 
@@ -61,7 +61,7 @@ where
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_data.proto_type as i32),
+      field_type: Some(field_context.field_kind.inner_type().into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
@@ -71,9 +71,9 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
-    let (type_name, violation_path) = get_lte_rule_path(&field_context.field_data.proto_type);
+    let (type_name, violation_path) = get_lte_rule_path(field_context.field_kind.inner_type());
 
     violation_elements.extend(violation_path);
 
@@ -104,7 +104,7 @@ where
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_data.proto_type as i32),
+      field_type: Some(field_context.field_kind.inner_type().into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
@@ -114,9 +114,9 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
-    let (type_name, violation_path) = get_gt_rule_path(&field_context.field_data.proto_type);
+    let (type_name, violation_path) = get_gt_rule_path(field_context.field_kind.inner_type());
 
     violation_elements.extend(violation_path);
 
@@ -147,7 +147,7 @@ where
   if !check {
     let mut elements = field_context.parent_elements.to_vec();
     let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_data.proto_type as i32),
+      field_type: Some(field_context.field_kind.inner_type().into()),
       field_name: Some(field_context.field_data.proto_name.clone()),
       key_type: field_context.key_type.map(|t| t as i32),
       value_type: field_context.value_type.map(|t| t as i32),
@@ -157,9 +157,9 @@ where
 
     elements.push(current_elem);
 
-    let mut violation_elements = get_base_violations_path(&field_context.field_kind);
+    let mut violation_elements = get_base_violations_path(field_context.field_kind);
 
-    let (type_name, violation_path) = get_lte_rule_path(&field_context.field_data.proto_type);
+    let (type_name, violation_path) = get_gte_rule_path(field_context.field_kind.inner_type());
 
     violation_elements.extend(violation_path);
 

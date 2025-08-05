@@ -149,7 +149,7 @@ impl Timestamp {
 }
 
 impl Name for Timestamp {
-  const PACKAGE: &'static str = PACKAGE;
+  const PACKAGE: &'static str = PACKAGE_PREFIX;
 
   const NAME: &'static str = "Timestamp";
 

@@ -31,6 +31,7 @@ bindings
 # Llm files
 llm*.txt
 llm*.md
+llm.*
 
 # Node modules
 node_modules

@@ -4,7 +4,7 @@ use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
 use prost::Name;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::{type_url_for, Empty, PACKAGE};
+use crate::{type_url_for, Empty, PACKAGE_PREFIX};
 
 impl From<Empty> for CelValue {
   fn from(_: Empty) -> Self {
@@ -19,7 +19,7 @@ impl From<()> for Empty {
 }
 
 impl Name for Empty {
-  const PACKAGE: &'static str = PACKAGE;
+  const PACKAGE: &'static str = PACKAGE_PREFIX;
 
   const NAME: &'static str = "Empty";
 

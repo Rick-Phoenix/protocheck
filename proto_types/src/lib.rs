@@ -4,6 +4,9 @@ pub use protobuf::*;
 mod protobuf;
 mod protobuf_impls;
 
+mod field_type;
+pub use field_type::FieldType;
+
 mod any;
 mod any_impls;
 mod conversions;
@@ -29,7 +32,7 @@ const NANOS_PER_SECOND: i32 = 1_000_000_000;
 
 const NANOS_MAX: i32 = NANOS_PER_SECOND - 1;
 
-const PACKAGE: &str = "google.protobuf";
+const PACKAGE_PREFIX: &str = "google.protobuf";
 
 mod duration;
 pub use duration::*;
