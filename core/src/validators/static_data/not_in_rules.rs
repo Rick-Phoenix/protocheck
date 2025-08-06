@@ -4,25 +4,27 @@ use proto_types::FieldType;
 
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_not_in_rule_path(kind: &FieldType) -> (&str, Vec<FieldPathElement>) {
+pub(crate) fn get_not_in_rule_path(
+  kind: FieldType,
+) -> Option<(&'static str, &'static [FieldPathElement])> {
   match kind {
-    FieldType::Float => ("float", FLOAT_NOT_IN_VIOLATION.clone()),
-    FieldType::Double => ("double", DOUBLE_NOT_IN_VIOLATION.clone()),
-    FieldType::Int32 => ("int32", INT32_NOT_IN_VIOLATION.clone()),
-    FieldType::Int64 => ("int64", INT64_NOT_IN_VIOLATION.clone()),
-    FieldType::Uint32 => ("uint32", UINT32_NOT_IN_VIOLATION.clone()),
-    FieldType::Uint64 => ("uint64", UINT64_NOT_IN_VIOLATION.clone()),
-    FieldType::Sint32 => ("sint32", SINT32_NOT_IN_VIOLATION.clone()),
-    FieldType::Sint64 => ("sint64", SINT64_NOT_IN_VIOLATION.clone()),
-    FieldType::Fixed32 => ("fixed32", FIXED32_NOT_IN_VIOLATION.clone()),
-    FieldType::Fixed64 => ("fixed64", FIXED64_NOT_IN_VIOLATION.clone()),
-    FieldType::Sfixed32 => ("sfixed32", SFIXED32_NOT_IN_VIOLATION.clone()),
-    FieldType::Sfixed64 => ("sfixed64", SFIXED64_NOT_IN_VIOLATION.clone()),
-    FieldType::String => ("string", STRING_NOT_IN_VIOLATION.clone()),
-    FieldType::Bytes => ("bytes", BYTES_NOT_IN_VIOLATION.clone()),
-    FieldType::Enum => ("enum", ENUM_NOT_IN_VIOLATION.clone()),
-    FieldType::Duration => ("duration", DURATION_NOT_IN_VIOLATION.clone()),
-    _ => ("", vec![]),
+    FieldType::Float => Some(("float", &FLOAT_NOT_IN_VIOLATION)),
+    FieldType::Double => Some(("double", &DOUBLE_NOT_IN_VIOLATION)),
+    FieldType::Int32 => Some(("int32", &INT32_NOT_IN_VIOLATION)),
+    FieldType::Int64 => Some(("int64", &INT64_NOT_IN_VIOLATION)),
+    FieldType::Uint32 => Some(("uint32", &UINT32_NOT_IN_VIOLATION)),
+    FieldType::Uint64 => Some(("uint64", &UINT64_NOT_IN_VIOLATION)),
+    FieldType::Sint32 => Some(("sint32", &SINT32_NOT_IN_VIOLATION)),
+    FieldType::Sint64 => Some(("sint64", &SINT64_NOT_IN_VIOLATION)),
+    FieldType::Fixed32 => Some(("fixed32", &FIXED32_NOT_IN_VIOLATION)),
+    FieldType::Fixed64 => Some(("fixed64", &FIXED64_NOT_IN_VIOLATION)),
+    FieldType::Sfixed32 => Some(("sfixed32", &SFIXED32_NOT_IN_VIOLATION)),
+    FieldType::Sfixed64 => Some(("sfixed64", &SFIXED64_NOT_IN_VIOLATION)),
+    FieldType::String => Some(("string", &STRING_NOT_IN_VIOLATION)),
+    FieldType::Bytes => Some(("bytes", &BYTES_NOT_IN_VIOLATION)),
+    FieldType::Enum => Some(("enum", &ENUM_NOT_IN_VIOLATION)),
+    FieldType::Duration => Some(("duration", &DURATION_NOT_IN_VIOLATION)),
+    _ => None,
   }
 }
 

@@ -4,115 +4,125 @@ use proto_types::Any;
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::{FieldPath, FieldPathElement, Violation},
+  protovalidate::Violation,
   validators::static_data::{
-    base_violations::get_base_violations_path, in_rules::get_in_rule_path,
+    base_violations::create_violation, in_rules::get_in_rule_path,
     not_in_rules::get_not_in_rule_path,
   },
 };
 
+pub fn string_in_list(
+  field_context: &FieldContext,
+  value: &str,
+  target: &'static [&'static str],
+) -> Result<(), Violation> {
+  let check = target.contains(&value);
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("[{}]", target.join(", "));
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
+}
+
+pub fn string_not_in_list(
+  field_context: &FieldContext,
+  value: &str,
+  target: &'static [&'static str],
+) -> Result<(), Violation> {
+  let check = !target.contains(&value);
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("[{}]", target.join(", "));
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
+}
+
 pub fn any_in_list(
   field_context: &FieldContext,
   value: &Any,
-  target: &[String],
+  target: &'static [&'static str],
 ) -> Result<(), Violation> {
-  in_list(field_context, &value.type_url, target)
+  let check = target.contains(&value.type_url.as_str());
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("(type_url) [{}]", target.join(", "));
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
 }
 
 pub fn any_not_in_list(
   field_context: &FieldContext,
   value: &Any,
-  target: &[String],
+  target: &'static [&'static str],
 ) -> Result<(), Violation> {
-  not_in_list(field_context, &value.type_url, target)
+  let check = !target.contains(&value.type_url.as_str());
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("(type_url) [{}]", target.join(", "));
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
 }
 
-pub fn in_list<T>(field_context: &FieldContext, value: &T, target: &[T]) -> Result<(), Violation>
-where
-  T: PartialEq + Debug,
-{
-  let check = target.contains(value);
+fn create_in_list_violation(field_context: &FieldContext, values_list_string: &str) -> Violation {
+  let (type_name, violation_path) = get_in_rule_path(field_context.field_kind.inner_type())
+    .expect("Could not find 'in_list' rule path");
+  let rule_id = format!("{}.in", type_name);
+  let error_message = format!("has to be one of these values: {}", values_list_string);
 
-  if !check {
-    let mut elements = field_context.parent_elements.to_vec();
-    let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.proto_name.to_string()),
-      key_type: field_context.key_type.map(|t| t as i32),
-      value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.tag as i32),
-      subscript: field_context.subscript.clone(),
-    };
-
-    elements.push(current_elem);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    let (type_name, violation_path) = get_in_rule_path(field_context.field_kind.inner_type());
-
-    violation_elements.extend(violation_path);
-
-    let violation = Violation {
-      rule_id: Some(format!("{}.in", type_name)),
-      message: Some(format!(
-        "{} has to be one of these values: {:?}",
-        field_context.proto_name.clone(),
-        target
-      )),
-      for_key: field_context.field_kind.is_map_key().then_some(true),
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  create_violation(field_context, violation_path, &rule_id, &error_message)
 }
 
-pub fn not_in_list<T>(
+pub fn in_list<T>(
   field_context: &FieldContext,
-  value: &T,
-  target: &[T],
+  value: T,
+  target: &'static [T],
 ) -> Result<(), Violation>
 where
   T: PartialEq + Debug,
 {
-  let check = !target.contains(value);
+  let check = target.contains(&value);
 
-  if !check {
-    let mut elements = field_context.parent_elements.to_vec();
-    let current_elem = FieldPathElement {
-      field_type: Some(field_context.field_kind.inner_type().into()),
-      field_name: Some(field_context.proto_name.to_string()),
-      key_type: field_context.key_type.map(|t| t as i32),
-      value_type: field_context.value_type.map(|t| t as i32),
-      field_number: Some(field_context.tag as i32),
-      subscript: field_context.subscript.clone(),
-    };
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("{:?}", target);
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
+}
 
-    elements.push(current_elem);
+pub fn not_in_list<T>(
+  field_context: &FieldContext,
+  value: T,
+  target: &'static [T],
+) -> Result<(), Violation>
+where
+  T: PartialEq + Debug,
+{
+  let check = !target.contains(&value);
 
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
+  if check {
+    Ok(())
+  } else {
+    let values_list_string = format!("{:?}", target);
+    Err(create_not_in_list_violation(
+      field_context,
+      &values_list_string,
+    ))
+  }
+}
 
-    let (type_name, violation_path) = get_not_in_rule_path(field_context.field_kind.inner_type());
+fn create_not_in_list_violation(
+  field_context: &FieldContext,
+  values_list_string: &str,
+) -> Violation {
+  let (type_name, violation_path) = get_not_in_rule_path(field_context.field_kind.inner_type())
+    .expect("Could not find 'not_in_list' rule path");
+  let rule_id = format!("{}.not_in", type_name);
+  let error_message = format!("cannot be one of these values: {}", values_list_string);
 
-    violation_elements.extend(violation_path);
-
-    let violation = Violation {
-      rule_id: Some(format!("{}.not_in", type_name)),
-      message: Some(format!(
-        "{} cannot be one of these values: {:?}",
-        field_context.proto_name.clone(),
-        target
-      )),
-      for_key: field_context.field_kind.is_map_key().then_some(true),
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  create_violation(field_context, violation_path, &rule_id, &error_message)
 }

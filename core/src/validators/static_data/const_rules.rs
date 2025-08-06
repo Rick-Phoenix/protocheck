@@ -4,27 +4,29 @@ use proto_types::FieldType;
 
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_const_rule_path(kind: &FieldType) -> (&str, Vec<FieldPathElement>) {
+pub(crate) fn get_const_rule_path(
+  kind: FieldType,
+) -> Option<(&'static str, &'static [FieldPathElement])> {
   match kind {
-    FieldType::Float => ("float", FLOAT_CONST_VIOLATION.clone()),
-    FieldType::Double => ("double", DOUBLE_CONST_VIOLATION.clone()),
-    FieldType::Int32 => ("int32", INT32_CONST_VIOLATION.clone()),
-    FieldType::Int64 => ("int64", INT64_CONST_VIOLATION.clone()),
-    FieldType::Uint32 => ("uint32", UINT32_CONST_VIOLATION.clone()),
-    FieldType::Uint64 => ("uint64", UINT64_CONST_VIOLATION.clone()),
-    FieldType::Sint32 => ("sint32", SINT32_CONST_VIOLATION.clone()),
-    FieldType::Sint64 => ("sint64", SINT64_CONST_VIOLATION.clone()),
-    FieldType::Fixed32 => ("fixed32", FIXED32_CONST_VIOLATION.clone()),
-    FieldType::Fixed64 => ("fixed64", FIXED64_CONST_VIOLATION.clone()),
-    FieldType::Sfixed32 => ("sfixed32", SFIXED32_CONST_VIOLATION.clone()),
-    FieldType::Sfixed64 => ("sfixed64", SFIXED64_CONST_VIOLATION.clone()),
-    FieldType::Bool => ("bool", BOOL_CONST_VIOLATION.clone()),
-    FieldType::String => ("string", STRING_CONST_VIOLATION.clone()),
-    FieldType::Bytes => ("bytes", BYTES_CONST_VIOLATION.clone()),
-    FieldType::Enum => ("enum", ENUM_CONST_VIOLATION.clone()),
-    FieldType::Duration => ("duration", DURATION_CONST_VIOLATION.clone()),
-    FieldType::Timestamp => ("timestamp", TIMESTAMP_CONST_VIOLATION.clone()),
-    _ => ("", vec![]),
+    FieldType::Float => Some(("float", &FLOAT_CONST_VIOLATION)),
+    FieldType::Double => Some(("double", &DOUBLE_CONST_VIOLATION)),
+    FieldType::Int32 => Some(("int32", &INT32_CONST_VIOLATION)),
+    FieldType::Int64 => Some(("int64", &INT64_CONST_VIOLATION)),
+    FieldType::Uint32 => Some(("uint32", &UINT32_CONST_VIOLATION)),
+    FieldType::Uint64 => Some(("uint64", &UINT64_CONST_VIOLATION)),
+    FieldType::Sint32 => Some(("sint32", &SINT32_CONST_VIOLATION)),
+    FieldType::Sint64 => Some(("sint64", &SINT64_CONST_VIOLATION)),
+    FieldType::Fixed32 => Some(("fixed32", &FIXED32_CONST_VIOLATION)),
+    FieldType::Fixed64 => Some(("fixed64", &FIXED64_CONST_VIOLATION)),
+    FieldType::Sfixed32 => Some(("sfixed32", &SFIXED32_CONST_VIOLATION)),
+    FieldType::Sfixed64 => Some(("sfixed64", &SFIXED64_CONST_VIOLATION)),
+    FieldType::Bool => Some(("bool", &BOOL_CONST_VIOLATION)),
+    FieldType::String => Some(("string", &STRING_CONST_VIOLATION)),
+    FieldType::Bytes => Some(("bytes", &BYTES_CONST_VIOLATION)),
+    FieldType::Enum => Some(("enum", &ENUM_CONST_VIOLATION)),
+    FieldType::Duration => Some(("duration", &DURATION_CONST_VIOLATION)),
+    FieldType::Timestamp => Some(("timestamp", &TIMESTAMP_CONST_VIOLATION)),
+    _ => None,
   }
 }
 

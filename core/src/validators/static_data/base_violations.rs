@@ -1,5 +1,7 @@
 use std::sync::LazyLock;
 
+use proto_types::protovalidate::{FieldPath, Violation};
+
 use crate::{
   field_data::{FieldContext, FieldKind},
   protovalidate::FieldPathElement,
@@ -85,7 +87,7 @@ pub fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElem
   elements
 }
 
-pub fn get_base_violations_path(field_kind: &FieldKind) -> Vec<FieldPathElement> {
+pub fn get_base_violations_path(field_kind: FieldKind) -> Vec<FieldPathElement> {
   let mut violations_path = vec![];
 
   if field_kind.is_repeated_item() {
@@ -97,4 +99,27 @@ pub fn get_base_violations_path(field_kind: &FieldKind) -> Vec<FieldPathElement>
   }
 
   violations_path
+}
+
+pub fn create_violation(
+  field_context: &FieldContext,
+  violation_path: &'static [FieldPathElement],
+  rule_id: &str,
+  error_message: &str,
+) -> Violation {
+  let elements = get_violation_elements(field_context);
+
+  let mut rule_elements = get_base_violations_path(field_context.field_kind);
+
+  rule_elements.extend(violation_path.to_vec());
+
+  Violation {
+    rule_id: Some(rule_id.to_string()),
+    message: Some(error_message.to_string()),
+    for_key: field_context.field_kind.is_map_key().then_some(true),
+    field: Some(FieldPath { elements }),
+    rule: Some(FieldPath {
+      elements: rule_elements,
+    }),
+  }
 }

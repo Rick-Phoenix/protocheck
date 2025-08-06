@@ -4,23 +4,25 @@ use proto_types::FieldType;
 
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_lte_rule_path(kind: &FieldType) -> (&str, Vec<FieldPathElement>) {
+pub(crate) fn get_lte_rule_path(
+  kind: FieldType,
+) -> Option<(&'static str, &'static [FieldPathElement])> {
   match kind {
-    FieldType::Float => ("float", FLOAT_LTE_VIOLATION.clone()),
-    FieldType::Double => ("double", DOUBLE_LTE_VIOLATION.clone()),
-    FieldType::Int32 => ("int32", INT32_LTE_VIOLATION.clone()),
-    FieldType::Int64 => ("int64", INT64_LTE_VIOLATION.clone()),
-    FieldType::Uint32 => ("uint32", UINT32_LTE_VIOLATION.clone()),
-    FieldType::Uint64 => ("uint64", UINT64_LTE_VIOLATION.clone()),
-    FieldType::Sint32 => ("sint32", SINT32_LTE_VIOLATION.clone()),
-    FieldType::Sint64 => ("sint64", SINT64_LTE_VIOLATION.clone()),
-    FieldType::Fixed32 => ("fixed32", FIXED32_LTE_VIOLATION.clone()),
-    FieldType::Fixed64 => ("fixed64", FIXED64_LTE_VIOLATION.clone()),
-    FieldType::Sfixed32 => ("sfixed32", SFIXED32_LTE_VIOLATION.clone()),
-    FieldType::Sfixed64 => ("sfixed64", SFIXED64_LTE_VIOLATION.clone()),
-    FieldType::Duration => ("duration", DURATION_LTE_VIOLATION.clone()),
-    FieldType::Timestamp => ("timestamp", TIMESTAMP_LTE_VIOLATION.clone()),
-    _ => ("", vec![]),
+    FieldType::Float => Some(("float", &FLOAT_LTE_VIOLATION)),
+    FieldType::Double => Some(("double", &DOUBLE_LTE_VIOLATION)),
+    FieldType::Int32 => Some(("int32", &INT32_LTE_VIOLATION)),
+    FieldType::Int64 => Some(("int64", &INT64_LTE_VIOLATION)),
+    FieldType::Uint32 => Some(("uint32", &UINT32_LTE_VIOLATION)),
+    FieldType::Uint64 => Some(("uint64", &UINT64_LTE_VIOLATION)),
+    FieldType::Sint32 => Some(("sint32", &SINT32_LTE_VIOLATION)),
+    FieldType::Sint64 => Some(("sint64", &SINT64_LTE_VIOLATION)),
+    FieldType::Fixed32 => Some(("fixed32", &FIXED32_LTE_VIOLATION)),
+    FieldType::Fixed64 => Some(("fixed64", &FIXED64_LTE_VIOLATION)),
+    FieldType::Sfixed32 => Some(("sfixed32", &SFIXED32_LTE_VIOLATION)),
+    FieldType::Sfixed64 => Some(("sfixed64", &SFIXED64_LTE_VIOLATION)),
+    FieldType::Duration => Some(("duration", &DURATION_LTE_VIOLATION)),
+    FieldType::Timestamp => Some(("timestamp", &TIMESTAMP_LTE_VIOLATION)),
+    _ => None,
   }
 }
 

@@ -12,15 +12,15 @@ pub struct FieldContext<'a> {
   pub rust_name: &'a str,
   pub proto_name: &'a str,
   pub tag: u32,
-  pub ignore: &'a Ignore,
+  pub ignore: Ignore,
   pub parent_elements: &'a [FieldPathElement],
-  pub subscript: &'a Option<Subscript>,
-  pub key_type: &'a Option<ProtoType>,
-  pub value_type: &'a Option<ProtoType>,
-  pub field_kind: &'a FieldKind,
+  pub subscript: Option<Subscript>,
+  pub key_type: Option<ProtoType>,
+  pub value_type: Option<ProtoType>,
+  pub field_kind: FieldKind,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub enum FieldKind {
   MapKey(FieldType),
   MapValue(FieldType),
@@ -29,12 +29,12 @@ pub enum FieldKind {
 }
 
 impl FieldKind {
-  pub fn inner_type(&self) -> &FieldType {
+  pub fn inner_type(&self) -> FieldType {
     match self {
-      FieldKind::MapKey(field_type) => field_type,
-      FieldKind::MapValue(field_type) => field_type,
-      FieldKind::RepeatedItem(field_type) => field_type,
-      FieldKind::Single(field_type) => field_type,
+      FieldKind::MapKey(field_type) => *field_type,
+      FieldKind::MapValue(field_type) => *field_type,
+      FieldKind::RepeatedItem(field_type) => *field_type,
+      FieldKind::Single(field_type) => *field_type,
     }
   }
 }
