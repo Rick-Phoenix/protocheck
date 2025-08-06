@@ -667,6 +667,7 @@ dependencies = [
  "quote",
  "serde",
  "syn",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -695,7 +696,6 @@ dependencies = [
  "regex",
  "serde",
  "syn",
- "thiserror 2.0.12",
  "url",
  "uuid",
 ]

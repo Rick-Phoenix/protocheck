@@ -23,7 +23,7 @@ pub fn get_enum_rules(
   let field_span = validation_data.field_span;
 
   if let Some(const_val) = enum_rules.r#const {
-    let validator_tokens = validation_data.get_constant_validator(const_val.to_token_stream());
+    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
 
     tokens.extend(validator_tokens);
 
@@ -71,14 +71,14 @@ pub fn get_enum_rules(
       }
     }
 
-    let validator_tokens = validation_data.get_in_list_validator(quote! { vec![ #(#in_list),* ] });
+    let validator_tokens = validation_data.get_in_list_validator(&quote! { vec![ #(#in_list),* ] });
 
     tokens.extend(validator_tokens);
   }
 
   if !not_in_list.is_empty() {
     let validator_tokens =
-      validation_data.get_not_in_list_validator(quote! { vec![ #(#not_in_list),* ] });
+      validation_data.get_not_in_list_validator(&quote! { vec![ #(#not_in_list),* ] });
 
     tokens.extend(validator_tokens);
   }

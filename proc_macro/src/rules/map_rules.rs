@@ -8,7 +8,7 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, Ignore};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::field_is_boxed,
+  extract_validators::{field_is_boxed, field_is_message},
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
@@ -62,23 +62,15 @@ pub fn get_map_rules(
     ))?,
   );
 
-  let key_proto_type = convert_kind_to_proto_type(&key_desc.kind());
-  let value_proto_type = convert_kind_to_proto_type(&value_desc.kind());
+  let key_proto_type = convert_kind_to_proto_type(key_desc.kind());
+  let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
 
   let mut map_validation_data = validation_data;
 
   map_validation_data.key_type = Some(key_proto_type);
   map_validation_data.value_type = Some(value_proto_type);
 
-  let mut value_is_message = false;
-  if let Kind::Message(value_message_desc) = value_desc.kind() {
-    if !value_message_desc
-      .full_name()
-      .starts_with("google.protobuf")
-    {
-      value_is_message = true;
-    }
-  }
+  let value_is_message = field_is_message(&value_desc.kind());
 
   let mut ignore_values_validators = false;
 
@@ -107,7 +99,7 @@ pub fn get_map_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident, #min_pairs_value)
       };
-      let validator_tokens = map_validation_data.get_validator_tokens(validator_expression_tokens);
+      let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 
       map_level_rules.extend(validator_tokens);
     }
@@ -118,7 +110,7 @@ pub fn get_map_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident, #max_pairs_value)
       };
-      let validator_tokens = map_validation_data.get_validator_tokens(validator_expression_tokens);
+      let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 
       map_level_rules.extend(validator_tokens);
     }

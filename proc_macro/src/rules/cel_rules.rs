@@ -60,12 +60,7 @@ pub fn get_cel_rules(
           let rule_id = rule.id().to_string();
 
           let static_program_ident = Ident2::new(
-            &format!(
-              "__CEL_{}_{}_PROGRAM_{}",
-              validation_type.to_uppercase(),
-              target_name.to_uppercase(),
-              index
-            ),
+            &format!("__CEL_PROGRAM_{}_{}", target_name.to_uppercase(), index),
             Span2::call_site(),
           );
 
@@ -76,15 +71,16 @@ pub fn get_cel_rules(
 
           static_defs.push(quote! {
             static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-              cel_interpreter::Program::compile(#expression).expect(#compilation_error)
+              ::cel_interpreter::Program::compile(#expression).expect(#compilation_error)
             });
           });
 
           let rule_tokens = quote! {
-            protocheck::validators::cel::CelRule {
-              id: #rule_id.to_string(),
-              error_message: #error_message.to_string(),
+            ::protocheck::validators::cel::CelRule {
+              id: #rule_id,
+              error_message: #error_message,
               program: &#static_program_ident,
+              item_full_name: #target_name
             }
           };
 
@@ -99,26 +95,26 @@ pub fn get_cel_rules(
 
               let value_tokens = if *is_boxed {
                 quote! { &(**val) }
-              } else if validation_data.is_option() {
-                quote! { val }
               } else {
                 quote! { #value_ident }
               };
 
-              let cel_validator_func = match validation_data.field_kind.inner_type() {
+              let validation_expression = match validation_data.field_kind.inner_type() {
                 FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
-                  quote! { validate_cel_field }
+                  quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens.clone()) }
                 }
                 FieldType::Any => {
                   quote! { compile_error!("Any is not supported for Cel validation") }
                 }
-                _ => quote! { validate_cel_field_with_val },
+                _ => {
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.clone().into()) }
+                }
               };
 
               let validator_tokens = quote! {
                 let rule = #rule_tokens;
 
-                match protocheck::validators::cel::#cel_validator_func(&#field_context_ident, &rule, #value_tokens) {
+                match ::protocheck::validators::cel::#validation_expression {
                   Ok(_) => {}
                   Err(v) => #violations_ident.push(v)
                 };
@@ -126,12 +122,11 @@ pub fn get_cel_rules(
 
               tokens.extend(validator_tokens);
             }
-            CelRuleTemplateTarget::Message { message_desc, .. } => {
-              let message_name = message_desc.full_name();
+            CelRuleTemplateTarget::Message { .. } => {
               let validator_tokens = quote! {
                 let rule = #rule_tokens;
 
-                match protocheck::validators::cel::validate_cel_message(#message_name, #parent_messages_ident, &rule, self) {
+                match ::protocheck::validators::cel::validate_cel_message(#parent_messages_ident, &rule, self.clone()) {
                   Ok(_) => {}
                   Err(v) => #violations_ident.push(v)
                 };

@@ -4,19 +4,9 @@ mod operations;
 mod serde;
 
 pub use base::TimestampError;
-use cel_interpreter::Value as CelValue;
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, Utc};
 
 use crate::{Duration, Timestamp};
-
-impl TryFrom<Timestamp> for CelValue {
-  type Error = TimestampError;
-
-  fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
-    let chrono_timestamp: DateTime<FixedOffset> = value.try_into()?;
-    Ok(CelValue::Timestamp(chrono_timestamp))
-  }
-}
 
 impl Timestamp {
   pub fn as_datetime_utc(&self) -> Result<DateTime<Utc>, TimestampError> {

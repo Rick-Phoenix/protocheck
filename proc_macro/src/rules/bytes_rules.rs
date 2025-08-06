@@ -25,7 +25,7 @@ pub fn get_bytes_rules(
     let const_val_tokens = LitByteStr::new(const_val, Span::call_site());
 
     let validator_tokens =
-      validation_data.get_constant_validator(const_val_tokens.to_token_stream());
+      validation_data.get_constant_validator(&const_val_tokens.to_token_stream());
 
     tokens.extend(validator_tokens);
 
@@ -61,19 +61,19 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::pattern(&#field_context_ident, #value_ident, #static_regex_ident )
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
 
   if let Some(in_list_tokens) = in_list {
-    let validator_tokens = validation_data.get_not_in_list_validator(in_list_tokens);
+    let validator_tokens = validation_data.get_not_in_list_validator(&in_list_tokens);
 
     tokens.extend(validator_tokens);
   }
 
   if let Some(not_in_list_tokens) = not_in_list {
-    let validator_tokens = validation_data.get_not_in_list_validator(not_in_list_tokens);
+    let validator_tokens = validation_data.get_not_in_list_validator(&not_in_list_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -82,7 +82,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::len(&#field_context_ident, #value_ident, #len_value)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -91,7 +91,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::min_len(&#field_context_ident, #value_ident, #min_len_value)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -100,7 +100,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::max_len(&#field_context_ident, #value_ident, #max_len_value)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -111,7 +111,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::contains(&#field_context_ident, #value_ident, #contains_val_tokens)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -122,7 +122,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::prefix(&#field_context_ident, #value_ident, #prefix_tokens)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -133,7 +133,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::suffix(&#field_context_ident, #value_ident, #suffix_tokens)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
@@ -154,7 +154,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::#validator_path(&#field_context_ident, #value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }

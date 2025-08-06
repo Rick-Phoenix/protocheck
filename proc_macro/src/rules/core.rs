@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use prost_reflect::{FieldDescriptor, Kind};
+use prost_reflect::{FieldDescriptor, Kind as ProstReflectKind};
 use proto_types::FieldType;
 use syn::Error;
 
@@ -90,7 +90,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::Enum(enum_rules) => {
-      if let Kind::Enum(enum_descriptor) = &field_proto_kind {
+      if let ProstReflectKind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
             let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
@@ -134,49 +134,49 @@ pub fn get_field_rules(
 
 pub fn get_field_type(field_desc: &FieldDescriptor) -> FieldType {
   match field_desc.kind() {
-    Kind::Message(message_desc) => match message_desc.full_name() {
+    ProstReflectKind::Message(message_desc) => match message_desc.full_name() {
       "google.protobuf.Duration" => FieldType::Duration,
       "google.protobuf.Timestamp" => FieldType::Timestamp,
       "google.protobuf.Any" => FieldType::Any,
       _ => FieldType::Message,
     },
-    Kind::Double => FieldType::Double,
-    Kind::Float => FieldType::Float,
-    Kind::Int32 => FieldType::Int32,
-    Kind::Int64 => FieldType::Int64,
-    Kind::Uint32 => FieldType::Uint32,
-    Kind::Uint64 => FieldType::Uint64,
-    Kind::Sint32 => FieldType::Sint32,
-    Kind::Sint64 => FieldType::Sint64,
-    Kind::Fixed32 => FieldType::Fixed32,
-    Kind::Fixed64 => FieldType::Fixed64,
-    Kind::Sfixed32 => FieldType::Sfixed32,
-    Kind::Sfixed64 => FieldType::Sfixed64,
-    Kind::Bool => FieldType::Bool,
-    Kind::String => FieldType::String,
-    Kind::Bytes => FieldType::Bytes,
-    Kind::Enum(_) => FieldType::Enum,
+    ProstReflectKind::Double => FieldType::Double,
+    ProstReflectKind::Float => FieldType::Float,
+    ProstReflectKind::Int32 => FieldType::Int32,
+    ProstReflectKind::Int64 => FieldType::Int64,
+    ProstReflectKind::Uint32 => FieldType::Uint32,
+    ProstReflectKind::Uint64 => FieldType::Uint64,
+    ProstReflectKind::Sint32 => FieldType::Sint32,
+    ProstReflectKind::Sint64 => FieldType::Sint64,
+    ProstReflectKind::Fixed32 => FieldType::Fixed32,
+    ProstReflectKind::Fixed64 => FieldType::Fixed64,
+    ProstReflectKind::Sfixed32 => FieldType::Sfixed32,
+    ProstReflectKind::Sfixed64 => FieldType::Sfixed64,
+    ProstReflectKind::Bool => FieldType::Bool,
+    ProstReflectKind::String => FieldType::String,
+    ProstReflectKind::Bytes => FieldType::Bytes,
+    ProstReflectKind::Enum(_) => FieldType::Enum,
   }
 }
 
-pub fn convert_kind_to_proto_type(kind: &Kind) -> ProtoType {
+pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
   match kind {
-    Kind::Double => ProtoType::Double,
-    Kind::Float => ProtoType::Float,
-    Kind::Int32 => ProtoType::Int32,
-    Kind::Int64 => ProtoType::Int64,
-    Kind::Uint32 => ProtoType::Uint32,
-    Kind::Uint64 => ProtoType::Uint64,
-    Kind::Sint32 => ProtoType::Sint32,
-    Kind::Sint64 => ProtoType::Sint64,
-    Kind::Fixed32 => ProtoType::Fixed32,
-    Kind::Fixed64 => ProtoType::Fixed64,
-    Kind::Sfixed32 => ProtoType::Sfixed32,
-    Kind::Sfixed64 => ProtoType::Sfixed64,
-    Kind::Bool => ProtoType::Bool,
-    Kind::String => ProtoType::String,
-    Kind::Bytes => ProtoType::Bytes,
-    Kind::Message(_) => ProtoType::Message,
-    Kind::Enum(_) => ProtoType::Enum,
+    ProstReflectKind::Double => ProtoType::Double,
+    ProstReflectKind::Float => ProtoType::Float,
+    ProstReflectKind::Int32 => ProtoType::Int32,
+    ProstReflectKind::Int64 => ProtoType::Int64,
+    ProstReflectKind::Uint32 => ProtoType::Uint32,
+    ProstReflectKind::Uint64 => ProtoType::Uint64,
+    ProstReflectKind::Sint32 => ProtoType::Sint32,
+    ProstReflectKind::Sint64 => ProtoType::Sint64,
+    ProstReflectKind::Fixed32 => ProtoType::Fixed32,
+    ProstReflectKind::Fixed64 => ProtoType::Fixed64,
+    ProstReflectKind::Sfixed32 => ProtoType::Sfixed32,
+    ProstReflectKind::Sfixed64 => ProtoType::Sfixed64,
+    ProstReflectKind::Bool => ProtoType::Bool,
+    ProstReflectKind::String => ProtoType::String,
+    ProstReflectKind::Bytes => ProtoType::Bytes,
+    ProstReflectKind::Message(_) => ProtoType::Message,
+    ProstReflectKind::Enum(_) => ProtoType::Enum,
   }
 }

@@ -41,4 +41,6 @@ pub use duration::*;
 mod timestamp;
 pub use timestamp::*;
 
+pub mod cel;
+
 mod field_mask_impls;

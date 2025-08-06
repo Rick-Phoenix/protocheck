@@ -3,7 +3,7 @@ use quote::{quote, ToTokens};
 
 use crate::field_descriptor_proto::Type as ProtoType;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum FieldType {
   Double,
   Float,
@@ -45,8 +45,8 @@ impl FieldType {
   }
 }
 
-impl From<&FieldType> for ProtoType {
-  fn from(value: &FieldType) -> Self {
+impl From<FieldType> for ProtoType {
+  fn from(value: FieldType) -> Self {
     match value {
       FieldType::Double => ProtoType::Double,
       FieldType::Float => ProtoType::Float,
@@ -98,8 +98,8 @@ impl From<ProtoType> for FieldType {
   }
 }
 
-impl From<&FieldType> for i32 {
-  fn from(val: &FieldType) -> Self {
+impl From<FieldType> for i32 {
+  fn from(val: FieldType) -> Self {
     match val {
       FieldType::Double => ProtoType::Double.into(),
       FieldType::Float => ProtoType::Float.into(),

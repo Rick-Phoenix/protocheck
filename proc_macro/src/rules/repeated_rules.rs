@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use prost_reflect::{FieldDescriptor, Kind};
+use prost_reflect::FieldDescriptor;
 use proto_types::protovalidate::FieldRules;
 use protocheck_core::field_data::FieldKind;
 use quote::quote;
@@ -8,7 +8,7 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, protovalidate::Ignore};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::field_is_boxed,
+  extract_validators::{field_is_boxed, field_is_message},
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules},
@@ -29,12 +29,7 @@ pub fn get_repeated_rules(
 
   let field_span = validation_data.field_span;
 
-  let mut item_is_message = false;
-  if let Kind::Message(item_desc) = field_desc.kind() {
-    if !item_desc.full_name().starts_with("google.protobuf") {
-      item_is_message = true;
-    }
-  }
+  let item_is_message = field_is_message(&field_desc.kind());
 
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
@@ -54,7 +49,7 @@ pub fn get_repeated_rules(
     )?);
   }
 
-  if let Some(RulesType::Repeated(repeated_rules)) = field_rules.r#type.as_ref() {
+  if let Some(RulesType::Repeated(ref repeated_rules)) = field_rules.r#type {
     if repeated_rules.unique() {
       if !validation_data.field_kind.is_scalar() {
         return Err(syn::Error::new(
@@ -82,7 +77,7 @@ pub fn get_repeated_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident, #rule_val)
       };
-      let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+      let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
       vec_level_rules.extend(validator_tokens);
     }
@@ -94,7 +89,7 @@ pub fn get_repeated_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident, #rule_val)
       };
-      let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+      let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
       vec_level_rules.extend(validator_tokens);
     }
@@ -116,7 +111,7 @@ pub fn get_repeated_rules(
         ignore_items_validators = true
       } else {
         let mut items_validation_data = validation_data.clone();
-        let individual_item_proto_type = convert_kind_to_proto_type(&field_desc.kind());
+        let individual_item_proto_type = convert_kind_to_proto_type(field_desc.kind());
         items_validation_data.field_kind =
           FieldKind::RepeatedItem(individual_item_proto_type.into());
 

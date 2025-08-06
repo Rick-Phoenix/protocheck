@@ -151,29 +151,29 @@ pub fn extract_oneof_validators(
       let vec_item_context_ident = format_ident!("item_context");
 
       let validation_data = ValidationData {
-        full_name: field.full_name().to_string(),
+        full_name: field.full_name(),
         is_required,
         is_in_oneof: true,
         is_optional: true,
         field_span,
-        rust_name: field_name.to_string(),
-        proto_name: field_name.to_string(),
+        rust_name: field_name,
+        proto_name: field_name,
         tag: field.number(),
         ignore,
         key_type: None,
         value_type: None,
-        violations_ident: violations_ident.clone(),
-        field_context_ident,
-        item_ident,
-        parent_messages_ident: parent_messages_ident.clone(),
-        key_ident,
-        map_value_ident,
-        index_ident,
-        item_rust_ident: item_rust_ident.clone(),
+        violations_ident: &violations_ident,
+        field_context_ident: &field_context_ident,
+        item_ident: &item_ident,
+        parent_messages_ident: &parent_messages_ident,
+        key_ident: &key_ident,
+        map_value_ident: &map_value_ident,
+        index_ident: &index_ident,
+        item_rust_ident: &item_rust_ident,
         field_kind: FieldKind::Single(get_field_type(&field)),
-        map_key_context_ident,
-        map_value_context_ident,
-        vec_item_context_ident,
+        map_key_context_ident: &map_key_context_ident,
+        map_value_context_ident: &map_value_context_ident,
+        vec_item_context_ident: &vec_item_context_ident,
       };
 
       if !field_rules.cel.is_empty() {
@@ -199,15 +199,14 @@ pub fn extract_oneof_validators(
         field_validators.extend(rules);
       }
 
-      if let Kind::Message(field_message_type) = &field.kind() {
-        if !field_message_type
-          .full_name()
-          .starts_with("google.protobuf")
-        {
-          let validator_tokens = validation_data.get_message_field_validator_tokens();
+      if !field_validators.is_empty() {
+        field_validators = validation_data.get_aggregated_validator_tokens(&field_validators);
+      }
 
-          field_validators.extend(validator_tokens);
-        }
+      if field_is_message(&field.kind()) {
+        let validator_tokens = validation_data.get_message_field_validator_tokens();
+
+        field_validators.extend(validator_tokens);
       }
 
       validators.insert(field_ident, field_validators);
@@ -275,15 +274,15 @@ pub fn extract_message_validators(
       })?;
 
     if !message_rules.cel.is_empty() {
-      // validators.extend(get_cel_rules(
-      //   &CelRuleTemplateTarget::Message {
-      //     message_desc,
-      //     parent_messages_ident: &parent_messages_ident,
-      //     violations_ident: &violations_ident,
-      //   },
-      //   &message_rules.cel,
-      //   &mut static_defs,
-      // )?);
+      validators.extend(get_cel_rules(
+        &CelRuleTemplateTarget::Message {
+          message_desc,
+          parent_messages_ident: parent_messages_ident.clone(),
+          violations_ident: violations_ident.clone(),
+        },
+        &message_rules.cel,
+        &mut static_defs,
+      )?);
     }
   }
 
@@ -334,7 +333,7 @@ pub fn extract_message_validators(
     let index_ident = format_ident!("idx");
     let item_ident = format_ident!("item");
     let key_ident = format_ident!("key");
-    let value_ident = format_ident!("val");
+    let map_value_ident = format_ident!("val");
     let map_key_context_ident = format_ident!("key_context");
     let map_value_context_ident = format_ident!("value_context");
     let vec_item_context_ident = format_ident!("item_context");
@@ -369,42 +368,30 @@ pub fn extract_message_validators(
       }
 
       let validation_data = ValidationData {
-        rust_name: field_name.to_string(),
-        proto_name: field_name.to_string(),
+        rust_name: field_name,
+        proto_name: field_name,
         tag: field_tag,
         ignore,
-        full_name: field.full_name().to_string(),
+        full_name: field.full_name(),
         is_required,
         is_in_oneof: false,
         is_optional,
         field_span,
         key_type: None,
         value_type: None,
-        violations_ident: violations_ident.clone(),
-        parent_messages_ident: parent_messages_ident.clone(),
-        item_rust_ident: item_rust_ident.clone(),
-        index_ident,
-        map_value_ident: value_ident,
-        key_ident,
-        item_ident,
-        field_context_ident,
+        violations_ident: &violations_ident,
+        field_context_ident: &field_context_ident,
+        item_ident: &item_ident,
+        parent_messages_ident: &parent_messages_ident,
+        key_ident: &key_ident,
+        map_value_ident: &map_value_ident,
+        index_ident: &index_ident,
+        item_rust_ident: &item_rust_ident,
         field_kind: FieldKind::Single(get_field_type(&field)),
-        map_key_context_ident,
-        map_value_context_ident,
-        vec_item_context_ident,
+        map_key_context_ident: &map_key_context_ident,
+        map_value_context_ident: &map_value_context_ident,
+        vec_item_context_ident: &vec_item_context_ident,
       };
-
-      // if !is_repeated && !is_map && !field_rules.cel.is_empty() {
-      //   field_validators.extend(get_cel_rules(
-      //     &CelRuleTemplateTarget::Field {
-      //       field_desc: &field,
-      //       is_boxed: field_is_boxed(&field, message_desc),
-      //       validation_data: &validation_data,
-      //     },
-      //     &field_rules.cel,
-      //     &mut static_defs,
-      //   )?);
-      // }
 
       let field_rules_type = field_rules.r#type.as_ref();
       if is_repeated {
@@ -419,7 +406,7 @@ pub fn extract_message_validators(
         field_validators.extend(repeated_rules);
       } else if is_map {
         let map_rules = get_map_rules(
-          validation_data,
+          validation_data.clone(),
           &mut static_defs,
           field_rust_enum,
           &field,
@@ -427,33 +414,48 @@ pub fn extract_message_validators(
         )?;
 
         field_validators.extend(map_rules);
-      } else if let Some(rules_type) = field_rules_type {
-        let rules = get_field_rules(
-          &mut static_defs,
-          field_rust_enum,
-          &field,
-          &validation_data,
-          rules_type,
-        )?;
+      } else {
+        if let Some(rules_type) = field_rules_type {
+          let rules = get_field_rules(
+            &mut static_defs,
+            field_rust_enum,
+            &field,
+            &validation_data,
+            rules_type,
+          )?;
 
-        field_validators.extend(rules);
-      } else if let Kind::Message(field_message_desc) = field.kind() {
-        if !field_message_desc
-          .full_name()
-          .starts_with("google.protobuf")
-        {
+          field_validators.extend(rules);
+        }
+
+        if !field_rules.cel.is_empty() {
+          field_validators.extend(get_cel_rules(
+            &CelRuleTemplateTarget::Field {
+              field_desc: &field,
+              is_boxed: field_is_boxed(&field, message_desc),
+              validation_data: &validation_data,
+            },
+            &field_rules.cel,
+            &mut static_defs,
+          )?);
+        }
+
+        if !field_validators.is_empty() {
+          let aggregated_validators =
+            validation_data.get_aggregated_validator_tokens(&field_validators);
+          field_validators = aggregated_validators;
+        } else if is_required {
+          let validator_tokens = validation_data.get_required_only_validator();
+          field_validators.extend(validator_tokens);
+        }
+
+        if field_is_message(&field.kind()) {
           let validator_tokens = validation_data.get_message_field_validator_tokens();
 
           field_validators.extend(validator_tokens);
         }
-      } else if is_required {
-        let validator_tokens = validation_data.get_required_only_validator();
-        field_validators.extend(validator_tokens);
       }
 
-      if !field_validators.is_empty() {
-        validators.extend(field_validators);
-      }
+      validators.extend(field_validators);
     }
   }
 
@@ -463,6 +465,18 @@ pub fn extract_message_validators(
 pub fn field_is_boxed(field_desc: &FieldDescriptor, message_desc: &MessageDescriptor) -> bool {
   if let Kind::Message(field_message_desc) = field_desc.kind() {
     return field_message_desc.full_name() == message_desc.full_name();
+  }
+  false
+}
+
+pub fn field_is_message(field_kind: &Kind) -> bool {
+  if let Kind::Message(field_message_desc) = field_kind {
+    if !field_message_desc
+      .full_name()
+      .starts_with("google.protobuf")
+    {
+      return true;
+    }
   }
   false
 }

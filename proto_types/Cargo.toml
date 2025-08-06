@@ -13,6 +13,7 @@ syn = { workspace = true }
 chrono = { workspace = true }
 base64 = { workspace = true }
 cel-interpreter = { workspace = true }
+thiserror = { workspace = true }
 
 [features]
 std = ["chrono/std"]

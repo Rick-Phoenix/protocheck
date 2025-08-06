@@ -7,13 +7,13 @@ use crate::validation_data::ValidationData;
 pub enum CelRuleTemplateTarget<'a> {
   Message {
     message_desc: &'a MessageDescriptor,
-    parent_messages_ident: &'a Ident,
-    violations_ident: &'a Ident,
+    parent_messages_ident: Ident,
+    violations_ident: Ident,
   },
   Field {
     field_desc: &'a FieldDescriptor,
     is_boxed: bool,
-    validation_data: &'a ValidationData,
+    validation_data: &'a ValidationData<'a>,
   },
 }
 
@@ -39,8 +39,8 @@ impl CelRuleTemplateTarget<'_> {
       CelRuleTemplateTarget::Field {
         validation_data, ..
       } => (
-        &validation_data.parent_messages_ident,
-        &validation_data.violations_ident,
+        validation_data.parent_messages_ident,
+        validation_data.violations_ident,
       ),
       CelRuleTemplateTarget::Message {
         parent_messages_ident,

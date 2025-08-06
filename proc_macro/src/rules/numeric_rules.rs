@@ -18,7 +18,7 @@ pub fn get_numeric_rules<T: NumericRules>(
   let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
 
   if let Some(const_val) = rules.constant() {
-    let validator_tokens = validation_data.get_constant_validator(const_val.to_token_stream());
+    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
 
     tokens.extend(validator_tokens);
 
@@ -35,24 +35,24 @@ pub fn get_numeric_rules<T: NumericRules>(
   let value_ident = validation_data.value_ident();
 
   if !in_list.is_empty() {
-    let validator_tokens = validation_data.get_in_list_validator(quote! { vec![ #(#in_list),* ] });
+    let validator_tokens = validation_data.get_in_list_validator(&quote! { vec![ #(#in_list),* ] });
     tokens.extend(validator_tokens);
   }
 
   if !not_in_list.is_empty() {
     let validator_tokens =
-      validation_data.get_not_in_list_validator(quote! { vec![ #(#not_in_list),* ] });
+      validation_data.get_not_in_list_validator(&quote! { vec![ #(#not_in_list),* ] });
     tokens.extend(validator_tokens);
   }
 
   if let Some(lt_rule) = comparable_rules.less_than {
     match lt_rule {
       ComparableLessThan::Lt(lt_val) => {
-        let validator_tokens = validation_data.get_lt_validator(lt_val.to_token_stream());
+        let validator_tokens = validation_data.get_lt_validator(&lt_val.to_token_stream());
         tokens.extend(validator_tokens);
       }
       ComparableLessThan::Lte(lte_val) => {
-        let validator_tokens = validation_data.get_lte_validator(lte_val.to_token_stream());
+        let validator_tokens = validation_data.get_lte_validator(&lte_val.to_token_stream());
         tokens.extend(validator_tokens);
       }
     };
@@ -61,12 +61,12 @@ pub fn get_numeric_rules<T: NumericRules>(
   if let Some(gt_rule) = comparable_rules.greater_than {
     match gt_rule {
       ComparableGreaterThan::Gt(gt_val) => {
-        let validator_tokens = validation_data.get_gt_validator(gt_val.to_token_stream());
+        let validator_tokens = validation_data.get_gt_validator(&gt_val.to_token_stream());
 
         tokens.extend(validator_tokens);
       }
       ComparableGreaterThan::Gte(gte_val) => {
-        let validator_tokens = validation_data.get_gte_validator(gte_val.to_token_stream());
+        let validator_tokens = validation_data.get_gte_validator(&gte_val.to_token_stream());
 
         tokens.extend(validator_tokens);
       }
@@ -77,7 +77,7 @@ pub fn get_numeric_rules<T: NumericRules>(
     let validator_expression_tokens = quote! {
       #func_tokens(&#field_context_ident, #value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(validator_expression_tokens);
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }

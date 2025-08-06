@@ -40,9 +40,9 @@ impl AnyRules {
     &self,
     field_span: Span,
     error_prefix: &str,
-  ) -> Result<ContainingRules<String>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
+  ) -> Result<ContainingRules<&str>, Error> {
+    let in_list: Vec<&str> = self.r#in.iter().map(|s| s.as_str()).collect();
+    let not_in_list: Vec<&str> = self.not_in.iter().map(|s| s.as_str()).collect();
 
     validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
 
@@ -76,9 +76,9 @@ impl StringRules {
     &self,
     field_span: Span,
     error_prefix: &str,
-  ) -> Result<ContainingRules<String>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
+  ) -> Result<ContainingRules<&str>, Error> {
+    let in_list: Vec<&str> = self.r#in.iter().map(|s| s.as_str()).collect();
+    let not_in_list: Vec<&str> = self.not_in.iter().map(|s| s.as_str()).collect();
 
     validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
 
@@ -95,16 +95,15 @@ impl BytesRules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<(Option<TokenStream>, Option<TokenStream>), Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
+    validate_in_not_in(&self.r#in, &self.not_in, field_span, error_prefix)?;
 
-    validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
-
-    let in_list_lit_byte_str = in_list
+    let in_list_lit_byte_str = self
+      .r#in
       .iter()
       .map(|b| LitByteStr::new(b, Span::call_site()));
 
-    let not_in_list_lit_byte_str = not_in_list
+    let not_in_list_lit_byte_str = self
+      .not_in
       .iter()
       .map(|b| LitByteStr::new(b, Span::call_site()));
 

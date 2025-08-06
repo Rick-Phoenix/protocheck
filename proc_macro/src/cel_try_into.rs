@@ -161,11 +161,11 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #enum_name {
-      pub fn try_into_cel_value(&self) -> Result<(String, ::cel_interpreter::Value), ::protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value(&self) -> Result<(String, ::cel_interpreter::Value), ::protocheck::types::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), ::protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -292,7 +292,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #struct_name {
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, ::protocheck::validators::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::cel_interpreter::Value::Null);
         }
@@ -307,10 +307,10 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
     }
 
     impl TryFrom<#struct_name> for ::cel_interpreter::Value {
-      type Error = ::protocheck::validators::cel::CelConversionError;
+      type Error = ::protocheck::types::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
-        value.clone().try_into_cel_value_recursive(0)
+        value.try_into_cel_value_recursive(0)
       }
     }
   };
@@ -327,8 +327,8 @@ fn type_matches_path(ty: &Type, target_path: &str) -> bool {
 
 fn supports_cel_into(ty: &Type) -> bool {
   is_primitive(ty)
-    || type_matches_path(ty, "protocheck::types::FieldMask")
-    || type_matches_path(ty, "protocheck::types::Empty")
+    || type_matches_path(ty, "::protocheck::types::FieldMask")
+    || type_matches_path(ty, "::protocheck::types::Empty")
 }
 
 fn is_bytes(ty: &Type) -> bool {
