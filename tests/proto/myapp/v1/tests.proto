@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package myapp.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+message Recursive {
+  oneof oneofs {
+    Recursive recursive_oneof = 3 [(buf.validate.field).cel = {
+      id: "id.is_4"
+      message: "id must be 4"
+      expression: "this.id == 4"
+    }];
+
+    int64 tag = 4;
+  }
+
+  option (buf.validate.message).cel = {
+    id: "id.is_2"
+    message: "id must be 2"
+    expression: "this.id == 2"
+  };
+
+  Recursive recursive = 1 [(buf.validate.field).cel = {
+    id: "id.is_3"
+    message: "id must be 3"
+    expression: "this.id == 3"
+  }];
+
+  int64 id = 2;
+}
+
+message DurationMap {
+  map<string, google.protobuf.Duration> duration_map = 1 [(buf.validate.field).map = {
+    values: {
+      duration: {
+        gt: {
+          seconds: 3600
+          nanos: 0
+        }
+      }
+      cel: {
+        id: "duration_map_value"
+        message: "duration map value must be more than 1h"
+        expression: "this > duration('1h')"
+      }
+    }
+  }];
+}
+
+message TimestampMap {
+  map<string, google.protobuf.Timestamp> timestamp_map = 1 [(buf.validate.field).map = {
+    values: {
+      timestamp: {gt_now: true}
+      cel: {
+        id: "timestamp_map_value"
+        message: "timestamp map value must be later than 2023"
+        expression: "this > timestamp('2023-10-27T10:00:00Z')"
+      }
+    }
+  }];
+}
+
+message BasicMap {
+  map<string, string> string_map = 1 [(buf.validate.field).map = {
+    min_pairs: 3
+    keys: {
+      string: {min_len: 3}
+      cel: {
+        id: "map_key_cel"
+        message: "map key has to be 'abc'"
+        expression: "this == 'abc'"
+      }
+    }
+    values: {
+      string: {max_len: 3}
+      cel: {
+        id: "map_value_cel"
+        message: "map value has to be 'abc'"
+        expression: "this == 'abc'"
+      }
+    }
+  }];
+}
+
+message User {
+  enum test_enum {
+    option allow_alias = true;
+
+    UNSPECIFIED = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+    PASSIVE = 2;
+  }
+
+  // message Post {
+  //   oneof post_oneof {
+  //     Post nested_post = 1 [(buf.validate.field).cel = {
+  //       id: "nested_post"
+  //       message: "nested_post.outer_duration"
+  //       expression: "this.outer_duration > duration('1h')"
+  //     }];
+  //     google.protobuf.Duration duration = 5 [(buf.validate.field).cel = {
+  //       id: "duration.more_than_1h"
+  //       message: "duration has to be more than 1h"
+  //       expression: "this > duration('1h')"
+  //     }];
+  //     test_enum oneof_enum_field = 11;
+  //     // bytes bytes_field = 12;
+  //   }
+  //
+  //   google.protobuf.Duration outer_duration = 6;
+  //
+  //   int64 id = 2;
+  // }
+  //
+  // repeated Post posts = 2;
+
+  message Person {
+    string name = 1 [
+      // (buf.validate.field).string = {
+      //   in: [
+      //     "aa",
+      //     "bb"
+      //   ]
+      // },
+      // (buf.validate.field).string.min_len = 1,
+      // (buf.validate.field).cel = {
+      //   id: "rule 1"
+      //   message: "I am rule 1"
+      //   expression: "this == 'gianfranco'"
+      // },
+      // (buf.validate.field).cel = {
+      //   id: "rule 2"
+      //   message: "I am rule 2"
+      //   expression: "this == 'gianpippo'"
+      // },
+      (buf.validate.field).required = true
+    ];
+  }
+
+  option (buf.validate.message).cel = {
+    id: "friend.is_alfonso"
+    message: "friend must be alfonso"
+    expression: "this.friend.name == 'alfonso'"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "duration.more_than_1h"
+    message: "duration has to be more than 1h"
+    expression: "this.duration_field > duration('1h')"
+  };
+
+  google.protobuf.Duration duration_field = 5;
+  Person friend = 2;
+}

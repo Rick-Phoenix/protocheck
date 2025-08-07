@@ -10,10 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let proto_include_paths = &["proto", "proto_deps"];
 
-  let proto_files = &[
-    "proto/myapp/v1/user.proto",
-    // "proto/myapp/v1/post.proto",
-  ];
+  let proto_files = &["proto/myapp/v1/tests.proto"];
 
   let mut config = Config::new();
   config
