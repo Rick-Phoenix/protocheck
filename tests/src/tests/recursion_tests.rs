@@ -1,4 +1,4 @@
-use protocheck::{types::protovalidate::Violations, validators::ProtoValidator};
+use protocheck::types::protovalidate::Violations;
 
 use crate::myapp::v1::{recursive::Oneofs, Recursive};
 

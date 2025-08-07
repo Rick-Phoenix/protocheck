@@ -162,7 +162,7 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
         self.try_into_cel_value_recursive(0)
       }
 
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel_interpreter::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -269,7 +269,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
         OuterType::HashMap { conversion_tokens } => {
           tokens.extend(quote! {
-            let mut field_map: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
+            let mut field_map: ::std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = ::std::collections::HashMap::new();
 
             for (k, v) in &value.#field_ident {
               field_map.insert(k.clone().into(), #conversion_tokens);
@@ -295,12 +295,12 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #struct_name {
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel_interpreter::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::cel_interpreter::Value::Null);
         }
 
-        let mut #fields_map_ident: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
+        let mut #fields_map_ident: ::std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
         let value = self;
 
         #tokens

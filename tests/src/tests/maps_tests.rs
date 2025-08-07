@@ -1,11 +1,8 @@
 use maplit::hashmap;
-use protocheck::{
-  types::{
-    field_descriptor_proto::Type,
-    protovalidate::{field_path_element::Subscript, Violation},
-    Duration, Timestamp,
-  },
-  validators::ProtoValidator,
+use protocheck::types::{
+  field_descriptor_proto::Type,
+  protovalidate::{field_path_element::Subscript, Violation},
+  Duration, Timestamp,
 };
 
 use crate::myapp::v1::{message_map::Person, BasicMap, DurationMap, MessageMap, TimestampMap};

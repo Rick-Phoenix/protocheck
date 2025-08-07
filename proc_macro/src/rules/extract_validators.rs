@@ -311,7 +311,7 @@ pub fn extract_message_validators(
 
       validators.extend(quote! {
         match &self.#item_rust_ident {
-          Some(oneof) => { oneof.nested_validate(#parent_messages_ident, #violations_ident); },
+          Some(oneof) => { oneof.validate(#parent_messages_ident, #violations_ident); },
           None => { #required_check }
         };
       });

@@ -197,7 +197,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     #original_input_as_proc_macro2
 
     impl #oneof_rust_ident {
-      pub fn nested_validate(
+      pub fn validate(
         &self,
         parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
         violations: &mut Vec<protocheck::types::protovalidate::Violation>,

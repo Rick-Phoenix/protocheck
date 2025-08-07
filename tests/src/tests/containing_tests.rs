@@ -1,9 +1,6 @@
-use protocheck::{
-  types::{
-    protovalidate::{Violation, Violations},
-    Duration,
-  },
-  validators::ProtoValidator,
+use protocheck::types::{
+  protovalidate::{Violation, Violations},
+  Duration,
 };
 
 use crate::myapp::v1::ContainingTests;

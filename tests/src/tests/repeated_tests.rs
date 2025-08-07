@@ -1,7 +1,4 @@
-use protocheck::{
-  types::{field_descriptor_proto::Type, protovalidate::Violation},
-  validators::ProtoValidator,
-};
+use protocheck::types::{field_descriptor_proto::Type, protovalidate::Violation};
 
 use crate::myapp::v1::{repeated_test::Person, RepeatedTest};
 
