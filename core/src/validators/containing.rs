@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
-use proto_types::Any;
+use proto_types::{Any, Duration};
 
 use crate::{
   field_data::FieldContext,
@@ -10,6 +10,57 @@ use crate::{
     not_in_rules::get_not_in_rule_path,
   },
 };
+
+pub fn duration_in_list(
+  field_context: &FieldContext,
+  value: Duration,
+  target: &'static HashSet<Duration>,
+) -> Result<(), Violation> {
+  let check = target.contains(&value);
+  if check {
+    Ok(())
+  } else {
+    let mut list_str = String::new();
+
+    for (i, d) in target.iter().enumerate() {
+      list_str.push_str(&d.display_full());
+
+      if i != target.len() - 1 {
+        list_str.push_str(", ");
+      }
+    }
+
+    let values_list_string = format!("has to be one of these values: [ {} ]", list_str);
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
+}
+
+pub fn duration_not_in_list(
+  field_context: &FieldContext,
+  value: Duration,
+  target: &'static HashSet<Duration>,
+) -> Result<(), Violation> {
+  let check = !target.contains(&value);
+  if check {
+    Ok(())
+  } else {
+    let mut list_str = String::new();
+
+    for (i, d) in target.iter().enumerate() {
+      list_str.push_str(&d.display_full());
+
+      if i != target.len() - 1 {
+        list_str.push_str(", ");
+      }
+    }
+
+    let values_list_string = format!("cannot be one of these values: [ {} ]", list_str);
+    Err(create_not_in_list_violation(
+      field_context,
+      &values_list_string,
+    ))
+  }
+}
 
 pub fn string_in_list(
   field_context: &FieldContext,
