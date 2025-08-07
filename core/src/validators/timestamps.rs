@@ -18,7 +18,7 @@ pub fn within(
   if check {
     Ok(())
   } else {
-    let error_message = format!("has to be within {} from now", time_range.display_full(),);
+    let error_message = format!("has to be within {} from now", time_range,);
 
     Err(create_violation(
       field_context,

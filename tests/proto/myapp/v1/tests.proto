@@ -36,6 +36,10 @@ message ContainingTests {
       {
         seconds: 3600
         nanos: 0
+      },
+      {
+        seconds: 5800
+        nanos: 19001
       }
     ]
     not_in: [

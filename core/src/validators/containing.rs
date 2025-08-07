@@ -23,7 +23,7 @@ pub fn duration_in_list(
     let mut list_str = String::new();
 
     for (i, d) in target.iter().enumerate() {
-      list_str.push_str(&d.display_full());
+      list_str.push_str(&d.to_string());
 
       if i != target.len() - 1 {
         list_str.push_str(", ");
@@ -47,7 +47,7 @@ pub fn duration_not_in_list(
     let mut list_str = String::new();
 
     for (i, d) in target.iter().enumerate() {
-      list_str.push_str(&d.display_full());
+      list_str.push_str(&d.to_string());
 
       if i != target.len() - 1 {
         list_str.push_str(", ");

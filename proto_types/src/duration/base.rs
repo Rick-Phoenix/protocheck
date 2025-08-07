@@ -130,31 +130,6 @@ impl TryFrom<Duration> for time::Duration {
   }
 }
 
-impl fmt::Display for Duration {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let d = self.normalized();
-
-    if self.seconds < 0 || self.nanos < 0 {
-      write!(f, "-")?;
-    }
-
-    write!(f, "{}", d.seconds.abs())?;
-
-    // Format subseconds to either nothing, millis, micros, or nanos.
-    let nanos = d.nanos.abs();
-
-    if nanos == 0 {
-      write!(f, "s")
-    } else if nanos % 1_000_000 == 0 {
-      write!(f, ".{:03}s", nanos / 1_000_000)
-    } else if nanos % 1_000 == 0 {
-      write!(f, ".{:06}s", nanos / 1_000)
-    } else {
-      write!(f, ".{:09}s", nanos)
-    }
-  }
-}
-
 /// A duration handling error.
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]

@@ -1,9 +1,11 @@
 #![allow(clippy::option_map_unit_fn)]
+use std::fmt::Display;
+
 use super::DurationData;
 use crate::Duration;
 
-impl Duration {
-  pub fn display_full(&self) -> String {
+impl Display for Duration {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let DurationData {
       months,
       days,
@@ -25,16 +27,18 @@ impl Duration {
     seconds.format_if_nonzero().map(|p| parts.push(p));
 
     if parts.is_empty() {
-      return "0 seconds".to_string();
-    }
+      write!(f, "0 seconds")
+    } else {
+      let formatted_string = match parts.len() {
+        1 => parts.remove(0),
+        2 => format!("{}{} and {}", sign, parts[0], parts[1]),
+        _ => {
+          let last = parts.pop().unwrap();
+          format!("{}{} and {}", sign, parts.join(" "), last)
+        }
+      };
 
-    match parts.len() {
-      1 => parts.remove(0),
-      2 => format!("{}{} and {}", sign, parts[0], parts[1]),
-      _ => {
-        let last = parts.pop().unwrap();
-        format!("{}{}, and {}", sign, parts.join(", "), last)
-      }
+      write!(f, "{}", formatted_string)
     }
   }
 }

@@ -1,10 +1,11 @@
 mod base;
 pub use base::*;
-mod duration_data;
 mod duration_impls;
-mod format_helpers;
+
+mod formatting;
+
+mod duration_data;
+pub use duration_data::*;
 
 mod duration_units;
-
-use duration_data::*;
-use duration_units::*;
+pub use duration_units::*;
