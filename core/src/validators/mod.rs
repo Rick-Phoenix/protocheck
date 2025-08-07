@@ -1,12 +1,7 @@
-use crate::protovalidate::{FieldPathElement, Violation, Violations};
+use crate::protovalidate::{FieldPathElement, Violations};
 
 pub trait ProtoValidator {
   fn validate(&self) -> Result<(), Violations>;
-  fn nested_validate(
-    &self,
-    parent_messages: &mut Vec<FieldPathElement>,
-    violations: &mut Vec<Violation>,
-  );
 }
 
 pub mod bytes;

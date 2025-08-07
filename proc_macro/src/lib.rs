@@ -76,8 +76,8 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 
     #original_input_as_proc_macro2
 
-    impl protocheck::validators::ProtoValidator for #struct_ident {
-      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+    impl #struct_ident {
+      pub fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
         let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
         let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
 
@@ -89,7 +89,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
         Ok(())
       }
 
-      fn nested_validate(
+      pub fn nested_validate(
         &self,
         parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
         violations: &mut Vec<protocheck::types::protovalidate::Violation>
@@ -97,6 +97,12 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 
         #validators
 
+      }
+    }
+
+    impl protocheck::validators::ProtoValidator for #struct_ident {
+      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+        self.validate()
       }
     }
   };
@@ -190,12 +196,8 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
     #original_input_as_proc_macro2
 
-    impl protocheck::validators::ProtoValidator for #oneof_rust_ident {
-      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
-        Ok(())
-      }
-
-      fn nested_validate(
+    impl #oneof_rust_ident {
+      pub fn nested_validate(
         &self,
         parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
         violations: &mut Vec<protocheck::types::protovalidate::Violation>,
