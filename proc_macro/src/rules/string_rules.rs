@@ -58,7 +58,10 @@ pub fn get_string_rules(
       )
     })?;
 
-    let static_regex_ident = format_ident!("__{}_REGEX", field_desc.full_name());
+    let static_regex_ident = format_ident!(
+      "__{}_REGEX",
+      field_desc.full_name().replace(".", "_").to_uppercase()
+    );
     static_defs.push(quote! {
       static #static_regex_ident: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
         regex::Regex::new(#pattern).unwrap()
@@ -66,7 +69,7 @@ pub fn get_string_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::pattern(&#field_context_ident, #value_ident, &#static_regex_ident)
+      protocheck::validators::strings::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -75,7 +78,7 @@ pub fn get_string_rules(
 
   if !in_list.is_empty() {
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_in_list(&#field_context_ident, #value_ident, &[ #(#in_list),* ])
+      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &[ #(#in_list),* ])
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -84,7 +87,7 @@ pub fn get_string_rules(
 
   if !not_in_list.is_empty() {
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_not_in_list(&#field_context_ident, #value_ident, &[ #(#not_in_list),*])
+      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &[ #(#not_in_list),*])
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -93,7 +96,7 @@ pub fn get_string_rules(
 
   if let Some(len_value) = len {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::len(&#field_context_ident, #value_ident, #len_value)
+      protocheck::validators::strings::len(&#field_context_ident, &#value_ident, #len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -102,7 +105,7 @@ pub fn get_string_rules(
 
   if let Some(min_len_value) = min_len {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::min_len(&#field_context_ident, #value_ident, #min_len_value)
+      protocheck::validators::strings::min_len(&#field_context_ident, &#value_ident, #min_len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -111,7 +114,7 @@ pub fn get_string_rules(
 
   if let Some(max_len_value) = max_len {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::max_len(&#field_context_ident, #value_ident, #max_len_value)
+      protocheck::validators::strings::max_len(&#field_context_ident, &#value_ident, #max_len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -120,7 +123,7 @@ pub fn get_string_rules(
 
   if let Some(len_bytes_val) = len_bytes {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::len_bytes(&#field_context_ident, #value_ident, #len_bytes_val)
+      protocheck::validators::strings::len_bytes(&#field_context_ident, &#value_ident, #len_bytes_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -129,7 +132,7 @@ pub fn get_string_rules(
 
   if let Some(min_bytes_val) = min_bytes {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::min_bytes(&#field_context_ident, #value_ident, #min_bytes_val)
+      protocheck::validators::strings::min_bytes(&#field_context_ident, &#value_ident, #min_bytes_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -138,7 +141,7 @@ pub fn get_string_rules(
 
   if let Some(max_bytes_val) = max_bytes {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::max_bytes(&#field_context_ident, #value_ident, #max_bytes_val)
+      protocheck::validators::strings::max_bytes(&#field_context_ident, &#value_ident, #max_bytes_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -147,7 +150,7 @@ pub fn get_string_rules(
 
   if let Some(ref contains_val) = rules.contains {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::contains(&#field_context_ident, #value_ident, #contains_val)
+      protocheck::validators::strings::contains(&#field_context_ident, &#value_ident, #contains_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -156,7 +159,7 @@ pub fn get_string_rules(
 
   if let Some(ref not_contains_val) = rules.not_contains {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::not_contains(&#field_context_ident, #value_ident, #not_contains_val)
+      protocheck::validators::strings::not_contains(&#field_context_ident, &#value_ident, #not_contains_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -165,7 +168,7 @@ pub fn get_string_rules(
 
   if let Some(ref prefix_val) = rules.prefix {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::prefix(&#field_context_ident, #value_ident, #prefix_val)
+      protocheck::validators::strings::prefix(&#field_context_ident, &#value_ident, #prefix_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -174,7 +177,7 @@ pub fn get_string_rules(
 
   if let Some(ref suffix_val) = rules.suffix {
     let validator_expression_tokens = quote! {
-      protocheck::validators::strings::suffix(&#field_context_ident, #value_ident, #suffix_val)
+      protocheck::validators::strings::suffix(&#field_context_ident, &#value_ident, #suffix_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -215,7 +218,7 @@ pub fn get_string_rules(
     if let Some(validator_func) = validator_path {
       let strict_arg = is_strict.map(|bool| quote! { , #bool });
       let validator_expression_tokens = quote! {
-        protocheck::validators::strings::#validator_func(&#field_context_ident, #value_ident #strict_arg)
+        protocheck::validators::strings::#validator_func(&#field_context_ident, &#value_ident #strict_arg)
       };
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 

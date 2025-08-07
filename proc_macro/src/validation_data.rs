@@ -1,9 +1,10 @@
 use proc_macro2::TokenStream;
+use prost_reflect::FieldDescriptor;
 use proto_types::{protovalidate::Ignore, FieldType};
 use protocheck_core::field_data::FieldKind;
 use quote::quote;
 
-use crate::{Ident2, ProtoType, Span2};
+use crate::{rules::core::get_field_type, Ident2, ProtoType, Span2};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData<'a> {
@@ -16,9 +17,9 @@ pub(crate) struct ValidationData<'a> {
   pub is_optional: bool,
   pub is_in_oneof: bool,
   pub field_span: Span2,
-  pub key_type: Option<ProtoType>,
-  pub value_type: Option<ProtoType>,
-  pub key_ident: &'a Ident2,
+  pub map_key_type: Option<ProtoType>,
+  pub map_value_type: Option<ProtoType>,
+  pub map_key_ident: &'a Ident2,
   pub map_value_ident: &'a Ident2,
   pub index_ident: &'a Ident2,
   pub item_ident: &'a Ident2,
@@ -42,10 +43,10 @@ pub struct RepeatedValidator {
 
 pub struct MapValidator {
   pub map_level_rules: TokenStream,
-  pub key_rules: TokenStream,
-  pub key_context_tokens: TokenStream,
-  pub value_rules: TokenStream,
-  pub value_context_tokens: TokenStream,
+  pub keys_rules: TokenStream,
+  pub keys_context_tokens: TokenStream,
+  pub values_rules: TokenStream,
+  pub values_context_tokens: TokenStream,
 }
 
 impl ValidationData<'_> {
@@ -82,13 +83,13 @@ impl ValidationData<'_> {
   pub fn aggregate_map_rules(&self, rules_data: &MapValidator) -> TokenStream {
     let MapValidator {
       map_level_rules,
-      key_rules,
-      value_rules,
-      key_context_tokens,
-      value_context_tokens,
+      keys_rules: key_rules,
+      values_rules: value_rules,
+      keys_context_tokens: key_context_tokens,
+      values_context_tokens: value_context_tokens,
     } = rules_data;
 
-    let key_ident = &self.key_ident;
+    let key_ident = &self.map_key_ident;
     let map_value_ident = &self.map_value_ident;
     let item_rust_ident = &self.item_rust_ident;
 
@@ -124,6 +125,29 @@ impl ValidationData<'_> {
     }
   }
 
+  pub fn to_map_key(&'_ self, field_type: FieldType, ignore: Ignore) -> ValidationData<'_> {
+    let mut key_validation_data = self.clone();
+    key_validation_data.field_kind = FieldKind::MapKey(field_type);
+    key_validation_data.ignore = ignore;
+
+    key_validation_data
+  }
+
+  pub fn to_map_value(&'_ self, field_type: FieldType, ignore: Ignore) -> ValidationData<'_> {
+    let mut value_validation_data = self.clone();
+    value_validation_data.field_kind = FieldKind::MapValue(field_type);
+    value_validation_data.ignore = ignore;
+
+    value_validation_data
+  }
+
+  pub fn to_repeated_item(&'_ self, field_desc: &FieldDescriptor) -> ValidationData<'_> {
+    let mut items_validation_data = self.clone();
+    items_validation_data.field_kind = FieldKind::RepeatedItem(get_field_type(field_desc));
+
+    items_validation_data
+  }
+
   pub fn aggregate_vec_rules(&self, rules_data: &RepeatedValidator) -> TokenStream {
     let index_ident = &self.index_ident;
     let item_ident = &self.item_ident;
@@ -139,6 +163,7 @@ impl ValidationData<'_> {
     } = rules_data;
 
     let field_context_tokens = self.field_context_tokens();
+    let field_context_ident = self.vec_item_context_ident;
 
     let values_hashset_tokens = unique_values.then_some(quote! {
       let mut processed_values = std::collections::HashSet::new();
@@ -157,7 +182,7 @@ impl ValidationData<'_> {
 
       quote! {
         if !not_unique {
-          match protocheck::validators::repeated::#func_name(&field_context, #item_ident, &mut #hashset_ident) {
+          match protocheck::validators::repeated::#func_name(&#field_context_ident, #item_ident, &mut #hashset_ident) {
             Ok(_) => {},
             Err(v) => {
               #not_unique = true;
@@ -182,9 +207,9 @@ impl ValidationData<'_> {
 
     quote! {
       #vec_level_field_context
+      #values_hashset_tokens
       #vec_level_rules
 
-      #values_hashset_tokens
       #loop_tokens
     }
   }
@@ -276,7 +301,6 @@ impl ValidationData<'_> {
     let field_proto_name = &self.proto_name;
     let field_tag = self.tag;
     let field_proto_type: ProtoType = self.field_kind.inner_type().into();
-    let item_rust_ident = self.item_rust_ident;
     let value_ident = self.value_ident();
 
     let nested_key_type = self.key_type_tokens_as_i32();
@@ -295,24 +319,12 @@ impl ValidationData<'_> {
       };
     };
 
-    if self.is_option() {
-      quote! {
-        if let Some(msg) = &self.#item_rust_ident {
-          let current_nested_field_element = #field_path_element_tokens;
+    quote! {
+      let current_nested_field_element = #field_path_element_tokens;
 
-          #parent_messages_ident.push(current_nested_field_element);
-          msg.nested_validate(#parent_messages_ident, #violations_ident);
-          #parent_messages_ident.pop();
-        }
-      }
-    } else {
-      quote! {
-        let current_nested_field_element = #field_path_element_tokens;
-
-        #parent_messages_ident.push(current_nested_field_element);
-        #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
-        #parent_messages_ident.pop();
-      }
+      #parent_messages_ident.push(current_nested_field_element);
+      #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
+      #parent_messages_ident.pop();
     }
   }
 
@@ -378,26 +390,26 @@ impl ValidationData<'_> {
   }
 
   pub fn key_type_tokens(&self) -> TokenStream {
-    self.key_type.map_or(quote! { None }, |key_type| {
+    self.map_key_type.map_or(quote! { None }, |key_type| {
       quote! { Some(#key_type) }
     })
   }
 
   pub fn key_type_tokens_as_i32(&self) -> TokenStream {
     self
-      .key_type
+      .map_key_type
       .map_or(quote! { None }, |k| quote! { Some(#k as i32) })
   }
 
   pub fn value_type_tokens(&self) -> TokenStream {
-    self.value_type.map_or(quote! { None }, |value_type| {
+    self.map_value_type.map_or(quote! { None }, |value_type| {
       quote! { Some(#value_type) }
     })
   }
 
   pub fn value_type_tokens_as_i32(&self) -> TokenStream {
     self
-      .value_type
+      .map_value_type
       .map_or(quote! { None }, |v| quote! { Some(#v as i32) })
   }
 
@@ -408,8 +420,8 @@ impl ValidationData<'_> {
         quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
       FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
-        if let Some(key_type_enum) = self.key_type {
-          let key_subscript_tokens = generate_key_subscript(&key_type_enum, self.key_ident);
+        if let Some(key_type_enum) = self.map_key_type {
+          let key_subscript_tokens = generate_key_subscript(&key_type_enum, self.map_key_ident);
           quote! { Some(#key_subscript_tokens) }
         } else {
           quote! { compile_error!("Map key type is missing during macro expansion.") }
@@ -422,7 +434,7 @@ impl ValidationData<'_> {
   pub fn value_ident(&self) -> TokenStream {
     let Self {
       item_rust_ident,
-      key_ident,
+      map_key_ident: key_ident,
       map_value_ident,
       item_ident,
       ..
@@ -432,16 +444,10 @@ impl ValidationData<'_> {
       FieldKind::MapKey(_) => quote! { #key_ident },
       FieldKind::MapValue(_) => quote! { #map_value_ident },
       _ => {
-        let val_tokens = if self.is_optional || self.is_in_oneof {
+        if self.is_optional || self.is_in_oneof {
           quote! { val }
         } else {
           quote! { self.#item_rust_ident }
-        };
-
-        if matches!(self.field_kind.inner_type(), FieldType::String) {
-          quote! { &#val_tokens }
-        } else {
-          val_tokens
         }
       }
     }

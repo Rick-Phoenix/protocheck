@@ -7,12 +7,12 @@ use crate::{
   ProtoType,
 };
 
-pub fn min_items<T>(
+pub fn min_items(
   field_context: &FieldContext,
-  value: &[T],
+  value: usize,
   min_items: u64,
 ) -> Result<(), Violation> {
-  let check = value.len() >= min_items as usize;
+  let check = value >= min_items as usize;
 
   if check {
     Ok(())
@@ -29,12 +29,12 @@ pub fn min_items<T>(
   }
 }
 
-pub fn max_items<T>(
+pub fn max_items(
   field_context: &FieldContext,
-  value: &[T],
+  value: usize,
   max_items: u64,
 ) -> Result<(), Violation> {
-  let check = value.len() <= max_items as usize;
+  let check = value <= max_items as usize;
 
   if check {
     Ok(())
@@ -87,6 +87,20 @@ impl FloatBits for f32 {
 }
 
 impl FloatBits for f64 {
+  type Bits = u64;
+  fn to_bits_for_unique_check(&self) -> u64 {
+    self.to_bits()
+  }
+}
+
+impl FloatBits for &f32 {
+  type Bits = u32;
+  fn to_bits_for_unique_check(&self) -> u32 {
+    self.to_bits()
+  }
+}
+
+impl FloatBits for &f64 {
   type Bits = u64;
   fn to_bits_for_unique_check(&self) -> u64 {
     self.to_bits()

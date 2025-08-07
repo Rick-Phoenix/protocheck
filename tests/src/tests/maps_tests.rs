@@ -1,12 +1,69 @@
 use maplit::hashmap;
 use protocheck::{
   types::{
-    field_descriptor_proto::Type, protovalidate::field_path_element::Subscript, Duration, Timestamp,
+    field_descriptor_proto::Type,
+    protovalidate::{field_path_element::Subscript, Violation},
+    Duration, Timestamp,
   },
   validators::ProtoValidator,
 };
 
-use crate::myapp::v1::{BasicMap, DurationMap, TimestampMap};
+use crate::myapp::v1::{message_map::Person, BasicMap, DurationMap, MessageMap, TimestampMap};
+
+#[test]
+fn message_map() {
+  let person = Person {
+    name: "lucrezio".to_string(),
+  };
+
+  let message_map = hashmap! {
+    1 => person.clone(),
+    2 => person.clone()
+  };
+
+  let msg = MessageMap { message_map };
+
+  let result = msg.validate().unwrap_err();
+
+  assert_eq!(result.violations.len(), 6);
+
+  let message_level_violations: Vec<&Violation> = result
+    .violations
+    .iter()
+    .filter(|v| v.rule_id() == "message.person_name")
+    .collect();
+
+  assert_eq!(message_level_violations.len(), 2);
+
+  for v in &message_level_violations {
+    assert_eq!(v.rule_path().unwrap(), "cel");
+  }
+
+  let message_field_violations: Vec<&Violation> = result
+    .violations
+    .iter()
+    .filter(|v| v.rule_id() == "message_field.person_name")
+    .collect();
+
+  assert_eq!(message_field_violations.len(), 2);
+
+  for v in &message_field_violations {
+    assert_eq!(v.parent_field().unwrap().field_name(), "message_map");
+    assert_eq!(v.rule_path().unwrap(), "cel");
+  }
+
+  let field_level_violations: Vec<&Violation> = result
+    .violations
+    .iter()
+    .filter(|v| v.rule_id() == "map_value.person_name")
+    .collect();
+
+  assert_eq!(field_level_violations.len(), 2);
+
+  for v in &field_level_violations {
+    assert_eq!(v.rule_path().unwrap(), "map.values.cel");
+  }
+}
 
 #[test]
 fn timestamp_map() {
@@ -203,4 +260,21 @@ fn basic_map() {
     Some(Subscript::StringKey("hi".to_string()))
   );
   assert_eq!(values_cel_violation.for_key(), false);
+
+  let excess_pairs_map = hashmap! {
+    "abc1".to_string() => "abc".to_string(),
+    "abc2".to_string() => "abc".to_string(),
+    "abc3".to_string() => "abc".to_string(),
+  };
+
+  let msg = BasicMap {
+    string_map: excess_pairs_map,
+  };
+
+  let result = msg.validate().unwrap_err();
+
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "map.max_pairs"));
 }

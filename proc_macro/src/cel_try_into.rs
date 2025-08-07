@@ -20,11 +20,13 @@ enum OuterType {
 
 fn get_conversion_tokens(ty: &Type) -> TokenStream2 {
   if supports_cel_into(ty) {
-    quote! { to_owned().into() }
+    quote! { v.to_owned().into() }
   } else if is_bytes(ty) {
-    quote! { to_vec().into() }
+    quote! { v.to_vec().into() }
+  } else if is_f32(ty) {
+    quote! { (*v as f64).into() }
   } else {
-    quote! { to_owned().try_into()? }
+    quote! { v.to_owned().try_into()? }
   }
 }
 
@@ -63,15 +65,12 @@ impl TryFrom<&Type> for OuterType {
 
 fn get_inner_type(ty: &Type) -> Result<&Type, ()> {
   let mut output: Option<&Type> = None;
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
-      if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
-        if let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last()
+      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
           output = Some(inner_type);
         }
-      }
-    }
-  }
 
   if let Some(output_type) = output {
     Ok(output_type)
@@ -82,15 +81,12 @@ fn get_inner_type(ty: &Type) -> Result<&Type, ()> {
 
 fn get_hashmap_value_type(ty: &Type) -> Result<&Type, ()> {
   let mut hashmap_value_type: Option<&Type> = None;
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
-      if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
-        if let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last()
+      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
           hashmap_value_type = Some(value_type);
         }
-      }
-    }
-  }
 
   if let Some(output_type) = hashmap_value_type {
     Ok(output_type)
@@ -134,19 +130,19 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
       }
     }
 
-    if let syn::Fields::Unnamed(fields) = &variant.fields {
-      if let Some(variant_type) = &fields.unnamed.get(0) {
+    if let syn::Fields::Unnamed(fields) = &variant.fields
+      && let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
 
         let into_expression = if is_box(type_ident) {
-          quote! { (*oneof_val).try_into_cel_value_recursive(depth + 1)? }
+          quote! { (*v).try_into_cel_value_recursive(depth + 1)? }
         } else {
           let conversion_tokens = get_conversion_tokens(type_ident);
-          quote! { oneof_val.#conversion_tokens }
+          quote! { #conversion_tokens }
         };
 
         let arm = quote! {
-          #enum_name::#variant_ident(oneof_val) => {
+          #enum_name::#variant_ident(v) => {
             if depth >= #max_recursion_depth {
               Ok((#proto_name.to_string(), ::cel_interpreter::Value::Null))
             } else {
@@ -156,7 +152,6 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
         };
         match_arms.push(arm);
       }
-    }
   }
 
   let expanded = quote! {
@@ -252,7 +247,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           } else {
             tokens.extend(quote! {
               if let Some(v) = &value.#field_ident {
-                #fields_map_ident.insert(#field_name.into(), v.#conversion_tokens);
+                #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
               } else {
                 #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
               }
@@ -262,8 +257,8 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         OuterType::Vec { conversion_tokens } => {
           tokens.extend(quote! {
             let mut converted: Vec<::cel_interpreter::Value> = Vec::new();
-            for item in &value.#field_ident {
-              converted.push(item.#conversion_tokens);
+            for v in &value.#field_ident {
+              converted.push(#conversion_tokens);
             }
 
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::List(converted.into()));
@@ -275,7 +270,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             let mut field_map: std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = std::collections::HashMap::new();
 
             for (k, v) in &value.#field_ident {
-              field_map.insert(k.clone().into(), v.#conversion_tokens);
+              field_map.insert(k.clone().into(), #conversion_tokens);
             }
 
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
@@ -336,44 +331,48 @@ fn is_bytes(ty: &Type) -> bool {
 }
 
 fn is_option(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
       return segment.ident == "Option";
     }
-  }
   false
 }
 
 fn is_box(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
       return segment.ident == "Box";
     }
-  }
   false
 }
 
 fn is_vec(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
       return segment.ident == "Vec";
     }
-  }
   false
 }
 
 fn is_hashmap(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
       return segment.ident == "HashMap";
     }
-  }
+  false
+}
+
+fn is_f32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "f32";
+    }
   false
 }
 
 fn is_primitive(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty {
-    if let Some(segment) = type_path.path.segments.last() {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
       let type_name = segment.ident.to_string();
 
       return matches!(
@@ -389,13 +388,11 @@ fn is_primitive(ty: &Type) -> bool {
           | "u32"
           | "u64"
           | "u128"
-          | "f32"
           | "f64"
           | "char"
           | "str"
           | "String"
       );
     }
-  }
   false
 }

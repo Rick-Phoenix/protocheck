@@ -175,6 +175,20 @@ impl FloatBits for f64 {
   }
 }
 
+impl FloatBits for &f32 {
+  type Bits = u32;
+  fn to_bits_for_unique_check(&self) -> u32 {
+    self.to_bits()
+  }
+}
+
+impl FloatBits for &f64 {
+  type Bits = u64;
+  fn to_bits_for_unique_check(&self) -> u64 {
+    self.to_bits()
+  }
+}
+
 pub(crate) fn validate_in_not_in_floats<T, B>(
   in_list: &[T],
   not_in_list: &[T],

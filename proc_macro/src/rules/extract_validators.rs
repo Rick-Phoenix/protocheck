@@ -160,13 +160,13 @@ pub fn extract_oneof_validators(
         proto_name: field_name,
         tag: field.number(),
         ignore,
-        key_type: None,
-        value_type: None,
+        map_key_type: None,
+        map_value_type: None,
         violations_ident: &violations_ident,
         field_context_ident: &field_context_ident,
         item_ident: &item_ident,
         parent_messages_ident: &parent_messages_ident,
-        key_ident: &key_ident,
+        map_key_ident: &key_ident,
         map_value_ident: &map_value_ident,
         index_ident: &index_ident,
         item_rust_ident: &item_rust_ident,
@@ -320,11 +320,10 @@ pub fn extract_message_validators(
 
   // Field Rules
   for field in message_desc.fields() {
-    if let Some(containing_oneof) = field.containing_oneof().as_ref() {
-      if !containing_oneof.is_synthetic() {
+    if let Some(containing_oneof) = field.containing_oneof().as_ref()
+      && !containing_oneof.is_synthetic() {
         continue;
       }
-    }
 
     let mut field_validators = TokenStream::new();
 
@@ -377,13 +376,13 @@ pub fn extract_message_validators(
         is_in_oneof: false,
         is_optional,
         field_span,
-        key_type: None,
-        value_type: None,
+        map_key_type: None,
+        map_value_type: None,
         violations_ident: &violations_ident,
         field_context_ident: &field_context_ident,
         item_ident: &item_ident,
         parent_messages_ident: &parent_messages_ident,
-        key_ident: &key_ident,
+        map_key_ident: &key_ident,
         map_value_ident: &map_value_ident,
         index_ident: &index_ident,
         item_rust_ident: &item_rust_ident,
@@ -439,18 +438,18 @@ pub fn extract_message_validators(
           )?);
         }
 
+        if field_is_message(&field.kind()) {
+          let validator_tokens = validation_data.get_message_field_validator_tokens();
+
+          field_validators.extend(validator_tokens);
+        }
+
         if !field_validators.is_empty() {
           let aggregated_validators =
             validation_data.get_aggregated_validator_tokens(&field_validators);
           field_validators = aggregated_validators;
         } else if is_required {
           let validator_tokens = validation_data.get_required_only_validator();
-          field_validators.extend(validator_tokens);
-        }
-
-        if field_is_message(&field.kind()) {
-          let validator_tokens = validation_data.get_message_field_validator_tokens();
-
           field_validators.extend(validator_tokens);
         }
       }
@@ -470,13 +469,12 @@ pub fn field_is_boxed(field_desc: &FieldDescriptor, message_desc: &MessageDescri
 }
 
 pub fn field_is_message(field_kind: &Kind) -> bool {
-  if let Kind::Message(field_message_desc) = field_kind {
-    if !field_message_desc
+  if let Kind::Message(field_message_desc) = field_kind
+    && !field_message_desc
       .full_name()
       .starts_with("google.protobuf")
     {
       return true;
     }
-  }
   false
 }

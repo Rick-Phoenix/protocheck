@@ -34,11 +34,10 @@ pub fn header_name(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_http_header_name(value, strict);
 
@@ -441,18 +440,17 @@ pub fn pattern(
   value: &str,
   pattern: &Regex,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = pattern.is_match(value);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("match the following regex: `{}`", pattern);
+    let error_message = format!("must match the following regex: `{}`", pattern);
     Err(create_violation(
       field_context,
       &STRING_PATTERN_VIOLATION,
@@ -463,11 +461,10 @@ pub fn pattern(
 }
 
 pub fn contains(field_context: &FieldContext, value: &str, pattern: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.contains(pattern);
 
@@ -489,11 +486,10 @@ pub fn not_contains(
   value: &str,
   pattern: &str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = !value.contains(pattern);
 
@@ -511,11 +507,10 @@ pub fn not_contains(
 }
 
 pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.starts_with(prefix);
 
@@ -533,11 +528,10 @@ pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result
 }
 
 pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.ends_with(suffix);
 
@@ -581,11 +575,10 @@ pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Resul
 }
 
 pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.chars().count() >= min_len as usize;
 
@@ -680,11 +673,10 @@ pub fn min_bytes(
 }
 
 pub fn max_bytes(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.len() <= max_len as usize;
 

@@ -8,6 +8,50 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
+message ContainingTests {
+  string name = 1 [(buf.validate.field).string = {
+    in: [
+      "alfredo",
+      "maurizio"
+    ]
+  }];
+}
+
+message StringTests {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string regex_test = 2 [(buf.validate.field).string.pattern = "^abc$"];
+  string contains_test = 3 [(buf.validate.field).string.contains = "abc"];
+  string not_contains_test = 4 [(buf.validate.field).string.not_contains = "abc"];
+  string prefix_test = 5 [(buf.validate.field).string.prefix = "abc"];
+  string suffix_test = 6 [(buf.validate.field).string.suffix = "abc"];
+}
+
+message RepeatedTest {
+  message Person {
+    option (buf.validate.message).cel = {
+      id: "message.person_name"
+      message: "name must be 'alfonso'"
+      expression: "this.name == 'alfonso'"
+    };
+
+    string name = 1 [(buf.validate.field).cel = {
+      id: "message_field.person_name"
+      message: "name must be 'alfonso'"
+      expression: "this == 'alfonso'"
+    }];
+  }
+
+  repeated float unique_floats = 2 [(buf.validate.field).repeated.unique = true];
+  repeated double unique_doubles = 3 [(buf.validate.field).repeated.unique = true];
+  repeated string unique_strings = 4 [(buf.validate.field).repeated.unique = true];
+
+  repeated Person people = 1 [(buf.validate.field).repeated.items.cel = {
+    id: "repeated_item.person_name"
+    message: "name must be 'alfonso'"
+    expression: "this.name == 'alfonso'"
+  }];
+}
+
 message Recursive {
   oneof oneofs {
     Recursive recursive_oneof = 3 [(buf.validate.field).cel = {
@@ -32,6 +76,28 @@ message Recursive {
   }];
 
   int64 id = 2;
+}
+
+message MessageMap {
+  message Person {
+    option (buf.validate.message).cel = {
+      id: "message.person_name"
+      message: "name must be 'alfonso'"
+      expression: "this.name == 'alfonso'"
+    };
+
+    string name = 1 [(buf.validate.field).cel = {
+      id: "message_field.person_name"
+      message: "name must be 'alfonso'"
+      expression: "this == 'alfonso'"
+    }];
+  }
+
+  map<int64, Person> message_map = 1 [(buf.validate.field).map.values.cel = {
+    id: "map_value.person_name"
+    message: "name must be 'alfonso'"
+    expression: "this.name == 'alfonso'"
+  }];
 }
 
 message DurationMap {
@@ -67,7 +133,8 @@ message TimestampMap {
 
 message BasicMap {
   map<string, string> string_map = 1 [(buf.validate.field).map = {
-    min_pairs: 3
+    min_pairs: 2
+    max_pairs: 2
     keys: {
       string: {min_len: 3}
       cel: {
@@ -85,76 +152,4 @@ message BasicMap {
       }
     }
   }];
-}
-
-message User {
-  enum test_enum {
-    option allow_alias = true;
-
-    UNSPECIFIED = 0;
-    ACTIVE = 1;
-    INACTIVE = 2;
-    PASSIVE = 2;
-  }
-
-  // message Post {
-  //   oneof post_oneof {
-  //     Post nested_post = 1 [(buf.validate.field).cel = {
-  //       id: "nested_post"
-  //       message: "nested_post.outer_duration"
-  //       expression: "this.outer_duration > duration('1h')"
-  //     }];
-  //     google.protobuf.Duration duration = 5 [(buf.validate.field).cel = {
-  //       id: "duration.more_than_1h"
-  //       message: "duration has to be more than 1h"
-  //       expression: "this > duration('1h')"
-  //     }];
-  //     test_enum oneof_enum_field = 11;
-  //     // bytes bytes_field = 12;
-  //   }
-  //
-  //   google.protobuf.Duration outer_duration = 6;
-  //
-  //   int64 id = 2;
-  // }
-  //
-  // repeated Post posts = 2;
-
-  message Person {
-    string name = 1 [
-      // (buf.validate.field).string = {
-      //   in: [
-      //     "aa",
-      //     "bb"
-      //   ]
-      // },
-      // (buf.validate.field).string.min_len = 1,
-      // (buf.validate.field).cel = {
-      //   id: "rule 1"
-      //   message: "I am rule 1"
-      //   expression: "this == 'gianfranco'"
-      // },
-      // (buf.validate.field).cel = {
-      //   id: "rule 2"
-      //   message: "I am rule 2"
-      //   expression: "this == 'gianpippo'"
-      // },
-      (buf.validate.field).required = true
-    ];
-  }
-
-  option (buf.validate.message).cel = {
-    id: "friend.is_alfonso"
-    message: "friend must be alfonso"
-    expression: "this.friend.name == 'alfonso'"
-  };
-
-  option (buf.validate.message).cel = {
-    id: "duration.more_than_1h"
-    message: "duration has to be more than 1h"
-    expression: "this.duration_field > duration('1h')"
-  };
-
-  google.protobuf.Duration duration_field = 5;
-  Person friend = 2;
 }

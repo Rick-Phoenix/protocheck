@@ -106,6 +106,9 @@ pub fn get_cel_rules(
                 FieldType::Any => {
                   quote! { compile_error!("Any is not supported for Cel validation") }
                 }
+                FieldType::Float => {
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as f64).into()) }
+                }
                 _ => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.clone().into()) }
                 }
