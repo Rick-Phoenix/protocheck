@@ -73,50 +73,36 @@ where
   }
 }
 
-pub trait FloatBits {
-  type Bits: Eq + std::hash::Hash;
-
-  fn to_bits_for_unique_check(&self) -> Self::Bits;
-}
-
-impl FloatBits for f32 {
-  type Bits = u32;
-  fn to_bits_for_unique_check(&self) -> u32 {
-    self.to_bits()
-  }
-}
-
-impl FloatBits for f64 {
-  type Bits = u64;
-  fn to_bits_for_unique_check(&self) -> u64 {
-    self.to_bits()
-  }
-}
-
-impl FloatBits for &f32 {
-  type Bits = u32;
-  fn to_bits_for_unique_check(&self) -> u32 {
-    self.to_bits()
-  }
-}
-
-impl FloatBits for &f64 {
-  type Bits = u64;
-  fn to_bits_for_unique_check(&self) -> u64 {
-    self.to_bits()
-  }
-}
-
-pub fn unique_floats<T, B>(
+pub fn unique_f64(
   field_context: &FieldContext,
-  value: T,
-  processed_values: &mut HashSet<B>,
+  value: f64,
+  processed_values: &mut HashSet<u64>,
 ) -> Result<(), Violation>
 where
-  T: FloatBits<Bits = B>,
-  B: Eq + Hash,
 {
-  let bits = value.to_bits_for_unique_check();
+  let bits = value.to_bits();
+  let check = processed_values.insert(bits);
+
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &REPEATED_UNIQUE_VIOLATION,
+      "repeated.unique",
+      "must contain unique values",
+    ))
+  }
+}
+
+pub fn unique_f32(
+  field_context: &FieldContext,
+  value: f32,
+  processed_values: &mut HashSet<u32>,
+) -> Result<(), Violation>
+where
+{
+  let bits = value.to_bits();
   let check = processed_values.insert(bits);
 
   if check {

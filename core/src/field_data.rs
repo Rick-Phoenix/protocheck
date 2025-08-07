@@ -37,9 +37,11 @@ impl FieldKind {
       FieldKind::Single(field_type) => *field_type,
     }
   }
-}
 
-impl FieldKind {
+  pub fn is_copy(&self) -> bool {
+    !matches!(self.inner_type(), FieldType::String | FieldType::Message)
+  }
+
   pub fn is_map_key(&self) -> bool {
     matches!(self, FieldKind::MapKey(_))
   }

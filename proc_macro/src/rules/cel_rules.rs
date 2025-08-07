@@ -100,8 +100,11 @@ pub fn get_cel_rules(
               };
 
               let validation_expression = match validation_data.field_kind.inner_type() {
-                FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
+                FieldType::Message => {
                   quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens.clone()) }
+                }
+                FieldType::Timestamp | FieldType::Duration => {
+                  quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens) }
                 }
                 FieldType::Any => {
                   quote! { compile_error!("Any is not supported for Cel validation") }

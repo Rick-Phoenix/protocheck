@@ -26,8 +26,6 @@ fn repeated_tests() {
 
   let result = msg.validate().unwrap_err();
 
-  println!("{:#?}", result);
-
   assert_eq!(result.violations.len(), 9);
 
   let unique_values_violations: Vec<&Violation> = result

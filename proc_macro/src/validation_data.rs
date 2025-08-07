@@ -38,7 +38,6 @@ pub struct RepeatedValidator {
   pub items_rules: TokenStream,
   pub items_context_tokens: TokenStream,
   pub unique_values: bool,
-  pub float_values: bool,
 }
 
 pub struct MapValidator {
@@ -50,6 +49,9 @@ pub struct MapValidator {
 }
 
 impl ValidationData<'_> {
+  pub fn static_full_name(&self) -> String {
+    self.full_name.to_string().replace(".", "_").to_uppercase()
+  }
   pub fn field_context_tokens(&self) -> TokenStream {
     let Self {
       parent_messages_ident,
@@ -158,7 +160,6 @@ impl ValidationData<'_> {
       vec_level_rules,
       items_rules,
       unique_values,
-      float_values,
       items_context_tokens,
     } = rules_data;
 
@@ -174,15 +175,21 @@ impl ValidationData<'_> {
       let hashset_ident = Ident2::new("processed_values", Span2::call_site());
       let not_unique = Ident2::new("not_unique", Span2::call_site());
 
-      let func_name = if *float_values {
-        quote! { unique_floats }
+      let func_name = match self.field_kind.inner_type() {
+        FieldType::Float => quote! { unique_f32 },
+        FieldType::Double => quote! { unique_f64 },
+         _ => quote! { unique }
+      };
+
+      let item_val_ident = if self.field_kind.is_copy() {
+        quote! { *#item_ident }
       } else {
-        quote! { unique }
+        quote! { #item_ident }
       };
 
       quote! {
         if !not_unique {
-          match protocheck::validators::repeated::#func_name(&#field_context_ident, #item_ident, &mut #hashset_ident) {
+          match protocheck::validators::repeated::#func_name(&#field_context_ident, #item_val_ident, &mut #hashset_ident) {
             Ok(_) => {},
             Err(v) => {
               #not_unique = true;
@@ -219,7 +226,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lt(&#field_context_ident, #value_ident.clone(), #lt_val)
+      protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -230,7 +237,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lte(&#field_context_ident, #value_ident.clone(), #lte_val)
+      protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -241,7 +248,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gt(&#field_context_ident, #value_ident.clone(), #gt_val)
+      protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -252,7 +259,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gte(&#field_context_ident, #value_ident.clone(), #gte_val)
+      protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -264,28 +271,6 @@ impl ValidationData<'_> {
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
       protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_in_list_validator(&self, in_list: &TokenStream) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_not_in_list_validator(&self, not_in_list: &TokenStream) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -439,7 +424,7 @@ impl ValidationData<'_> {
       item_ident,
       ..
     } = self;
-    match self.field_kind {
+    let base_ident = match self.field_kind {
       FieldKind::RepeatedItem(_) => quote! { #item_ident },
       FieldKind::MapKey(_) => quote! { #key_ident },
       FieldKind::MapValue(_) => quote! { #map_value_ident },
@@ -450,6 +435,12 @@ impl ValidationData<'_> {
           quote! { self.#item_rust_ident }
         }
       }
+    };
+
+    if self.field_kind.is_in_loop() && self.field_kind.is_copy() {
+      quote! { *#base_ident }
+    } else {
+      base_ident
     }
   }
 }

@@ -30,7 +30,6 @@ pub fn get_repeated_rules(
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let mut unique_values = false;
-  let float_values = validation_data.field_kind.inner_type().is_float();
   let mut ignore_items_validators = false;
 
   if !field_rules.cel.is_empty() {
@@ -155,7 +154,6 @@ pub fn get_repeated_rules(
     vec_level_rules,
     items_rules,
     unique_values,
-    float_values,
     items_context_tokens,
   }))
 }

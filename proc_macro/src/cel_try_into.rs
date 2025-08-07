@@ -281,7 +281,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         OuterType::Normal { is_f32 } => {
           if is_f32 {
             tokens.extend(quote! {
-              #fields_map_ident.insert(#field_name.into(), (*value as f64).into());
+              #fields_map_ident.insert(#field_name.into(), (value.#field_ident as f64).into());
             });
           } else {
             tokens.extend(quote! {

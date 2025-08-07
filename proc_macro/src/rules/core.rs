@@ -1,6 +1,9 @@
-use proc_macro2::TokenStream;
+use std::collections::HashSet;
+
+use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::{FieldDescriptor, Kind as ProstReflectKind};
 use proto_types::FieldType;
+use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, ProtoType};
@@ -38,51 +41,51 @@ pub fn get_field_rules(
 
   match field_rules {
     RulesType::Float(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Double(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Int32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Int64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Uint32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Uint64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sint32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sint64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Fixed32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Fixed64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sfixed32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sfixed64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules)?;
+      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::String(string_rules) => {
@@ -93,7 +96,13 @@ pub fn get_field_rules(
       if let ProstReflectKind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
-            let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
+            let rules = get_enum_rules(
+              enum_ident,
+              enum_descriptor,
+              validation_data,
+              enum_rules,
+              static_defs,
+            )?;
             rules_tokens.extend(rules);
           }
           None => error = Some("could not find enum field ident"),
@@ -103,7 +112,7 @@ pub fn get_field_rules(
       }
     }
     RulesType::Duration(duration_rules) => {
-      let rules = get_duration_rules(validation_data, duration_rules)?;
+      let rules = get_duration_rules(validation_data, duration_rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Timestamp(timestamp_rules) => {
@@ -111,7 +120,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::Any(any_rules) => {
-      let rules = get_any_rules(validation_data, any_rules)?;
+      let rules = get_any_rules(validation_data, any_rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     RulesType::Bool(bool_rules) => {
@@ -119,7 +128,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::Bytes(bytes_rules) => {
-      let rules = get_bytes_rules(static_defs, field_desc, validation_data, bytes_rules)?;
+      let rules = get_bytes_rules(validation_data, bytes_rules, static_defs)?;
       rules_tokens.extend(rules);
     }
     _ => {}
@@ -179,4 +188,26 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
     ProstReflectKind::Message(_) => ProtoType::Message,
     ProstReflectKind::Enum(_) => ProtoType::Enum,
   }
+}
+
+pub fn hashset_to_tokens<T>(hashset: HashSet<T>, type_tokens: &TokenStream) -> TokenStream
+where
+  T: ToTokens,
+{
+  let set_ident = Ident::new("set", Span::call_site());
+  let mut tokens = quote! {
+    let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
+  };
+
+  for item in hashset {
+    tokens.extend(quote! {
+      #set_ident.insert(#item);
+    });
+  }
+
+  tokens.extend(quote! {
+    #set_ident
+  });
+
+  tokens
 }

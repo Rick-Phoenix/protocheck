@@ -14,6 +14,43 @@ message ContainingTests {
       "alfredo",
       "maurizio"
     ]
+    not_in: ["ermenegildo"]
+  }];
+
+  float float_field = 2 [(buf.validate.field).float = {
+    in: [
+      1.5,
+      2.5
+    ]
+    not_in: [2.0]
+  }];
+  double double_field = 3 [(buf.validate.field).double = {
+    in: [
+      1.5,
+      2.5
+    ]
+    not_in: [2.0]
+  }];
+  google.protobuf.Duration duration_field = 4 [(buf.validate.field).duration = {
+    in: [
+      {
+        seconds: 3600
+        nanos: 0
+      }
+    ]
+    not_in: [
+      {
+        seconds: 0
+        nanos: 0
+      }
+    ]
+  }];
+  int64 int64_field = 5 [(buf.validate.field).int64 = {
+    in: [
+      1,
+      2
+    ]
+    not_in: [5]
   }];
 }
 

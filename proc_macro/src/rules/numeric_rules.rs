@@ -1,16 +1,23 @@
-use proc_macro2::TokenStream;
-use proto_types::protovalidate_impls::{
-  ComparableGreaterThan, ComparableLessThan, ContainingRules, NumericRules,
+use std::{fmt::Debug, hash::Hash};
+
+use proc_macro2::{Ident, Span, TokenStream};
+use proto_types::{
+  protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules, NumericRules},
+  FieldType,
 };
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use crate::validation_data::ValidationData;
+use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
 
-pub fn get_numeric_rules<T: NumericRules>(
+pub fn get_numeric_rules<HashableType, T: NumericRules<HashableType>>(
   validation_data: &ValidationData,
   rules: &T,
-) -> Result<TokenStream, Error> {
+  static_defs: &mut Vec<TokenStream>,
+) -> Result<TokenStream, Error>
+where
+  HashableType: Debug + Copy + ToTokens + Eq + PartialOrd + Hash,
+{
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
@@ -35,13 +42,62 @@ pub fn get_numeric_rules<T: NumericRules>(
   let value_ident = validation_data.value_ident();
 
   if !in_list.is_empty() {
-    let validator_tokens = validation_data.get_in_list_validator(&quote! { vec![ #(#in_list),* ] });
+    let in_list_ident = Ident::new(
+      &format!("__{}_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+    let type_tokens = rules.hashable_type_tokens();
+    let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
+
+    static_defs.push(quote! {
+      static #in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
+    let validator_expression_tokens = match validation_data.field_kind.inner_type() {
+      FieldType::Float => quote! {
+        protocheck::validators::containing::f32_in_list(&#field_context_ident, #value_ident, &#in_list_ident)
+      },
+      FieldType::Double => quote! {
+        protocheck::validators::containing::f64_in_list(&#field_context_ident, #value_ident, &#in_list_ident)
+      },
+      _ => quote! {
+        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident)
+      },
+    };
+
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 
   if !not_in_list.is_empty() {
-    let validator_tokens =
-      validation_data.get_not_in_list_validator(&quote! { vec![ #(#not_in_list),* ] });
+    let not_in_list_ident = Ident::new(
+      &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+    let type_tokens = rules.hashable_type_tokens();
+    let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
+
+    static_defs.push(quote! {
+      static #not_in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
+    let validator_expression_tokens = match validation_data.field_kind.inner_type() {
+      FieldType::Float => quote! {
+        protocheck::validators::containing::f32_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+      },
+      FieldType::Double => quote! {
+        protocheck::validators::containing::f64_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+      },
+      _ => quote! {
+        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+      },
+    };
+
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 

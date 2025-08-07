@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::FieldDescriptor;
 use proto_types::{
   protovalidate::string_rules::WellKnown,
@@ -9,7 +9,7 @@ use regex::Regex;
 use syn::Error;
 
 use super::protovalidate::StringRules;
-use crate::validation_data::ValidationData;
+use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
 
 pub fn get_string_rules(
   static_defs: &mut Vec<TokenStream>,
@@ -77,8 +77,22 @@ pub fn get_string_rules(
   }
 
   if !in_list.is_empty() {
+    let in_list_ident = Ident::new(
+      &format!("__{}_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+
+    let type_tokens = quote! { &'static str };
+    let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
+
+    static_defs.push(quote! {
+      static #in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<&'static str>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &[ #(#in_list),* ])
+      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &#in_list_ident)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -86,8 +100,22 @@ pub fn get_string_rules(
   }
 
   if !not_in_list.is_empty() {
+    let not_in_list_ident = Ident::new(
+      &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+
+    let type_tokens = quote! { &'static str };
+    let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
+
+    static_defs.push(quote! {
+      static #not_in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<&'static str>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &[ #(#not_in_list),*])
+      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);

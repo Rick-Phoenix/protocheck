@@ -1,5 +1,4 @@
-use proc_macro2::{Span, TokenStream};
-use prost_reflect::FieldDescriptor;
+use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::{
   protovalidate::{bytes_rules::WellKnown, BytesRules},
   protovalidate_impls::LengthRules,
@@ -8,13 +7,12 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{Error, LitByteStr};
 
-use crate::validation_data::ValidationData;
+use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
 
 pub fn get_bytes_rules(
-  static_defs: &mut Vec<TokenStream>,
-  field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
   rules: &BytesRules,
+  static_defs: &mut Vec<TokenStream>,
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 
@@ -51,7 +49,7 @@ pub fn get_bytes_rules(
       )
     })?;
 
-    let static_regex_ident = format_ident!("__{}_REGEX", field_desc.full_name());
+    let static_regex_ident = format_ident!("__{}_REGEX", validation_data.static_full_name());
     static_defs.push(quote! {
       static #static_regex_ident: std::sync::LazyLock<regex::Regex> = LazyLock::new(|| {
         regex::Regex::new(#pattern).unwrap()
@@ -66,15 +64,47 @@ pub fn get_bytes_rules(
     tokens.extend(validator_tokens);
   }
 
-  if let Some(in_list_tokens) = in_list {
-    let validator_tokens = validation_data.get_not_in_list_validator(&in_list_tokens);
+  if !in_list.is_empty() {
+    let in_list_ident = Ident::new(
+      &format!("__{}_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+    let type_tokens = quote! { ::bytes::Bytes };
+    let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
+    static_defs.push(quote! {
+      static #in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::containing::in_list(&#field_context_ident, *#value_ident, &#in_list_ident)
+    };
+
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 
-  if let Some(not_in_list_tokens) = not_in_list {
-    let validator_tokens = validation_data.get_not_in_list_validator(&not_in_list_tokens);
+  if !not_in_list.is_empty() {
+    let not_in_list_ident = Ident::new(
+      &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
+      Span::call_site(),
+    );
+    let type_tokens = quote! { ::bytes::Bytes };
+    let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
+    static_defs.push(quote! {
+      static #not_in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
+        #hashset_tokens
+      });
+    });
+
+    let validator_expression_tokens = quote! {
+      protocheck::validators::containing::not_in_list(&#field_context_ident, *#value_ident, &#not_in_list_ident)
+    };
+
+    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 
