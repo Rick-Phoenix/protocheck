@@ -31,7 +31,7 @@ pub fn get_timestamp_rules(
 
   if let Some(within_val) = rules.within {
     let validator_expression_tokens = quote! {
-      protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val)
+      protocheck::validators::timestamps::within(&#field_context_ident, #value_ident.clone(), #within_val)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -55,7 +55,7 @@ pub fn get_timestamp_rules(
       LessThan::LtNow(enabled) => {
         if enabled {
           let validator_expression_tokens = quote! {
-            protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
+            protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident.clone())
           };
           let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -80,7 +80,7 @@ pub fn get_timestamp_rules(
       GreaterThan::GtNow(enabled) => {
         if enabled {
           let validator_expression_tokens = quote! {
-            protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
+            protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident.clone())
           };
           let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 

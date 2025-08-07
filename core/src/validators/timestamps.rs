@@ -29,7 +29,7 @@ pub fn within(
   }
 }
 
-pub fn lt_now(field_context: &FieldContext, value: Timestamp, _: ()) -> Result<(), Violation> {
+pub fn lt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Violation> {
   let check = value.is_past();
 
   if check {
@@ -44,7 +44,7 @@ pub fn lt_now(field_context: &FieldContext, value: Timestamp, _: ()) -> Result<(
   }
 }
 
-pub fn gt_now(field_context: &FieldContext, value: Timestamp, _: ()) -> Result<(), Violation> {
+pub fn gt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Violation> {
   let check = value.is_future();
 
   if check {

@@ -64,8 +64,6 @@ where
   if check {
     Ok(())
   } else {
-    let inner = field_context.field_kind.inner_type();
-    println!("INNER: {:?}", inner);
     let (type_name, violation_path) = get_gt_rule_path(field_context.field_kind.inner_type())
       .expect("Could not find 'gt' rule path");
     let rule_id = format!("{}.gt", type_name);

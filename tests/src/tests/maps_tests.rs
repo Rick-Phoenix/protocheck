@@ -1,10 +1,75 @@
 use maplit::hashmap;
 use protocheck::{
-  types::{field_descriptor_proto::Type, protovalidate::field_path_element::Subscript, Duration},
+  types::{
+    field_descriptor_proto::Type, protovalidate::field_path_element::Subscript, Duration, Timestamp,
+  },
   validators::ProtoValidator,
 };
 
-use crate::myapp::v1::{BasicMap, DurationMap};
+use crate::myapp::v1::{BasicMap, DurationMap, TimestampMap};
+
+#[test]
+fn timestamp_map() {
+  let timestamp_map = hashmap! { "hello there".to_string() => Timestamp::default(), "general kenobi".to_string() => Timestamp::default() };
+
+  let msg = TimestampMap { timestamp_map };
+
+  let result = msg.validate().unwrap_err();
+
+  assert_eq!(result.violations.len(), 4);
+
+  let values_gt_now_violation = result.violation_by_rule_id("timestamp.gt_now").unwrap();
+  let violation_field = values_gt_now_violation.last_field().unwrap();
+
+  assert_eq!(violation_field.key_type(), Type::String);
+  assert_eq!(violation_field.value_type(), Type::Message);
+
+  // First violation
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "timestamp.gt_now"
+      && v.last_field().unwrap().subscript
+        == Some(Subscript::StringKey("hello there".to_string()))));
+
+  // Second violation, with correct subscript
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "timestamp.gt_now"
+      && v.last_field().unwrap().subscript
+        == Some(Subscript::StringKey("general kenobi".to_string()))));
+
+  assert_eq!(values_gt_now_violation.for_key(), false);
+  assert_eq!(
+    values_gt_now_violation.rule_path(),
+    Some("map.values.timestamp.gt_now".to_string())
+  );
+
+  let values_cel_violation = result.violation_by_rule_id("timestamp_map_value").unwrap();
+
+  // First violation
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "timestamp_map_value"
+      && v.last_field().unwrap().subscript
+        == Some(Subscript::StringKey("hello there".to_string()))));
+
+  // Second violation, with correct subscript
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "timestamp_map_value"
+      && v.last_field().unwrap().subscript
+        == Some(Subscript::StringKey("general kenobi".to_string()))));
+
+  assert_eq!(values_cel_violation.for_key(), false);
+  assert_eq!(
+    values_cel_violation.rule_path(),
+    Some("map.values.cel".to_string())
+  );
+}
 
 #[test]
 fn duration_map() {
@@ -17,14 +82,18 @@ fn duration_map() {
   let values_gt_violation = result.violation_by_rule_id("duration.gt").unwrap();
   let violation_field = values_gt_violation.last_field().unwrap();
 
+  assert_eq!(result.violations.len(), 4);
+
   assert_eq!(violation_field.key_type(), Type::String);
   assert_eq!(violation_field.value_type(), Type::Message);
 
   // First violation
-  assert_eq!(
-    violation_field.subscript,
-    Some(Subscript::StringKey("hello there".to_string()))
-  );
+  assert!(result
+    .violations
+    .iter()
+    .any(|v| v.rule_id() == "duration.gt"
+      && v.last_field().unwrap().subscript
+        == Some(Subscript::StringKey("hello there".to_string()))));
 
   // Second violation, with correct subscript
   assert!(result
@@ -72,6 +141,8 @@ fn basic_map() {
   let msg = BasicMap { string_map };
 
   let result = msg.validate().unwrap_err();
+
+  assert_eq!(result.violations.len(), 5);
 
   let min_pairs_violation = result.violation_by_rule_id("map.min_pairs").unwrap();
   let violation_field = min_pairs_violation.last_field().unwrap();
