@@ -27,11 +27,10 @@ fn format_bytes_for_error(bytes: &[u8]) -> String {
 }
 
 pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ip(string_val);
@@ -61,11 +60,10 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv4(string_val);
@@ -95,11 +93,10 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv6(string_val);
@@ -133,11 +130,10 @@ pub fn pattern(
   value: &Bytes,
   pattern: &Regex,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let string_val = parse_bytes_input(value, field_context)?;
 
@@ -172,11 +168,10 @@ pub fn contains(
   value: &Bytes,
   pattern: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.windows(pattern.len()).any(|win| win == pattern);
 
@@ -210,11 +205,10 @@ pub fn suffix(
   value: &Bytes,
   suffix: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.ends_with(suffix);
 
@@ -248,11 +242,10 @@ pub fn prefix(
   value: &Bytes,
   prefix: &'static [u8],
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.starts_with(prefix);
 
@@ -282,11 +275,10 @@ pub fn prefix(
 }
 
 pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.len() <= max_len as usize;
 
@@ -317,11 +309,10 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
 }
 
 pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.chars().count() >= min_len as usize;
 
@@ -352,11 +343,10 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
 }
 
 pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.chars().count() == len as usize;
 

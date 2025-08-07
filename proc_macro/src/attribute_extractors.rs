@@ -66,11 +66,10 @@ impl syn::parse::Parse for ProstAttrData {
         input.parse::<Token![=]>()?;
         let lit_str: LitStr = input.parse()?;
         let content = lit_str.value();
-        if let Some(captures) = MAP_ENUM_REGEX.captures(&content) {
-          if let Some(enum_name_match) = captures.get(1) {
+        if let Some(captures) = MAP_ENUM_REGEX.captures(&content)
+          && let Some(enum_name_match) = captures.get(1) {
             enum_path = Some(enum_name_match.as_str().to_string());
           }
-        }
       } else if input.peek(Token![=]) {
         input.parse::<Token![=]>()?;
         input.parse::<syn::Lit>()?;

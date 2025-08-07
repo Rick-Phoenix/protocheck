@@ -58,11 +58,10 @@ pub fn header_value(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_http_header_value(value, strict);
 
@@ -79,11 +78,10 @@ pub fn header_value(
 }
 
 pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_host_and_port(value);
 
@@ -100,11 +98,10 @@ pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Vi
 }
 
 pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ip_prefix(value);
 
@@ -121,11 +118,10 @@ pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violat
 }
 
 pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv4_prefix(value);
 
@@ -142,11 +138,10 @@ pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv6_prefix(value);
 
@@ -163,11 +158,10 @@ pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ip_with_prefixlen(value);
 
@@ -184,11 +178,10 @@ pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(
 }
 
 pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv6_with_prefixlen(value);
 
@@ -205,11 +198,10 @@ pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv4_with_prefixlen(value);
 
@@ -226,11 +218,10 @@ pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_trimmed_uuid(value);
 
@@ -247,11 +238,10 @@ pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation>
 }
 
 pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_uuid(value);
 
@@ -268,11 +258,10 @@ pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_address(value);
 
@@ -289,11 +278,10 @@ pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_uri_ref(value);
 
@@ -310,11 +298,10 @@ pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_uri(value);
 
@@ -331,11 +318,10 @@ pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_hostname(value);
 
@@ -352,11 +338,10 @@ pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violati
 }
 
 pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ip(value);
 
@@ -373,11 +358,10 @@ pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv4(value);
 
@@ -394,11 +378,10 @@ pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_ipv6(value);
 
@@ -415,11 +398,10 @@ pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn email(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = is_valid_email(value);
 
@@ -549,11 +531,10 @@ pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result
 }
 
 pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.chars().count() <= max_len as usize;
 
@@ -600,11 +581,10 @@ pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Resul
 }
 
 pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.chars().count() == len as usize;
 
@@ -623,11 +603,10 @@ pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Vi
 }
 
 pub fn len_bytes(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.len() == len as usize;
 
@@ -650,11 +629,10 @@ pub fn min_bytes(
   value: &str,
   min_bytes: u64,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore {
-    if value.is_empty() {
+  if let Ignore::IfZeroValue = field_context.ignore
+    && value.is_empty() {
       return Ok(());
     }
-  }
 
   let check = value.len() >= min_bytes as usize;
 

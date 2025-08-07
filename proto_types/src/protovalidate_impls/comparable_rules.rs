@@ -62,16 +62,14 @@ impl BytesRules {
       ));
     }
 
-    if let Some(min) = min_len {
-      if let Some(max) = max_len {
-        if min > max {
+    if let Some(min) = min_len
+      && let Some(max) = max_len
+        && min > max {
           return Err(syn::Error::new(
             field_span,
             format!("{} min_len cannot be larger than max_len", error_prefix,),
           ));
         }
-      }
-    }
 
     Ok(LengthRules {
       len,
@@ -97,16 +95,14 @@ impl StringRules {
       ));
     }
 
-    if let Some(min) = min_len {
-      if let Some(max) = max_len {
-        if min > max {
+    if let Some(min) = min_len
+      && let Some(max) = max_len
+        && min > max {
           return Err(syn::Error::new(
             field_span,
             format!("{} min_len cannot be larger than max_len", error_prefix,),
           ));
         }
-      }
-    }
 
     Ok(LengthRules {
       len,
@@ -134,16 +130,14 @@ impl StringRules {
       ));
     }
 
-    if let Some(min) = min_len {
-      if let Some(max) = max_len {
-        if min > max {
+    if let Some(min) = min_len
+      && let Some(max) = max_len
+        && min > max {
           return Err(syn::Error::new(
             field_span,
             format!("{} min_bytes cannot be larger than max_bytes", error_prefix,),
           ));
         }
-      }
-    }
 
     Ok(LengthRules {
       len,
@@ -166,8 +160,8 @@ where
   T: PartialOrd + PartialEq + Debug + ToTokens,
 {
   pub fn validate(self, field_span: Span, error_prefix: &str) -> Result<Self, Error> {
-    if let Some(ref gt_rule) = self.greater_than {
-      if let Some(ref lt_rule) = self.less_than {
+    if let Some(ref gt_rule) = self.greater_than
+      && let Some(ref lt_rule) = self.less_than {
         match gt_rule {
           ComparableGreaterThan::Gte(gte_val) => {
             match lt_rule {
@@ -211,7 +205,6 @@ where
           }
         };
       }
-    }
     Ok(self)
   }
 }
