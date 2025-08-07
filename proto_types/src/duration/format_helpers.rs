@@ -1,5 +1,6 @@
 #![allow(clippy::option_map_unit_fn)]
-use crate::{Duration, DurationData};
+use super::DurationData;
+use crate::Duration;
 
 impl Duration {
   pub fn display_full(&self) -> String {

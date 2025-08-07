@@ -21,7 +21,7 @@ pub struct CelRule {
 pub fn validate_cel_field_with_val(
   field_context: &FieldContext,
   rule: &CelRule,
-  value: &CelValue,
+  value: CelValue,
 ) -> Result<(), Violation>
 where
 {
@@ -86,15 +86,15 @@ where
 pub fn validate_cel_field_try_into<T>(
   field_context: &FieldContext,
   rule: &CelRule,
-  value: &T,
+  value: T,
 ) -> Result<(), Violation>
 where
   T: TryInto<CelValue, Error = CelConversionError> + Clone,
 {
-  let cel_conversion: Result<CelValue, CelConversionError> = value.clone().try_into();
+  let cel_conversion: Result<CelValue, CelConversionError> = value.try_into();
 
   match cel_conversion {
-    Ok(cel_val) => validate_cel_field_with_val(field_context, rule, &cel_val),
+    Ok(cel_val) => validate_cel_field_with_val(field_context, rule, cel_val),
     Err(e) => {
       println!(
         "Failed to convert field {} to Cel value: {}",

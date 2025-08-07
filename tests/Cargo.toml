@@ -13,6 +13,7 @@ regex = { workspace = true }
 protocheck = { path = "../protocheck/" }
 prost-reflect = { workspace = true }
 chrono = { workspace = true }
+maplit = { workspace = true }
 
 [build-dependencies]
 protocheck = { path = "../protocheck/" }

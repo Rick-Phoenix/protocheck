@@ -194,7 +194,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val)
+      protocheck::validators::comparables::lt(&#field_context_ident, #value_ident.clone(), #lt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -205,7 +205,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val)
+      protocheck::validators::comparables::lte(&#field_context_ident, #value_ident.clone(), #lte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -216,7 +216,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val)
+      protocheck::validators::comparables::gt(&#field_context_ident, #value_ident.clone(), #gt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -227,7 +227,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val)
+      protocheck::validators::comparables::gte(&#field_context_ident, #value_ident.clone(), #gte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -277,6 +277,7 @@ impl ValidationData<'_> {
     let field_tag = self.tag;
     let field_proto_type: ProtoType = self.field_kind.inner_type().into();
     let item_rust_ident = self.item_rust_ident;
+    let value_ident = self.value_ident();
 
     let nested_key_type = self.key_type_tokens_as_i32();
     let nested_value_type = self.value_type_tokens_as_i32();
@@ -309,7 +310,7 @@ impl ValidationData<'_> {
         let current_nested_field_element = #field_path_element_tokens;
 
         #parent_messages_ident.push(current_nested_field_element);
-        &self.#item_rust_ident.nested_validate(#parent_messages_ident, #violations_ident);
+        #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
         #parent_messages_ident.pop();
       }
     }
@@ -431,7 +432,7 @@ impl ValidationData<'_> {
       FieldKind::MapKey(_) => quote! { #key_ident },
       FieldKind::MapValue(_) => quote! { #map_value_ident },
       _ => {
-        let val_tokens = if self.is_option() {
+        let val_tokens = if self.is_optional || self.is_in_oneof {
           quote! { val }
         } else {
           quote! { self.#item_rust_ident }

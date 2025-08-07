@@ -94,7 +94,7 @@ pub fn get_cel_rules(
               let value_ident = &validation_data.value_ident();
 
               let value_tokens = if *is_boxed {
-                quote! { &(**val) }
+                quote! { *val }
               } else {
                 quote! { #value_ident }
               };

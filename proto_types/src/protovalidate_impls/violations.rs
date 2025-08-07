@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use crate::protovalidate::{FieldPath, FieldPathElement, Violation};
+use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
 
 impl FieldPath {
   pub fn last_field(&self) -> Option<&FieldPathElement> {
@@ -51,6 +51,12 @@ impl FieldPath {
     }
 
     path
+  }
+}
+
+impl Violations {
+  pub fn violation_by_rule_id(&self, rule_id: &str) -> Option<&Violation> {
+    self.violations.iter().find(|v| v.rule_id() == rule_id)
   }
 }
 

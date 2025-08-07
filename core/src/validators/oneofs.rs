@@ -4,11 +4,20 @@ use crate::{
 };
 
 pub fn required(name: &str, parent_elements: &[FieldPathElement]) -> Violation {
-  let elements = parent_elements.to_vec();
+  let mut elements = parent_elements.to_vec();
+
+  elements.push(FieldPathElement {
+    field_name: Some(name.to_string()),
+    field_number: None,
+    field_type: None,
+    subscript: None,
+    key_type: None,
+    value_type: None,
+  });
 
   Violation {
     rule_id: Some("oneof.required".to_string()),
-    message: Some(format!("at least one value for `{}` is required", name,)),
+    message: Some("at least one value is required".to_string()),
     for_key: None,
     field: Some(FieldPath { elements }),
     rule: Some(FieldPath {

@@ -35,8 +35,8 @@ const NANOS_MAX: i32 = NANOS_PER_SECOND - 1;
 
 const PACKAGE_PREFIX: &str = "google.protobuf";
 
-mod duration;
-pub use duration::*;
+pub mod duration;
+pub use duration::DurationError;
 
 mod timestamp;
 pub use timestamp::*;

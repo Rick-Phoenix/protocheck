@@ -2,7 +2,7 @@
 // Changes applied: removed optional chrono feature flag
 use ::chrono::TimeDelta;
 
-use super::super::super::*;
+use super::super::*;
 
 impl Duration {
   /// Normalizes the duration to a canonical format.

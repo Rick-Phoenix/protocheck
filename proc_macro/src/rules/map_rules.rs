@@ -11,7 +11,7 @@ use crate::{
   extract_validators::{field_is_boxed, field_is_message},
   rules::{
     cel_rules::get_cel_rules,
-    core::{convert_kind_to_proto_type, get_field_rules},
+    core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
   },
   validation_data::{MapValidator, ValidationData},
 };
@@ -97,7 +97,7 @@ pub fn get_map_rules(
       min_pairs = Some(min_pairs_value);
 
       let validator_expression_tokens = quote! {
-        protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident, #min_pairs_value)
+        protocheck::validators::maps::min_pairs(&#field_context_ident, &#value_ident, #min_pairs_value)
       };
       let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -108,7 +108,7 @@ pub fn get_map_rules(
       max_pairs = Some(max_pairs_value);
 
       let validator_expression_tokens = quote! {
-        protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident, #max_pairs_value)
+        protocheck::validators::maps::max_pairs(&#field_context_ident, &#value_ident, #max_pairs_value)
       };
       let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -171,7 +171,7 @@ pub fn get_map_rules(
       } else {
         let mut values_validation_data = map_validation_data.clone();
 
-        values_validation_data.field_kind = FieldKind::MapValue(value_proto_type.into());
+        values_validation_data.field_kind = FieldKind::MapValue(get_field_type(&value_desc));
         values_validation_data.ignore = ignore;
 
         if let Some(ref rules) = value_rules_descriptor.r#type {

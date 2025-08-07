@@ -11,7 +11,7 @@ use crate::{
   extract_validators::{field_is_boxed, field_is_message},
   rules::{
     cel_rules::get_cel_rules,
-    core::{convert_kind_to_proto_type, get_field_rules},
+    core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
   },
   validation_data::{RepeatedValidator, ValidationData},
 };
@@ -75,7 +75,7 @@ pub fn get_repeated_rules(
       min_items = Some(rule_val);
 
       let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident, #rule_val)
+        protocheck::validators::repeated::min_items(&#field_context_ident, &#value_ident, #rule_val)
       };
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -87,7 +87,7 @@ pub fn get_repeated_rules(
       max_items = Some(rule_val);
 
       let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident, #rule_val)
+        protocheck::validators::repeated::max_items(&#field_context_ident, &#value_ident, #rule_val)
       };
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -111,9 +111,7 @@ pub fn get_repeated_rules(
         ignore_items_validators = true
       } else {
         let mut items_validation_data = validation_data.clone();
-        let individual_item_proto_type = convert_kind_to_proto_type(field_desc.kind());
-        items_validation_data.field_kind =
-          FieldKind::RepeatedItem(individual_item_proto_type.into());
+        items_validation_data.field_kind = FieldKind::RepeatedItem(get_field_type(field_desc));
 
         if let Some(ref rules_type) = items_rules_descriptor.r#type {
           if !item_is_message {

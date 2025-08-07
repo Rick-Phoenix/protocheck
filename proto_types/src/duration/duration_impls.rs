@@ -1,9 +1,55 @@
 use core::fmt;
 
 use chrono::Duration as ChronoDuration;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::Duration;
+
+impl Duration {
+  pub fn new(seconds: i64, nanos: i32) -> Self {
+    let mut instance = Duration { seconds, nanos };
+    instance.normalize();
+    instance
+  }
+}
+
+impl ToTokens for Duration {
+  fn to_tokens(&self, tokens: &mut TokenStream) {
+    let seconds = self.seconds;
+    let nanos = self.nanos;
+
+    tokens.extend(quote! {
+      protocheck::types::Duration {
+        seconds: #seconds,
+        nanos: #nanos,
+      }
+    });
+  }
+}
+
+impl std::cmp::PartialOrd for Duration {
+  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
+impl std::cmp::Ord for Duration {
+  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    let mut self_normalized = *self;
+    self_normalized.normalize();
+    let self_chrono_duration =
+      chrono::Duration::new(self_normalized.seconds, self_normalized.nanos as u32);
+
+    let mut other_normalized = *other;
+    other_normalized.normalize();
+    let other_chrono_duration =
+      chrono::Duration::new(other_normalized.seconds, other_normalized.nanos as u32);
+
+    self_chrono_duration.cmp(&other_chrono_duration)
+  }
+}
 
 impl Serialize for Duration {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

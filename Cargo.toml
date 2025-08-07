@@ -31,3 +31,4 @@ thiserror = "2.0.12"
 uuid = { version = "1", features = ["v4", "serde"] }
 url = "2"
 ipnetwork = "*"
+maplit = "1"

@@ -17,7 +17,7 @@ impl TryFrom<Duration> for CelValue {
   type Error = CelConversionError;
 
   fn try_from(value: Duration) -> Result<Self, Self::Error> {
-    let chrono_dur: chrono::Duration = value.try_into()?;
+    let chrono_dur: chrono::Duration = value.try_into().map_err(CelConversionError::from)?;
 
     Ok(CelValue::Duration(chrono_dur))
   }
@@ -27,7 +27,8 @@ impl TryFrom<Timestamp> for CelValue {
   type Error = CelConversionError;
 
   fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
-    let chrono_timestamp: DateTime<FixedOffset> = value.try_into()?;
+    let chrono_timestamp: DateTime<FixedOffset> =
+      value.try_into().map_err(CelConversionError::from)?;
     Ok(CelValue::Timestamp(chrono_timestamp))
   }
 }
