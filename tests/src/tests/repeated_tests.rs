@@ -1,4 +1,7 @@
-use protocheck::{types::protovalidate::Violation, validators::ProtoValidator};
+use protocheck::{
+  types::{field_descriptor_proto::Type, protovalidate::Violation},
+  validators::ProtoValidator,
+};
 
 use crate::myapp::v1::{repeated_test::Person, RepeatedTest};
 
@@ -10,8 +13,8 @@ fn repeated_tests() {
 
   let people = vec![person.clone(), person.clone()];
 
-  let unique_floats: Vec<f32> = vec![1.1, 2.2];
-  let unique_doubles: Vec<f64> = vec![1.1, 2.2];
+  let unique_floats: Vec<f32> = vec![1.1, 1.1];
+  let unique_doubles: Vec<f64> = vec![1.1, 1.1];
   let unique_strings = vec!["ignazio".to_string(), "ignazio".to_string()];
 
   let msg = RepeatedTest {
@@ -23,7 +26,30 @@ fn repeated_tests() {
 
   let result = msg.validate().unwrap_err();
 
-  assert_eq!(result.violations.len(), 7);
+  println!("{:#?}", result);
+
+  assert_eq!(result.violations.len(), 9);
+
+  let unique_values_violations: Vec<&Violation> = result
+    .violations
+    .iter()
+    .filter(|v| v.rule_id() == "repeated.unique")
+    .collect();
+
+  for v in &unique_values_violations {
+    match v.field_name().unwrap() {
+      "unique_strings" => {
+        assert_eq!(v.last_field().unwrap().field_type(), Type::String);
+      }
+      "unique_floats" => {
+        assert_eq!(v.last_field().unwrap().field_type(), Type::Float);
+      }
+      "unique_doubles" => {
+        assert_eq!(v.last_field().unwrap().field_type(), Type::Double);
+      }
+      _ => {}
+    };
+  }
 
   let message_level_violations: Vec<&Violation> = result
     .violations

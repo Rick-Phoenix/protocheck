@@ -15,7 +15,9 @@ enum OuterType {
   HashMap {
     conversion_tokens: TokenStream2,
   },
-  Normal,
+  Normal {
+    is_f32: bool,
+  },
 }
 
 fn get_conversion_tokens(ty: &Type) -> TokenStream2 {
@@ -58,7 +60,7 @@ impl TryFrom<&Type> for OuterType {
         conversion_tokens: get_conversion_tokens(value_type),
       })
     } else {
-      Ok(Self::Normal)
+      Ok(Self::Normal { is_f32: is_f32(ty) })
     }
   }
 }
@@ -276,10 +278,16 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
           });
         }
-        OuterType::Normal => {
-          tokens.extend(quote! {
-            #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_owned().into());
-          });
+        OuterType::Normal { is_f32 } => {
+          if is_f32 {
+            tokens.extend(quote! {
+              #fields_map_ident.insert(#field_name.into(), (*value as f64).into());
+            });
+          } else {
+            tokens.extend(quote! {
+              #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_owned().into());
+            });
+          }
         }
       };
     }
