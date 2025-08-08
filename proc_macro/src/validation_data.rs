@@ -37,7 +37,6 @@ pub struct RepeatedValidator {
   pub vec_level_rules: TokenStream,
   pub items_rules: TokenStream,
   pub items_context_tokens: TokenStream,
-  pub unique_values: bool,
 }
 
 pub struct MapValidator {
@@ -68,7 +67,7 @@ impl ValidationData<'_> {
     let field_kind = &self.field_kind;
 
     quote! {
-      let #field_context_ident = protocheck::field_data::FieldContext {
+      let #field_context_ident = ::protocheck::field_data::FieldContext {
         parent_elements: #parent_messages_ident.as_slice(),
         subscript: #subscript_tokens,
         key_type: #key_type_tokens,
@@ -154,67 +153,27 @@ impl ValidationData<'_> {
     let index_ident = &self.index_ident;
     let item_ident = &self.item_ident;
     let item_rust_ident = &self.item_rust_ident;
-    let violations_ident = &self.violations_ident;
 
     let RepeatedValidator {
       vec_level_rules,
       items_rules,
-      unique_values,
       items_context_tokens,
     } = rules_data;
 
     let field_context_tokens = self.field_context_tokens();
-    let field_context_ident = self.vec_item_context_ident;
 
-    let values_hashset_tokens = unique_values.then_some(quote! {
-      let mut processed_values = std::collections::HashSet::new();
-      let mut not_unique = false;
-    });
-
-    let unique_values_check_tokens = unique_values.then(|| {
-      let hashset_ident = Ident2::new("processed_values", Span2::call_site());
-      let not_unique = Ident2::new("not_unique", Span2::call_site());
-
-      let func_name = match self.field_kind.inner_type() {
-        FieldType::Float => quote! { unique_f32 },
-        FieldType::Double => quote! { unique_f64 },
-         _ => quote! { unique }
-      };
-
-      let item_val_ident = if self.field_kind.is_copy() {
-        quote! { *#item_ident }
-      } else {
-        quote! { #item_ident }
-      };
-
-      quote! {
-        if !not_unique {
-          match protocheck::validators::repeated::#func_name(&#field_context_ident, #item_val_ident, &mut #hashset_ident) {
-            Ok(_) => {},
-            Err(v) => {
-              #not_unique = true;
-              #violations_ident.push(v);
-            }
-          };
-        }
-      }
-    });
-
-    let has_loop = *unique_values || !items_rules.is_empty();
+    let has_loop = !items_rules.is_empty();
     let vec_level_field_context = (!vec_level_rules.is_empty()).then_some(&field_context_tokens);
 
     let loop_tokens = has_loop.then_some(quote! {
       for (#index_ident, #item_ident) in self.#item_rust_ident.iter().enumerate() {
         #items_context_tokens
         #items_rules
-
-        #unique_values_check_tokens
       }
     });
 
     quote! {
       #vec_level_field_context
-      #values_hashset_tokens
       #vec_level_rules
 
       #loop_tokens
@@ -226,7 +185,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val)
+      ::protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -237,7 +196,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val)
+      ::protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -248,7 +207,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val)
+      ::protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -259,7 +218,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val)
+      ::protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -270,7 +229,7 @@ impl ValidationData<'_> {
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val)
+      ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -294,7 +253,7 @@ impl ValidationData<'_> {
     let subscript_tokens = self.subscript_tokens();
 
     let field_path_element_tokens = quote! {
-      protocheck::types::protovalidate::FieldPathElement {
+      ::protocheck::types::protovalidate::FieldPathElement {
         field_name: Some(#field_proto_name.to_string()),
         field_number: Some(#field_tag as i32),
         field_type: Some(#field_proto_type as i32),
@@ -320,7 +279,7 @@ impl ValidationData<'_> {
 
     self.is_required.then_some(quote! {
       #field_context_tokens
-      let required_violation = protocheck::validators::required::required(&#field_context_ident);
+      let required_violation = ::protocheck::validators::required::required(&#field_context_ident);
       #violations_ident.push(required_violation);
     })
   }
@@ -402,7 +361,7 @@ impl ValidationData<'_> {
     match self.field_kind {
       FieldKind::RepeatedItem(_) => {
         let index_ident = self.index_ident;
-        quote! { Some(protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
+        quote! { Some(::protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
       FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
         if let Some(key_type_enum) = self.map_key_type {
@@ -437,8 +396,8 @@ impl ValidationData<'_> {
       }
     };
 
-    if self.field_kind.is_in_loop() && self.field_kind.is_copy() {
-      quote! { *#base_ident }
+    if (self.field_kind.is_in_loop() || self.is_option()) && self.field_kind.is_copy() {
+      quote! { #base_ident.clone() }
     } else {
       base_ident
     }
@@ -446,7 +405,7 @@ impl ValidationData<'_> {
 }
 
 pub fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream {
-  let subscript_path = quote! { protocheck::types::protovalidate::field_path_element::Subscript };
+  let subscript_path = quote! { ::protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {
     ProtoType::String => quote! { #subscript_path::StringKey(#key_ident.clone().into()) },

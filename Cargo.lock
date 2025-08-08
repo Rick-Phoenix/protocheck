@@ -713,6 +713,7 @@ dependencies = [
  "bytes",
  "cel-interpreter",
  "chrono",
+ "itertools",
  "proc-macro2",
  "prost",
  "prost-build",

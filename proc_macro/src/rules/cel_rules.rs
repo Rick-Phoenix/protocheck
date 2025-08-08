@@ -106,9 +106,6 @@ pub fn get_cel_rules(
                 FieldType::Timestamp | FieldType::Duration => {
                   quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens) }
                 }
-                FieldType::Any => {
-                  quote! { compile_error!("Any is not supported for Cel validation") }
-                }
                 FieldType::Float => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as f64).into()) }
                 }

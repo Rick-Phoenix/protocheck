@@ -3,12 +3,54 @@ syntax = "proto3";
 package myapp.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
+enum test_enum {
+  option allow_alias = true;
+
+  UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  PASSIVE = 2;
+}
+
+message BytesTests {
+  bytes pattern_field = 1 [(buf.validate.field).bytes.pattern = "^abc"];
+  bytes contains_field = 2 [(buf.validate.field).bytes.contains = "abc"];
+  bytes prefix_field = 3 [(buf.validate.field).bytes.prefix = "abc"];
+  bytes suffix_field = 4 [(buf.validate.field).bytes.suffix = "abc"];
+}
+
+message OptionalTests {
+  optional string name = 1 [(buf.validate.field).string.min_len = 10];
+  optional float float_field = 2 [(buf.validate.field).float.gt = 10];
+  optional double double_field = 3 [(buf.validate.field).double.gt = 10];
+  optional int64 int64_field = 4 [(buf.validate.field).int64.gt = 10];
+  optional bytes bytes_field = 5 [(buf.validate.field).bytes.min_len = 10];
+}
+
 message ContainingTests {
+  test_enum enum_field = 7 [(buf.validate.field).enum = {
+    in: [
+      1,
+      2
+    ]
+    not_in: [15]
+    defined_only: true
+  }];
+
+  bytes bytes_field = 8 [(buf.validate.field).bytes = {
+    in: ["\x03\x04"]
+    not_in: [
+      "\x01\x02",
+      "\x02\x03"
+    ]
+  }];
+
   string name = 1 [(buf.validate.field).string = {
     in: [
       "alfredo",
@@ -16,7 +58,13 @@ message ContainingTests {
     ]
     not_in: ["ermenegildo"]
   }];
-
+  google.protobuf.Any any_field = 6 [(buf.validate.field).any = {
+    in: [
+      "type.googleapis.com/NiceType",
+      "type.googleapis.com/NiceType2"
+    ]
+    not_in: ["type.googleapis.com/Nope"]
+  }];
   float float_field = 2 [(buf.validate.field).float = {
     in: [
       1.5,
@@ -162,7 +210,13 @@ message DurationMap {
 message TimestampMap {
   map<string, google.protobuf.Timestamp> timestamp_map = 1 [(buf.validate.field).map = {
     values: {
-      timestamp: {gt_now: true}
+      timestamp: {
+        gt_now: true
+        within: {
+          seconds: 3600
+          nanos: 0
+        }
+      }
       cel: {
         id: "timestamp_map_value"
         message: "timestamp map value must be later than 2023"

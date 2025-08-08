@@ -4,27 +4,18 @@ use regex::Regex;
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::{FieldPath, Violation},
+  protovalidate::Violation,
   validators::static_data::{
-    base_violations::{get_base_violations_path, get_violation_elements},
+    base_violations::create_violation,
     bytes_violations::{
-      parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION, BYTES_IPV6_VIOLATION,
-      BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION, BYTES_MIN_LEN_VIOLATION,
-      BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION, BYTES_SUFFIX_VIOLATION,
+      format_bytes, parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION,
+      BYTES_IPV6_VIOLATION, BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION,
+      BYTES_MIN_LEN_VIOLATION, BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION,
+      BYTES_SUFFIX_VIOLATION,
     },
     well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
   },
 };
-
-fn format_bytes_for_error(bytes: &[u8]) -> String {
-  match std::str::from_utf8(bytes) {
-    Ok(s) => s.to_string(),
-    Err(_) => {
-      let hex_string: String = bytes.iter().map(|b| format!("{:02x}", b)).collect();
-      format!("0x{}", hex_string)
-    }
-  }
-}
 
 pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.ignore
@@ -35,28 +26,16 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ip(string_val);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-    rule_elements.extend(BYTES_IP_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.ip".to_string()),
-      message: Some(format!(
-        "{} must be a valid ip address",
-        field_context.proto_name,
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: rule_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_IP_VIOLATION,
+      "bytes.ip",
+      "must be a valid ip address",
+    ))
+  }
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
@@ -68,28 +47,16 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv4(string_val);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-    rule_elements.extend(BYTES_IPV4_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.ipv4".to_string()),
-      message: Some(format!(
-        "{} must be a valid ipv4 address",
-        field_context.proto_name,
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: rule_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_IPV4_VIOLATION,
+      "bytes.ipv4",
+      "must be a valid ipv4 address",
+    ))
+  }
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
@@ -101,28 +68,16 @@ pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv6(string_val);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-    rule_elements.extend(BYTES_IPV6_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.ipv6".to_string()),
-      message: Some(format!(
-        "{} must be a valid ipv6 address",
-        field_context.proto_name,
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: rule_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_IPV6_VIOLATION,
+      "bytes.ipv6",
+      "must be a valid ipv6 address",
+    ))
+  }
 }
 
 pub fn pattern(
@@ -139,28 +94,16 @@ pub fn pattern(
 
   let check = pattern.is_match(string_val);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-    rule_elements.extend(BYTES_PATTERN_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.pattern".to_string()),
-      message: Some(format!(
-        "{} match the following regex: `{}`",
-        field_context.proto_name, pattern
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: rule_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_PATTERN_VIOLATION,
+      "bytes.pattern",
+      &format!("must match the following regex: `{}`", pattern),
+    ))
+  }
 }
 
 pub fn contains(
@@ -175,29 +118,16 @@ pub fn contains(
 
   let check = value.windows(pattern.len()).any(|win| win == pattern);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    violation_elements.extend(BYTES_CONTAINS_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.contains".to_string()),
-      message: Some(format!(
-        "{} must contain '{}'",
-        field_context.proto_name,
-        format_bytes_for_error(pattern)
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_CONTAINS_VIOLATION,
+      "bytes.contains",
+      &format!("must contain {}", format_bytes(pattern)),
+    ))
+  }
 }
 
 pub fn suffix(
@@ -212,29 +142,16 @@ pub fn suffix(
 
   let check = value.ends_with(suffix);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    violation_elements.extend(BYTES_SUFFIX_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.suffix".to_string()),
-      message: Some(format!(
-        "{} must end with '{}'",
-        field_context.proto_name,
-        format_bytes_for_error(suffix)
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_SUFFIX_VIOLATION,
+      "bytes.suffix",
+      &format!("must end with {}", format_bytes(suffix)),
+    ))
+  }
 }
 
 pub fn prefix(
@@ -249,29 +166,16 @@ pub fn prefix(
 
   let check = value.starts_with(prefix);
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    violation_elements.extend(BYTES_PREFIX_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.prefix".to_string()),
-      message: Some(format!(
-        "{} must start with '{}'",
-        field_context.proto_name,
-        format_bytes_for_error(prefix)
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_PREFIX_VIOLATION,
+      "bytes.prefix",
+      &format!("must start with {}", format_bytes(prefix)),
+    ))
+  }
 }
 
 pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Result<(), Violation> {
@@ -282,96 +186,60 @@ pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Res
 
   let check = value.len() <= max_len as usize;
 
-  let plural_suffix = if max_len > 1 { "s" } else { "" };
+  if check {
+    Ok(())
+  } else {
+    let plural_suffix = if max_len > 1 { "s" } else { "" };
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-    rule_elements.extend(BYTES_MAX_LEN_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.max_len".to_string()),
-      message: Some(format!(
-        "{} cannot be longer than {} byte{}",
-        field_context.proto_name, max_len, plural_suffix
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: rule_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+    Err(create_violation(
+      field_context,
+      &BYTES_MAX_LEN_VIOLATION,
+      "bytes.max_len",
+      &format!("cannot be longer than {} byte{}", max_len, plural_suffix),
+    ))
+  }
 }
 
-pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
+pub fn min_len(field_context: &FieldContext, value: &Bytes, min_len: u64) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.ignore
     && value.is_empty() {
       return Ok(());
     }
 
-  let check = value.chars().count() >= min_len as usize;
+  let check = value.len() >= min_len as usize;
 
-  let plural_suffix = if min_len > 1 { "s" } else { "" };
+  if check {
+    Ok(())
+  } else {
+    let plural_suffix = if min_len > 1 { "s" } else { "" };
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    violation_elements.extend(BYTES_MIN_LEN_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.min_len".to_string()),
-      message: Some(format!(
-        "{} cannot be shorter than {} byte{}",
-        field_context.proto_name, min_len, plural_suffix
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+    Err(create_violation(
+      field_context,
+      &BYTES_MIN_LEN_VIOLATION,
+      "bytes.min_len",
+      &format!("cannot be shorter than {} byte{}", min_len, plural_suffix),
+    ))
+  }
 }
 
-pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
+pub fn len(field_context: &FieldContext, value: &Bytes, len: u64) -> Result<(), Violation> {
   if let Ignore::IfZeroValue = field_context.ignore
     && value.is_empty() {
       return Ok(());
     }
 
-  let check = value.chars().count() == len as usize;
+  let check = value.len() == len as usize;
 
-  let plural_suffix = if len > 1 { "s" } else { "" };
+  if check {
+    Ok(())
+  } else {
+    let plural_suffix = if len > 1 { "s" } else { "" };
 
-  if !check {
-    let elements = get_violation_elements(field_context);
-
-    let mut violation_elements = get_base_violations_path(field_context.field_kind);
-
-    violation_elements.extend(BYTES_LEN_VIOLATION.clone());
-
-    let violation = Violation {
-      rule_id: Some("bytes.len".to_string()),
-      message: Some(format!(
-        "{} must be exactly {} byte{} long",
-        field_context.proto_name, len, plural_suffix
-      )),
-      for_key: None,
-      field: Some(FieldPath { elements }),
-      rule: Some(FieldPath {
-        elements: violation_elements,
-      }),
-    };
-    return Err(violation);
-  };
-  Ok(())
+    Err(create_violation(
+      field_context,
+      &BYTES_LEN_VIOLATION,
+      "bytes.len",
+      &format!("must be exactly {} byte{} long", len, plural_suffix),
+    ))
+  }
 }

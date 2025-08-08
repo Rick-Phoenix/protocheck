@@ -1,5 +1,5 @@
 use std::{
-  net::{IpAddr, Ipv4Addr, Ipv6Addr},
+  net::{IpAddr, Ipv6Addr},
   str::FromStr,
   sync::LazyLock,
 };

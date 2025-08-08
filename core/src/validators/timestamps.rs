@@ -10,15 +10,15 @@ use crate::{
 
 pub fn within(
   field_context: &FieldContext,
-  value: &Timestamp,
-  time_range: &Duration,
+  value: Timestamp,
+  time_range: Duration,
 ) -> Result<(), Violation> {
   let check = value.is_within_range_from_now(time_range);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("has to be within {} from now", time_range,);
+    let error_message = format!("must be within {} from now", time_range,);
 
     Err(create_violation(
       field_context,

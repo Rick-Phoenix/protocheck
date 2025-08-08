@@ -211,3 +211,25 @@ where
 
   tokens
 }
+
+pub fn byte_lit_hashset_to_tokens<T>(hashset: HashSet<T>, type_tokens: &TokenStream) -> TokenStream
+where
+  T: ToTokens,
+{
+  let set_ident = Ident::new("set", Span::call_site());
+  let mut tokens = quote! {
+    let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
+  };
+
+  for item in hashset {
+    tokens.extend(quote! {
+      #set_ident.insert(::bytes::Bytes::from_static(#item));
+    });
+  }
+
+  tokens.extend(quote! {
+    #set_ident
+  });
+
+  tokens
+}

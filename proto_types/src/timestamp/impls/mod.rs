@@ -17,15 +17,15 @@ impl Timestamp {
     Utc::now().into()
   }
 
-  pub fn is_within_range_from_now(&self, range: &Duration) -> bool {
+  pub fn is_within_range_from_now(&self, range: Duration) -> bool {
     (Timestamp::now() + range) >= *self && (Timestamp::now() - range) <= *self
   }
 
-  pub fn is_within_future_range(&self, range: &Duration) -> bool {
+  pub fn is_within_future_range(&self, range: Duration) -> bool {
     (Timestamp::now() + range) >= *self
   }
 
-  pub fn is_within_past_range(&self, range: &Duration) -> bool {
+  pub fn is_within_past_range(&self, range: Duration) -> bool {
     (Timestamp::now() - range) <= *self
   }
 

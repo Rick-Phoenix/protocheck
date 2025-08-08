@@ -7,7 +7,7 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{Error, LitByteStr};
 
-use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
+use crate::{rules::core::byte_lit_hashset_to_tokens, validation_data::ValidationData};
 
 pub fn get_bytes_rules(
   validation_data: &ValidationData,
@@ -51,13 +51,13 @@ pub fn get_bytes_rules(
 
     let static_regex_ident = format_ident!("__{}_REGEX", validation_data.static_full_name());
     static_defs.push(quote! {
-      static #static_regex_ident: std::sync::LazyLock<regex::Regex> = LazyLock::new(|| {
-        regex::Regex::new(#pattern).unwrap()
+      static #static_regex_ident: ::std::sync::LazyLock<regex::Regex> = ::std::sync::LazyLock::new(|| {
+        ::regex::Regex::new(#pattern).unwrap()
       });
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::pattern(&#field_context_ident, #value_ident, #static_regex_ident )
+      ::protocheck::validators::bytes::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident )
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -70,7 +70,7 @@ pub fn get_bytes_rules(
       Span::call_site(),
     );
     let type_tokens = quote! { ::bytes::Bytes };
-    let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
+    let hashset_tokens = byte_lit_hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
       static #in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
@@ -79,7 +79,7 @@ pub fn get_bytes_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::in_list(&#field_context_ident, *#value_ident, &#in_list_ident)
+      protocheck::validators::containing::bytes_in_list(&#field_context_ident, &#value_ident, &#in_list_ident)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -92,7 +92,7 @@ pub fn get_bytes_rules(
       Span::call_site(),
     );
     let type_tokens = quote! { ::bytes::Bytes };
-    let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
+    let hashset_tokens = byte_lit_hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
       static #not_in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
@@ -101,7 +101,7 @@ pub fn get_bytes_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::not_in_list(&#field_context_ident, *#value_ident, &#not_in_list_ident)
+      protocheck::validators::containing::bytes_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -110,7 +110,7 @@ pub fn get_bytes_rules(
 
   if let Some(len_value) = len {
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::len(&#field_context_ident, #value_ident, #len_value)
+          protocheck::validators::bytes::len(&#field_context_ident, &#value_ident, #len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -119,7 +119,7 @@ pub fn get_bytes_rules(
 
   if let Some(min_len_value) = min_len {
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::min_len(&#field_context_ident, #value_ident, #min_len_value)
+          protocheck::validators::bytes::min_len(&#field_context_ident, &#value_ident, #min_len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -128,7 +128,7 @@ pub fn get_bytes_rules(
 
   if let Some(max_len_value) = max_len {
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::max_len(&#field_context_ident, #value_ident, #max_len_value)
+          protocheck::validators::bytes::max_len(&#field_context_ident, &#value_ident, #max_len_value)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -139,7 +139,7 @@ pub fn get_bytes_rules(
     let contains_val_tokens = LitByteStr::new(contains_val, Span::call_site()).to_token_stream();
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::contains(&#field_context_ident, #value_ident, #contains_val_tokens)
+      protocheck::validators::bytes::contains(&#field_context_ident, &#value_ident, #contains_val_tokens)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -150,7 +150,7 @@ pub fn get_bytes_rules(
     let prefix_tokens = LitByteStr::new(prefix, Span::call_site()).to_token_stream();
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::prefix(&#field_context_ident, #value_ident, #prefix_tokens)
+      protocheck::validators::bytes::prefix(&#field_context_ident, &#value_ident, #prefix_tokens)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -161,7 +161,7 @@ pub fn get_bytes_rules(
     let suffix_tokens = LitByteStr::new(suffix, Span::call_site()).to_token_stream();
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::suffix(&#field_context_ident, #value_ident, #suffix_tokens)
+      protocheck::validators::bytes::suffix(&#field_context_ident, &#value_ident, #suffix_tokens)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -182,7 +182,7 @@ pub fn get_bytes_rules(
     };
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::#validator_path(&#field_context_ident, #value_ident)
+      protocheck::validators::bytes::#validator_path(&#field_context_ident, &#value_ident)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 

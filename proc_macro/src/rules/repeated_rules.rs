@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
-use proto_types::protovalidate::FieldRules;
+use proto_types::{protovalidate::FieldRules, FieldType};
 use quote::quote;
 use syn::Error;
 
@@ -29,7 +29,6 @@ pub fn get_repeated_rules(
 
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
-  let mut unique_values = false;
   let mut ignore_items_validators = false;
 
   if !field_rules.cel.is_empty() {
@@ -56,8 +55,35 @@ pub fn get_repeated_rules(
         ));
       }
 
-      unique_values = true;
-      items_validation_data = Some(validation_data.to_repeated_item(field_desc));
+      let items_validation_data =
+        items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item(field_desc));
+
+      let field_context_ident = items_validation_data.field_context_ident();
+      let value_ident = items_validation_data.value_ident();
+      let violations_ident = items_validation_data.violations_ident;
+
+      vec_level_rules.extend(quote! {
+        let mut processed_values = ::std::collections::HashSet::new();
+        let mut not_unique = false;
+      });
+
+      let func_name = match validation_data.field_kind.inner_type() {
+        FieldType::Float => quote! { unique_f32 },
+        FieldType::Double => quote! { unique_f64 },
+        _ => quote! { unique },
+      };
+
+      items_rules.extend(quote! {
+        if !not_unique {
+          match ::protocheck::validators::repeated::#func_name(&#field_context_ident, #value_ident, &mut processed_values) {
+            Ok(_) => {},
+            Err(v) => {
+              not_unique = true;
+              #violations_ident.push(v);
+            }
+          };
+        }
+      });
     }
 
     let value_ident = validation_data.value_ident();
@@ -153,7 +179,6 @@ pub fn get_repeated_rules(
   Ok(validation_data.aggregate_vec_rules(&RepeatedValidator {
     vec_level_rules,
     items_rules,
-    unique_values,
     items_context_tokens,
   }))
 }

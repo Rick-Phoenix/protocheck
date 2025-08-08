@@ -1,9 +1,6 @@
 use std::sync::LazyLock;
 
-use proto_types::{
-  field_descriptor_proto::Type as ProtoType,
-  protovalidate::{FieldPath, FieldPathElement, Violation},
-};
+use proto_types::{field_descriptor_proto::Type as ProtoType, protovalidate::FieldPathElement};
 
 pub(crate) static STRING_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![

@@ -499,7 +499,7 @@ pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result
   if check {
     Ok(())
   } else {
-    let error_message = format!("must contain the '{}' prefix", prefix,);
+    let error_message = format!("must start with '{}'", prefix,);
     Err(create_violation(
       field_context,
       &STRING_PREFIX_VIOLATION,
@@ -520,7 +520,7 @@ pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result
   if check {
     Ok(())
   } else {
-    let error_message = format!("must contain the '{}' suffix", suffix,);
+    let error_message = format!("must end with '{}'", suffix,);
     Err(create_violation(
       field_context,
       &STRING_SUFFIX_VIOLATION,

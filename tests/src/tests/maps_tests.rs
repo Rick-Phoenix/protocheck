@@ -70,7 +70,7 @@ fn timestamp_map() {
 
   let result = msg.validate().unwrap_err();
 
-  assert_eq!(result.violations.len(), 4);
+  assert_eq!(result.violations.len(), 6);
 
   let values_gt_now_violation = result.violation_by_rule_id("timestamp.gt_now").unwrap();
   let violation_field = values_gt_now_violation.last_field().unwrap();

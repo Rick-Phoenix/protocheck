@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::{
   protovalidate::DurationRules,
@@ -71,6 +72,12 @@ pub fn get_duration_rules(
     );
 
     let type_tokens = quote! { ::protocheck::types::Duration };
+
+    let error_message = format!(
+      "must be one of these values: [ {} ]",
+      in_list.iter().map(|e| format!("'{}'", e)).join(", ")
+    );
+
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -80,7 +87,7 @@ pub fn get_duration_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::duration_in_list(&#field_context_ident, *#value_ident, &#in_list_ident)
+      protocheck::validators::containing::duration_in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -103,7 +110,7 @@ pub fn get_duration_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::duration_not_in_list(&#field_context_ident, *#value_ident, &#not_in_list_ident)
+      protocheck::validators::containing::duration_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);

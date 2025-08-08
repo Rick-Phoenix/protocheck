@@ -17,6 +17,7 @@ enum OuterType {
   },
   Normal {
     is_f32: bool,
+    is_bytes: bool,
   },
 }
 
@@ -60,7 +61,10 @@ impl TryFrom<&Type> for OuterType {
         conversion_tokens: get_conversion_tokens(value_type),
       })
     } else {
-      Ok(Self::Normal { is_f32: is_f32(ty) })
+      Ok(Self::Normal {
+        is_f32: is_f32(ty),
+        is_bytes: is_bytes(ty),
+      })
     }
   }
 }
@@ -278,10 +282,14 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
           });
         }
-        OuterType::Normal { is_f32 } => {
+        OuterType::Normal { is_f32, is_bytes } => {
           if is_f32 {
             tokens.extend(quote! {
               #fields_map_ident.insert(#field_name.into(), (value.#field_ident as f64).into());
+            });
+          } else if is_bytes {
+            tokens.extend(quote! {
+              #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_vec().into());
             });
           } else {
             tokens.extend(quote! {
@@ -332,6 +340,7 @@ fn supports_cel_into(ty: &Type) -> bool {
   is_primitive(ty)
     || type_matches_path(ty, "::protocheck::types::FieldMask")
     || type_matches_path(ty, "::protocheck::types::Empty")
+    || type_matches_path(ty, "::protocheck::types::Any")
 }
 
 fn is_bytes(ty: &Type) -> bool {

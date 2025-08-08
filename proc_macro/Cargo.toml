@@ -19,6 +19,7 @@ regex = { workspace = true }
 proto_types = { path = "../proto_types/" }
 protocheck_core = { path = "../core/" }
 chrono = { workspace = true }
+itertools = { workspace = true }
 
 [build-dependencies]
 prost-build = { workspace = true }

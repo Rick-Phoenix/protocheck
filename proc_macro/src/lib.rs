@@ -1,5 +1,3 @@
-#![allow(clippy::field_reassign_with_default)]
-
 use std::collections::HashMap;
 
 use pool_loader::DESCRIPTOR_POOL;
@@ -17,7 +15,6 @@ use crate::{
 mod attribute_extractors;
 mod cel_rule_template;
 mod cel_try_into;
-mod namespaces;
 mod pool_loader;
 mod protogen;
 mod rules;
@@ -77,22 +74,22 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     #original_input_as_proc_macro2
 
     impl #struct_ident {
-      pub fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
-        let mut violations: Vec<protocheck::types::protovalidate::Violation> = Vec::new();
-        let mut parent_messages: Vec<protocheck::types::protovalidate::FieldPathElement> = Vec::new();
+      pub fn validate(&self) -> Result<(), ::protocheck::types::protovalidate::Violations> {
+        let mut violations: Vec<::protocheck::types::protovalidate::Violation> = Vec::new();
+        let mut parent_messages: Vec<::protocheck::types::protovalidate::FieldPathElement> = Vec::new();
 
         self.nested_validate(&mut parent_messages, &mut violations);
 
         if violations.len() > 0 {
-          return Err(protocheck::types::protovalidate::Violations { violations });
+          return Err(::protocheck::types::protovalidate::Violations { violations });
         }
         Ok(())
       }
 
       pub fn nested_validate(
         &self,
-        parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
-        violations: &mut Vec<protocheck::types::protovalidate::Violation>
+        parent_messages: &mut Vec<::protocheck::types::protovalidate::FieldPathElement>,
+        violations: &mut Vec<::protocheck::types::protovalidate::Violation>
       ) {
 
         #validators
@@ -100,8 +97,8 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
       }
     }
 
-    impl protocheck::validators::ProtoValidator for #struct_ident {
-      fn validate(&self) -> Result<(), protocheck::types::protovalidate::Violations> {
+    impl ::protocheck::validators::ProtoValidator for #struct_ident {
+      fn validate(&self) -> Result<(), ::protocheck::types::protovalidate::Violations> {
         self.validate()
       }
     }
@@ -199,8 +196,8 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     impl #oneof_rust_ident {
       pub fn validate(
         &self,
-        parent_messages: &mut Vec<protocheck::types::protovalidate::FieldPathElement>,
-        violations: &mut Vec<protocheck::types::protovalidate::Violation>,
+        parent_messages: &mut Vec<::protocheck::types::protovalidate::FieldPathElement>,
+        violations: &mut Vec<::protocheck::types::protovalidate::Violation>,
       ) {
         match self {
           #validators_tokens

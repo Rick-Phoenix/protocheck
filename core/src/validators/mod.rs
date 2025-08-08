@@ -17,6 +17,5 @@ pub mod repeated;
 pub mod required;
 pub mod timestamps;
 
-#[allow(unused, dead_code)]
 pub mod static_data;
 pub mod strings;

@@ -1,12 +1,13 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
+use prost::bytes::Bytes;
 use proto_types::{Any, Duration};
 
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
   validators::static_data::{
-    base_violations::create_violation, in_rules::get_in_rule_path,
+    base_violations::create_violation, bytes_violations::format_bytes, in_rules::get_in_rule_path,
     not_in_rules::get_not_in_rule_path,
   },
 };
@@ -15,23 +16,13 @@ pub fn duration_in_list(
   field_context: &FieldContext,
   value: Duration,
   target: &'static HashSet<Duration>,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = target.contains(&value);
   if check {
     Ok(())
   } else {
-    let mut list_str = String::new();
-
-    for (i, d) in target.iter().enumerate() {
-      list_str.push_str(&d.to_string());
-
-      if i != target.len() - 1 {
-        list_str.push_str(", ");
-      }
-    }
-
-    let values_list_string = format!("has to be one of these values: [ {} ]", list_str);
-    Err(create_in_list_violation(field_context, &values_list_string))
+    Err(create_in_list_violation(field_context, error_message))
   }
 }
 
@@ -47,13 +38,46 @@ pub fn duration_not_in_list(
     let mut list_str = String::new();
 
     for (i, d) in target.iter().enumerate() {
-      list_str.push_str(&d.to_string());
+      list_str.push_str(&format!("'{}'", d));
 
       if i != target.len() - 1 {
         list_str.push_str(", ");
       }
     }
 
+    let values_list_string = format!("cannot be one of these values: [ {} ]", list_str);
+    Err(create_not_in_list_violation(
+      field_context,
+      &values_list_string,
+    ))
+  }
+}
+
+pub fn bytes_in_list(
+  field_context: &FieldContext,
+  value: &Bytes,
+  target: &'static HashSet<Bytes>,
+) -> Result<(), Violation> {
+  let check = target.contains(value);
+  if check {
+    Ok(())
+  } else {
+    let list_str = format_bytes(value);
+    let values_list_string = format!("has to be one of these values: [ {} ]", list_str);
+    Err(create_in_list_violation(field_context, &values_list_string))
+  }
+}
+
+pub fn bytes_not_in_list(
+  field_context: &FieldContext,
+  value: &Bytes,
+  target: &'static HashSet<Bytes>,
+) -> Result<(), Violation> {
+  let check = !target.contains(value);
+  if check {
+    Ok(())
+  } else {
+    let list_str = format_bytes(value);
     let values_list_string = format!("cannot be one of these values: [ {} ]", list_str);
     Err(create_not_in_list_violation(
       field_context,
@@ -74,7 +98,7 @@ pub fn string_in_list(
     let mut list_str = String::new();
 
     for (i, s) in target.iter().enumerate() {
-      list_str.push_str(s);
+      list_str.push_str(&format!("'{}'", s));
 
       if i != target.len() - 1 {
         list_str.push_str(", ");
@@ -98,7 +122,7 @@ pub fn string_not_in_list(
     let mut list_str = String::new();
 
     for (i, s) in target.iter().enumerate() {
-      list_str.push_str(s);
+      list_str.push_str(&format!("'{}'", s));
 
       if i != target.len() - 1 {
         list_str.push_str(", ");
@@ -125,7 +149,7 @@ pub fn any_in_list(
     let mut list_str = String::new();
 
     for (i, s) in target.iter().enumerate() {
-      list_str.push_str(s);
+      list_str.push_str(&format!("'{}'", s));
 
       if i != target.len() - 1 {
         list_str.push_str(", ");
@@ -152,10 +176,10 @@ pub fn any_not_in_list(
     let mut list_str = String::new();
 
     for (i, s) in target.iter().enumerate() {
-      list_str.push_str(s);
+      list_str.push_str(&format!("'{}'", s));
 
       if i != target.len() - 1 {
-        list_str.push_str(", ");
+        list_str.push_str(&format!("'{}'", s));
       }
     }
 

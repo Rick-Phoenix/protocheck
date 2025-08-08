@@ -24,9 +24,31 @@ pub(crate) fn get_in_rule_path(
     FieldType::Bytes => Some(("bytes", &BYTES_IN_VIOLATION)),
     FieldType::Enum => Some(("enum", &ENUM_IN_VIOLATION)),
     FieldType::Duration => Some(("duration", &DURATION_IN_VIOLATION)),
+    FieldType::Any => Some(("any", &ANY_IN_VIOLATION)),
     _ => None,
   }
 }
+
+static ANY_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("any".to_string()),
+      field_number: Some(20),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("in".to_string()),
+      field_number: Some(2),
+      field_type: Some(ProtoType::String as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+  ]
+});
 
 static FLOAT_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![

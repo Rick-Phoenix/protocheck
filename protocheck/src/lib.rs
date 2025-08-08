@@ -40,7 +40,7 @@ pub mod build {
       let message_name = message_desc.full_name();
       if message_name.starts_with(app_package_prefix) {
         let attribute_str = format!(
-          r#"#[protocheck::macros::protobuf_validate("{}")]"#,
+          r#"#[::protocheck::macros::protobuf_validate("{}")]"#,
           message_name
         );
         config.message_attribute(message_name, &attribute_str);
@@ -49,19 +49,22 @@ pub mod build {
           config.type_attribute(
             oneof.full_name(),
             format!(
-              r#"#[protocheck::macros::protobuf_validate_oneof("{}")]"#,
+              r#"#[::protocheck::macros::protobuf_validate_oneof("{}")]"#,
               oneof.full_name()
             ),
           );
 
-          config.type_attribute(oneof.full_name(), r#"#[derive(protocheck::macros::Oneof)]"#);
           config.type_attribute(
             oneof.full_name(),
-            r#"#[derive(serde::Serialize, serde::Deserialize)]"#,
+            r#"#[derive(::protocheck::macros::Oneof)]"#,
           );
           config.type_attribute(
             oneof.full_name(),
-            r#"#[derive(protocheck::macros::OneofTryIntoCelValue)]"#,
+            r#"#[derive(::serde::Serialize, ::serde::Deserialize)]"#,
+          );
+          config.type_attribute(
+            oneof.full_name(),
+            r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
           );
 
           for field in oneof.fields() {

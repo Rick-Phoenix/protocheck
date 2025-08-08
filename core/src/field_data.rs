@@ -39,7 +39,10 @@ impl FieldKind {
   }
 
   pub fn is_copy(&self) -> bool {
-    !matches!(self.inner_type(), FieldType::String | FieldType::Message)
+    !matches!(
+      self.inner_type(),
+      FieldType::String | FieldType::Message | FieldType::Bytes
+    )
   }
 
   pub fn is_map_key(&self) -> bool {

@@ -17,10 +17,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .file_descriptor_set_path(final_descriptor_path.clone())
     .bytes(["."])
     .enable_type_names()
-    .message_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
-    .message_attribute(".", "#[derive(protocheck::macros::TryIntoCelValue)]")
-    .extern_path(".google.protobuf", "protocheck::types")
-    .extern_path(".buf.validate", "protocheck::types::protovalidate")
+    .message_attribute(".", "#[derive(::serde::Serialize, ::serde::Deserialize)]")
+    .message_attribute(".", "#[derive(::protocheck::macros::TryIntoCelValue)]")
+    .extern_path(".google.protobuf", "::protocheck::types")
+    .extern_path(".buf.validate", "::protocheck::types::protovalidate")
     .compile_well_known_types()
     .out_dir(out_dir.clone());
 
