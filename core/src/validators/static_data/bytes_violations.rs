@@ -1,4 +1,4 @@
-use std::{fmt::Write, str::from_utf8, sync::LazyLock};
+use std::{str::from_utf8, sync::LazyLock};
 
 use prost::bytes::Bytes;
 use proto_types::{

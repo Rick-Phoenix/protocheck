@@ -1,35 +1,8 @@
 use std::sync::LazyLock;
 
-use proto_types::FieldType;
-
 use crate::{protovalidate::FieldPathElement, ProtoType};
 
-pub(crate) fn get_in_rule_path(
-  kind: FieldType,
-) -> Option<(&'static str, &'static [FieldPathElement])> {
-  match kind {
-    FieldType::Float => Some(("float", &FLOAT_IN_VIOLATION)),
-    FieldType::Double => Some(("double", &DOUBLE_IN_VIOLATION)),
-    FieldType::Int32 => Some(("int32", &INT32_IN_VIOLATION)),
-    FieldType::Int64 => Some(("int64", &INT64_IN_VIOLATION)),
-    FieldType::Uint32 => Some(("uint32", &UINT32_IN_VIOLATION)),
-    FieldType::Uint64 => Some(("uint64", &UINT64_IN_VIOLATION)),
-    FieldType::Sint32 => Some(("sint32", &SINT32_IN_VIOLATION)),
-    FieldType::Sint64 => Some(("sint64", &SINT64_IN_VIOLATION)),
-    FieldType::Fixed32 => Some(("fixed32", &FIXED32_IN_VIOLATION)),
-    FieldType::Fixed64 => Some(("fixed64", &FIXED64_IN_VIOLATION)),
-    FieldType::Sfixed32 => Some(("sfixed32", &SFIXED32_IN_VIOLATION)),
-    FieldType::Sfixed64 => Some(("sfixed64", &SFIXED64_IN_VIOLATION)),
-    FieldType::String => Some(("string", &STRING_IN_VIOLATION)),
-    FieldType::Bytes => Some(("bytes", &BYTES_IN_VIOLATION)),
-    FieldType::Enum => Some(("enum", &ENUM_IN_VIOLATION)),
-    FieldType::Duration => Some(("duration", &DURATION_IN_VIOLATION)),
-    FieldType::Any => Some(("any", &ANY_IN_VIOLATION)),
-    _ => None,
-  }
-}
-
-static ANY_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static ANY_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("any".to_string()),
@@ -50,7 +23,7 @@ static ANY_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static FLOAT_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static FLOAT_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("float".to_string()),
@@ -71,7 +44,7 @@ static FLOAT_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static DOUBLE_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static DOUBLE_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("double".to_string()),
@@ -92,7 +65,7 @@ static DOUBLE_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static INT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static INT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("int32".to_string()),
@@ -113,7 +86,7 @@ static INT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static INT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static INT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("int64".to_string()),
@@ -134,7 +107,7 @@ static INT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static UINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static UINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("uint32".to_string()),
@@ -155,7 +128,7 @@ static UINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static UINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static UINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("uint64".to_string()),
@@ -176,7 +149,7 @@ static UINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static SINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static SINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("sint32".to_string()),
@@ -197,7 +170,7 @@ static SINT32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static SINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static SINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("sint64".to_string()),
@@ -218,7 +191,7 @@ static SINT64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static FIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static FIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("fixed32".to_string()),
@@ -239,7 +212,7 @@ static FIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| 
   ]
 });
 
-static FIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static FIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("fixed64".to_string()),
@@ -260,7 +233,7 @@ static FIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| 
   ]
 });
 
-static SFIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static SFIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("sfixed32".to_string()),
@@ -281,7 +254,7 @@ static SFIXED32_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(||
   ]
 });
 
-static SFIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static SFIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("sfixed64".to_string()),
@@ -302,7 +275,7 @@ static SFIXED64_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(||
   ]
 });
 
-static STRING_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static STRING_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("string".to_string()),
@@ -323,7 +296,7 @@ static STRING_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static BYTES_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static BYTES_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("bytes".to_string()),
@@ -344,7 +317,7 @@ static BYTES_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static ENUM_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static ENUM_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("enum".to_string()),
@@ -365,7 +338,7 @@ static ENUM_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   ]
 });
 
-static DURATION_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+pub(crate) static DURATION_IN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
       field_name: Some("duration".to_string()),

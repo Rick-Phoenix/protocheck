@@ -695,6 +695,7 @@ dependencies = [
  "cel-interpreter",
  "chrono",
  "ipnetwork",
+ "paste",
  "proc-macro2",
  "prost",
  "prost-reflect",

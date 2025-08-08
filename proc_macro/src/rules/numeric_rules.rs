@@ -59,13 +59,15 @@ where
       });
     });
 
+    let func_tokens = Ident::new(&format!("{}_in_list", T::UNIT_NAME), Span::call_site());
+
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {
-        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident.to_bits(), &#in_list_ident, #error_message)
+        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident.to_bits(), &#in_list_ident, #error_message)
       },
 
       _ => quote! {
-        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
+        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
       },
     };
 
@@ -88,13 +90,15 @@ where
       });
     });
 
+    let func_tokens = Ident::new(&format!("{}_not_in_list", T::UNIT_NAME), Span::call_site());
+
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {
-        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident.to_bits(), &#not_in_list_ident, #error_message)
+        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident.to_bits(), &#not_in_list_ident, #error_message)
       },
 
       _ => quote! {
-        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
+        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
       },
     };
 

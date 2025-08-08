@@ -94,7 +94,7 @@ pub fn get_enum_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
+      protocheck::validators::containing::enum_in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -118,7 +118,7 @@ pub fn get_enum_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
+      protocheck::validators::containing::enum_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
