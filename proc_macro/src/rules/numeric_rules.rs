@@ -41,12 +41,13 @@ where
   let field_context_ident = &validation_data.field_context_ident();
   let value_ident = validation_data.value_ident();
 
-  if !in_list.is_empty() {
+  if let Some((in_list, in_list_str)) = in_list {
     let in_list_ident = Ident::new(
       &format!("__{}_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
     let type_tokens = rules.hashable_type_tokens();
+    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -56,14 +57,12 @@ where
     });
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
-      FieldType::Float => quote! {
-        protocheck::validators::containing::f32_in_list(&#field_context_ident, #value_ident, &#in_list_ident)
+      FieldType::Float | FieldType::Double => quote! {
+        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident.to_bits(), &#in_list_ident, #error_message)
       },
-      FieldType::Double => quote! {
-        protocheck::validators::containing::f64_in_list(&#field_context_ident, #value_ident, &#in_list_ident)
-      },
+
       _ => quote! {
-        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident)
+        protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
       },
     };
 
@@ -71,12 +70,13 @@ where
     tokens.extend(validator_tokens);
   }
 
-  if !not_in_list.is_empty() {
+  if let Some((not_in_list, not_in_list_str)) = not_in_list {
     let not_in_list_ident = Ident::new(
       &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
     let type_tokens = rules.hashable_type_tokens();
+    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
     let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -86,14 +86,12 @@ where
     });
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
-      FieldType::Float => quote! {
-        protocheck::validators::containing::f32_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+      FieldType::Float | FieldType::Double => quote! {
+        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident.to_bits(), &#not_in_list_ident, #error_message)
       },
-      FieldType::Double => quote! {
-        protocheck::validators::containing::f64_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
-      },
+
       _ => quote! {
-        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+        protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
       },
     };
 

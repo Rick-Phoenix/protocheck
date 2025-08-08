@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::{
   protovalidate::DurationRules,
@@ -65,7 +64,7 @@ pub fn get_duration_rules(
     not_in_list,
   } = rules.containing_rules(field_span, &error_prefix)?;
 
-  if !in_list.is_empty() {
+  if let Some((in_list, in_list_str)) = in_list {
     let in_list_ident = Ident::new(
       &format!("__{}_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
@@ -73,10 +72,7 @@ pub fn get_duration_rules(
 
     let type_tokens = quote! { ::protocheck::types::Duration };
 
-    let error_message = format!(
-      "must be one of these values: [ {} ]",
-      in_list.iter().map(|e| format!("'{}'", e)).join(", ")
-    );
+    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
 
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
@@ -87,20 +83,21 @@ pub fn get_duration_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::duration_in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
+      protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 
-  if !not_in_list.is_empty() {
+  if let Some((not_in_list, not_in_list_str)) = not_in_list {
     let not_in_list_ident = Ident::new(
       &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
 
     let type_tokens = quote! { ::protocheck::types::Duration };
+    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
     let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -110,7 +107,7 @@ pub fn get_duration_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::duration_not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident)
+      protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);

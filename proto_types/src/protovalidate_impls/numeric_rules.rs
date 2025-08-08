@@ -1,5 +1,6 @@
-use std::{fmt::Debug, hash::Hash};
+use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
+use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Error;
@@ -11,7 +12,7 @@ use crate::{
   },
   protovalidate_impls::{
     comparable_rules::ComparableRules,
-    containing_rules::{validate_in_not_in, validate_in_not_in_floats, ContainingRules},
+    containing_rules::{invalid_lists_error, validate_lists, ContainingRules},
     into_comparable::IntoComparable,
   },
 };
@@ -57,14 +58,37 @@ impl NumericRules<u32> for FloatRules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<u32>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in_floats(&in_list, &not_in_list, field_span, error_prefix)?;
+    let in_list_hashset: HashSet<u32> = self.r#in.iter().map(|n| n.to_bits()).collect();
+    let not_in_list_hashset: HashSet<u32> = self.not_in.iter().map(|n| n.to_bits()).collect();
+
+    let invalid_items: Vec<f32> = in_list_hashset
+      .intersection(&not_in_list_hashset)
+      .map(|n| f32::from_bits(*n))
+      .collect();
+
+    if !invalid_items.is_empty() {
+      return Err(invalid_lists_error(
+        field_span,
+        error_prefix,
+        &invalid_items,
+      ));
+    }
+
+    let in_list = (!in_list_hashset.is_empty()).then(|| {
+      let in_list_str = self.r#in.iter().map(|d| format!("{}", d)).join(", ");
+
+      (in_list_hashset, in_list_str)
+    });
+
+    let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
+      let not_in_list_str = self.not_in.iter().map(|d| format!("{}", d)).join(", ");
+
+      (not_in_list_hashset, not_in_list_str)
+    });
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
   fn comparable_rules(
@@ -106,20 +130,43 @@ impl NumericRules<u64> for DoubleRules {
     };
     rules.validate(field_span, error_prefix)
   }
+
   fn containing_rules(
     &self,
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<u64>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
+    let in_list_hashset: HashSet<u64> = self.r#in.iter().map(|n| n.to_bits()).collect();
+    let not_in_list_hashset: HashSet<u64> = self.not_in.iter().map(|n| n.to_bits()).collect();
 
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in_floats(&in_list, &not_in_list, field_span, error_prefix)?;
+    let invalid_items: Vec<f64> = in_list_hashset
+      .intersection(&not_in_list_hashset)
+      .map(|n| f64::from_bits(*n))
+      .collect();
+
+    if !invalid_items.is_empty() {
+      return Err(invalid_lists_error(
+        field_span,
+        error_prefix,
+        &invalid_items,
+      ));
+    }
+
+    let in_list = (!in_list_hashset.is_empty()).then(|| {
+      let in_list_str = self.r#in.iter().map(|d| format!("{}", d)).join(", ");
+
+      (in_list_hashset, in_list_str)
+    });
+
+    let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
+      let not_in_list_str = self.not_in.iter().map(|d| format!("{}", d)).join(", ");
+
+      (not_in_list_hashset, not_in_list_str)
+    });
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -153,15 +200,12 @@ impl NumericRules<i64> for Int64Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -195,15 +239,12 @@ impl NumericRules<i64> for SInt64Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -238,15 +279,12 @@ impl NumericRules<i64> for SFixed64Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -281,15 +319,12 @@ impl NumericRules<i32> for Int32Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -324,15 +359,12 @@ impl NumericRules<i32> for SInt32Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -367,15 +399,12 @@ impl NumericRules<i32> for SFixed32Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -410,15 +439,12 @@ impl NumericRules<u64> for UInt64Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -453,15 +479,12 @@ impl NumericRules<u64> for Fixed64Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -496,15 +519,12 @@ impl NumericRules<u32> for UInt32Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }
@@ -539,15 +559,12 @@ impl NumericRules<u32> for Fixed32Rules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ContainingRules<Self::Unit>, Error> {
-    let in_list = self.r#in.clone();
-    let not_in_list = self.not_in.clone();
-
-    let (in_hashset, not_in_hashset) =
-      validate_in_not_in(&in_list, &not_in_list, field_span, error_prefix)?;
+    let (in_list, not_in_list) = validate_lists(&self.r#in, &self.not_in, false)
+      .map_err(|invalid_items| invalid_lists_error(field_span, error_prefix, &invalid_items))?;
 
     Ok(ContainingRules {
-      in_list: in_hashset,
-      not_in_list: not_in_hashset,
+      in_list,
+      not_in_list,
     })
   }
 }

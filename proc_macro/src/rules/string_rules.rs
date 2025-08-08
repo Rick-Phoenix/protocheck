@@ -76,13 +76,14 @@ pub fn get_string_rules(
     tokens.extend(validator_tokens);
   }
 
-  if !in_list.is_empty() {
+  if let Some((in_list, in_list_str)) = in_list {
     let in_list_ident = Ident::new(
       &format!("__{}_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
 
     let type_tokens = quote! { &'static str };
+    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -92,20 +93,21 @@ pub fn get_string_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &#in_list_ident)
+      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &#in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
     tokens.extend(validator_tokens);
   }
 
-  if !not_in_list.is_empty() {
+  if let Some((not_in_list, not_in_list_str)) = not_in_list {
     let not_in_list_ident = Ident::new(
       &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
 
     let type_tokens = quote! { &'static str };
+    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
     let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -115,7 +117,7 @@ pub fn get_string_rules(
     });
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident)
+      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
