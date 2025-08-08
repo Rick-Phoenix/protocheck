@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use proc_macro2::{Ident, Span, TokenStream};
 use proto_types::{
   protovalidate::{bytes_rules::WellKnown, BytesRules},
@@ -22,8 +24,10 @@ pub fn get_bytes_rules(
   if let Some(const_val) = &rules.r#const {
     let const_val_tokens = LitByteStr::new(const_val, Span::call_site());
 
+    let error_message = format!("must be equal to {}", format_bytes(const_val));
+
     let validator_tokens =
-      validation_data.get_constant_validator(&const_val_tokens.to_token_stream());
+      validation_data.get_constant_validator(&const_val_tokens.to_token_stream(), &error_message);
 
     tokens.extend(validator_tokens);
 
@@ -59,8 +63,10 @@ pub fn get_bytes_rules(
       });
     });
 
+    let error_message = format!("must match the following regex: `{}`", pattern);
+
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::bytes::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident )
+      ::protocheck::validators::bytes::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -114,8 +120,10 @@ pub fn get_bytes_rules(
   }
 
   if let Some(len_value) = len {
+    let plural_prefix = if len_value != 1 { "s" } else { "" };
+    let error_message = format!("must be exactly {} byte{} long", len_value, plural_prefix);
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::len(&#field_context_ident, &#value_ident, #len_value)
+          protocheck::validators::bytes::len(&#field_context_ident, &#value_ident, #len_value, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -123,8 +131,14 @@ pub fn get_bytes_rules(
   }
 
   if let Some(min_len_value) = min_len {
+    let plural_prefix = if min_len_value != 1 { "s" } else { "" };
+    let error_message = format!(
+      "cannot be shorter than {} byte{}",
+      min_len_value, plural_prefix
+    );
+
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::min_len(&#field_context_ident, &#value_ident, #min_len_value)
+          protocheck::validators::bytes::min_len(&#field_context_ident, &#value_ident, #min_len_value, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -132,8 +146,14 @@ pub fn get_bytes_rules(
   }
 
   if let Some(max_len_value) = max_len {
+    let plural_prefix = if max_len_value != 1 { "s" } else { "" };
+    let error_message = format!(
+      "cannot be shorter than {} byte{}",
+      max_len_value, plural_prefix
+    );
+
     let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::max_len(&#field_context_ident, &#value_ident, #max_len_value)
+          protocheck::validators::bytes::max_len(&#field_context_ident, &#value_ident, #max_len_value, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -142,9 +162,10 @@ pub fn get_bytes_rules(
 
   if let Some(ref contains_val) = rules.contains {
     let contains_val_tokens = LitByteStr::new(contains_val, Span::call_site()).to_token_stream();
+    let error_message = format!("must contain {}", format_bytes(contains_val));
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::contains(&#field_context_ident, &#value_ident, #contains_val_tokens)
+      protocheck::validators::bytes::contains(&#field_context_ident, &#value_ident, #contains_val_tokens, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -153,9 +174,10 @@ pub fn get_bytes_rules(
 
   if let Some(ref prefix) = rules.prefix {
     let prefix_tokens = LitByteStr::new(prefix, Span::call_site()).to_token_stream();
+    let error_message = format!("must start with {}", format_bytes(prefix));
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::prefix(&#field_context_ident, &#value_ident, #prefix_tokens)
+      protocheck::validators::bytes::prefix(&#field_context_ident, &#value_ident, #prefix_tokens, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -164,9 +186,10 @@ pub fn get_bytes_rules(
 
   if let Some(ref suffix) = rules.suffix {
     let suffix_tokens = LitByteStr::new(suffix, Span::call_site()).to_token_stream();
+    let error_message = format!("must end with {}", format_bytes(suffix));
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::suffix(&#field_context_ident, &#value_ident, #suffix_tokens)
+      protocheck::validators::bytes::suffix(&#field_context_ident, &#value_ident, #suffix_tokens, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -195,4 +218,28 @@ pub fn get_bytes_rules(
   }
 
   Ok(tokens)
+}
+
+pub(crate) fn format_bytes(bytes: &[u8]) -> String {
+  let mut s = String::with_capacity(bytes.len() * 2);
+  s.push('\'');
+
+  for &byte in bytes.iter() {
+    match byte {
+      b'\n' => s.push_str("\\n"),
+      b'\r' => s.push_str("\\r"),
+      b'\t' => s.push_str("\\t"),
+      b'\\' => s.push_str("\\\\"),
+      b'"' => s.push_str("\\\""),
+
+      32..=126 => s.push(byte as char),
+
+      _ => {
+        write!(s, "\\x{:02x}", byte).unwrap();
+      }
+    }
+  }
+
+  s.push('\'');
+  s
 }

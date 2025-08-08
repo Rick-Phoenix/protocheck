@@ -25,7 +25,10 @@ where
   let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
 
   if let Some(const_val) = rules.constant() {
-    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
+    let error_message = format!("has to be equal to {:?}", const_val);
+
+    let validator_tokens =
+      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
 
     tokens.extend(validator_tokens);
 
@@ -102,11 +105,15 @@ where
   if let Some(lt_rule) = comparable_rules.less_than {
     match lt_rule {
       ComparableLessThan::Lt(lt_val) => {
-        let validator_tokens = validation_data.get_lt_validator(&lt_val.to_token_stream());
+        let error_message = format!("must be smaller than {:?}", lt_val);
+        let validator_tokens =
+          validation_data.get_lt_validator(&lt_val.to_token_stream(), &error_message);
         tokens.extend(validator_tokens);
       }
       ComparableLessThan::Lte(lte_val) => {
-        let validator_tokens = validation_data.get_lte_validator(&lte_val.to_token_stream());
+        let error_message = format!("cannot be greater than {:?}", lte_val);
+        let validator_tokens =
+          validation_data.get_lte_validator(&lte_val.to_token_stream(), &error_message);
         tokens.extend(validator_tokens);
       }
     };
@@ -115,12 +122,16 @@ where
   if let Some(gt_rule) = comparable_rules.greater_than {
     match gt_rule {
       ComparableGreaterThan::Gt(gt_val) => {
-        let validator_tokens = validation_data.get_gt_validator(&gt_val.to_token_stream());
+        let error_message = format!("must be more than {:?}", gt_val);
+        let validator_tokens =
+          validation_data.get_gt_validator(&gt_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }
       ComparableGreaterThan::Gte(gte_val) => {
-        let validator_tokens = validation_data.get_gte_validator(&gte_val.to_token_stream());
+        let error_message = format!("cannot be less than {:?}", gte_val);
+        let validator_tokens =
+          validation_data.get_gte_validator(&gte_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }

@@ -15,6 +15,4 @@ fn bytes_tests() {
   };
 
   let Violations { violations } = test.validate().unwrap_err();
-
-  println!("{:#?}", violations);
 }

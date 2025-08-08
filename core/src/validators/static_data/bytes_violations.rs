@@ -10,30 +10,6 @@ use crate::{
   field_data::FieldContext, validators::static_data::base_violations::get_violation_elements,
 };
 
-pub(crate) fn format_bytes(bytes: &[u8]) -> String {
-  let mut s = String::with_capacity(bytes.len() * 2);
-  s.push('\'');
-
-  for &byte in bytes.iter() {
-    match byte {
-      b'\n' => s.push_str("\\n"),
-      b'\r' => s.push_str("\\r"),
-      b'\t' => s.push_str("\\t"),
-      b'\\' => s.push_str("\\\\"),
-      b'"' => s.push_str("\\\""),
-
-      32..=126 => s.push(byte as char),
-
-      _ => {
-        write!(s, "\\x{:02x}", byte).unwrap();
-      }
-    }
-  }
-
-  s.push('\'');
-  s
-}
-
 fn get_invalid_bytes_violation(elements: Vec<FieldPathElement>) -> Violation {
   Violation {
     rule_id: Some("utf8_error".to_string()),

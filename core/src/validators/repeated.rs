@@ -11,20 +11,18 @@ pub fn min_items(
   field_context: &FieldContext,
   value: usize,
   min_items: u64,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value >= min_items as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if min_items > 1 { "s" } else { "" };
-    let error_message = format!("requires at least {} item{}", min_items, plural_suffix);
-
     Err(create_violation(
       field_context,
       &REPEATED_MIN_ITEMS_VIOLATION,
       "repeated.min_items",
-      &error_message,
+      error_message,
     ))
   }
 }
@@ -33,20 +31,18 @@ pub fn max_items(
   field_context: &FieldContext,
   value: usize,
   max_items: u64,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value <= max_items as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if max_items > 1 { "s" } else { "" };
-    let error_message = format!("cannot have more than {} item{}", max_items, plural_suffix);
-
     Err(create_violation(
       field_context,
       &REPEATED_MAX_ITEMS_VIOLATION,
       "repeated.max_items",
-      &error_message,
+      error_message,
     ))
   }
 }

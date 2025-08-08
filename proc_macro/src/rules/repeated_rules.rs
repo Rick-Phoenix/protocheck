@@ -96,8 +96,11 @@ pub fn get_repeated_rules(
       let rule_val = repeated_rules.min_items();
       min_items = Some(rule_val);
 
+      let plural_suffix = if rule_val != 1 { "s" } else { "" };
+      let error_message = format!("must contain at least {} item{}", rule_val, plural_suffix);
+
       let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident.len(), #rule_val)
+        protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
       };
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -108,8 +111,14 @@ pub fn get_repeated_rules(
       let rule_val = repeated_rules.max_items();
       max_items = Some(rule_val);
 
+      let plural_suffix = if rule_val != 1 { "s" } else { "" };
+      let error_message = format!(
+        "cannot contain more than {} item{}",
+        rule_val, plural_suffix
+      );
+
       let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident.len(), #rule_val)
+        protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
       };
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 

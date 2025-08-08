@@ -1,5 +1,4 @@
 use prost::bytes::Bytes;
-use proto_types::protovalidate::Ignore;
 use regex::Regex;
 
 use crate::{
@@ -8,21 +7,15 @@ use crate::{
   validators::static_data::{
     base_violations::create_violation,
     bytes_violations::{
-      format_bytes, parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION,
-      BYTES_IPV6_VIOLATION, BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION,
-      BYTES_MIN_LEN_VIOLATION, BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION,
-      BYTES_SUFFIX_VIOLATION,
+      parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION, BYTES_IPV6_VIOLATION,
+      BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION, BYTES_MIN_LEN_VIOLATION,
+      BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION, BYTES_SUFFIX_VIOLATION,
     },
     well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
   },
 };
 
 pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ip(string_val);
 
@@ -39,11 +32,6 @@ pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> 
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv4(string_val);
 
@@ -60,11 +48,6 @@ pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let string_val = parse_bytes_input(value, field_context)?;
   let check = is_valid_ipv6(string_val);
 
@@ -84,12 +67,8 @@ pub fn pattern(
   field_context: &FieldContext,
   value: &Bytes,
   pattern: &Regex,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let string_val = parse_bytes_input(value, field_context)?;
 
   let check = pattern.is_match(string_val);
@@ -101,7 +80,7 @@ pub fn pattern(
       field_context,
       &BYTES_PATTERN_VIOLATION,
       "bytes.pattern",
-      &format!("must match the following regex: `{}`", pattern),
+      error_message,
     ))
   }
 }
@@ -110,12 +89,8 @@ pub fn contains(
   field_context: &FieldContext,
   value: &Bytes,
   pattern: &'static [u8],
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = value.windows(pattern.len()).any(|win| win == pattern);
 
   if check {
@@ -125,7 +100,7 @@ pub fn contains(
       field_context,
       &BYTES_CONTAINS_VIOLATION,
       "bytes.contains",
-      &format!("must contain {}", format_bytes(pattern)),
+      error_message,
     ))
   }
 }
@@ -134,12 +109,8 @@ pub fn suffix(
   field_context: &FieldContext,
   value: &Bytes,
   suffix: &'static [u8],
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = value.ends_with(suffix);
 
   if check {
@@ -149,7 +120,7 @@ pub fn suffix(
       field_context,
       &BYTES_SUFFIX_VIOLATION,
       "bytes.suffix",
-      &format!("must end with {}", format_bytes(suffix)),
+      error_message,
     ))
   }
 }
@@ -158,12 +129,8 @@ pub fn prefix(
   field_context: &FieldContext,
   value: &Bytes,
   prefix: &'static [u8],
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = value.starts_with(prefix);
 
   if check {
@@ -173,73 +140,67 @@ pub fn prefix(
       field_context,
       &BYTES_PREFIX_VIOLATION,
       "bytes.prefix",
-      &format!("must start with {}", format_bytes(prefix)),
+      error_message,
     ))
   }
 }
 
-pub fn max_len(field_context: &FieldContext, value: &Bytes, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn max_len(
+  field_context: &FieldContext,
+  value: &Bytes,
+  max_len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.len() <= max_len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if max_len > 1 { "s" } else { "" };
-
     Err(create_violation(
       field_context,
       &BYTES_MAX_LEN_VIOLATION,
       "bytes.max_len",
-      &format!("cannot be longer than {} byte{}", max_len, plural_suffix),
+      error_message,
     ))
   }
 }
 
-pub fn min_len(field_context: &FieldContext, value: &Bytes, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn min_len(
+  field_context: &FieldContext,
+  value: &Bytes,
+  min_len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.len() >= min_len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if min_len > 1 { "s" } else { "" };
-
     Err(create_violation(
       field_context,
       &BYTES_MIN_LEN_VIOLATION,
       "bytes.min_len",
-      &format!("cannot be shorter than {} byte{}", min_len, plural_suffix),
+      error_message,
     ))
   }
 }
 
-pub fn len(field_context: &FieldContext, value: &Bytes, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn len(
+  field_context: &FieldContext,
+  value: &Bytes,
+  len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.len() == len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if len > 1 { "s" } else { "" };
-
     Err(create_violation(
       field_context,
       &BYTES_LEN_VIOLATION,
       "bytes.len",
-      &format!("must be exactly {} byte{} long", len, plural_suffix),
+      error_message,
     ))
   }
 }

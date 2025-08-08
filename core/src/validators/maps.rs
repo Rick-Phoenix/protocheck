@@ -11,19 +11,18 @@ pub fn min_pairs(
   field_context: &FieldContext,
   value: usize,
   min_pairs: u64,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value >= min_pairs as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if min_pairs > 1 { "s" } else { "" };
-    let error_message = format!("requires at least {} pair{}", min_pairs, plural_suffix);
     Err(create_violation(
       field_context,
       &MAP_MIN_PAIRS_VIOLATION,
       "map.min_pairs",
-      &error_message,
+      error_message,
     ))
   }
 }
@@ -32,19 +31,18 @@ pub fn max_pairs(
   field_context: &FieldContext,
   value: usize,
   max_pairs: u64,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value <= max_pairs as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if max_pairs > 1 { "s" } else { "" };
-    let error_message = format!("cannot have more than {} pair{}", max_pairs, plural_suffix);
     Err(create_violation(
       field_context,
       &MAP_MAX_PAIRS_VIOLATION,
       "map.max_pairs",
-      &error_message,
+      error_message,
     ))
   }
 }

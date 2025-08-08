@@ -18,6 +18,20 @@ enum test_enum {
   PASSIVE = 2;
 }
 
+message IgnoresTests {
+  oneof oneofs {
+    int64 name = 1 [
+      (buf.validate.field).cel = {
+        id: "tautology"
+        message: "tautology"
+        expression: "1 == 1"
+      },
+      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+    ];
+    int64 id = 2;
+  }
+}
+
 message BytesTests {
   bytes pattern_field = 1 [(buf.validate.field).bytes.pattern = "^abc"];
   bytes contains_field = 2 [(buf.validate.field).bytes.contains = "abc"];

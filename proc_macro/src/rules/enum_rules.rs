@@ -26,7 +26,10 @@ pub fn get_enum_rules(
   let value_ident = validation_data.value_ident();
 
   if let Some(const_val) = enum_rules.r#const {
-    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
+    let error_message = format!("has to be equal to {:?}", const_val);
+
+    let validator_tokens =
+      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
 
     tokens.extend(validator_tokens);
 
@@ -41,10 +44,12 @@ pub fn get_enum_rules(
     let field_context_tokens = validation_data.field_context_tokens();
     let value_ident = validation_data.value_ident();
 
+    let error_message = format!("must be a defined value of {}", enum_name);
+
     let validator_tokens = quote! {
       if !#enum_ident_tokens::try_from(#value_ident).is_ok() {
         #field_context_tokens
-        #violations_ident.push(protocheck::validators::enums::defined_only(&#field_context_ident, #enum_name));
+        #violations_ident.push(protocheck::validators::enums::defined_only(&#field_context_ident, #error_message));
       }
     };
 

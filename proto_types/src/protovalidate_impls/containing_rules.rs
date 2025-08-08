@@ -1,6 +1,6 @@
 use std::{
   collections::HashSet,
-  fmt::{Debug, Display},
+  fmt::{Debug, Display, Write},
   hash::Hash,
 };
 
@@ -118,13 +118,13 @@ impl BytesRules {
     }
 
     let in_list = (!in_list_hashset.is_empty()).then(|| {
-      let in_list_str = self.r#in.iter().map(|d| format!("{:?}", d)).join(", ");
+      let in_list_str = self.r#in.iter().map(|b| format_bytes(b)).join(", ");
 
       (in_list_hashset, in_list_str)
     });
 
     let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
-      let not_in_list_str = self.not_in.iter().map(|d| format!("{:?}", d)).join(", ");
+      let not_in_list_str = self.not_in.iter().map(|b| format_bytes(b)).join(", ");
 
       (not_in_list_hashset, not_in_list_str)
     });
@@ -134,6 +134,30 @@ impl BytesRules {
       not_in_list,
     })
   }
+}
+
+pub(crate) fn format_bytes(bytes: &[u8]) -> String {
+  let mut s = String::with_capacity(bytes.len() * 2);
+  s.push('\'');
+
+  for &byte in bytes.iter() {
+    match byte {
+      b'\n' => s.push_str("\\n"),
+      b'\r' => s.push_str("\\r"),
+      b'\t' => s.push_str("\\t"),
+      b'\\' => s.push_str("\\\\"),
+      b'"' => s.push_str("\\\""),
+
+      32..=126 => s.push(byte as char),
+
+      _ => {
+        write!(s, "\\x{:02x}", byte).unwrap();
+      }
+    }
+  }
+
+  s.push('\'');
+  s
 }
 
 pub(crate) fn invalid_lists_error<T>(

@@ -109,6 +109,9 @@ pub fn get_cel_rules(
                 FieldType::Float => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as f64).into()) }
                 }
+                FieldType::Bytes => {
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.to_vec().into()) }
+                }
                 _ => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.clone().into()) }
                 }

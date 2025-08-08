@@ -57,7 +57,6 @@ impl ValidationData<'_> {
       proto_name,
       rust_name,
       tag,
-      ignore,
       ..
     } = self;
     let key_type_tokens = self.key_type_tokens();
@@ -76,7 +75,6 @@ impl ValidationData<'_> {
         proto_name: #proto_name,
         rust_name: #rust_name,
         tag: #tag,
-        ignore: #ignore
       };
     }
   }
@@ -180,56 +178,60 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_lt_validator(&self, lt_val: &TokenStream) -> TokenStream {
+  pub fn get_lt_validator(&self, lt_val: &TokenStream, error_message: &str) -> TokenStream {
     let field_context_ident = self.field_context_ident();
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val)
+      ::protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
   }
 
-  pub fn get_lte_validator(&self, lte_val: &TokenStream) -> TokenStream {
+  pub fn get_lte_validator(&self, lte_val: &TokenStream, error_message: &str) -> TokenStream {
     let field_context_ident = self.field_context_ident();
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val)
+      ::protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
   }
 
-  pub fn get_gt_validator(&self, gt_val: &TokenStream) -> TokenStream {
+  pub fn get_gt_validator(&self, gt_val: &TokenStream, error_message: &str) -> TokenStream {
     let field_context_ident = self.field_context_ident();
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val)
+      ::protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
   }
 
-  pub fn get_gte_validator(&self, gte_val: &TokenStream) -> TokenStream {
+  pub fn get_gte_validator(&self, gte_val: &TokenStream, error_message: &str) -> TokenStream {
     let field_context_ident = self.field_context_ident();
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val)
+      ::protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
   }
 
-  pub fn get_constant_validator(&self, const_val: &TokenStream) -> TokenStream {
+  pub fn get_constant_validator(
+    &self,
+    const_val: &TokenStream,
+    error_message: &str,
+  ) -> TokenStream {
     let field_context_ident = self.field_context_ident();
 
     let value_ident = self.value_ident();
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val)
+      ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
@@ -295,7 +297,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_aggregated_validator_tokens(&self, tokens: &TokenStream) -> TokenStream {
+  pub fn get_aggregated_validator_tokens(&self, validators: &TokenStream) -> TokenStream {
     let field_context_tokens = self.field_context_tokens();
     let required_check = self.get_required_validation_tokens();
     let item_rust_ident = self.item_rust_ident;
@@ -305,15 +307,38 @@ impl ValidationData<'_> {
         match self.#item_rust_ident.as_ref() {
           Some(val) => {
             #field_context_tokens
-            #tokens
+            #validators
           },
           None => { #required_check }
         };
       }
     } else {
-      quote! {
+      let validation_tokens = quote! {
         #field_context_tokens
-        #tokens
+        #validators
+      };
+
+      if matches!(self.ignore, Ignore::IfZeroValue) && !self.is_in_oneof {
+        self.wrap_with_default_value_check(&validation_tokens)
+      } else {
+        validation_tokens
+      }
+    }
+  }
+
+  pub fn wrap_with_default_value_check(&self, validators: &TokenStream) -> TokenStream {
+    let value_ident = self.value_ident();
+
+    let default_check = match self.field_kind.inner_type() {
+      FieldType::Bytes | FieldType::String => quote! { !#value_ident.is_empty() },
+      FieldType::Bool => quote! { #value_ident },
+      FieldType::Float | FieldType::Double => quote! { #value_ident != 0.0 },
+      _ => quote! { #value_ident != 0 },
+    };
+
+    quote! {
+      if #default_check {
+        #validators
       }
     }
   }

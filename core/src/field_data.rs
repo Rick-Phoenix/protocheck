@@ -3,7 +3,7 @@ use proto_types::FieldType;
 use quote::{quote, ToTokens};
 
 use crate::{
-  protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore},
+  protovalidate::{field_path_element::Subscript, FieldPathElement},
   ProtoType,
 };
 
@@ -12,7 +12,6 @@ pub struct FieldContext<'a> {
   pub rust_name: &'a str,
   pub proto_name: &'a str,
   pub tag: u32,
-  pub ignore: Ignore,
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,

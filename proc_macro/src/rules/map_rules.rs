@@ -95,8 +95,15 @@ pub fn get_map_rules(
     if let Some(min_pairs_value) = map_rules.min_pairs {
       min_pairs = Some(min_pairs_value);
 
+      let plural_suffix = if min_pairs_value != 1 { "s" } else { "" };
+
+      let error_message = format!(
+        "must contain at least {:?} key-value pair{}",
+        min_pairs_value, plural_suffix
+      );
+
       let validator_expression_tokens = quote! {
-        protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident.len(), #min_pairs_value)
+        protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident.len(), #min_pairs_value, #error_message)
       };
       let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -106,8 +113,15 @@ pub fn get_map_rules(
     if let Some(max_pairs_value) = map_rules.max_pairs {
       max_pairs = Some(max_pairs_value);
 
+      let plural_suffix = if max_pairs_value != 1 { "s" } else { "" };
+
+      let error_message = format!(
+        "cannot contain more than {:?} key-value pair{}",
+        max_pairs_value, plural_suffix
+      );
+
       let validator_expression_tokens = quote! {
-        protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident.len(), #max_pairs_value)
+        protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident.len(), #max_pairs_value, #error_message)
       };
       let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
 

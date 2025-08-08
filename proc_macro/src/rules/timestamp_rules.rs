@@ -22,7 +22,10 @@ pub fn get_timestamp_rules(
   let value_ident = validation_data.value_ident();
 
   if let Some(const_val) = rules.r#const {
-    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
+    let error_message = format!("has to be equal to {:?}", const_val);
+
+    let validator_tokens =
+      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
 
     tokens.extend(validator_tokens);
 
@@ -30,8 +33,10 @@ pub fn get_timestamp_rules(
   }
 
   if let Some(within_val) = rules.within {
+    let error_message = format!("must be within {} from now", within_val,);
+
     let validator_expression_tokens = quote! {
-      protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val)
+      protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val, #error_message)
     };
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
@@ -43,12 +48,18 @@ pub fn get_timestamp_rules(
   if let Some(lt_rule) = less_than {
     match lt_rule {
       LessThan::Lt(lt_val) => {
-        let validator_tokens = validation_data.get_lt_validator(&lt_val.to_token_stream());
+        let error_message = format!("must be earlier than {}", lt_val);
+
+        let validator_tokens =
+          validation_data.get_lt_validator(&lt_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }
       LessThan::Lte(lte_val) => {
-        let validator_tokens = validation_data.get_lte_validator(&lte_val.to_token_stream());
+        let error_message = format!("cannot be later than {}", lte_val);
+
+        let validator_tokens =
+          validation_data.get_lte_validator(&lte_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }
@@ -68,12 +79,18 @@ pub fn get_timestamp_rules(
   if let Some(gt_rule) = greater_than {
     match gt_rule {
       GreaterThan::Gt(gt_val) => {
-        let validator_tokens = validation_data.get_gt_validator(&gt_val.to_token_stream());
+        let error_message = format!("must be later than {}", gt_val);
+
+        let validator_tokens =
+          validation_data.get_gt_validator(&gt_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }
       GreaterThan::Gte(gte_val) => {
-        let validator_tokens = validation_data.get_gte_validator(&gte_val.to_token_stream());
+        let error_message = format!("cannot be earlier than {}", gte_val);
+
+        let validator_tokens =
+          validation_data.get_gte_validator(&gte_val.to_token_stream(), &error_message);
 
         tokens.extend(validator_tokens);
       }

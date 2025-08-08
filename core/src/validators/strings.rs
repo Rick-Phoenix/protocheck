@@ -1,4 +1,3 @@
-use proto_types::protovalidate::Ignore;
 use regex::Regex;
 
 use crate::{
@@ -34,11 +33,6 @@ pub fn header_name(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_http_header_name(value, strict);
 
   if check {
@@ -58,11 +52,6 @@ pub fn header_value(
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_http_header_value(value, strict);
 
   if check {
@@ -78,11 +67,6 @@ pub fn header_value(
 }
 
 pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_host_and_port(value);
 
   if check {
@@ -98,11 +82,6 @@ pub fn host_and_port(field_context: &FieldContext, value: &str) -> Result<(), Vi
 }
 
 pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ip_prefix(value);
 
   if check {
@@ -118,11 +97,6 @@ pub fn ip_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violat
 }
 
 pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv4_prefix(value);
 
   if check {
@@ -138,11 +112,6 @@ pub fn ipv4_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv6_prefix(value);
 
   if check {
@@ -158,11 +127,6 @@ pub fn ipv6_prefix(field_context: &FieldContext, value: &str) -> Result<(), Viol
 }
 
 pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ip_with_prefixlen(value);
 
   if check {
@@ -178,11 +142,6 @@ pub fn ip_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(
 }
 
 pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv6_with_prefixlen(value);
 
   if check {
@@ -198,11 +157,6 @@ pub fn ipv6_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv4_with_prefixlen(value);
 
   if check {
@@ -218,11 +172,6 @@ pub fn ipv4_with_prefix_len(field_context: &FieldContext, value: &str) -> Result
 }
 
 pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_trimmed_uuid(value);
 
   if check {
@@ -238,11 +187,6 @@ pub fn tuuid(field_context: &FieldContext, value: &str) -> Result<(), Violation>
 }
 
 pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_uuid(value);
 
   if check {
@@ -258,11 +202,6 @@ pub fn uuid(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_address(value);
 
   if check {
@@ -278,11 +217,6 @@ pub fn address(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_uri_ref(value);
 
   if check {
@@ -298,11 +232,6 @@ pub fn uri_ref(field_context: &FieldContext, value: &str) -> Result<(), Violatio
 }
 
 pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_uri(value);
 
   if check {
@@ -318,11 +247,6 @@ pub fn uri(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_hostname(value);
 
   if check {
@@ -338,11 +262,6 @@ pub fn hostname(field_context: &FieldContext, value: &str) -> Result<(), Violati
 }
 
 pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ip(value);
 
   if check {
@@ -358,11 +277,6 @@ pub fn ip(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
 }
 
 pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv4(value);
 
   if check {
@@ -378,11 +292,6 @@ pub fn ipv4(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_ipv6(value);
 
   if check {
@@ -398,11 +307,6 @@ pub fn ipv6(field_context: &FieldContext, value: &str) -> Result<(), Violation> 
 }
 
 pub fn email(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = is_valid_email(value);
 
   if check {
@@ -421,44 +325,38 @@ pub fn pattern(
   field_context: &FieldContext,
   value: &str,
   pattern: &Regex,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = pattern.is_match(value);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("must match the following regex: `{}`", pattern);
     Err(create_violation(
       field_context,
       &STRING_PATTERN_VIOLATION,
       "string.pattern",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn contains(field_context: &FieldContext, value: &str, pattern: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn contains(
+  field_context: &FieldContext,
+  value: &str,
+  pattern: &str,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.contains(pattern);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("must contain the '{}' substring", pattern);
     Err(create_violation(
       field_context,
       &STRING_CONTAINS_VIOLATION,
       "string.contains",
-      &error_message,
+      error_message,
     ))
   }
 }
@@ -467,159 +365,138 @@ pub fn not_contains(
   field_context: &FieldContext,
   value: &str,
   pattern: &str,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = !value.contains(pattern);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("must not contain the '{}' substring", pattern);
     Err(create_violation(
       field_context,
       &STRING_NOT_CONTAINS_VIOLATION,
       "string.not_contains",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn prefix(field_context: &FieldContext, value: &str, prefix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn prefix(
+  field_context: &FieldContext,
+  value: &str,
+  prefix: &str,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.starts_with(prefix);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("must start with '{}'", prefix,);
     Err(create_violation(
       field_context,
       &STRING_PREFIX_VIOLATION,
       "string.prefix",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn suffix(field_context: &FieldContext, value: &str, suffix: &str) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn suffix(
+  field_context: &FieldContext,
+  value: &str,
+  suffix: &str,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.ends_with(suffix);
 
   if check {
     Ok(())
   } else {
-    let error_message = format!("must end with '{}'", suffix,);
     Err(create_violation(
       field_context,
       &STRING_SUFFIX_VIOLATION,
       "string.suffix",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn max_len(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn max_len(
+  field_context: &FieldContext,
+  value: &str,
+  max_len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.chars().count() <= max_len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if max_len > 1 { "s" } else { "" };
-    let error_message = format!(
-      "cannot be longer than {} character{}",
-      max_len, plural_suffix
-    );
     Err(create_violation(
       field_context,
       &STRING_MAX_LEN_VIOLATION,
       "string.max_len",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn min_len(field_context: &FieldContext, value: &str, min_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn min_len(
+  field_context: &FieldContext,
+  value: &str,
+  min_len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.chars().count() >= min_len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if min_len > 1 { "s" } else { "" };
-    let error_message = format!(
-      "cannot be shorter than {} character{}",
-      min_len, plural_suffix
-    );
     Err(create_violation(
       field_context,
       &STRING_MIN_LEN_VIOLATION,
       "string.min_len",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn len(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn len(
+  field_context: &FieldContext,
+  value: &str,
+  len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.chars().count() == len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if len > 1 { "s" } else { "" };
-    let error_message = format!("must be exactly {} character{} long", len, plural_suffix);
     Err(create_violation(
       field_context,
       &STRING_LEN_VIOLATION,
       "string.len",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn len_bytes(field_context: &FieldContext, value: &str, len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn len_bytes(
+  field_context: &FieldContext,
+  value: &str,
+  len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.len() == len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if len > 1 { "s" } else { "" };
-    let error_message = format!("must be exactly {} byte{} long", len, plural_suffix);
     Err(create_violation(
       field_context,
       &STRING_LEN_BYTES_VIOLATION,
       "string.len_bytes",
-      &error_message,
+      error_message,
     ))
   }
 }
@@ -628,46 +505,38 @@ pub fn min_bytes(
   field_context: &FieldContext,
   value: &str,
   min_bytes: u64,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
   let check = value.len() >= min_bytes as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if min_bytes > 1 { "s" } else { "" };
-    let error_message = format!("cannot be shorter than {} byte{}", min_bytes, plural_suffix);
     Err(create_violation(
       field_context,
       &STRING_MIN_BYTES_VIOLATION,
       "string.min_bytes",
-      &error_message,
+      error_message,
     ))
   }
 }
 
-pub fn max_bytes(field_context: &FieldContext, value: &str, max_len: u64) -> Result<(), Violation> {
-  if let Ignore::IfZeroValue = field_context.ignore
-    && value.is_empty() {
-      return Ok(());
-    }
-
+pub fn max_bytes(
+  field_context: &FieldContext,
+  value: &str,
+  max_len: u64,
+  error_message: &'static str,
+) -> Result<(), Violation> {
   let check = value.len() <= max_len as usize;
 
   if check {
     Ok(())
   } else {
-    let plural_suffix = if max_len > 1 { "s" } else { "" };
-    let error_message = format!("cannot be longer than {} byte{}", max_len, plural_suffix);
     Err(create_violation(
       field_context,
       &STRING_MAX_BYTES_VIOLATION,
       "string.max_bytes",
-      &error_message,
+      error_message,
     ))
   }
 }

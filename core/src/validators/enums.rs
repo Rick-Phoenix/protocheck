@@ -7,13 +7,12 @@ use crate::{
   ProtoType,
 };
 
-pub fn defined_only(field_context: &FieldContext, enum_name: &str) -> Violation {
-  let error_message = format!("must be a defined value of {}", enum_name,);
+pub fn defined_only(field_context: &FieldContext, error_message: &'static str) -> Violation {
   create_violation(
     field_context,
     &ENUM_DEFINED_ONLY_VIOLATION,
     "enum.defined_only",
-    &error_message,
+    error_message,
   )
 }
 

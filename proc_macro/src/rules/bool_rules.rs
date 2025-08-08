@@ -12,7 +12,10 @@ pub fn get_bool_rules(
   let mut tokens = TokenStream::new();
 
   if let Some(const_val) = rules.r#const {
-    let validator_tokens = validation_data.get_constant_validator(&const_val.to_token_stream());
+    let error_message = format!("has to be equal to {:?}", const_val);
+
+    let validator_tokens =
+      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
     tokens.extend(validator_tokens);
   }
 

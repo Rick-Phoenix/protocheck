@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
 use prost::bytes::Bytes;
-use proto_types::{protovalidate::Ignore, Any};
+use proto_types::Any;
 
 use crate::{
   field_data::FieldContext,
@@ -18,9 +18,6 @@ pub fn bytes_in_list(
   target: &'static HashSet<Bytes>,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  if matches!(field_context.ignore, Ignore::IfZeroValue) && value.is_empty() {
-    return Ok(());
-  }
   let check = target.contains(value);
   if check {
     Ok(())
@@ -35,9 +32,6 @@ pub fn bytes_not_in_list(
   target: &'static HashSet<Bytes>,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  if matches!(field_context.ignore, Ignore::IfZeroValue) && value.is_empty() {
-    return Ok(());
-  }
   let check = !target.contains(value);
   if check {
     Ok(())
@@ -52,9 +46,6 @@ pub fn string_in_list(
   target: &'static HashSet<&'static str>,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  if matches!(field_context.ignore, Ignore::IfZeroValue) && value.is_empty() {
-    return Ok(());
-  }
   let check = target.contains(value);
   if check {
     Ok(())
@@ -69,9 +60,6 @@ pub fn string_not_in_list(
   target: &'static HashSet<&'static str>,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  if matches!(field_context.ignore, Ignore::IfZeroValue) && value.is_empty() {
-    return Ok(());
-  }
   let check = !target.contains(value);
   if check {
     Ok(())
