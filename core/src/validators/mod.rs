@@ -4,6 +4,9 @@ pub trait ProtoValidator {
   fn validate(&self) -> Result<(), Violations>;
 }
 
+#[macro_use]
+pub mod static_data;
+
 pub mod bytes;
 pub mod cel;
 pub mod comparables;
@@ -17,5 +20,4 @@ pub mod repeated;
 pub mod required;
 pub mod timestamps;
 
-pub mod static_data;
 pub mod strings;

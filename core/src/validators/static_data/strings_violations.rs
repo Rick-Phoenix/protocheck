@@ -449,7 +449,7 @@ pub(crate) static STRING_TUUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = Lazy
   ]
 });
 
-pub(crate) static STRING_IP_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+pub(crate) static STRING_IP_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
       FieldPathElement {
@@ -471,7 +471,7 @@ pub(crate) static STRING_IP_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathEle
     ]
   });
 
-pub(crate) static STRING_IPV4_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+pub(crate) static STRING_IPV4_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
       FieldPathElement {
@@ -493,7 +493,7 @@ pub(crate) static STRING_IPV4_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathE
     ]
   });
 
-pub(crate) static STRING_IPV6_WITH_PREFIX_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
+pub(crate) static STRING_IPV6_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
       FieldPathElement {

@@ -110,7 +110,7 @@ pub fn is_valid_uuid(s: &str) -> bool {
   Uuid::parse_str(s).is_ok()
 }
 
-pub fn is_valid_trimmed_uuid(s: &str) -> bool {
+pub fn is_valid_tuuid(s: &str) -> bool {
   // A trimmed UUID string is always 32 characters long.
   if s.len() != 32 {
     return false;

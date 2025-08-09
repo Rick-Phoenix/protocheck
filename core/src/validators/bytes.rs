@@ -1,3 +1,4 @@
+use paste::paste;
 use prost::bytes::Bytes;
 use regex::Regex;
 
@@ -6,201 +7,103 @@ use crate::{
   protovalidate::Violation,
   validators::static_data::{
     base_violations::create_violation,
-    bytes_violations::{
-      parse_bytes_input, BYTES_CONTAINS_VIOLATION, BYTES_IPV4_VIOLATION, BYTES_IPV6_VIOLATION,
-      BYTES_IP_VIOLATION, BYTES_LEN_VIOLATION, BYTES_MAX_LEN_VIOLATION, BYTES_MIN_LEN_VIOLATION,
-      BYTES_PATTERN_VIOLATION, BYTES_PREFIX_VIOLATION, BYTES_SUFFIX_VIOLATION,
-    },
+    bytes_violations::*,
     well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
   },
 };
 
-pub fn ip(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  let string_val = parse_bytes_input(value, field_context)?;
-  let check = is_valid_ip(string_val);
-
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_IP_VIOLATION,
-      "bytes.ip",
-      "must be a valid ip address",
-    ))
-  }
+macro_rules! create_bytes_violation {
+  ($check:ident, $field_context:ident, $violation_name:ident, $error_message:expr) => {
+    create_violation!(
+      bytes,
+      $check,
+      $field_context,
+      $violation_name,
+      $error_message
+    )
+  };
 }
 
-pub fn ipv4(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  let string_val = parse_bytes_input(value, field_context)?;
-  let check = is_valid_ipv4(string_val);
+macro_rules! well_known_rule {
+  (
+    $name:ident,
+    $definition:literal
+  ) => {
+    paste! {
+      pub fn $name(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
+        let string_val = parse_bytes_input(value, field_context)?;
+        let check = [<is_valid _ $name>](string_val);
 
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_IPV4_VIOLATION,
-      "bytes.ipv4",
-      "must be a valid ipv4 address",
-    ))
-  }
+        create_bytes_violation!(check, field_context, $name, concat!("must be a valid ", $definition))
+      }
+    }
+  };
 }
 
-pub fn ipv6(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-  let string_val = parse_bytes_input(value, field_context)?;
-  let check = is_valid_ipv6(string_val);
+macro_rules! bytes_validator {
+  (
+    $mode:ident,
+    $name:ident,
+    $target_type:ty,
+    $validation_expression:expr
+  ) => {
+    macro_rules! _generate_check {
+      (string_arg, $closure:expr, $value:expr, $target:expr, $field_context:expr) => {{
+        let string_val = parse_bytes_input($value, $field_context)?;
+        $closure($target, &string_val)
+      }};
 
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_IPV6_VIOLATION,
-      "bytes.ipv6",
-      "must be a valid ipv6 address",
-    ))
-  }
+      (bytes_arg, $closure:expr, $value:expr, $target:expr, $field_context:expr) => {
+        $closure($target, $value)
+      };
+    }
+
+    pub fn $name(
+      field_context: &FieldContext,
+      value: &Bytes,
+      target: $target_type,
+      error_message: &'static str,
+    ) -> Result<(), Violation> {
+      let check = _generate_check!($mode, $validation_expression, value, target, field_context);
+
+      create_bytes_violation!(check, field_context, $name, error_message)
+    }
+  };
 }
 
-pub fn pattern(
-  field_context: &FieldContext,
-  value: &Bytes,
-  pattern: &Regex,
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let string_val = parse_bytes_input(value, field_context)?;
+well_known_rule!(ip, "ip address");
+well_known_rule!(ipv4, "ipv4 address");
+well_known_rule!(ipv6, "ipv6 address");
 
-  let check = pattern.is_match(string_val);
+bytes_validator!(string_arg, pattern, &Regex, |t: &Regex, s: &str| t
+  .is_match(s));
 
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_PATTERN_VIOLATION,
-      "bytes.pattern",
-      error_message,
-    ))
-  }
-}
+bytes_validator!(bytes_arg, min_len, u64, |t: u64, v: &Bytes| v.len()
+  >= t as usize);
 
-pub fn contains(
-  field_context: &FieldContext,
-  value: &Bytes,
-  pattern: &'static [u8],
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.windows(pattern.len()).any(|win| win == pattern);
+bytes_validator!(bytes_arg, max_len, u64, |t: u64, v: &Bytes| v.len()
+  <= t as usize);
 
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_CONTAINS_VIOLATION,
-      "bytes.contains",
-      error_message,
-    ))
-  }
-}
+bytes_validator!(bytes_arg, len, u64, |t: u64, v: &Bytes| v.len()
+  == t as usize);
 
-pub fn suffix(
-  field_context: &FieldContext,
-  value: &Bytes,
-  suffix: &'static [u8],
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.ends_with(suffix);
+bytes_validator!(
+  bytes_arg,
+  contains,
+  &'static [u8],
+  |t: &'static [u8], v: &Bytes| v.windows(t.len()).any(|win| win == t)
+);
 
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_SUFFIX_VIOLATION,
-      "bytes.suffix",
-      error_message,
-    ))
-  }
-}
+bytes_validator!(
+  bytes_arg,
+  suffix,
+  &'static [u8],
+  |t: &'static [u8], v: &Bytes| v.ends_with(t)
+);
 
-pub fn prefix(
-  field_context: &FieldContext,
-  value: &Bytes,
-  prefix: &'static [u8],
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.starts_with(prefix);
-
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_PREFIX_VIOLATION,
-      "bytes.prefix",
-      error_message,
-    ))
-  }
-}
-
-pub fn max_len(
-  field_context: &FieldContext,
-  value: &Bytes,
-  max_len: u64,
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.len() <= max_len as usize;
-
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_MAX_LEN_VIOLATION,
-      "bytes.max_len",
-      error_message,
-    ))
-  }
-}
-
-pub fn min_len(
-  field_context: &FieldContext,
-  value: &Bytes,
-  min_len: u64,
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.len() >= min_len as usize;
-
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_MIN_LEN_VIOLATION,
-      "bytes.min_len",
-      error_message,
-    ))
-  }
-}
-
-pub fn len(
-  field_context: &FieldContext,
-  value: &Bytes,
-  len: u64,
-  error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value.len() == len as usize;
-
-  if check {
-    Ok(())
-  } else {
-    Err(create_violation(
-      field_context,
-      &BYTES_LEN_VIOLATION,
-      "bytes.len",
-      error_message,
-    ))
-  }
-}
+bytes_validator!(
+  bytes_arg,
+  prefix,
+  &'static [u8],
+  |t: &'static [u8], v: &Bytes| v.starts_with(t)
+);

@@ -1,4 +1,6 @@
+#[macro_use]
 pub mod base_violations;
+
 pub mod bytes_violations;
 pub mod const_rules;
 pub mod gt_rules;
