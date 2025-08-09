@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
 use proto_types::{protovalidate::FieldRules, FieldType};
+use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
@@ -45,7 +46,7 @@ pub fn get_repeated_rules(
 
   if let Some(RulesType::Repeated(ref repeated_rules)) = field_rules.r#type {
     if repeated_rules.unique() {
-      if !validation_data.field_kind.is_scalar() {
+      if !validation_data.field_kind.inner_type().is_scalar() {
         return Err(syn::Error::new(
           field_span,
           format!(
@@ -174,20 +175,14 @@ pub fn get_repeated_rules(
   }
 
   if item_is_message && !ignore_items_validators {
-    let repeated_message_validation_data =
-      items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item(field_desc));
-
-    let validator_tokens = repeated_message_validation_data.get_message_field_validator_tokens();
+    let validator_tokens = validation_data
+      .get_message_field_validator_tokens(FieldKind::RepeatedItem(FieldType::Message));
 
     items_rules.extend(validator_tokens);
   }
 
-  let items_context_tokens =
-    items_validation_data.map_or(TokenStream::new(), |data| data.field_context_tokens());
-
   Ok(validation_data.aggregate_vec_rules(&RepeatedValidator {
     vec_level_rules,
     items_rules,
-    items_context_tokens,
   }))
 }

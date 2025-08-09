@@ -4,6 +4,7 @@ use proc_macro2::{Ident as Ident2, TokenStream};
 use prost_reflect::{
   prost::Message, FieldDescriptor, Kind, MessageDescriptor, OneofDescriptor, Value as ProstValue,
 };
+use proto_types::FieldType;
 use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote};
 use syn::{DeriveInput, Error, Ident};
@@ -20,7 +21,7 @@ use crate::{
   },
   rules::{
     cel_rules::get_cel_rules,
-    core::{get_field_rules, get_field_type},
+    core::{get_field_kind, get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
   },
@@ -160,8 +161,8 @@ pub fn extract_oneof_validators(
         proto_name: field_name,
         tag: field.number(),
         ignore,
-        map_key_type: None,
-        map_value_type: None,
+        map_keys_type: None,
+        map_values_type: None,
         violations_ident: &violations_ident,
         field_context_ident: &field_context_ident,
         item_ident: &item_ident,
@@ -204,7 +205,8 @@ pub fn extract_oneof_validators(
       }
 
       if field_is_message(&field.kind()) {
-        let validator_tokens = validation_data.get_message_field_validator_tokens();
+        let validator_tokens =
+          validation_data.get_message_field_validator_tokens(FieldKind::Single(FieldType::Message));
 
         field_validators.extend(validator_tokens);
       }
@@ -376,8 +378,8 @@ pub fn extract_message_validators(
         is_in_oneof: false,
         is_optional,
         field_span,
-        map_key_type: None,
-        map_value_type: None,
+        map_keys_type: None,
+        map_values_type: None,
         violations_ident: &violations_ident,
         field_context_ident: &field_context_ident,
         item_ident: &item_ident,
@@ -386,7 +388,7 @@ pub fn extract_message_validators(
         map_value_ident: &map_value_ident,
         index_ident: &index_ident,
         item_rust_ident: &item_rust_ident,
-        field_kind: FieldKind::Single(get_field_type(&field)),
+        field_kind: get_field_kind(&field),
         map_key_context_ident: &map_key_context_ident,
         map_value_context_ident: &map_value_context_ident,
         vec_item_context_ident: &vec_item_context_ident,
@@ -439,7 +441,8 @@ pub fn extract_message_validators(
         }
 
         if field_is_message(&field.kind()) {
-          let validator_tokens = validation_data.get_message_field_validator_tokens();
+          let validator_tokens = validation_data
+            .get_message_field_validator_tokens(FieldKind::Single(FieldType::Message));
 
           field_validators.extend(validator_tokens);
         }

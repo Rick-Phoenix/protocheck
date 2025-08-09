@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::{FieldDescriptor, Kind as ProstReflectKind};
 use proto_types::FieldType;
+use protocheck_core::field_data::FieldKind;
 use quote::{quote, ToTokens};
 use syn::Error;
 
@@ -139,6 +140,18 @@ pub fn get_field_rules(
   }
 
   Ok(rules_tokens)
+}
+
+pub fn get_field_kind(field_desc: &FieldDescriptor) -> FieldKind {
+  let field_type = get_field_type(field_desc);
+
+  if field_desc.is_list() {
+    FieldKind::Repeated(field_type)
+  } else if field_desc.is_map() {
+    FieldKind::Map(field_type)
+  } else {
+    FieldKind::Single(field_type)
+  }
 }
 
 pub fn get_field_type(field_desc: &FieldDescriptor) -> FieldType {

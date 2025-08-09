@@ -53,7 +53,7 @@ pub fn unique<T>(
   processed_values: &mut HashSet<T>,
 ) -> Result<(), Violation>
 where
-  T: Eq + Hash + Clone + ToString,
+  T: Eq + Hash + Clone,
 {
   let check = processed_values.insert(value.clone());
 

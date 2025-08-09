@@ -19,10 +19,12 @@ pub struct FieldContext<'a> {
   pub field_kind: FieldKind,
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum FieldKind {
+  Map(FieldType),
   MapKey(FieldType),
   MapValue(FieldType),
+  Repeated(FieldType),
   RepeatedItem(FieldType),
   Single(FieldType),
 }
@@ -30,8 +32,10 @@ pub enum FieldKind {
 impl FieldKind {
   pub fn inner_type(&self) -> FieldType {
     match self {
+      FieldKind::Map(field_type) => *field_type,
       FieldKind::MapKey(field_type) => *field_type,
       FieldKind::MapValue(field_type) => *field_type,
+      FieldKind::Repeated(field_type) => *field_type,
       FieldKind::RepeatedItem(field_type) => *field_type,
       FieldKind::Single(field_type) => *field_type,
     }
@@ -40,7 +44,7 @@ impl FieldKind {
   pub fn is_copy(&self) -> bool {
     !matches!(
       self.inner_type(),
-      FieldType::String | FieldType::Message | FieldType::Bytes
+      FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
     )
   }
 
@@ -56,10 +60,6 @@ impl FieldKind {
     matches!(self, FieldKind::RepeatedItem(_))
   }
 
-  pub fn is_scalar(&self) -> bool {
-    matches!(self, FieldKind::Single(_))
-  }
-
   pub fn is_in_loop(&self) -> bool {
     self.is_map_key() || self.is_map_value() || self.is_repeated_item()
   }
@@ -70,8 +70,10 @@ impl ToTokens for FieldKind {
     let field_kind_path = quote! { protocheck::field_data::FieldKind };
 
     let variant_tokens = match self {
+      FieldKind::Map(v) => quote! { Map(#v) },
       FieldKind::MapKey(v) => quote! { MapKey(#v) },
       FieldKind::MapValue(v) => quote! { MapValue(#v) },
+      FieldKind::Repeated(v) => quote! { Repeated(#v) },
       FieldKind::RepeatedItem(v) => quote! { RepeatedItem(#v) },
       FieldKind::Single(v) => quote! { Single(#v) },
     };

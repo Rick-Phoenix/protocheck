@@ -39,10 +39,6 @@ impl FieldType {
       Self::Message | Self::Duration | Self::Timestamp | Self::Any
     )
   }
-
-  pub fn is_any(&self) -> bool {
-    matches!(self, Self::Any)
-  }
 }
 
 impl From<FieldType> for ProtoType {

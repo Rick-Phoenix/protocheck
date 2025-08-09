@@ -206,7 +206,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     }
   };
 
-  // eprintln!("{}", output);
+  eprintln!("{}", output);
 
   output.into()
 }

@@ -113,7 +113,7 @@ pub fn get_cel_rules(
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.to_vec().into()) }
                 }
                 _ => {
-                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.clone().into()) }
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens).clone().into()) }
                 }
               };
 

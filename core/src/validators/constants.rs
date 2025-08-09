@@ -22,6 +22,7 @@ macro_rules! const_validator {
 
 const_validator!(string, &str);
 const_validator!(bytes, &Bytes);
+const_validator!(bool, bool);
 
 const_validator!(duration, Duration);
 const_validator!(timestamp, Timestamp);

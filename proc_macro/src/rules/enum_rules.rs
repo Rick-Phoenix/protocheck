@@ -40,14 +40,12 @@ pub fn get_enum_rules(
 
     let violations_ident = &validation_data.violations_ident;
     let field_context_ident = &validation_data.field_context_ident();
-    let field_context_tokens = validation_data.field_context_tokens();
     let value_ident = validation_data.value_ident();
 
     let error_message = format!("must be a defined value of {}", enum_name);
 
     let validator_tokens = quote! {
       if !#enum_ident_tokens::try_from(#value_ident).is_ok() {
-        #field_context_tokens
         #violations_ident.push(protocheck::validators::enums::defined_only(&#field_context_ident, #error_message));
       }
     };

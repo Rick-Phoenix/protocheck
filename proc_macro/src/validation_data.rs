@@ -17,8 +17,8 @@ pub(crate) struct ValidationData<'a> {
   pub is_optional: bool,
   pub is_in_oneof: bool,
   pub field_span: Span2,
-  pub map_key_type: Option<ProtoType>,
-  pub map_value_type: Option<ProtoType>,
+  pub map_keys_type: Option<ProtoType>,
+  pub map_values_type: Option<ProtoType>,
   pub map_key_ident: &'a Ident2,
   pub map_value_ident: &'a Ident2,
   pub index_ident: &'a Ident2,
@@ -36,22 +36,23 @@ pub(crate) struct ValidationData<'a> {
 pub struct RepeatedValidator {
   pub vec_level_rules: TokenStream,
   pub items_rules: TokenStream,
-  pub items_context_tokens: TokenStream,
 }
 
 pub struct MapValidator {
   pub map_level_rules: TokenStream,
   pub keys_rules: TokenStream,
-  pub keys_context_tokens: TokenStream,
   pub values_rules: TokenStream,
-  pub values_context_tokens: TokenStream,
 }
 
 impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
     self.full_name.to_string().replace(".", "_").to_uppercase()
   }
-  pub fn field_context_tokens(&self) -> TokenStream {
+  pub fn field_context_tokens(
+    &self,
+    field_kind: FieldKind,
+    field_context_ident: &Ident2,
+  ) -> TokenStream {
     let Self {
       parent_messages_ident,
       proto_name,
@@ -61,9 +62,7 @@ impl ValidationData<'_> {
     } = self;
     let key_type_tokens = self.key_type_tokens();
     let value_type_tokens = self.value_type_tokens();
-    let subscript_tokens = self.subscript_tokens();
-    let field_context_ident = self.field_context_ident();
-    let field_kind = &self.field_kind;
+    let subscript_tokens = self.subscript_tokens(field_kind);
 
     quote! {
       let #field_context_ident = ::protocheck::field_data::FieldContext {
@@ -82,28 +81,59 @@ impl ValidationData<'_> {
   pub fn aggregate_map_rules(&self, rules_data: &MapValidator) -> TokenStream {
     let MapValidator {
       map_level_rules,
-      keys_rules: key_rules,
-      values_rules: value_rules,
-      keys_context_tokens: key_context_tokens,
-      values_context_tokens: value_context_tokens,
+      keys_rules,
+      values_rules,
     } = rules_data;
 
-    let key_ident = &self.map_key_ident;
-    let map_value_ident = &self.map_value_ident;
-    let item_rust_ident = &self.item_rust_ident;
+    let has_map_level_rules = !map_level_rules.is_empty();
+    let has_keys_rules = !keys_rules.is_empty();
+    let has_values_rules = !values_rules.is_empty();
 
-    let has_loop = !key_rules.is_empty() || !value_rules.is_empty();
-    let map_level_context_tokens =
-      (!map_level_rules.is_empty()).then_some(self.field_context_tokens());
+    let has_loop = has_keys_rules || has_values_rules;
 
-    let loop_tokens = has_loop.then_some(quote! {
-      for (#key_ident, #map_value_ident) in self.#item_rust_ident.iter() {
-        #key_context_tokens
-        #value_context_tokens
+    let map_level_context_tokens = has_map_level_rules
+      .then(|| self.field_context_tokens(self.field_kind, self.field_context_ident));
 
-        #key_rules
+    let keys_context_tokens = has_keys_rules.then(|| {
+      let keys_proto_type = self.map_keys_type.unwrap_or_else(|| {
+        panic!(
+          "Could not get the map key type for field {}",
+          self.full_name
+        )
+      });
+      self.field_context_tokens(
+        FieldKind::MapKey(keys_proto_type.into()),
+        self.map_key_context_ident,
+      )
+    });
 
-        #value_rules
+    let values_context_tokens = has_values_rules.then(|| {
+      let values_proto_type = self.map_values_type.unwrap_or_else(|| {
+        panic!(
+          "Could not get the map value type for field {}",
+          self.full_name
+        )
+      });
+      self.field_context_tokens(
+        FieldKind::MapValue(values_proto_type.into()),
+        self.map_value_context_ident,
+      )
+    });
+
+    let loop_tokens = has_loop.then(|| {
+      let field_ident = &self.item_rust_ident;
+      let key_ident = &self.map_key_ident;
+      let map_value_ident = &self.map_value_ident;
+
+      quote! {
+        for (#key_ident, #map_value_ident) in self.#field_ident.iter() {
+          #keys_context_tokens
+          #values_context_tokens
+
+          #keys_rules
+
+          #values_rules
+        }
       }
     });
 
@@ -121,21 +151,21 @@ impl ValidationData<'_> {
       FieldKind::MapKey(_) => self.map_key_context_ident,
       FieldKind::MapValue(_) => self.map_value_context_ident,
       FieldKind::Single(_) => self.field_context_ident,
+      FieldKind::Map(_) => self.field_context_ident,
+      FieldKind::Repeated(_) => self.field_context_ident,
     }
   }
 
-  pub fn to_map_key(&'_ self, field_type: FieldType, ignore: Ignore) -> ValidationData<'_> {
+  pub fn to_map_key(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut key_validation_data = self.clone();
     key_validation_data.field_kind = FieldKind::MapKey(field_type);
-    key_validation_data.ignore = ignore;
 
     key_validation_data
   }
 
-  pub fn to_map_value(&'_ self, field_type: FieldType, ignore: Ignore) -> ValidationData<'_> {
+  pub fn to_map_value(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut value_validation_data = self.clone();
     value_validation_data.field_kind = FieldKind::MapValue(field_type);
-    value_validation_data.ignore = ignore;
 
     value_validation_data
   }
@@ -148,25 +178,32 @@ impl ValidationData<'_> {
   }
 
   pub fn aggregate_vec_rules(&self, rules_data: &RepeatedValidator) -> TokenStream {
-    let index_ident = &self.index_ident;
-    let item_ident = &self.item_ident;
-    let item_rust_ident = &self.item_rust_ident;
-
     let RepeatedValidator {
       vec_level_rules,
       items_rules,
-      items_context_tokens,
     } = rules_data;
 
-    let field_context_tokens = self.field_context_tokens();
-
     let has_loop = !items_rules.is_empty();
-    let vec_level_field_context = (!vec_level_rules.is_empty()).then_some(&field_context_tokens);
+    let has_vec_level_rules = !vec_level_rules.is_empty();
 
-    let loop_tokens = has_loop.then_some(quote! {
-      for (#index_ident, #item_ident) in self.#item_rust_ident.iter().enumerate() {
-        #items_context_tokens
-        #items_rules
+    let vec_level_field_context = has_vec_level_rules
+      .then(|| self.field_context_tokens(self.field_kind, self.field_context_ident));
+
+    let loop_tokens = has_loop.then(|| {
+      let field_ident = &self.item_rust_ident;
+      let index_ident = &self.index_ident;
+      let item_ident = &self.item_ident;
+
+      let items_context_tokens = self.field_context_tokens(
+        FieldKind::RepeatedItem(self.field_kind.inner_type()),
+        self.vec_item_context_ident,
+      );
+
+      quote! {
+        for (#index_ident, #item_ident) in self.#field_ident.iter().enumerate() {
+          #items_context_tokens
+          #items_rules
+        }
       }
     });
 
@@ -203,7 +240,7 @@ impl ValidationData<'_> {
   {
     let func_ident = Ident2::new(&format!("{}_const", proto_type,), Span2::call_site());
 
-    let func_tokens = quote! { ::protocheck::constants::#func_ident };
+    let func_tokens = quote! { ::protocheck::validators::constants::#func_ident };
 
     self.get_validator(&func_tokens, val, error_message)
   }
@@ -225,7 +262,7 @@ impl ValidationData<'_> {
     self.get_validator(&func_tokens, val, error_message)
   }
 
-  pub fn get_message_field_validator_tokens(&self) -> TokenStream {
+  pub fn get_message_field_validator_tokens(&self, field_kind: FieldKind) -> TokenStream {
     let Self {
       parent_messages_ident,
       violations_ident,
@@ -235,12 +272,18 @@ impl ValidationData<'_> {
     let field_proto_name = &self.proto_name;
     let field_tag = self.tag;
     let field_proto_type: ProtoType = self.field_kind.inner_type().into();
-    let value_ident = self.value_ident();
+
+    let value_ident = match field_kind {
+      FieldKind::RepeatedItem(_) => self.item_ident,
+      FieldKind::MapKey(_) => self.map_key_ident,
+      FieldKind::MapValue(_) => self.map_value_ident,
+      _ => &Ident2::new("val", Span2::call_site()),
+    };
 
     let nested_key_type = self.key_type_tokens_as_i32();
     let nested_value_type = self.value_type_tokens_as_i32();
 
-    let subscript_tokens = self.subscript_tokens();
+    let subscript_tokens = self.subscript_tokens(field_kind);
 
     let field_path_element_tokens = quote! {
       ::protocheck::types::protovalidate::FieldPathElement {
@@ -263,15 +306,16 @@ impl ValidationData<'_> {
   }
 
   pub fn get_required_validation_tokens(&self) -> Option<TokenStream> {
-    let field_context_tokens = self.field_context_tokens();
-    let field_context_ident = self.field_context_ident();
-    let violations_ident = &self.violations_ident;
+    self.is_required.then(|| {
+      let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
+      let field_context_ident = self.field_context_ident();
+      let violations_ident = &self.violations_ident;
 
-    self.is_required.then_some(quote! {
+      quote! {
       #field_context_tokens
       let required_violation = ::protocheck::validators::required::required(&#field_context_ident);
       #violations_ident.push(required_violation);
-    })
+    }})
   }
 
   pub fn get_required_only_validator(&self) -> TokenStream {
@@ -286,13 +330,19 @@ impl ValidationData<'_> {
   }
 
   pub fn get_aggregated_validator_tokens(&self, validators: &TokenStream) -> TokenStream {
-    let field_context_tokens = self.field_context_tokens();
+    let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
     let required_check = self.get_required_validation_tokens();
     let item_rust_ident = self.item_rust_ident;
 
     if self.is_option() {
+      let match_kind = if self.field_kind.is_copy() {
+        quote! { self.#item_rust_ident }
+      } else {
+        quote! { self.#item_rust_ident.as_ref() }
+      };
+
       quote! {
-        match self.#item_rust_ident.as_ref() {
+        match #match_kind {
           Some(val) => {
             #field_context_tokens
             #validators
@@ -347,37 +397,37 @@ impl ValidationData<'_> {
   }
 
   pub fn key_type_tokens(&self) -> TokenStream {
-    self.map_key_type.map_or(quote! { None }, |key_type| {
+    self.map_keys_type.map_or(quote! { None }, |key_type| {
       quote! { Some(#key_type) }
     })
   }
 
   pub fn key_type_tokens_as_i32(&self) -> TokenStream {
     self
-      .map_key_type
+      .map_keys_type
       .map_or(quote! { None }, |k| quote! { Some(#k as i32) })
   }
 
   pub fn value_type_tokens(&self) -> TokenStream {
-    self.map_value_type.map_or(quote! { None }, |value_type| {
+    self.map_values_type.map_or(quote! { None }, |value_type| {
       quote! { Some(#value_type) }
     })
   }
 
   pub fn value_type_tokens_as_i32(&self) -> TokenStream {
     self
-      .map_value_type
+      .map_values_type
       .map_or(quote! { None }, |v| quote! { Some(#v as i32) })
   }
 
-  pub fn subscript_tokens(&self) -> TokenStream {
-    match self.field_kind {
+  pub fn subscript_tokens(&self, field_kind: FieldKind) -> TokenStream {
+    match field_kind {
       FieldKind::RepeatedItem(_) => {
         let index_ident = self.index_ident;
         quote! { Some(::protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
       FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
-        if let Some(key_type_enum) = self.map_key_type {
+        if let Some(key_type_enum) = self.map_keys_type {
           let key_subscript_tokens = generate_key_subscript(&key_type_enum, self.map_key_ident);
           quote! { Some(#key_subscript_tokens) }
         } else {
@@ -396,23 +446,45 @@ impl ValidationData<'_> {
       item_ident,
       ..
     } = self;
-    let base_ident = match self.field_kind {
-      FieldKind::RepeatedItem(_) => quote! { #item_ident },
-      FieldKind::MapKey(_) => quote! { #key_ident },
-      FieldKind::MapValue(_) => quote! { #map_value_ident },
-      _ => {
-        if self.is_optional || self.is_in_oneof {
+    let is_copy = self.field_kind.is_copy();
+
+    match self.field_kind {
+      FieldKind::RepeatedItem(_) => {
+        if is_copy {
+          quote! { #item_ident.clone() }
+        } else {
+          quote! { #item_ident }
+        }
+      }
+      FieldKind::MapKey(_) => {
+        if is_copy {
+          quote! { #key_ident.clone() }
+        } else {
+          quote! { #key_ident }
+        }
+      }
+      FieldKind::MapValue(_) => {
+        if is_copy {
+          quote! { #map_value_ident.clone() }
+        } else {
+          quote! { #map_value_ident }
+        }
+      }
+      FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
+      FieldKind::Map(_) => quote! { self.#item_rust_ident },
+      FieldKind::Single(_) => {
+        let base_ident = if self.is_optional || self.is_in_oneof {
           quote! { val }
         } else {
           quote! { self.#item_rust_ident }
+        };
+
+        if !is_copy && !self.is_option() {
+          quote! { &#base_ident }
+        } else {
+          base_ident
         }
       }
-    };
-
-    if (self.field_kind.is_in_loop() || self.is_option()) && self.field_kind.is_copy() {
-      quote! { #base_ident.clone() }
-    } else {
-      base_ident
     }
   }
 }

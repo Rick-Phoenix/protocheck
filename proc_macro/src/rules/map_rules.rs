@@ -1,13 +1,14 @@
 use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
 use proto_types::{protovalidate::FieldRules, FieldType};
+use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, Ignore};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::{field_is_boxed, field_is_message},
+  extract_validators::field_is_message,
   rules::{
     cel_rules::get_cel_rules,
     core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
@@ -25,8 +26,6 @@ pub fn get_map_rules(
   let mut map_level_rules = TokenStream::new();
   let mut keys_rules = TokenStream::new();
   let mut values_rules = TokenStream::new();
-  let mut keys_validation_data: Option<ValidationData> = None;
-  let mut values_validation_data: Option<ValidationData> = None;
 
   let map_field_span = validation_data.field_span;
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
@@ -66,8 +65,8 @@ pub fn get_map_rules(
 
   let mut map_validation_data = validation_data;
 
-  map_validation_data.map_key_type = Some(key_proto_type);
-  map_validation_data.map_value_type = Some(value_proto_type);
+  map_validation_data.map_keys_type = Some(key_proto_type);
+  map_validation_data.map_values_type = Some(value_proto_type);
 
   let value_is_message = field_is_message(&value_desc.kind());
 
@@ -142,15 +141,14 @@ pub fn get_map_rules(
       let ignore = keys_rules_descriptor.ignore();
 
       if !matches!(ignore, Ignore::Always) {
-        let keys_validation_data = keys_validation_data
-          .get_or_insert_with(|| map_validation_data.to_map_key(key_proto_type.into(), ignore));
+        let keys_validation_data = map_validation_data.to_map_key(key_proto_type.into());
 
         if let Some(ref rules) = keys_rules_descriptor.r#type {
           let key_validators_tokens = get_field_rules(
             static_defs,
             field_rust_enum.clone(),
             &key_desc,
-            keys_validation_data,
+            &keys_validation_data,
             rules,
           )?;
           keys_rules.extend(key_validators_tokens);
@@ -159,7 +157,7 @@ pub fn get_map_rules(
         if !keys_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
-              validation_data: keys_validation_data,
+              validation_data: &keys_validation_data,
               field_desc: &key_desc,
               is_boxed: false,
             },
@@ -177,9 +175,7 @@ pub fn get_map_rules(
       if matches!(ignore, Ignore::Always) {
         ignore_values_validators = true;
       } else {
-        let values_validation_data = values_validation_data.get_or_insert_with(|| {
-          map_validation_data.to_map_value(get_field_type(&value_desc), ignore)
-        });
+        let values_validation_data = map_validation_data.to_map_value(get_field_type(&value_desc));
 
         if let Some(ref rules) = values_rules_descriptor.r#type
           && !value_is_message {
@@ -187,7 +183,7 @@ pub fn get_map_rules(
               static_defs,
               field_rust_enum,
               &value_desc,
-              values_validation_data,
+              &values_validation_data,
               rules,
             )?;
             values_rules.extend(value_validators_tokens);
@@ -196,8 +192,8 @@ pub fn get_map_rules(
         if !values_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
-              is_boxed: field_is_boxed(&value_desc, map_field_desc.parent_message()),
-              validation_data: values_validation_data,
+              is_boxed: false,
+              validation_data: &values_validation_data,
               field_desc: &value_desc,
             },
             &values_rules_descriptor.cel,
@@ -210,26 +206,16 @@ pub fn get_map_rules(
   }
 
   if value_is_message && !ignore_values_validators {
-    let validation_data = values_validation_data.get_or_insert_with(|| {
-      map_validation_data.to_map_value(FieldType::Message, Ignore::Unspecified)
-    });
-
-    let validator_tokens = validation_data.get_message_field_validator_tokens();
+    let validator_tokens = map_validation_data
+      .get_message_field_validator_tokens(FieldKind::MapValue(FieldType::Message));
 
     values_rules.extend(validator_tokens);
   }
-
-  let key_context_tokens =
-    keys_validation_data.map_or(TokenStream::new(), |data| data.field_context_tokens());
-  let value_context_tokens =
-    values_validation_data.map_or(TokenStream::new(), |data| data.field_context_tokens());
 
   if map_level_rules.is_empty() && keys_rules.is_empty() && values_rules.is_empty() {
     Ok(map_level_rules)
   } else {
     Ok(map_validation_data.aggregate_map_rules(&MapValidator {
-      keys_context_tokens: key_context_tokens,
-      values_context_tokens: value_context_tokens,
       map_level_rules,
       keys_rules,
       values_rules,

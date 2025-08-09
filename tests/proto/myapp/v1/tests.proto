@@ -19,6 +19,7 @@ enum test_enum {
 }
 
 message IgnoresTests {
+  string name2 = 3 [(buf.validate.field).string.const = "alfredo"];
   oneof oneofs {
     int64 name = 1 [
       (buf.validate.field).cel = {
