@@ -19,18 +19,73 @@ enum test_enum {
 }
 
 message IgnoresTests {
-  string name2 = 3 [(buf.validate.field).string.const = "alfredo"];
-  oneof oneofs {
-    int64 name = 1 [
-      (buf.validate.field).cel = {
-        id: "tautology"
-        message: "tautology"
-        expression: "1 == 1"
-      },
-      (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-    ];
-    int64 id = 2;
-  }
+  string name = 1 [
+    (buf.validate.field).string.const = "abc",
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+
+  bytes bytes = 2 [
+    (buf.validate.field).bytes.const = "abc",
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  int64 int64 = 3 [
+    (buf.validate.field).int64.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  int32 int32 = 4 [
+    (buf.validate.field).int32.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  uint64 uint64 = 5 [
+    (buf.validate.field).uint64.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  uint32 uint32 = 6 [
+    (buf.validate.field).uint32.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  sint64 sint64 = 7 [
+    (buf.validate.field).sint64.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  sint32 sint32 = 8 [
+    (buf.validate.field).sint32.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  fixed64 fixed64 = 9 [
+    (buf.validate.field).fixed64.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  fixed32 fixed32 = 10 [
+    (buf.validate.field).fixed32.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  sfixed64 sfixed64 = 11 [
+    (buf.validate.field).sfixed64.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  sfixed32 sfixed32 = 12 [
+    (buf.validate.field).sfixed32.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  test_enum enum_field = 13 [
+    (buf.validate.field).enum.const = 15,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  google.protobuf.Duration duration = 14 [
+    (buf.validate.field).duration.const = {
+      seconds: 15
+      nanos: 100
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
+  google.protobuf.Timestamp timestamp = 15 [
+    (buf.validate.field).timestamp.const = {
+      seconds: 15
+      nanos: 100
+    },
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
+  ];
 }
 
 message BytesTests {

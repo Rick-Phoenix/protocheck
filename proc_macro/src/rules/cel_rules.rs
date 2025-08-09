@@ -112,6 +112,12 @@ pub fn get_cel_rules(
                 FieldType::Bytes => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.to_vec().into()) }
                 }
+                FieldType::Int32 | FieldType::Sint32 | FieldType::Sfixed32 => {
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as i64).into()) }
+                }
+                FieldType::Uint32 | FieldType::Fixed32 => {
+                  quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as u64).into()) }
+                }
                 _ => {
                   quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens).clone().into()) }
                 }

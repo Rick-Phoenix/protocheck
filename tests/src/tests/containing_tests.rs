@@ -24,8 +24,6 @@ fn containing_tests() {
 
   let Violations { violations } = test_message.validate().unwrap_err();
 
-  println!("{:#?}", violations);
-
   assert_eq!(violations.len(), 17);
 
   let in_violations: Vec<&Violation> = violations

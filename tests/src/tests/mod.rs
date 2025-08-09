@@ -1,5 +1,6 @@
 mod bytes_tests;
 mod containing_tests;
+mod ignores_tests;
 mod maps_tests;
 mod optional_tests;
 mod recursion_tests;

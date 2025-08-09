@@ -15,4 +15,17 @@ fn bytes_tests() {
   };
 
   let Violations { violations } = test.validate().unwrap_err();
+
+  assert_eq!(violations.len(), 4);
+
+  let correct = b"abc";
+
+  let test = BytesTests {
+    contains_field: Bytes::from_static(correct),
+    prefix_field: Bytes::from_static(correct),
+    pattern_field: Bytes::from_static(correct),
+    suffix_field: Bytes::from_static(correct),
+  };
+
+  assert!(test.validate().is_ok())
 }

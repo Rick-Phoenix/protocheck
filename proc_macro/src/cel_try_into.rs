@@ -1,35 +1,55 @@
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{parse_macro_input, DeriveInput, Error, Type};
 
 use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
 enum OuterType {
-  Option {
-    conversion_tokens: Option<TokenStream2>,
-    is_box: bool,
-  },
-  Vec {
-    conversion_tokens: TokenStream2,
-  },
-  HashMap {
-    conversion_tokens: TokenStream2,
-  },
-  Normal {
-    is_f32: bool,
-    is_bytes: bool,
-  },
+  Option(InnerType),
+  Vec(InnerType),
+  HashMap(InnerType),
+  Normal(InnerType),
 }
 
-fn get_conversion_tokens(ty: &Type) -> TokenStream2 {
-  if supports_cel_into(ty) {
-    quote! { v.to_owned().into() }
-  } else if is_bytes(ty) {
-    quote! { v.to_vec().into() }
-  } else if is_f32(ty) {
-    quote! { (*v as f64).into() }
-  } else {
-    quote! { v.to_owned().try_into()? }
+enum InnerType {
+  Box,
+  SupportsInto,
+  TryInto,
+  Bytes,
+  F32,
+  U32,
+  I32,
+}
+
+impl InnerType {
+  pub fn conversion_tokens(&self, val_tokens: &TokenStream2) -> TokenStream2 {
+    match self {
+      Self::Box => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
+      Self::SupportsInto => quote! { #val_tokens.to_owned().into() },
+      Self::TryInto => quote! { #val_tokens.to_owned().try_into()? },
+      Self::Bytes => quote! { #val_tokens.to_vec().into() },
+      Self::F32 => quote! { (*#val_tokens as f64).into() },
+      Self::U32 => quote! { (*#val_tokens as u64).into() },
+      Self::I32 => quote! { (*#val_tokens as i64).into() },
+    }
+  }
+
+  pub fn from_type(ty: &Type) -> Self {
+    if is_box(ty) {
+      Self::Box
+    } else if supports_cel_into(ty) {
+      Self::SupportsInto
+    } else if is_bytes(ty) {
+      Self::Bytes
+    } else if is_f32(ty) {
+      Self::F32
+    } else if is_u32(ty) {
+      Self::U32
+    } else if is_i32(ty) {
+      Self::I32
+    } else {
+      Self::TryInto
+    }
   }
 }
 
@@ -39,32 +59,15 @@ impl TryFrom<&Type> for OuterType {
   fn try_from(ty: &Type) -> Result<Self, Self::Error> {
     if is_option(ty) {
       let inner = get_inner_type(ty)?;
-      if is_box(inner) {
-        Ok(Self::Option {
-          conversion_tokens: None,
-          is_box: true,
-        })
-      } else {
-        Ok(Self::Option {
-          conversion_tokens: Some(get_conversion_tokens(inner)),
-          is_box: false,
-        })
-      }
+      Ok(Self::Option(InnerType::from_type(inner)))
     } else if is_vec(ty) {
       let inner = get_inner_type(ty)?;
-      Ok(Self::Vec {
-        conversion_tokens: get_conversion_tokens(inner),
-      })
+      Ok(Self::Vec(InnerType::from_type(inner)))
     } else if is_hashmap(ty) {
       let value_type = get_hashmap_value_type(ty)?;
-      Ok(Self::HashMap {
-        conversion_tokens: get_conversion_tokens(value_type),
-      })
+      Ok(Self::HashMap(InnerType::from_type(value_type)))
     } else {
-      Ok(Self::Normal {
-        is_f32: is_f32(ty),
-        is_bytes: is_bytes(ty),
-      })
+      Ok(Self::Normal(InnerType::from_type(ty)))
     }
   }
 }
@@ -139,16 +142,12 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
     if let syn::Fields::Unnamed(fields) = &variant.fields
       && let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
+        let val_ident = format_ident!("v");
 
-        let into_expression = if is_box(type_ident) {
-          quote! { (*v).try_into_cel_value_recursive(depth + 1)? }
-        } else {
-          let conversion_tokens = get_conversion_tokens(type_ident);
-          quote! { #conversion_tokens }
-        };
+        let into_expression = InnerType::from_type(type_ident).conversion_tokens(&quote! { #val_ident });
 
         let arm = quote! {
-          #enum_name::#variant_ident(v) => {
+          #enum_name::#variant_ident(#val_ident) => {
             if depth >= #max_recursion_depth {
               Ok((#proto_name.to_string(), ::cel_interpreter::Value::Null))
             } else {
@@ -237,33 +236,25 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         }
       };
 
+      let val_ident = format_ident!("v");
+      let val_tokens = quote! { #val_ident };
+
       match outer_type {
-        OuterType::Option {
-          conversion_tokens,
-          is_box,
-        } => {
-          if is_box {
-            tokens.extend(quote! {
-              if let Some(boxed_val) = value.#field_ident.as_deref() {
-                #fields_map_ident.insert(#field_name.into(), (*boxed_val).try_into_cel_value_recursive(depth + 1)?);
-              } else {
-                #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
-              }
-            });
-          } else {
-            tokens.extend(quote! {
-              if let Some(v) = &value.#field_ident {
-                #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
-              } else {
-                #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
-              }
-            });
-          }
+        OuterType::Option(inner) => {
+          let conversion_tokens = inner.conversion_tokens(&val_tokens);
+          tokens.extend(quote! {
+            if let Some(#val_ident) = &value.#field_ident {
+              #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
+            } else {
+              #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Null);
+            }
+          });
         }
-        OuterType::Vec { conversion_tokens } => {
+        OuterType::Vec(inner) => {
+          let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut converted: Vec<::cel_interpreter::Value> = Vec::new();
-            for v in &value.#field_ident {
+            for #val_ident in &value.#field_ident {
               converted.push(#conversion_tokens);
             }
 
@@ -271,31 +262,25 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           });
         }
 
-        OuterType::HashMap { conversion_tokens } => {
+        OuterType::HashMap(inner) => {
+          let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut field_map: ::std::collections::HashMap<::cel_interpreter::objects::Key, ::cel_interpreter::Value> = ::std::collections::HashMap::new();
 
-            for (k, v) in &value.#field_ident {
+            for (k, #val_ident) in &value.#field_ident {
               field_map.insert(k.clone().into(), #conversion_tokens);
             }
 
             #fields_map_ident.insert(#field_name.into(), ::cel_interpreter::Value::Map(field_map.into()));
           });
         }
-        OuterType::Normal { is_f32, is_bytes } => {
-          if is_f32 {
-            tokens.extend(quote! {
-              #fields_map_ident.insert(#field_name.into(), (value.#field_ident as f64).into());
-            });
-          } else if is_bytes {
-            tokens.extend(quote! {
-              #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_vec().into());
-            });
-          } else {
-            tokens.extend(quote! {
-              #fields_map_ident.insert(#field_name.into(), value.#field_ident.to_owned().into());
-            });
-          }
+        OuterType::Normal(ty) => {
+          let val_tokens = quote! { (&value.#field_ident) };
+          let conversion_tokens = ty.conversion_tokens(&val_tokens);
+
+          tokens.extend(quote! {
+            #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
+          });
         }
       };
     }
@@ -387,6 +372,22 @@ fn is_f32(ty: &Type) -> bool {
   false
 }
 
+fn is_u32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "u32";
+    }
+  false
+}
+
+fn is_i32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "i32";
+    }
+  false
+}
+
 fn is_primitive(ty: &Type) -> bool {
   if let syn::Type::Path(type_path) = ty
     && let Some(segment) = type_path.path.segments.last() {
@@ -395,18 +396,9 @@ fn is_primitive(ty: &Type) -> bool {
       return matches!(
         type_name.as_str(),
         "bool"
-          | "i8"
-          | "i16"
-          | "i32"
           | "i64"
-          | "i128"
-          | "u8"
-          | "u16"
-          | "u32"
           | "u64"
-          | "u128"
           | "f64"
-          | "char"
           | "str"
           | "String"
       );

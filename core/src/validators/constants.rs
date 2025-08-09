@@ -20,8 +20,18 @@ macro_rules! const_validator {
   };
 }
 
+pub fn bytes_const(
+  field_context: &FieldContext,
+  value: &Bytes,
+  target: &'static [u8],
+  error_message: &'static str,
+) -> Result<(), Violation> {
+  let check = value == target;
+
+  create_violation!(bytes, check, field_context, const, error_message)
+}
+
 const_validator!(string, &str);
-const_validator!(bytes, &Bytes);
 const_validator!(bool, bool);
 
 const_validator!(duration, Duration);
