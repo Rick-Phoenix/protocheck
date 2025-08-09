@@ -59,10 +59,6 @@ impl FieldKind {
   pub fn is_repeated_item(&self) -> bool {
     matches!(self, FieldKind::RepeatedItem(_))
   }
-
-  pub fn is_in_loop(&self) -> bool {
-    self.is_map_key() || self.is_map_value() || self.is_repeated_item()
-  }
 }
 
 impl ToTokens for FieldKind {

@@ -8,7 +8,7 @@ use syn::Error;
 use super::{field_rules::Type as RulesType, protovalidate::Ignore};
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::{field_is_boxed, field_is_message},
+  extract_validators::field_is_message,
   rules::{cel_rules::get_cel_rules, core::get_field_rules},
   validation_data::{RepeatedValidator, ValidationData},
 };
@@ -163,7 +163,7 @@ pub fn get_repeated_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
               validation_data: repeated_items_validation_data,
-              is_boxed: field_is_boxed(field_desc, field_desc.parent_message()),
+              is_boxed: false,
             },
             &items_rules_descriptor.cel,
             static_defs,

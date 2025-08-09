@@ -7,7 +7,9 @@ use proto_types::{Any, Duration};
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{base_violations::create_violation, in_rules::*, not_in_rules::*},
+  validators::static_data::{
+    base_violations::create_violation, in_violations::*, not_in_violations::*,
+  },
 };
 
 macro_rules! in_list_validator {

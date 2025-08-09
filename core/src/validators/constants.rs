@@ -5,7 +5,7 @@ use proto_types::{Duration, Timestamp};
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{base_violations::create_violation, const_rules::*},
+  validators::static_data::{base_violations::create_violation, const_violations::*},
 };
 
 macro_rules! const_validator {

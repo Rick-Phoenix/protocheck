@@ -5,7 +5,8 @@ use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
   validators::static_data::{
-    base_violations::create_violation, gt_rules::*, gte_rules::*, lt_rules::*, lte_rules::*,
+    base_violations::create_violation, gt_violations::*, gte_violations::*, lt_violations::*,
+    lte_violations::*,
   },
 };
 

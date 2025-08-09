@@ -1,11 +1,11 @@
 use std::{fmt::Debug, hash::Hash};
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use proto_types::{
   protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules, NumericRules},
   FieldType,
 };
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::Error;
 
 use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
@@ -23,12 +23,8 @@ where
   let field_span = validation_data.field_span;
   let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
 
-  let get_func_ident = |func_name: &str| -> Ident {
-    Ident::new(
-      &format!("{}_{}", T::UNIT_NAME, func_name),
-      Span::call_site(),
-    )
-  };
+  let get_func_ident =
+    |func_name: &str| -> Ident { format_ident!("{}_{}", T::UNIT_NAME, func_name) };
 
   if let Some(const_val) = rules.constant() {
     let error_message = format!("has to be equal to {:?}", const_val);
@@ -51,13 +47,9 @@ where
   let value_ident = validation_data.value_ident();
 
   if let Some((in_list, in_list_str)) = in_list {
-    let in_list_ident = Ident::new(
-      &format!("__{}_IN_LIST", validation_data.static_full_name()),
-      Span::call_site(),
-    );
+    let in_list_ident = format_ident!("__{}_IN_LIST", validation_data.static_full_name());
 
     let type_tokens = rules.hashable_type_tokens();
-    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -67,6 +59,7 @@ where
     });
 
     let func_ident = get_func_ident("in_list");
+    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {
@@ -83,12 +76,9 @@ where
   }
 
   if let Some((not_in_list, not_in_list_str)) = not_in_list {
-    let not_in_list_ident = Ident::new(
-      &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
-      Span::call_site(),
-    );
+    let not_in_list_ident = format_ident!("__{}_NOT_IN_LIST", validation_data.static_full_name());
+
     let type_tokens = rules.hashable_type_tokens();
-    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
     let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -98,6 +88,7 @@ where
     });
 
     let func_ident = get_func_ident("not_in_list");
+    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {

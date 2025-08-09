@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
 use proto_types::{protovalidate::Ignore, FieldType};
 use protocheck_core::field_data::FieldKind;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 
 use crate::{rules::core::get_field_type, Ident2, ProtoType, Span2};
 
@@ -48,6 +48,7 @@ impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
     self.full_name.to_string().replace(".", "_").to_uppercase()
   }
+
   pub fn field_context_tokens(
     &self,
     field_kind: FieldKind,
@@ -60,8 +61,15 @@ impl ValidationData<'_> {
       tag,
       ..
     } = self;
-    let key_type_tokens = self.key_type_tokens();
-    let value_type_tokens = self.value_type_tokens();
+
+    let key_type_tokens = self.map_keys_type.map_or(quote! { None }, |key_type| {
+      quote! { Some(#key_type) }
+    });
+
+    let value_type_tokens = self.map_values_type.map_or(quote! { None }, |value_type| {
+      quote! { Some(#value_type) }
+    });
+
     let subscript_tokens = self.subscript_tokens(field_kind);
 
     quote! {
@@ -215,34 +223,17 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_validator<T>(
-    &self,
-    func_tokens: &TokenStream,
-    val: T,
-    error_message: &str,
-  ) -> TokenStream
-  where
-    T: ToTokens,
-  {
-    let field_context_ident = self.field_context_ident();
-    let value_ident = self.value_ident();
-
-    let validator_expression_tokens = quote! {
-      #func_tokens(&#field_context_ident, #value_ident, #val, #error_message)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
   pub fn get_const_validator<T>(&self, proto_type: &str, val: T, error_message: &str) -> TokenStream
   where
     T: ToTokens,
   {
-    let func_ident = Ident2::new(&format!("{}_const", proto_type,), Span2::call_site());
+    let func_ident = format_ident!("{}_const", proto_type);
+    let field_context_ident = self.field_context_ident();
+    let value_ident = self.value_ident();
 
-    let func_tokens = quote! { ::protocheck::validators::constants::#func_ident };
+    let validator_expression_tokens = quote! { ::protocheck::validators::constants::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
 
-    self.get_validator(&func_tokens, val, error_message)
+    self.get_validator_tokens(&validator_expression_tokens)
   }
 
   pub fn get_comparable_validator<T>(
@@ -255,11 +246,13 @@ impl ValidationData<'_> {
   where
     T: ToTokens,
   {
-    let func_ident = Ident2::new(&format!("{}_{}", proto_type, func_name), Span2::call_site());
+    let func_ident = format_ident!("{}_{}", proto_type, func_name);
+    let field_context_ident = self.field_context_ident();
+    let value_ident = self.value_ident();
 
-    let func_tokens = quote! { ::protocheck::validators::comparables::#func_ident };
+    let validator_expression_tokens = quote! { ::protocheck::validators::comparables::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
 
-    self.get_validator(&func_tokens, val, error_message)
+    self.get_validator_tokens(&validator_expression_tokens)
   }
 
   pub fn get_message_field_validator_tokens(&self, field_kind: FieldKind) -> TokenStream {
@@ -277,11 +270,16 @@ impl ValidationData<'_> {
       FieldKind::RepeatedItem(_) => self.item_ident,
       FieldKind::MapKey(_) => self.map_key_ident,
       FieldKind::MapValue(_) => self.map_value_ident,
-      _ => &Ident2::new("val", Span2::call_site()),
+      _ => &format_ident!("val"),
     };
 
-    let nested_key_type = self.key_type_tokens_as_i32();
-    let nested_value_type = self.value_type_tokens_as_i32();
+    let key_type = self
+      .map_keys_type
+      .map_or(quote! { None }, |k| quote! { Some(#k as i32) });
+
+    let value_type = self
+      .map_values_type
+      .map_or(quote! { None }, |v| quote! { Some(#v as i32) });
 
     let subscript_tokens = self.subscript_tokens(field_kind);
 
@@ -290,8 +288,8 @@ impl ValidationData<'_> {
         field_name: Some(#field_proto_name.to_string()),
         field_number: Some(#field_tag as i32),
         field_type: Some(#field_proto_type as i32),
-        key_type: #nested_key_type,
-        value_type: #nested_value_type,
+        key_type: #key_type,
+        value_type: #value_type,
         subscript: #subscript_tokens,
       };
     };
@@ -332,13 +330,13 @@ impl ValidationData<'_> {
   pub fn get_aggregated_validator_tokens(&self, validators: &TokenStream) -> TokenStream {
     let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
     let required_check = self.get_required_validation_tokens();
-    let item_rust_ident = self.item_rust_ident;
+    let field_ident = self.item_rust_ident;
 
     if self.is_option() {
       let match_kind = if self.field_kind.is_copy() {
-        quote! { self.#item_rust_ident }
+        quote! { self.#field_ident }
       } else {
-        quote! { self.#item_rust_ident.as_ref() }
+        quote! { self.#field_ident.as_ref() }
       };
 
       quote! {
@@ -394,30 +392,6 @@ impl ValidationData<'_> {
 
   pub fn is_option(&self) -> bool {
     self.is_optional && !self.is_in_oneof
-  }
-
-  pub fn key_type_tokens(&self) -> TokenStream {
-    self.map_keys_type.map_or(quote! { None }, |key_type| {
-      quote! { Some(#key_type) }
-    })
-  }
-
-  pub fn key_type_tokens_as_i32(&self) -> TokenStream {
-    self
-      .map_keys_type
-      .map_or(quote! { None }, |k| quote! { Some(#k as i32) })
-  }
-
-  pub fn value_type_tokens(&self) -> TokenStream {
-    self.map_values_type.map_or(quote! { None }, |value_type| {
-      quote! { Some(#value_type) }
-    })
-  }
-
-  pub fn value_type_tokens_as_i32(&self) -> TokenStream {
-    self
-      .map_values_type
-      .map_or(quote! { None }, |v| quote! { Some(#v as i32) })
   }
 
   pub fn subscript_tokens(&self, field_kind: FieldKind) -> TokenStream {

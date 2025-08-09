@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
 use proto_types::{
   protovalidate::string_rules::WellKnown,
@@ -64,6 +64,7 @@ pub fn get_string_rules(
       "__{}_REGEX",
       field_desc.full_name().replace(".", "_").to_uppercase()
     );
+
     static_defs.push(quote! {
       static #static_regex_ident: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
         regex::Regex::new(#pattern).unwrap()
@@ -75,19 +76,16 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
   }
 
   if let Some((in_list, in_list_str)) = in_list {
-    let in_list_ident = Ident::new(
-      &format!("__{}_IN_LIST", validation_data.static_full_name()),
-      Span::call_site(),
-    );
+    let in_list_ident = format_ident!("__{}_IN_LIST", validation_data.static_full_name());
 
     let type_tokens = quote! { &'static str };
-    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -95,6 +93,8 @@ pub fn get_string_rules(
         #hashset_tokens
       });
     });
+
+    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
 
     let validator_expression_tokens = quote! {
       protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &#in_list_ident, #error_message)
@@ -105,13 +105,9 @@ pub fn get_string_rules(
   }
 
   if let Some((not_in_list, not_in_list_str)) = not_in_list {
-    let not_in_list_ident = Ident::new(
-      &format!("__{}_NOT_IN_LIST", validation_data.static_full_name()),
-      Span::call_site(),
-    );
+    let not_in_list_ident = format_ident!("__{}_NOT_IN_LIST", validation_data.static_full_name());
 
     let type_tokens = quote! { &'static str };
-    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
     let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
 
     static_defs.push(quote! {
@@ -119,6 +115,8 @@ pub fn get_string_rules(
         #hashset_tokens
       });
     });
+
+    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
 
     let validator_expression_tokens = quote! {
       protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident, #error_message)
@@ -130,6 +128,7 @@ pub fn get_string_rules(
 
   if let Some(len_value) = len {
     let plural_prefix = if len_value != 1 { "s" } else { "" };
+
     let error_message = format!(
       "must be exactly {} character{} long",
       len_value, plural_prefix
@@ -138,6 +137,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::len(&#field_context_ident, &#value_ident, #len_value, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -145,6 +145,7 @@ pub fn get_string_rules(
 
   if let Some(min_len_value) = min_len {
     let plural_prefix = if min_len_value != 1 { "s" } else { "" };
+
     let error_message = format!(
       "cannot be shorter than {} character{}",
       min_len_value, plural_prefix
@@ -153,6 +154,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::min_len(&#field_context_ident, &#value_ident, #min_len_value, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -160,6 +162,7 @@ pub fn get_string_rules(
 
   if let Some(max_len_value) = max_len {
     let plural_prefix = if max_len_value != 1 { "s" } else { "" };
+
     let error_message = format!(
       "cannot be longer than {} character{}",
       max_len_value, plural_prefix
@@ -168,6 +171,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::max_len(&#field_context_ident, &#value_ident, #max_len_value, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -175,6 +179,7 @@ pub fn get_string_rules(
 
   if let Some(len_bytes_val) = len_bytes {
     let plural_prefix = if len_bytes_val != 1 { "s" } else { "" };
+
     let error_message = format!(
       "must be exactly {} byte{} long",
       len_bytes_val, plural_prefix
@@ -183,6 +188,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::len_bytes(&#field_context_ident, &#value_ident, #len_bytes_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -190,6 +196,7 @@ pub fn get_string_rules(
 
   if let Some(min_bytes_val) = min_bytes {
     let plural_prefix = if min_bytes_val != 1 { "s" } else { "" };
+
     let error_message = format!(
       "cannot be shorter than {} byte{}",
       min_bytes_val, plural_prefix
@@ -205,6 +212,7 @@ pub fn get_string_rules(
 
   if let Some(max_bytes_val) = max_bytes {
     let plural_prefix = if max_bytes_val != 1 { "s" } else { "" };
+
     let error_message = format!(
       "cannot be longer than {} byte{}",
       max_bytes_val, plural_prefix
@@ -213,6 +221,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::max_bytes(&#field_context_ident, &#value_ident, #max_bytes_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -224,6 +233,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::contains(&#field_context_ident, &#value_ident, #contains_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -238,6 +248,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::not_contains(&#field_context_ident, &#value_ident, #not_contains_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -249,6 +260,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::prefix(&#field_context_ident, &#value_ident, #prefix_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -260,6 +272,7 @@ pub fn get_string_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::strings::suffix(&#field_context_ident, &#value_ident, #suffix_val, #error_message)
     };
+
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
     tokens.extend(validator_tokens);
@@ -298,9 +311,11 @@ pub fn get_string_rules(
 
     if let Some(validator_func) = validator_path {
       let strict_arg = is_strict.map(|bool| quote! { , #bool });
+
       let validator_expression_tokens = quote! {
         protocheck::validators::strings::#validator_func(&#field_context_ident, &#value_ident #strict_arg)
       };
+
       let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
 
       tokens.extend(validator_tokens);
