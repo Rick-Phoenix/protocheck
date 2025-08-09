@@ -9,15 +9,15 @@ use crate::{
 };
 
 macro_rules! create_violation {
-  ($violation_type:ident, $check:ident, $field_context:ident, $violation_name:ident, $error_message:expr ) => {
+  ($proto_type:ident, $check:ident, $field_context:ident, $violation_name:ident, $error_message:expr ) => {
     paste! {
       if $check {
         Ok(())
       } else {
         Err(create_violation(
           $field_context,
-          &[< $violation_type:upper _ $violation_name:upper _ VIOLATION >],
-          concat!(stringify!($violation_type), ".", stringify!($violation_name)),
+          &[< $proto_type:upper _ $violation_name:upper _ VIOLATION >],
+          concat!(stringify!($proto_type), ".", stringify!($violation_name)),
           $error_message,
         ))
       }

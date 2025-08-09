@@ -1,118 +1,58 @@
-use std::fmt::Debug;
+use paste::paste;
+use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
   validators::static_data::{
-    base_violations::create_violation, gt_rules::get_gt_rule_path, gte_rules::get_gte_rule_path,
-    lt_rules::get_lt_rule_path, lte_rules::get_lte_rule_path,
+    base_violations::create_violation, gt_rules::*, gte_rules::*, lt_rules::*, lte_rules::*,
   },
 };
 
-pub fn lt<T>(
-  field_context: &FieldContext,
-  value: T,
-  target: T,
-  error_message: &'static str,
-) -> Result<(), Violation>
-where
-  T: PartialOrd + Debug + Copy,
-{
-  let check = value < target;
+macro_rules! comparable_validator {
+  ($proto_type:ident, $rust_type:ty) => {
+    paste! {
+      pub fn [< $proto_type _lt >](field_context: &FieldContext, value: $rust_type, target: $rust_type, error_message: &'static str) -> Result<(), Violation> {
+        let check = value < target;
 
-  if check {
-    Ok(())
-  } else {
-    let (type_name, violation_path) = get_lt_rule_path(field_context.field_kind.inner_type())
-      .expect("Could not find 'lt' rule path");
-    let rule_id = format!("{}.lt", type_name);
+        create_violation!($proto_type, check, field_context, lt, error_message)
+      }
 
-    Err(create_violation(
-      field_context,
-      violation_path,
-      &rule_id,
-      error_message,
-    ))
-  }
+      pub fn [< $proto_type _lte >](field_context: &FieldContext, value: $rust_type, target: $rust_type, error_message: &'static str) -> Result<(), Violation> {
+        let check = value <= target;
+
+        create_violation!($proto_type, check, field_context, lte, error_message)
+      }
+
+      pub fn [< $proto_type _gt >](field_context: &FieldContext, value: $rust_type, target: $rust_type, error_message: &'static str) -> Result<(), Violation> {
+        let check = value > target;
+
+        create_violation!($proto_type, check, field_context, gt, error_message)
+      }
+
+      pub fn [< $proto_type _gte >](field_context: &FieldContext, value: $rust_type, target: $rust_type, error_message: &'static str) -> Result<(), Violation> {
+        let check = value >= target;
+
+        create_violation!($proto_type, check, field_context, gte, error_message)
+      }
+    }
+  };
 }
 
-pub fn lte<T>(
-  field_context: &FieldContext,
-  value: T,
-  target: T,
-  error_message: &'static str,
-) -> Result<(), Violation>
-where
-  T: PartialOrd + Debug,
-{
-  let check = value <= target;
+comparable_validator!(float, f32);
+comparable_validator!(double, f64);
 
-  if check {
-    Ok(())
-  } else {
-    let (type_name, violation_path) = get_lte_rule_path(field_context.field_kind.inner_type())
-      .expect("Could not find 'lte' rule path");
-    let rule_id = format!("{}.lte", type_name);
+comparable_validator!(int64, i64);
+comparable_validator!(int32, i32);
+comparable_validator!(sint64, i64);
+comparable_validator!(sint32, i32);
+comparable_validator!(sfixed64, i64);
+comparable_validator!(sfixed32, i32);
 
-    Err(create_violation(
-      field_context,
-      violation_path,
-      &rule_id,
-      error_message,
-    ))
-  }
-}
+comparable_validator!(uint64, u64);
+comparable_validator!(uint32, u32);
+comparable_validator!(fixed64, u64);
+comparable_validator!(fixed32, u32);
 
-pub fn gt<T>(
-  field_context: &FieldContext,
-  value: T,
-  target: T,
-  error_message: &'static str,
-) -> Result<(), Violation>
-where
-  T: PartialOrd + Debug,
-{
-  let check = value > target;
-
-  if check {
-    Ok(())
-  } else {
-    let (type_name, violation_path) = get_gt_rule_path(field_context.field_kind.inner_type())
-      .expect("Could not find 'gt' rule path");
-    let rule_id = format!("{}.gt", type_name);
-
-    Err(create_violation(
-      field_context,
-      violation_path,
-      &rule_id,
-      error_message,
-    ))
-  }
-}
-
-pub fn gte<T>(
-  field_context: &FieldContext,
-  value: T,
-  target: T,
-  error_message: &'static str,
-) -> Result<(), Violation>
-where
-  T: PartialOrd + Debug,
-{
-  let check = value >= target;
-
-  if check {
-    Ok(())
-  } else {
-    let (type_name, violation_path) = get_gte_rule_path(field_context.field_kind.inner_type())
-      .expect("Could not find 'gte' rule path");
-    let rule_id = format!("{}.gte", type_name);
-
-    Err(create_violation(
-      field_context,
-      violation_path,
-      &rule_id,
-      error_message,
-    ))
-  }
-}
+comparable_validator!(duration, Duration);
+comparable_validator!(timestamp, Timestamp);

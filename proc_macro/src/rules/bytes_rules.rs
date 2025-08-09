@@ -27,7 +27,7 @@ pub fn get_bytes_rules(
     let error_message = format!("must be equal to {}", format_bytes(const_val));
 
     let validator_tokens =
-      validation_data.get_constant_validator(&const_val_tokens.to_token_stream(), &error_message);
+      validation_data.get_const_validator("bytes", const_val_tokens, &error_message);
 
     tokens.extend(validator_tokens);
 

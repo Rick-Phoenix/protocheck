@@ -3,7 +3,7 @@ use proto_types::{
   protovalidate::DurationRules,
   protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules},
 };
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::Error;
 
 use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
@@ -26,7 +26,7 @@ pub fn get_duration_rules(
     let error_message = format!("has to be equal to {:?}", const_val);
 
     let validator_tokens =
-      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
+      validation_data.get_const_validator("duration", const_val, &error_message);
     tokens.extend(validator_tokens);
 
     return Ok(tokens);
@@ -39,7 +39,7 @@ pub fn get_duration_rules(
       ComparableLessThan::Lt(lt_val) => {
         let error_message = format!("must be less than {}", lt_val);
         let validator_tokens =
-          validation_data.get_lt_validator(&lt_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator("duration", "lt", lt_val, &error_message);
 
         tokens.extend(validator_tokens);
       }
@@ -47,7 +47,8 @@ pub fn get_duration_rules(
         let error_message = format!("cannot be more than {}", lte_val);
 
         let validator_tokens =
-          validation_data.get_lte_validator(&lte_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator("duration", "lte", lte_val, &error_message);
+
         tokens.extend(validator_tokens);
       }
     };
@@ -59,14 +60,15 @@ pub fn get_duration_rules(
         let error_message = format!("must be more than {}", gt_val);
 
         let validator_tokens =
-          validation_data.get_gt_validator(&gt_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator("duration", "gt", gt_val, &error_message);
+
         tokens.extend(validator_tokens);
       }
       ComparableGreaterThan::Gte(gte_val) => {
         let error_message = format!("cannot be less than {}", gte_val);
 
         let validator_tokens =
-          validation_data.get_gte_validator(&gte_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator("duration", "gte", gte_val, &error_message);
 
         tokens.extend(validator_tokens);
       }

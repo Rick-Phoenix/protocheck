@@ -21,14 +21,20 @@ where
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
-
   let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
+
+  let get_func_ident = |func_name: &str| -> Ident {
+    Ident::new(
+      &format!("{}_{}", T::UNIT_NAME, func_name),
+      Span::call_site(),
+    )
+  };
 
   if let Some(const_val) = rules.constant() {
     let error_message = format!("has to be equal to {:?}", const_val);
 
     let validator_tokens =
-      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
+      validation_data.get_const_validator(T::UNIT_NAME, const_val, &error_message);
 
     tokens.extend(validator_tokens);
 
@@ -49,6 +55,7 @@ where
       &format!("__{}_IN_LIST", validation_data.static_full_name()),
       Span::call_site(),
     );
+
     let type_tokens = rules.hashable_type_tokens();
     let error_message = format!("must be one of these values: [ {} ]", in_list_str);
     let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
@@ -59,15 +66,15 @@ where
       });
     });
 
-    let func_tokens = Ident::new(&format!("{}_in_list", T::UNIT_NAME), Span::call_site());
+    let func_ident = get_func_ident("in_list");
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {
-        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident.to_bits(), &#in_list_ident, #error_message)
+        protocheck::validators::containing::#func_ident(&#field_context_ident, #value_ident.to_bits(), &#in_list_ident, #error_message)
       },
 
       _ => quote! {
-        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
+        protocheck::validators::containing::#func_ident(&#field_context_ident, #value_ident, &#in_list_ident, #error_message)
       },
     };
 
@@ -90,15 +97,15 @@ where
       });
     });
 
-    let func_tokens = Ident::new(&format!("{}_not_in_list", T::UNIT_NAME), Span::call_site());
+    let func_ident = get_func_ident("not_in_list");
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
       FieldType::Float | FieldType::Double => quote! {
-        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident.to_bits(), &#not_in_list_ident, #error_message)
+        protocheck::validators::containing::#func_ident(&#field_context_ident, #value_ident.to_bits(), &#not_in_list_ident, #error_message)
       },
 
       _ => quote! {
-        protocheck::validators::containing::#func_tokens(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
+        protocheck::validators::containing::#func_ident(&#field_context_ident, #value_ident, &#not_in_list_ident, #error_message)
       },
     };
 
@@ -111,13 +118,14 @@ where
       ComparableLessThan::Lt(lt_val) => {
         let error_message = format!("must be smaller than {:?}", lt_val);
         let validator_tokens =
-          validation_data.get_lt_validator(&lt_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator(T::UNIT_NAME, "lt", lt_val, &error_message);
         tokens.extend(validator_tokens);
       }
       ComparableLessThan::Lte(lte_val) => {
         let error_message = format!("cannot be greater than {:?}", lte_val);
         let validator_tokens =
-          validation_data.get_lte_validator(&lte_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator(T::UNIT_NAME, "lte", lte_val, &error_message);
+
         tokens.extend(validator_tokens);
       }
     };
@@ -128,14 +136,14 @@ where
       ComparableGreaterThan::Gt(gt_val) => {
         let error_message = format!("must be more than {:?}", gt_val);
         let validator_tokens =
-          validation_data.get_gt_validator(&gt_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator(T::UNIT_NAME, "gt", gt_val, &error_message);
 
         tokens.extend(validator_tokens);
       }
       ComparableGreaterThan::Gte(gte_val) => {
         let error_message = format!("cannot be less than {:?}", gte_val);
         let validator_tokens =
-          validation_data.get_gte_validator(&gte_val.to_token_stream(), &error_message);
+          validation_data.get_comparable_validator(T::UNIT_NAME, "gte", gte_val, &error_message);
 
         tokens.extend(validator_tokens);
       }

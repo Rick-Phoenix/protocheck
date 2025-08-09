@@ -1,34 +1,44 @@
-use std::fmt::Debug;
+use paste::paste;
+use prost::bytes::Bytes;
+use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{base_violations::create_violation, const_rules::get_const_rule_path},
+  validators::static_data::{base_violations::create_violation, const_rules::*},
 };
 
-pub fn constant<T>(
-  field_context: &FieldContext,
-  value: T,
-  target: T,
-  error_message: &'static str,
-) -> Result<(), Violation>
-where
-  T: PartialEq + Debug,
-{
-  let check = value == target;
+macro_rules! const_validator {
+  ($proto_type:ident, $value_type:ty) => {
+    paste! {
+      pub fn [< $proto_type _const>](field_context: &FieldContext, value: $value_type, target: $value_type, error_message: &'static str) -> Result<(), Violation> {
+        let check = value == target;
 
-  if check {
-    Ok(())
-  } else {
-    let (type_name, const_violation) = get_const_rule_path(field_context.field_kind.inner_type())
-      .expect("Could not find 'const' rule path");
-    let rule_id = format!("{}.const", type_name);
-
-    Err(create_violation(
-      field_context,
-      const_violation,
-      &rule_id,
-      error_message,
-    ))
-  }
+        create_violation!($proto_type, check, field_context, const, error_message)
+      }
+    }
+  };
 }
+
+const_validator!(string, &str);
+const_validator!(bytes, &Bytes);
+
+const_validator!(duration, Duration);
+const_validator!(timestamp, Timestamp);
+
+const_validator!(float, f32);
+const_validator!(double, f64);
+
+const_validator!(int64, i64);
+const_validator!(int32, i32);
+const_validator!(sint64, i64);
+const_validator!(sint32, i32);
+const_validator!(sfixed64, i64);
+const_validator!(sfixed32, i32);
+
+const_validator!(uint64, u64);
+const_validator!(uint32, u32);
+const_validator!(fixed64, u64);
+const_validator!(fixed32, u32);
+
+const_validator!(enum, i32);

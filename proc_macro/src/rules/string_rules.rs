@@ -4,7 +4,7 @@ use proto_types::{
   protovalidate::string_rules::WellKnown,
   protovalidate_impls::{ContainingRules, LengthRules},
 };
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote};
 use regex::Regex;
 use syn::Error;
 
@@ -25,8 +25,7 @@ pub fn get_string_rules(
   if let Some(const_val) = &rules.r#const {
     let error_message = format!("has to be equal to {}", const_val);
 
-    let validator_tokens =
-      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
+    let validator_tokens = validation_data.get_const_validator("string", const_val, &error_message);
 
     tokens.extend(validator_tokens);
 

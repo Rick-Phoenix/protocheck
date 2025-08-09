@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
 use proto_types::{protovalidate::Ignore, FieldType};
 use protocheck_core::field_data::FieldKind;
-use quote::quote;
+use quote::{quote, ToTokens};
 
 use crate::{rules::core::get_field_type, Ident2, ProtoType, Span2};
 
@@ -178,63 +178,51 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_lt_validator(&self, lt_val: &TokenStream, error_message: &str) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::lt(&#field_context_ident, #value_ident, #lt_val, #error_message)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_lte_validator(&self, lte_val: &TokenStream, error_message: &str) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::lte(&#field_context_ident, #value_ident, #lte_val, #error_message)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_gt_validator(&self, gt_val: &TokenStream, error_message: &str) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::gt(&#field_context_ident, #value_ident, #gt_val, #error_message)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_gte_validator(&self, gte_val: &TokenStream, error_message: &str) -> TokenStream {
-    let field_context_ident = self.field_context_ident();
-
-    let value_ident = self.value_ident();
-    let validator_expression_tokens = quote! {
-      ::protocheck::validators::comparables::gte(&#field_context_ident, #value_ident, #gte_val, #error_message)
-    };
-
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_constant_validator(
+  pub fn get_validator<T>(
     &self,
-    const_val: &TokenStream,
+    func_tokens: &TokenStream,
+    val: T,
     error_message: &str,
-  ) -> TokenStream {
+  ) -> TokenStream
+  where
+    T: ToTokens,
+  {
     let field_context_ident = self.field_context_ident();
-
     let value_ident = self.value_ident();
+
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #const_val, #error_message)
+      #func_tokens(&#field_context_ident, #value_ident, #val, #error_message)
     };
 
     self.get_validator_tokens(&validator_expression_tokens)
+  }
+
+  pub fn get_const_validator<T>(&self, proto_type: &str, val: T, error_message: &str) -> TokenStream
+  where
+    T: ToTokens,
+  {
+    let func_ident = Ident2::new(&format!("{}_const", proto_type,), Span2::call_site());
+
+    let func_tokens = quote! { ::protocheck::constants::#func_ident };
+
+    self.get_validator(&func_tokens, val, error_message)
+  }
+
+  pub fn get_comparable_validator<T>(
+    &self,
+    proto_type: &str,
+    func_name: &str,
+    val: T,
+    error_message: &str,
+  ) -> TokenStream
+  where
+    T: ToTokens,
+  {
+    let func_ident = Ident2::new(&format!("{}_{}", proto_type, func_name), Span2::call_site());
+
+    let func_tokens = quote! { ::protocheck::validators::comparables::#func_ident };
+
+    self.get_validator(&func_tokens, val, error_message)
   }
 
   pub fn get_message_field_validator_tokens(&self) -> TokenStream {

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::EnumDescriptor;
 use proto_types::protovalidate_impls::ContainingRules;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::Error;
 
 use super::protovalidate::EnumRules;
@@ -28,8 +28,7 @@ pub fn get_enum_rules(
   if let Some(const_val) = enum_rules.r#const {
     let error_message = format!("has to be equal to {:?}", const_val);
 
-    let validator_tokens =
-      validation_data.get_constant_validator(&const_val.to_token_stream(), &error_message);
+    let validator_tokens = validation_data.get_const_validator("enum", const_val, &error_message);
 
     tokens.extend(validator_tokens);
 

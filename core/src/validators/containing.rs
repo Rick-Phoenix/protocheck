@@ -63,15 +63,19 @@ in_list_validator!(string, &str, &'static str);
 in_list_validator!(bytes, &Bytes, Bytes, value);
 in_list_validator!(any, &Any, &'static str, type_url);
 in_list_validator!(duration, Duration, Duration);
+
 in_list_validator!(enum, i32, i32);
+
 in_list_validator!(float, u32, u32);
 in_list_validator!(double, u64, u64);
+
 in_list_validator!(int64, i64, i64);
 in_list_validator!(int32, i32, i32);
 in_list_validator!(sint64, i64, i64);
 in_list_validator!(sint32, i32, i32);
 in_list_validator!(sfixed64, i64, i64);
 in_list_validator!(sfixed32, i32, i32);
+
 in_list_validator!(fixed64, u64, u64);
 in_list_validator!(fixed32, u32, u32);
 in_list_validator!(uint64, u64, u64);
