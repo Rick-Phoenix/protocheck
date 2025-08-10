@@ -9,16 +9,17 @@ proc-macro2 = { workspace = true }
 syn = { workspace = true }
 
 prost = { workspace = true }
-serde = { workspace = true, optional = true }
 chrono = { workspace = true }
-base64 = { workspace = true }
+
+serde = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+
 cel = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
-itertools = { workspace = true }
 
 [features]
 cel = ["dep:cel", "dep:thiserror"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "dep:base64"]
 
 default = []
 

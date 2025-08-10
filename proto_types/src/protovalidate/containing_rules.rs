@@ -4,7 +4,6 @@ use std::{
   hash::Hash,
 };
 
-use itertools::Itertools;
 use proc_macro2::Span;
 use quote::ToTokens;
 use syn::{Error, LitByteStr};
@@ -118,13 +117,23 @@ impl BytesRules {
     }
 
     let in_list = (!in_list_hashset.is_empty()).then(|| {
-      let in_list_str = self.r#in.iter().map(|b| format_bytes(b)).join(", ");
+      let in_list_str = self
+        .r#in
+        .iter()
+        .map(|b| format_bytes(b))
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (in_list_hashset, in_list_str)
     });
 
     let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
-      let not_in_list_str = self.not_in.iter().map(|b| format_bytes(b)).join(", ");
+      let not_in_list_str = self
+        .not_in
+        .iter()
+        .map(|b| format_bytes(b))
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (not_in_list_hashset, not_in_list_str)
     });
@@ -203,9 +212,14 @@ where
       in_list_hashset
         .iter()
         .map(|d| format!("'{}'", d))
+        .collect::<Vec<String>>()
         .join(", ")
     } else {
-      in_list_hashset.iter().join(", ")
+      in_list_hashset
+        .iter()
+        .map(|d| format!("{}", d))
+        .collect::<Vec<String>>()
+        .join(", ")
     };
 
     (in_list_hashset, in_list_str)
@@ -216,9 +230,14 @@ where
       not_in_list_hashset
         .iter()
         .map(|d| format!("'{}'", d))
+        .collect::<Vec<String>>()
         .join(", ")
     } else {
-      not_in_list_hashset.iter().join(", ")
+      not_in_list_hashset
+        .iter()
+        .map(|d| format!("{}", d))
+        .collect::<Vec<String>>()
+        .join(", ")
     };
 
     (not_in_list_hashset, not_in_list_str)

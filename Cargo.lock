@@ -507,7 +507,6 @@ dependencies = [
  "base64",
  "cel",
  "chrono",
- "itertools",
  "proc-macro2",
  "prost",
  "prost-build",

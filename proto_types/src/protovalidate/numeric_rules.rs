@@ -1,6 +1,5 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash};
 
-use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Error;
@@ -73,13 +72,23 @@ impl NumericRules<u32> for FloatRules {
     }
 
     let in_list = (!in_list_hashset.is_empty()).then(|| {
-      let in_list_str = self.r#in.iter().map(|d| format!("{}", d)).join(", ");
+      let in_list_str = self
+        .r#in
+        .iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (in_list_hashset, in_list_str)
     });
 
     let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
-      let not_in_list_str = self.not_in.iter().map(|d| format!("{}", d)).join(", ");
+      let not_in_list_str = self
+        .not_in
+        .iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (not_in_list_hashset, not_in_list_str)
     });
@@ -151,13 +160,23 @@ impl NumericRules<u64> for DoubleRules {
     }
 
     let in_list = (!in_list_hashset.is_empty()).then(|| {
-      let in_list_str = self.r#in.iter().map(|d| format!("{}", d)).join(", ");
+      let in_list_str = self
+        .r#in
+        .iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (in_list_hashset, in_list_str)
     });
 
     let not_in_list = (!not_in_list_hashset.is_empty()).then(|| {
-      let not_in_list_str = self.not_in.iter().map(|d| format!("{}", d)).join(", ");
+      let not_in_list_str = self
+        .not_in
+        .iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
 
       (not_in_list_hashset, not_in_list_str)
     });
