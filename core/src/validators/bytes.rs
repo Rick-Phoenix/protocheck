@@ -2,14 +2,11 @@ use paste::paste;
 use prost::bytes::Bytes;
 use regex::Regex;
 
+use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{
-    base_violations::create_violation,
-    bytes_violations::*,
-    well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
-  },
+  validators::static_data::{base_violations::create_violation, bytes_violations::*},
 };
 
 macro_rules! create_bytes_violation {

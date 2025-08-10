@@ -1,12 +1,11 @@
 use paste::paste;
 use regex::Regex;
 
+use super::well_known_strings::*;
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{
-    base_violations::create_violation, strings_violations::*, well_known_strings::*,
-  },
+  validators::static_data::{base_violations::create_violation, strings_violations::*},
 };
 
 macro_rules! create_string_violation {

@@ -10,4 +10,3 @@ pub mod lt_violations;
 pub mod lte_violations;
 pub mod not_in_violations;
 pub mod strings_violations;
-pub mod well_known_strings;
