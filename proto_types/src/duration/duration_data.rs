@@ -1,4 +1,4 @@
-use super::{Days, Hours, Minutes, Months, Seconds, Weeks, Years};
+use super::data::{Days, Hours, Minutes, Months, Seconds, Weeks, Years};
 use crate::Duration;
 
 const SECONDS_PER_MINUTE: u64 = 60;

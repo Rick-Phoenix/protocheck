@@ -9,3 +9,7 @@ protocheck_core = { path = "../core/" }
 proto_types = { path = "../proto_types/" }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }
+
+[features]
+
+cel = ["proto_types/cel", "protocheck_core/cel", "protocheck_proc_macros/cel"]

@@ -8,8 +8,10 @@ use proto_types::{Empty, FieldMask, FieldType};
 use quote::quote;
 use syn::Error;
 
-use super::{CelRuleTemplateTarget, Rule};
-use crate::{validation_data::ValidationData, Ident2, Span2};
+use super::Rule;
+use crate::{
+  cel_rule_template::CelRuleTemplateTarget, validation_data::ValidationData, Ident2, Span2,
+};
 
 pub fn get_cel_rules(
   rule_target: &CelRuleTemplateTarget,

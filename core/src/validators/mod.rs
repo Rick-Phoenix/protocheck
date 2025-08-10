@@ -8,6 +8,7 @@ pub trait ProtoValidator {
 pub mod static_data;
 
 pub mod bytes;
+#[cfg(feature = "cel")]
 pub mod cel;
 pub mod comparables;
 pub mod constants;

@@ -5,14 +5,15 @@ use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
+#[cfg(not(feature = "cel"))]
+use super::get_cel_rules;
 use super::{field_rules::Type as RulesType, Ignore};
+#[cfg(feature = "cel")]
+use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_message,
-  rules::{
-    cel_rules::get_cel_rules,
-    core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
-  },
+  rules::core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
   validation_data::{MapValidator, ValidationData},
 };
 

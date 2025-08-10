@@ -10,12 +10,12 @@ serde = { workspace = true }
 cel-interpreter = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/" }
+protocheck = { path = "../protocheck/", features = ["cel"] }
 prost-reflect = { workspace = true }
 chrono = { workspace = true }
 maplit = { workspace = true }
 
 [build-dependencies]
-protocheck = { path = "../protocheck/" }
+protocheck = { path = "../protocheck/", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }

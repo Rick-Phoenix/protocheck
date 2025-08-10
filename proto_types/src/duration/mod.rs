@@ -1,11 +1,13 @@
 mod base;
-pub use base::*;
+pub use base::DurationError;
+
 mod duration_impls;
 
 mod formatting;
 
-mod duration_data;
-pub use duration_data::*;
+pub mod data {
+  pub use super::{duration_data::*, duration_units::*};
+}
 
+mod duration_data;
 mod duration_units;
-pub use duration_units::*;

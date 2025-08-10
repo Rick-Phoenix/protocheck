@@ -12,12 +12,13 @@ proc-macro2 = { workspace = true }
 syn = { workspace = true }
 chrono = { workspace = true }
 base64 = { workspace = true }
-cel-interpreter = { workspace = true }
+cel-interpreter = { workspace = true, optional = true }
 thiserror = { workspace = true }
 itertools = { workspace = true }
 
 [features]
 std = ["chrono/std"]
+cel = ["dep:cel-interpreter"]
 
 default = ["std"]
 

@@ -1,5 +1,6 @@
 pub mod protovalidate;
 
+#[cfg(feature = "cel")]
 pub mod cel;
 
 pub use protobuf::*;

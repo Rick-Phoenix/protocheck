@@ -9,10 +9,14 @@ use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote};
 use syn::{DeriveInput, Error, Ident};
 
+#[cfg(not(feature = "cel"))]
+use super::get_cel_rules;
 use super::{
   protovalidate::{FieldRules, Ignore},
   MessageRules, OneofRules,
 };
+#[cfg(feature = "cel")]
+use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   attribute_extractors::{extract_proto_name_attribute, ProstAttrData},
   cel_rule_template::CelRuleTemplateTarget,
@@ -20,7 +24,6 @@ use crate::{
     FIELD_RULES_EXT_DESCRIPTOR, MESSAGE_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
   },
   rules::{
-    cel_rules::get_cel_rules,
     core::{get_field_kind, get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,

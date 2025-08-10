@@ -1,16 +1,9 @@
-use std::{collections::HashMap, fmt};
+use std::fmt;
 
-use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
 use prost::Name;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
 use crate::{type_url_for, Empty, PACKAGE_PREFIX};
-
-impl From<Empty> for CelValue {
-  fn from(_: Empty) -> Self {
-    CelValue::Map(HashMap::<CelKey, CelValue>::new().into())
-  }
-}
 
 impl From<()> for Empty {
   fn from(_: ()) -> Self {

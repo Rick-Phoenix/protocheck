@@ -1,7 +1,7 @@
 #![allow(clippy::option_map_unit_fn)]
 use std::fmt::Display;
 
-use super::DurationData;
+use super::data::DurationData;
 use crate::Duration;
 
 impl Display for Duration {

@@ -4,7 +4,7 @@ use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
 use chrono::{DateTime, FixedOffset};
 use thiserror::Error;
 
-use crate::{Any, Duration, DurationError, Timestamp, TimestampError};
+use crate::{Any, Duration, DurationError, Empty, FieldMask, Timestamp, TimestampError};
 
 #[derive(Debug, Error)]
 pub enum CelConversionError {
@@ -48,5 +48,43 @@ impl TryFrom<Timestamp> for CelValue {
     let chrono_timestamp: DateTime<FixedOffset> =
       value.try_into().map_err(CelConversionError::from)?;
     Ok(CelValue::Timestamp(chrono_timestamp))
+  }
+}
+
+impl From<FieldMask> for CelValue {
+  fn from(value: FieldMask) -> Self {
+    let paths = &value.paths;
+
+    let mut cel_vals: Vec<CelValue> = Vec::new();
+    for path in paths {
+      cel_vals.push(CelValue::String(path.clone().into()));
+    }
+
+    let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
+    cel_map.insert("paths".into(), CelValue::List(cel_vals.into()));
+
+    CelValue::Map(cel_map.into())
+  }
+}
+
+impl From<&FieldMask> for CelValue {
+  fn from(value: &FieldMask) -> Self {
+    let paths = &value.paths;
+
+    let mut cel_vals: Vec<CelValue> = Vec::new();
+    for path in paths {
+      cel_vals.push(CelValue::String(path.clone().into()));
+    }
+
+    let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
+    cel_map.insert("paths".into(), CelValue::List(cel_vals.into()));
+
+    CelValue::Map(cel_map.into())
+  }
+}
+
+impl From<Empty> for CelValue {
+  fn from(_: Empty) -> Self {
+    CelValue::Map(HashMap::<CelKey, CelValue>::new().into())
   }
 }
