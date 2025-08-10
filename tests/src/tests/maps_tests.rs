@@ -96,8 +96,8 @@ fn timestamp_map() {
 
   assert_eq!(values_gt_now_violation.for_key(), false);
   assert_eq!(
-    values_gt_now_violation.rule_path(),
-    Some("map.values.timestamp.gt_now".to_string())
+    values_gt_now_violation.rule_path().as_deref(),
+    Some("map.values.timestamp.gt_now")
   );
 
   let values_cel_violation = result.violation_by_rule_id("timestamp_map_value").unwrap();
@@ -120,8 +120,8 @@ fn timestamp_map() {
 
   assert_eq!(values_cel_violation.for_key(), false);
   assert_eq!(
-    values_cel_violation.rule_path(),
-    Some("map.values.cel".to_string())
+    values_cel_violation.rule_path().as_deref(),
+    Some("map.values.cel")
   );
 }
 
@@ -159,8 +159,8 @@ fn duration_map() {
 
   assert_eq!(values_gt_violation.for_key(), false);
   assert_eq!(
-    values_gt_violation.rule_path(),
-    Some("map.values.duration.gt".to_string())
+    values_gt_violation.rule_path().as_deref(),
+    Some("map.values.duration.gt")
   );
 
   let values_cel_violation = result.violation_by_rule_id("duration_map_value").unwrap();
@@ -183,8 +183,8 @@ fn duration_map() {
 
   assert_eq!(values_cel_violation.for_key(), false);
   assert_eq!(
-    values_cel_violation.rule_path(),
-    Some("map.values.cel".to_string())
+    values_cel_violation.rule_path().as_deref(),
+    Some("map.values.cel")
   );
 }
 
@@ -206,8 +206,8 @@ fn basic_map() {
   assert_eq!(violation_field.subscript, None);
   assert_eq!(min_pairs_violation.for_key(), false);
   assert_eq!(
-    min_pairs_violation.rule_path(),
-    Some("map.min_pairs".to_string())
+    min_pairs_violation.rule_path().as_deref(),
+    Some("map.min_pairs")
   );
 
   let min_len_violation = result.violation_by_rule_id("string.min_len").unwrap();
@@ -221,8 +221,8 @@ fn basic_map() {
   );
   assert_eq!(min_len_violation.for_key(), true);
   assert_eq!(
-    min_len_violation.rule_path(),
-    Some("map.keys.string.min_len".to_string())
+    min_len_violation.rule_path().as_deref(),
+    Some("map.keys.string.min_len")
   );
 
   let max_len_violation = result.violation_by_rule_id("string.max_len").unwrap();
@@ -236,8 +236,8 @@ fn basic_map() {
   );
   assert_eq!(max_len_violation.for_key(), false);
   assert_eq!(
-    max_len_violation.rule_path(),
-    Some("map.values.string.max_len".to_string())
+    max_len_violation.rule_path().as_deref(),
+    Some("map.values.string.max_len")
   );
 
   let keys_cel_violation = result.violation_by_rule_id("map_key_cel").unwrap();

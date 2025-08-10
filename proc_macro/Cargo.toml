@@ -21,3 +21,5 @@ protocheck_core = { path = "../core/", features = ["totokens"] }
 
 [features]
 cel = ["protocheck_core/cel", "proto_types/cel", "dep:cel"]
+
+default = ["cel"]

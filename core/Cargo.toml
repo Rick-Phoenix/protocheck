@@ -27,4 +27,4 @@ uri = ["dep:iri-string"]
 bytes = ["dep:bytes"]
 regex = ["dep:regex"]
 
-default = ["ip", "uri", "bytes", "regex"]
+default = ["ip", "uri", "bytes", "regex", "cel", "totokens"]

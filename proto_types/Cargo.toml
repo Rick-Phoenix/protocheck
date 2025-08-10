@@ -24,7 +24,7 @@ protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn"]
 totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
 
-default = ["chrono", "serde"]
+default = ["chrono"]
 
 [build-dependencies]
 prost-build = { workspace = true }
