@@ -1,6 +1,6 @@
 use std::{sync::LazyLock, vec};
 
-use cel_interpreter::{Context, Program, Value as CelValue};
+use cel::{Context, Program, Value as CelValue};
 use chrono::Utc;
 use proto_types::cel::CelConversionError;
 

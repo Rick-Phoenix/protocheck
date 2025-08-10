@@ -21,7 +21,7 @@ pub fn compile_protos_with_validators(
   config: &mut Config,
   proto_files: &[impl AsRef<Path>],
   proto_include_paths: &[impl AsRef<Path>],
-  app_package_prefix: &str,
+  packages: &[&str],
 ) -> Result<(), Box<dyn Error>> {
   let out_dir = PathBuf::from(env::var("OUT_DIR").expect("Could not find OUT_DIR."));
 
@@ -40,7 +40,7 @@ pub fn compile_protos_with_validators(
 
   for message_desc in pool.all_messages() {
     let message_name = message_desc.full_name();
-    if message_name.starts_with(app_package_prefix) {
+    if packages.contains(&message_desc.package_name()) {
       let attribute_str = format!(
         r#"#[::protocheck::macros::protobuf_validate("{}")]"#,
         message_name
@@ -68,11 +68,6 @@ pub fn compile_protos_with_validators(
           r#"#[derive(::protocheck::macros::Oneof)]"#,
         );
 
-        config.type_attribute(
-          oneof.full_name(),
-          r#"#[derive(::serde::Serialize, ::serde::Deserialize)]"#,
-        );
-
         if enable_cel() {
           config.type_attribute(
             oneof.full_name(),
@@ -90,6 +85,10 @@ pub fn compile_protos_with_validators(
     }
   }
 
+  config.extern_path(".buf.validate", "::protocheck::types::protovalidate");
+  config
+    .extern_path(".google.protobuf", "::protocheck::types")
+    .compile_well_known_types();
   config.compile_protos(proto_files, proto_include_paths)?;
 
   std::fs::remove_file(&temp_descriptor_path)?;

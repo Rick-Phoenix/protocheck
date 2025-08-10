@@ -17,13 +17,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .file_descriptor_set_path(final_descriptor_path.clone())
     .bytes(["."])
     .enable_type_names()
-    .message_attribute(".", "#[derive(::serde::Serialize, ::serde::Deserialize)]")
-    .extern_path(".google.protobuf", "::protocheck::types")
-    .extern_path(".buf.validate", "::protocheck::types::protovalidate")
-    .compile_well_known_types()
+    .type_attribute(".", "#[derive(::serde::Serialize, ::serde::Deserialize)]")
     .out_dir(out_dir.clone());
 
-  compile_protos_with_validators(&mut config, proto_files, proto_include_paths, "myapp.v1")?;
+  compile_protos_with_validators(&mut config, proto_files, proto_include_paths, &["myapp.v1"])?;
 
   println!(
     "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",

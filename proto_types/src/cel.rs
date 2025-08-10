@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cel_interpreter::{objects::Key as CelKey, Value as CelValue};
+use cel::{objects::Key as CelKey, Value as CelValue};
 use chrono::{DateTime, FixedOffset};
 use thiserror::Error;
 

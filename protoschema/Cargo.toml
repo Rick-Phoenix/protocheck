@@ -10,7 +10,7 @@ protocheck_proc_macros = { path = "../proc_macro/" }
 proto_types = { path = "../proto_types/" }
 prost = { workspace = true }
 serde = { workspace = true }
-cel-interpreter = { workspace = true }
+cel = { workspace = true }
 
 [build-dependencies]
 prost-build = { workspace = true }

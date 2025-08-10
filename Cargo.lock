@@ -119,28 +119,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "cel-interpreter"
-version = "0.10.0"
+name = "cel"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a76c07820046cc8239526fceec6df147a979ae48644dbad274fc3ce38ab0973b"
+checksum = "6cb40e65631e7ca197aab1540bf50f9484289f2a7e3d93c1db4319766157a8f2"
 dependencies = [
- "cel-parser",
+ "antlr4rust",
  "chrono",
+ "lazy_static",
  "nom",
  "paste",
  "regex",
  "serde",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "cel-parser"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "546fb134998490c5c47fc7a29c7535e725d2e403f172040e8f263d0b318bff5f"
-dependencies = [
- "antlr4rust",
- "lazy_static",
 ]
 
 [[package]]
@@ -515,7 +506,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "bytes",
- "cel-interpreter",
+ "cel",
  "chrono",
  "itertools",
  "proc-macro2",
@@ -548,7 +539,7 @@ dependencies = [
 name = "protocheck_core"
 version = "0.1.0"
 dependencies = [
- "cel-interpreter",
+ "cel",
  "chrono",
  "ipnetwork",
  "iri-string",
@@ -568,7 +559,7 @@ dependencies = [
 name = "protocheck_proc_macros"
 version = "0.1.0"
 dependencies = [
- "cel-interpreter",
+ "cel",
  "proc-macro2",
  "prost-reflect",
  "proto_types",
@@ -582,7 +573,7 @@ dependencies = [
 name = "protoschema"
 version = "0.1.0"
 dependencies = [
- "cel-interpreter",
+ "cel",
  "prost",
  "prost-build",
  "proto_types",
@@ -729,7 +720,7 @@ name = "tests"
 version = "0.1.0"
 dependencies = [
  "bytes",
- "cel-interpreter",
+ "cel",
  "chrono",
  "maplit",
  "prost",

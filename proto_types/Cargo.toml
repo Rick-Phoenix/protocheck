@@ -13,12 +13,12 @@ serde = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 base64 = { workspace = true }
-cel-interpreter = { workspace = true, optional = true }
+cel = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 itertools = { workspace = true }
 
 [features]
-cel = ["dep:cel-interpreter", "dep:thiserror"]
+cel = ["dep:cel", "dep:thiserror"]
 
 default = []
 

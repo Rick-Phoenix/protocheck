@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValue};
+use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
 use proto_types::{Duration, Empty, FieldMask, FieldType, Timestamp};
@@ -71,8 +71,8 @@ pub fn get_cel_rules(
           );
 
           static_defs.push(quote! {
-            static #static_program_ident: std::sync::LazyLock<cel_interpreter::Program> = std::sync::LazyLock::new(|| {
-              ::cel_interpreter::Program::compile(#expression).expect(#compilation_error)
+            static #static_program_ident: std::sync::LazyLock<::cel::Program> = std::sync::LazyLock::new(|| {
+              ::cel::Program::compile(#expression).expect(#compilation_error)
             });
           });
 
