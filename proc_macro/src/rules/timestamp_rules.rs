@@ -1,7 +1,10 @@
 use proc_macro2::TokenStream;
-use proto_types::protovalidate::{
-  timestamp_rules::{GreaterThan, LessThan},
-  TimestampRules,
+use proto_types::{
+  protovalidate::{
+    timestamp_rules::{GreaterThan, LessThan},
+    TimestampRules,
+  },
+  Timestamp, TimestampError,
 };
 use quote::quote;
 use syn::Error;
@@ -15,14 +18,26 @@ pub fn get_timestamp_rules(
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
-
   let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
+
+  let format_timestamp = |t: Timestamp, msg: &str| -> Result<String, Error> {
+    t.format(&format!("{} {}", msg, "%d %b %Y %R %Z"))
+      .map_err(|e: TimestampError| {
+        Error::new(
+          field_span,
+          format!(
+            "{} failed to convert protobuf timestamp to chrono timestamp: {}",
+            error_prefix, e
+          ),
+        )
+      })
+  };
 
   let field_context_ident = &validation_data.field_context_ident();
   let value_ident = validation_data.value_ident();
 
   if let Some(const_val) = rules.r#const {
-    let error_message = format!("has to be equal to {:?}", const_val);
+    let error_message = format_timestamp(const_val, "must be equal to")?;
 
     let validator_tokens =
       validation_data.get_const_validator("timestamp", const_val, &error_message);
@@ -48,7 +63,7 @@ pub fn get_timestamp_rules(
   if let Some(lt_rule) = less_than {
     match lt_rule {
       LessThan::Lt(lt_val) => {
-        let error_message = format!("must be earlier than {}", lt_val);
+        let error_message = format_timestamp(lt_val, "must be earlier than")?;
 
         let validator_tokens =
           validation_data.get_comparable_validator("timestamp", "lt", lt_val, &error_message);
@@ -56,7 +71,7 @@ pub fn get_timestamp_rules(
         tokens.extend(validator_tokens);
       }
       LessThan::Lte(lte_val) => {
-        let error_message = format!("cannot be later than {}", lte_val);
+        let error_message = format_timestamp(lte_val, "cannot be later than")?;
 
         let validator_tokens =
           validation_data.get_comparable_validator("timestamp", "lte", lte_val, &error_message);
@@ -79,7 +94,7 @@ pub fn get_timestamp_rules(
   if let Some(gt_rule) = greater_than {
     match gt_rule {
       GreaterThan::Gt(gt_val) => {
-        let error_message = format!("must be later than {}", gt_val);
+        let error_message = format_timestamp(gt_val, "must be later than")?;
 
         let validator_tokens =
           validation_data.get_comparable_validator("timestamp", "gt", gt_val, &error_message);
@@ -87,7 +102,7 @@ pub fn get_timestamp_rules(
         tokens.extend(validator_tokens);
       }
       GreaterThan::Gte(gte_val) => {
-        let error_message = format!("cannot be earlier than {}", gte_val);
+        let error_message = format_timestamp(gte_val, "cannot be earlier than")?;
 
         let validator_tokens =
           validation_data.get_comparable_validator("timestamp", "gte", gte_val, &error_message);
