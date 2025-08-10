@@ -9,7 +9,7 @@ proc-macro2 = { workspace = true, optional = true }
 syn = { workspace = true, optional = true }
 
 prost = { workspace = true }
-chrono = { workspace = true }
+chrono = { workspace = true, optional = true }
 
 serde = { workspace = true, optional = true }
 base64 = { workspace = true, optional = true }
@@ -19,11 +19,12 @@ thiserror = { workspace = true, optional = true }
 
 [features]
 cel = ["dep:cel", "dep:thiserror"]
-serde = ["dep:serde", "dep:base64"]
-protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn"]
+serde = ["dep:serde", "dep:base64", "chrono?/serde"]
+protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn", "chrono"]
 totokens = ["dep:quote", "dep:proc-macro2"]
+chrono = ["dep:chrono", "cel?/chrono"]
 
-default = []
+default = ["chrono", "serde"]
 
 [build-dependencies]
 prost-build = { workspace = true }

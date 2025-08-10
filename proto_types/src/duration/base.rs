@@ -1,7 +1,4 @@
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/duration.rs]
-// Changes applied: removed optional chrono feature flag
-use ::chrono::TimeDelta;
-
 use super::super::*;
 
 impl Duration {
@@ -179,30 +176,37 @@ impl FromStr for Duration {
   }
 }
 
-impl From<::chrono::TimeDelta> for Duration {
-  fn from(value: ::chrono::TimeDelta) -> Self {
-    let mut result = Self {
-      seconds: value.num_seconds(),
+#[cfg(feature = "chrono")]
+mod chrono {
+  use chrono::TimeDelta;
 
-      nanos: value.subsec_nanos(),
-    };
+  use crate::{Duration, DurationError};
 
-    result.normalize();
+  impl From<::chrono::TimeDelta> for Duration {
+    fn from(value: ::chrono::TimeDelta) -> Self {
+      let mut result = Self {
+        seconds: value.num_seconds(),
 
-    result
+        nanos: value.subsec_nanos(),
+      };
+
+      result.normalize();
+
+      result
+    }
   }
-}
 
-impl TryFrom<Duration> for ::chrono::TimeDelta {
-  type Error = DurationError;
+  impl TryFrom<Duration> for ::chrono::TimeDelta {
+    type Error = DurationError;
 
-  fn try_from(mut value: Duration) -> Result<TimeDelta, DurationError> {
-    value.normalize();
+    fn try_from(mut value: Duration) -> Result<TimeDelta, DurationError> {
+      value.normalize();
 
-    let seconds = TimeDelta::try_seconds(value.seconds).ok_or(DurationError::OutOfRange)?;
+      let seconds = TimeDelta::try_seconds(value.seconds).ok_or(DurationError::OutOfRange)?;
 
-    let nanos = TimeDelta::nanoseconds(value.nanos.into());
+      let nanos = TimeDelta::nanoseconds(value.nanos.into());
 
-    seconds.checked_add(&nanos).ok_or(DurationError::OutOfRange)
+      seconds.checked_add(&nanos).ok_or(DurationError::OutOfRange)
+    }
   }
 }

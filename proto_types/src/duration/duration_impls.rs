@@ -38,21 +38,11 @@ impl std::cmp::PartialOrd for Duration {
 
 impl std::cmp::Ord for Duration {
   fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    let mut self_normalized = *self;
-    self_normalized.normalize();
-    let self_chrono_duration =
-      chrono::Duration::new(self_normalized.seconds, self_normalized.nanos as u32);
-
-    let mut other_normalized = *other;
-    other_normalized.normalize();
-    let other_chrono_duration =
-      chrono::Duration::new(other_normalized.seconds, other_normalized.nanos as u32);
-
-    self_chrono_duration.cmp(&other_chrono_duration)
+    (self.seconds, self.nanos).cmp(&(other.seconds, other.nanos))
   }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "serde", feature = "chrono"))]
 mod serde {
   use core::fmt;
 

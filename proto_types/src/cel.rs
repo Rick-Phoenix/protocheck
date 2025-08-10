@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
 use cel::{objects::Key as CelKey, Value as CelValue};
-use chrono::{DateTime, FixedOffset};
 use thiserror::Error;
 
-use crate::{Any, Duration, DurationError, Empty, FieldMask, Timestamp, TimestampError};
+use crate::{Any, DurationError, Empty, FieldMask, TimestampError};
 
 #[derive(Debug, Error)]
 pub enum CelConversionError {
@@ -31,23 +30,31 @@ impl From<Any> for CelValue {
   }
 }
 
-impl TryFrom<Duration> for CelValue {
-  type Error = CelConversionError;
+#[cfg(feature = "chrono")]
+mod chrono {
+  use cel::Value as CelValue;
+  use chrono::{DateTime, FixedOffset};
 
-  fn try_from(value: Duration) -> Result<Self, Self::Error> {
-    let chrono_dur: chrono::Duration = value.try_into().map_err(CelConversionError::from)?;
+  use crate::{cel::CelConversionError, Duration, Timestamp};
 
-    Ok(CelValue::Duration(chrono_dur))
+  impl TryFrom<Duration> for CelValue {
+    type Error = CelConversionError;
+
+    fn try_from(value: Duration) -> Result<Self, Self::Error> {
+      let chrono_dur: chrono::Duration = value.try_into().map_err(CelConversionError::from)?;
+
+      Ok(CelValue::Duration(chrono_dur))
+    }
   }
-}
 
-impl TryFrom<Timestamp> for CelValue {
-  type Error = CelConversionError;
+  impl TryFrom<Timestamp> for CelValue {
+    type Error = CelConversionError;
 
-  fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
-    let chrono_timestamp: DateTime<FixedOffset> =
-      value.try_into().map_err(CelConversionError::from)?;
-    Ok(CelValue::Timestamp(chrono_timestamp))
+    fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
+      let chrono_timestamp: DateTime<FixedOffset> =
+        value.try_into().map_err(CelConversionError::from)?;
+      Ok(CelValue::Timestamp(chrono_timestamp))
+    }
   }
 }
 

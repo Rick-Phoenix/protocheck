@@ -1,5 +1,7 @@
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "serde", feature = "chrono"))]
 mod serde;
+
+#[cfg(feature = "chrono")]
 mod timestamp_conversions;
 mod timestamp_impls;
 mod timestamp_operations;
