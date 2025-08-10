@@ -20,7 +20,7 @@ thiserror = { workspace = true, optional = true }
 [features]
 cel = ["dep:cel", "dep:thiserror"]
 serde = ["dep:serde", "dep:base64", "chrono?/serde"]
-protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn", "chrono"]
+protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn"]
 totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
 

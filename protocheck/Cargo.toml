@@ -11,3 +11,10 @@ proto_types = { path = "../proto_types/" }
 [features]
 serde = ["proto_types/serde"]
 cel = ["proto_types/cel", "protocheck_core/cel", "protocheck_proc_macros/cel"]
+totokens = ["proto_types/totokens", "protocheck_core/totokens"]
+ip = ["protocheck_core/ip"]
+uri = ["protocheck_core/uri"]
+bytes = ["protocheck_core/bytes"]
+regex = ["protocheck_core/regex"]
+
+default = ["ip", "uri", "bytes", "regex", "cel", "serde", "totokens"]

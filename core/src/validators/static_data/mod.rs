@@ -1,6 +1,7 @@
 #[macro_use]
 pub mod base_violations;
 
+#[cfg(feature = "bytes")]
 pub mod bytes_violations;
 pub mod const_violations;
 pub mod gt_violations;

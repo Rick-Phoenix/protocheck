@@ -296,6 +296,7 @@ pub(crate) static STRING_CONST_VIOLATION: LazyLock<Vec<FieldPathElement>> = Lazy
   ]
 });
 
+#[cfg(feature = "bytes")]
 pub(crate) static BYTES_CONST_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {

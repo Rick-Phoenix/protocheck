@@ -7,6 +7,7 @@ pub trait ProtoValidator {
 #[macro_use]
 pub mod static_data;
 
+#[cfg(feature = "bytes")]
 pub mod bytes;
 #[cfg(feature = "cel")]
 pub mod cel;

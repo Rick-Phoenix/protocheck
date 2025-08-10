@@ -1,6 +1,7 @@
 use paste::paste;
-use regex::Regex;
 
+#[cfg(feature = "ip")]
+use super::well_known_strings::ip::*;
 use super::well_known_strings::*;
 use crate::{
   field_data::FieldContext,
@@ -75,8 +76,12 @@ string_validator!(min_bytes, u64, |value: &str, min_bytes: u64| value.len()
   >= min_bytes as usize);
 
 // Patterns
-string_validator!(pattern, &Regex, |value: &str, regex: &Regex| regex
-  .is_match(value));
+#[cfg(feature = "regex")]
+string_validator!(
+  pattern,
+  &regex::Regex,
+  |value: &str, regex: &regex::Regex| regex.is_match(value)
+);
 string_validator!(contains, &str, |value: &str, substring: &str| value
   .contains(substring));
 string_validator!(not_contains, &str, |value: &str, substring: &str| !value
@@ -91,28 +96,42 @@ well_known_rule!(
   "pair of host (hostname or IP address) and port"
 );
 
-well_known_rule!(email, "email address");
-well_known_rule!(address, "hostname or ip address");
 well_known_rule!(hostname, "hostname");
 
+#[cfg(feature = "uri")]
 well_known_rule!(uri, "uri");
+#[cfg(feature = "uri")]
 well_known_rule!(uri_ref, "URI reference");
 
+#[cfg(feature = "ip")]
+well_known_rule!(address, "hostname or ip address");
+#[cfg(feature = "ip")]
 well_known_rule!(ip, "ip address");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv4, "ipv4 address");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv6, "ipv6 address");
-
+#[cfg(feature = "ip")]
 well_known_rule!(ip_prefix, "ip prefix");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv4_prefix, "ipv4 prefix");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv6_prefix, "ipv6 prefix");
-
+#[cfg(feature = "ip")]
 well_known_rule!(ip_with_prefixlen, "ip address with prefix length");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv4_with_prefixlen, "ipv4 address with prefix length");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv6_with_prefixlen, "ipv6 address with prefix length");
 
+#[cfg(feature = "regex")]
+well_known_rule!(email, "email address");
+#[cfg(feature = "regex")]
 well_known_rule!(uuid, "uuid");
+#[cfg(feature = "regex")]
 well_known_rule!(tuuid, "trimmed uuid");
 
+#[cfg(feature = "regex")]
 pub fn header_name(
   field_context: &FieldContext,
   value: &str,
@@ -132,6 +151,7 @@ pub fn header_name(
   }
 }
 
+#[cfg(feature = "regex")]
 pub fn header_value(
   field_context: &FieldContext,
   value: &str,

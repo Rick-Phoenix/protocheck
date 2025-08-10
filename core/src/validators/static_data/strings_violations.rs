@@ -131,6 +131,7 @@ pub(crate) static STRING_MAX_BYTES_VIOLATION: LazyLock<Vec<FieldPathElement>> =
     ]
   });
 
+#[cfg(feature = "regex")]
 pub(crate) static STRING_PATTERN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -238,6 +239,7 @@ pub(crate) static STRING_NOT_CONTAINS_VIOLATION: LazyLock<Vec<FieldPathElement>>
     ]
   });
 
+#[cfg(feature = "regex")]
 pub(crate) static STRING_EMAIL_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -281,6 +283,7 @@ pub(crate) static STRING_HOSTNAME_VIOLATION: LazyLock<Vec<FieldPathElement>> =
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -302,6 +305,7 @@ pub(crate) static STRING_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLoc
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -323,6 +327,7 @@ pub(crate) static STRING_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyL
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -344,6 +349,7 @@ pub(crate) static STRING_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyL
   ]
 });
 
+#[cfg(feature = "uri")]
 pub(crate) static STRING_URI_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -365,6 +371,7 @@ pub(crate) static STRING_URI_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLo
   ]
 });
 
+#[cfg(feature = "uri")]
 pub(crate) static STRING_URI_REF_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -386,6 +393,7 @@ pub(crate) static STRING_URI_REF_VIOLATION: LazyLock<Vec<FieldPathElement>> = La
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_ADDRESS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -407,6 +415,7 @@ pub(crate) static STRING_ADDRESS_VIOLATION: LazyLock<Vec<FieldPathElement>> = La
   ]
 });
 
+#[cfg(feature = "regex")]
 pub(crate) static STRING_UUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -428,6 +437,7 @@ pub(crate) static STRING_UUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyL
   ]
 });
 
+#[cfg(feature = "regex")]
 pub(crate) static STRING_TUUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -449,6 +459,7 @@ pub(crate) static STRING_TUUID_VIOLATION: LazyLock<Vec<FieldPathElement>> = Lazy
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IP_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -471,6 +482,7 @@ pub(crate) static STRING_IP_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElem
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV4_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -493,6 +505,7 @@ pub(crate) static STRING_IPV4_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathEl
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV6_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -515,6 +528,7 @@ pub(crate) static STRING_IPV6_WITH_PREFIXLEN_VIOLATION: LazyLock<Vec<FieldPathEl
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IP_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -537,6 +551,7 @@ pub(crate) static STRING_IP_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV4_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -559,6 +574,7 @@ pub(crate) static STRING_IPV4_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> 
     ]
   });
 
+#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV6_PREFIX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![
@@ -603,6 +619,7 @@ pub(crate) static STRING_HOST_AND_PORT_VIOLATION: LazyLock<Vec<FieldPathElement>
     ]
   });
 
+#[cfg(feature = "regex")]
 pub(crate) static STRING_WELL_KNOWN_REGEX_VIOLATION: LazyLock<Vec<FieldPathElement>> =
   LazyLock::new(|| {
     vec![

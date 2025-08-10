@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use bytes::Bytes;
 use paste::paste;
 use proto_types::{Any, Duration};
 
@@ -62,7 +61,10 @@ macro_rules! in_list_validator {
 }
 
 in_list_validator!(string, &str, &'static str);
-in_list_validator!(bytes, &Bytes, Bytes, value);
+
+#[cfg(feature = "bytes")]
+in_list_validator!(bytes, &bytes::Bytes, bytes::Bytes, value);
+
 in_list_validator!(any, &Any, &'static str, type_url);
 in_list_validator!(duration, Duration, Duration);
 

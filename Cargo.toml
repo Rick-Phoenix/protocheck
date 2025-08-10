@@ -13,7 +13,6 @@ resolver = "2"
 [workspace.dependencies]
 cel = { version = "=0.11.0", features = ["chrono"] }
 prost = "0.14.1"
-prost-types = { version = "0.14.1", features = ["chrono"] }
 serde = { version = "1", features = ["derive"] }
 prost-reflect = { version = "0.16.1" }
 syn = { version = "2.0", features = ["full", "extra-traits"] }
@@ -22,16 +21,10 @@ proc-macro2 = "1.0"
 bytes = { version = "1", features = ["serde"] }
 regex = "1"
 prost-build = "0.14.1"
-dotenvy = "0.15.7"
-serde_json = "1"
-random-string = "1.1.0"
 chrono = { version = "0.4.41", features = ["serde"] }
 base64 = "0.22.1"
 thiserror = "2.0.12"
-uuid = { version = "1", features = ["v4", "serde"] }
-url = "2"
 ipnetwork = "*"
 maplit = "1"
-itertools = "0.14"
 paste = "1"
 iri-string = "0.7"

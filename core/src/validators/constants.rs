@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use paste::paste;
 use proto_types::{Duration, Timestamp};
 
@@ -20,9 +19,10 @@ macro_rules! const_validator {
   };
 }
 
+#[cfg(feature = "bytes")]
 pub fn bytes_const(
   field_context: &FieldContext,
-  value: &Bytes,
+  value: &bytes::Bytes,
   target: &'static [u8],
   error_message: &'static str,
 ) -> Result<(), Violation> {

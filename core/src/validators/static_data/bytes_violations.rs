@@ -177,6 +177,7 @@ pub(crate) static BYTES_CONTAINS_VIOLATION: LazyLock<Vec<FieldPathElement>> = La
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static BYTES_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -198,6 +199,7 @@ pub(crate) static BYTES_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static BYTES_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -219,6 +221,7 @@ pub(crate) static BYTES_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLo
   ]
 });
 
+#[cfg(feature = "ip")]
 pub(crate) static BYTES_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
