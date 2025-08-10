@@ -1,22 +1,6 @@
-#[cfg(not(feature = "cel"))]
-use proc_macro2::TokenStream;
 pub(crate) use proto_types::{field_descriptor_proto::Type as ProtoType, protovalidate};
 pub(crate) use protovalidate::{field_rules, Ignore};
 use protovalidate::{MessageRules, OneofRules, Rule};
-#[cfg(not(feature = "cel"))]
-use syn::Error;
-
-#[cfg(not(feature = "cel"))]
-use crate::cel_rule_template::CelRuleTemplateTarget;
-
-#[cfg(not(feature = "cel"))]
-pub fn get_cel_rules(
-  _: &CelRuleTemplateTarget,
-  _: &[Rule],
-  _: &mut Vec<TokenStream>,
-) -> Result<TokenStream, Error> {
-  Ok(TokenStream::new())
-}
 
 pub mod any_rules;
 pub mod bool_rules;
