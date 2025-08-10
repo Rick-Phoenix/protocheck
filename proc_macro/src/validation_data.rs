@@ -9,7 +9,6 @@ use crate::{rules::core::get_field_type, Ident2, ProtoType, Span2};
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData<'a> {
   pub full_name: &'a str,
-  pub rust_name: &'a str,
   pub proto_name: &'a str,
   pub ignore: Ignore,
   pub tag: u32,
@@ -57,7 +56,6 @@ impl ValidationData<'_> {
     let Self {
       parent_messages_ident,
       proto_name,
-      rust_name,
       tag,
       ..
     } = self;
@@ -80,7 +78,6 @@ impl ValidationData<'_> {
         value_type: #value_type_tokens,
         field_kind: #field_kind,
         proto_name: #proto_name,
-        rust_name: #rust_name,
         tag: #tag,
       };
     }

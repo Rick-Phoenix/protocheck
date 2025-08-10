@@ -9,7 +9,6 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
-  pub rust_name: &'a str,
   pub proto_name: &'a str,
   pub tag: u32,
   pub parent_elements: &'a [FieldPathElement],

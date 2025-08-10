@@ -27,6 +27,7 @@ use crate::{
     core::{get_field_kind, get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
+    special_field_names::{proto_name_to_rust_ident, proto_name_to_rust_name},
   },
   validation_data::ValidationData,
   Span2,
@@ -54,7 +55,7 @@ pub fn extract_oneof_validators(
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
   let mut static_defs: Vec<TokenStream> = Vec::new();
 
-  let oneof_name = &oneof_desc.name();
+  let oneof_proto_name = &oneof_desc.name();
 
   if let syn::Data::Enum(data_enum) = &input_tokens.data {
     for variant in &data_enum.variants {
@@ -72,7 +73,7 @@ pub fn extract_oneof_validators(
         if attr.path().is_ident("protocheck") {
           attr.parse_nested_meta(|meta| {
             let proto_field_name =
-              extract_proto_name_attribute(oneof_name, attr, &variant.ident, meta)?;
+              extract_proto_name_attribute(oneof_proto_name, attr, &variant.ident, meta)?;
             let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
             field_ident_entry.proto_name = proto_field_name;
 
@@ -91,7 +92,7 @@ pub fn extract_oneof_validators(
                 attr,
                 format!(
                   "Could not extract the 'enumeration' attribute for variant {} in oneof {}: {}",
-                  &variant.ident, oneof_name, e
+                  &variant.ident, oneof_proto_name, e
                 ),
               ))
             }
@@ -118,7 +119,7 @@ pub fn extract_oneof_validators(
       format!(
         "Could not process the data for field {} in oneof {}. Is proto_name set correctly?",
         field.name(),
-        oneof_name
+        oneof_proto_name
       ),
     ))?;
 
@@ -160,7 +161,6 @@ pub fn extract_oneof_validators(
         is_in_oneof: true,
         is_optional: true,
         field_span,
-        rust_name: field_name,
         proto_name: field_name,
         tag: field.number(),
         ignore,
@@ -242,7 +242,7 @@ pub fn extract_message_validators(
             match attr.parse_args::<ProstAttrData>() {
               Ok(parsed_data) => {
                 if let Some(enum_name) = parsed_data.enum_path {
-                  rust_enum_paths.insert(ident.to_string(), enum_name.as_str().into());
+                  rust_enum_paths.insert(ident.to_string(), enum_name.clone());
                 }
               }
               Err(e) => {
@@ -307,11 +307,11 @@ pub fn extract_message_validators(
           Error::new_spanned(input_tokens, format!("Could not decode oneof rules: {}", e))
         })?;
 
-      let item_rust_ident = Ident2::new(oneof.name(), Span2::call_site());
-      let field_name = oneof.name();
+      let oneof_proto_name = oneof.name();
+      let item_rust_ident = proto_name_to_rust_ident(oneof_proto_name);
 
       let required_check = oneof_rules.required().then_some(quote! {
-        #violations_ident.push(protocheck::validators::oneofs::required(#field_name, #parent_messages_ident.as_slice()));
+        #violations_ident.push(protocheck::validators::oneofs::required(#oneof_proto_name, #parent_messages_ident.as_slice()));
       });
 
       validators.extend(quote! {
@@ -330,9 +330,12 @@ pub fn extract_message_validators(
         continue;
       }
 
+    let field_proto_name = field.name();
+    let field_rust_name = proto_name_to_rust_name(field_proto_name);
+
     let mut field_validators = TokenStream::new();
 
-    let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
+    let item_rust_ident = proto_name_to_rust_ident(field_proto_name);
     let field_context_ident = format_ident!("field_context");
     let index_ident = format_ident!("idx");
     let item_ident = format_ident!("item");
@@ -342,13 +345,12 @@ pub fn extract_message_validators(
     let map_value_context_ident = format_ident!("value_context");
     let vec_item_context_ident = format_ident!("item_context");
 
-    let field_name = field.name();
     let field_span = rust_field_spans
-      .get(field_name)
+      .get(field_rust_name.as_ref())
       .cloned()
       .unwrap_or_else(Span2::call_site);
 
-    let field_rust_enum = rust_enum_paths.get(field_name).cloned();
+    let field_rust_enum = rust_enum_paths.get(field_rust_name.as_ref()).cloned();
 
     let is_repeated = field.is_list();
     let is_map = field.is_map();
@@ -372,8 +374,7 @@ pub fn extract_message_validators(
       }
 
       let validation_data = ValidationData {
-        rust_name: field_name,
-        proto_name: field_name,
+        proto_name: field_proto_name,
         tag: field_tag,
         ignore,
         full_name: field.full_name(),

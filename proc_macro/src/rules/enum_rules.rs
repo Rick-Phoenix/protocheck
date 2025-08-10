@@ -10,7 +10,7 @@ use super::protovalidate::EnumRules;
 use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
 
 pub fn get_enum_rules(
-  field_type_ident: String,
+  enum_ident_str: String,
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   enum_rules: &EnumRules,
@@ -36,7 +36,7 @@ pub fn get_enum_rules(
   }
 
   if enum_rules.defined_only() {
-    let enum_ident_tokens: TokenStream = field_type_ident.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", field_type_ident, enum_name)) });
+    let enum_ident_tokens: TokenStream = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", field_type_ident, enum_name)) });
 
     let violations_ident = &validation_data.violations_ident;
     let field_context_ident = &validation_data.field_context_ident();
