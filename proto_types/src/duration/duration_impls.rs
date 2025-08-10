@@ -1,6 +1,3 @@
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-
 use crate::Duration;
 
 impl Duration {
@@ -11,17 +8,25 @@ impl Duration {
   }
 }
 
-impl ToTokens for Duration {
-  fn to_tokens(&self, tokens: &mut TokenStream) {
-    let seconds = self.seconds;
-    let nanos = self.nanos;
+#[cfg(feature = "totokens")]
+mod totokens {
+  use proc_macro2::TokenStream;
+  use quote::{quote, ToTokens};
 
-    tokens.extend(quote! {
-      protocheck::types::Duration {
-        seconds: #seconds,
-        nanos: #nanos,
-      }
-    });
+  use crate::Duration;
+
+  impl ToTokens for Duration {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+      let seconds = self.seconds;
+      let nanos = self.nanos;
+
+      tokens.extend(quote! {
+        protocheck::types::Duration {
+          seconds: #seconds,
+          nanos: #nanos,
+        }
+      });
+    }
   }
 }
 

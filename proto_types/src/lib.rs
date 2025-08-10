@@ -30,7 +30,6 @@ mod type_url;
 use core::{convert::TryFrom, fmt, time};
 use std::str::FromStr;
 
-pub(crate) use proc_macro2::TokenStream as TokenStream2;
 use prost::{
   alloc::{format, string::String, vec::Vec},
   DecodeError, EncodeError, Message, Name,

@@ -1,6 +1,3 @@
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-
 use crate::field_descriptor_proto::Type as ProtoType;
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
@@ -118,34 +115,42 @@ impl From<FieldType> for i32 {
   }
 }
 
-impl ToTokens for FieldType {
-  fn to_tokens(&self, tokens: &mut TokenStream) {
-    let field_kind_path = quote! { protocheck::types::FieldType };
+#[cfg(feature = "totokens")]
+mod totokens {
+  use proc_macro2::TokenStream;
+  use quote::{quote, ToTokens};
 
-    let variant_tokens = match self {
-      FieldType::Double => quote! { Double },
-      FieldType::Float => quote! { Float },
-      FieldType::Int64 => quote! { Int64 },
-      FieldType::Uint64 => quote! { Uint64 },
-      FieldType::Int32 => quote! { Int32 },
-      FieldType::Fixed64 => quote! { Fixed64 },
-      FieldType::Fixed32 => quote! { Fixed32 },
-      FieldType::Bool => quote! { Bool },
-      FieldType::String => quote! { String },
-      FieldType::Group => quote! { Group },
-      FieldType::Message => quote! { Message },
-      FieldType::Duration => quote! { Duration },
-      FieldType::Timestamp => quote! { Timestamp },
-      FieldType::Any => quote! { Any },
-      FieldType::Bytes => quote! { Bytes },
-      FieldType::Uint32 => quote! { Uint32 },
-      FieldType::Enum => quote! { Enum },
-      FieldType::Sfixed32 => quote! { Sfixed32 },
-      FieldType::Sfixed64 => quote! { Sfixed64 },
-      FieldType::Sint32 => quote! { Sint32 },
-      FieldType::Sint64 => quote! { Sint64 },
-    };
+  use crate::FieldType;
 
-    tokens.extend(quote! { #field_kind_path::#variant_tokens });
+  impl ToTokens for FieldType {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+      let field_kind_path = quote! { protocheck::types::FieldType };
+
+      let variant_tokens = match self {
+        FieldType::Double => quote! { Double },
+        FieldType::Float => quote! { Float },
+        FieldType::Int64 => quote! { Int64 },
+        FieldType::Uint64 => quote! { Uint64 },
+        FieldType::Int32 => quote! { Int32 },
+        FieldType::Fixed64 => quote! { Fixed64 },
+        FieldType::Fixed32 => quote! { Fixed32 },
+        FieldType::Bool => quote! { Bool },
+        FieldType::String => quote! { String },
+        FieldType::Group => quote! { Group },
+        FieldType::Message => quote! { Message },
+        FieldType::Duration => quote! { Duration },
+        FieldType::Timestamp => quote! { Timestamp },
+        FieldType::Any => quote! { Any },
+        FieldType::Bytes => quote! { Bytes },
+        FieldType::Uint32 => quote! { Uint32 },
+        FieldType::Enum => quote! { Enum },
+        FieldType::Sfixed32 => quote! { Sfixed32 },
+        FieldType::Sfixed64 => quote! { Sfixed64 },
+        FieldType::Sint32 => quote! { Sint32 },
+        FieldType::Sint64 => quote! { Sint64 },
+      };
+
+      tokens.extend(quote! { #field_kind_path::#variant_tokens });
+    }
   }
 }

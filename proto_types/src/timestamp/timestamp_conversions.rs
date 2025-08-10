@@ -1,9 +1,8 @@
 use std::convert::{From, TryFrom};
 
 use chrono::{DateTime, FixedOffset, Utc};
-use quote::{quote, ToTokens};
 
-use crate::{Timestamp, TimestampError, TokenStream2};
+use crate::{Timestamp, TimestampError};
 
 impl From<DateTime<Utc>> for Timestamp {
   fn from(datetime: DateTime<Utc>) -> Self {
@@ -39,16 +38,24 @@ impl TryFrom<Timestamp> for DateTime<FixedOffset> {
   }
 }
 
-impl ToTokens for Timestamp {
-  fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let seconds = self.seconds;
-    let nanos = self.nanos;
+#[cfg(feature = "totokens")]
+mod totokens {
+  use proc_macro2::TokenStream;
+  use quote::{quote, ToTokens};
 
-    tokens.extend(quote! {
-      protocheck::types::Timestamp {
-        seconds: #seconds,
-        nanos: #nanos,
-      }
-    });
+  use crate::Timestamp;
+
+  impl ToTokens for Timestamp {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+      let seconds = self.seconds;
+      let nanos = self.nanos;
+
+      tokens.extend(quote! {
+        protocheck::types::Timestamp {
+          seconds: #seconds,
+          nanos: #nanos,
+        }
+      });
+    }
   }
 }
