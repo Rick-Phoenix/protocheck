@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::{borrow::Cow, fmt::Write};
 
 use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
 
@@ -34,23 +34,27 @@ impl FieldPath {
       .find(|&field| field.field_name() == name)
   }
 
-  pub fn field_path(&self) -> String {
-    let mut path = String::new();
+  pub fn field_path(&self) -> Cow<'_, str> {
+    if self.elements.len() == 1 {
+      Cow::Borrowed(self.elements.last().unwrap().field_name())
+    } else {
+      let mut path = String::new();
 
-    for (idx, field) in self.elements.iter().enumerate() {
-      path.push_str(field.field_name());
+      for (idx, field) in self.elements.iter().enumerate() {
+        path.push_str(field.field_name());
 
-      if let Some(key) = &field.subscript {
-        path.push('.');
-        write!(path, "{}", key).unwrap();
+        if let Some(key) = &field.subscript {
+          path.push('.');
+          write!(path, "{}", key).unwrap();
+        }
+
+        if idx != self.elements.len() - 1 {
+          path.push('.');
+        }
       }
 
-      if idx != self.elements.len() - 1 {
-        path.push('.');
-      }
+      Cow::Owned(path)
     }
-
-    path
   }
 }
 
@@ -85,7 +89,7 @@ impl Violation {
     None
   }
 
-  pub fn field_path(&self) -> Option<String> {
+  pub fn field_path(&self) -> Option<Cow<'_, str>> {
     if let Some(fields) = &self.field {
       return Some(fields.field_path());
     }
@@ -93,7 +97,7 @@ impl Violation {
     None
   }
 
-  pub fn rule_path(&self) -> Option<String> {
+  pub fn rule_path(&self) -> Option<Cow<'_, str>> {
     if let Some(rules) = &self.rule {
       return Some(rules.field_path());
     }
