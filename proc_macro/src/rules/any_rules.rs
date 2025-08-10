@@ -1,9 +1,12 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::{protovalidate::AnyRules, protovalidate_impls::ContainingRules};
+use proto_types::protovalidate::AnyRules;
 use quote::quote;
 use syn::Error;
 
-use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
+use crate::{
+  rules::{core::hashset_to_tokens, protovalidate::ContainingRules},
+  validation_data::ValidationData,
+};
 
 pub fn get_any_rules(
   validation_data: &ValidationData,

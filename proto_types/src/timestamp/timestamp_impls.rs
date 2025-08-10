@@ -1,12 +1,6 @@
-mod base;
-mod conversions;
-mod operations;
-mod serde;
-
-pub use base::TimestampError;
 use chrono::{DateTime, Utc};
 
-use crate::{Duration, Timestamp};
+use crate::{Duration, Timestamp, TimestampError};
 
 impl Timestamp {
   pub fn format(&self, string: &str) -> Result<String, TimestampError> {

@@ -1,7 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::{
-  protovalidate::DurationRules,
-  protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules},
+use proto_types::protovalidate::{
+  ComparableGreaterThan, ComparableLessThan, ContainingRules, DurationRules,
 };
 use quote::quote;
 use syn::Error;

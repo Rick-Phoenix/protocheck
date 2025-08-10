@@ -1,9 +1,6 @@
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
-use proto_types::{
-  protovalidate::string_rules::WellKnown,
-  protovalidate_impls::{ContainingRules, LengthRules},
-};
+use proto_types::protovalidate::{string_rules::WellKnown, ContainingRules, LengthRules};
 use quote::{format_ident, quote};
 use regex::Regex;
 use syn::Error;

@@ -2,7 +2,7 @@ use std::{fmt::Debug, hash::Hash};
 
 use proc_macro2::{Ident, TokenStream};
 use proto_types::{
-  protovalidate_impls::{ComparableGreaterThan, ComparableLessThan, ContainingRules, NumericRules},
+  protovalidate::{ComparableGreaterThan, ComparableLessThan, ContainingRules, NumericRules},
   FieldType,
 };
 use quote::{format_ident, quote, ToTokens};

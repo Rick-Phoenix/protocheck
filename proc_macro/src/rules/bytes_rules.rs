@@ -1,15 +1,18 @@
 use std::fmt::Write;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use proto_types::{
-  protovalidate::{bytes_rules::WellKnown, BytesRules},
-  protovalidate_impls::{ContainingRules, LengthRules},
-};
+use proto_types::protovalidate::{bytes_rules::WellKnown, BytesRules};
 use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{Error, LitByteStr};
 
-use crate::{rules::core::byte_lit_hashset_to_tokens, validation_data::ValidationData};
+use crate::{
+  rules::{
+    core::byte_lit_hashset_to_tokens,
+    protovalidate::{ContainingRules, LengthRules},
+  },
+  validation_data::ValidationData,
+};
 
 pub fn get_bytes_rules(
   validation_data: &ValidationData,

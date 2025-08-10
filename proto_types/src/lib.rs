@@ -1,7 +1,4 @@
-mod buf;
-
-pub mod protovalidate_impls;
-pub use buf::validate as protovalidate;
+pub mod protovalidate;
 
 pub mod cel;
 
@@ -18,7 +15,7 @@ pub use timestamp::*;
 mod any;
 mod any_impls;
 
-mod field_mask_impls;
+mod field_mask;
 
 mod field_type;
 pub use field_type::FieldType;

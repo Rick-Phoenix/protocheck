@@ -5,16 +5,14 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Error;
 
-use crate::{
-  protovalidate::{
-    DoubleRules, Fixed32Rules, Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules,
-    SFixed64Rules, SInt32Rules, SInt64Rules, UInt32Rules, UInt64Rules,
-  },
-  protovalidate_impls::{
-    comparable_rules::ComparableRules,
-    containing_rules::{invalid_lists_error, validate_lists, ContainingRules},
-    into_comparable::IntoComparable,
-  },
+use super::{
+  comparable_rules::ComparableRules,
+  containing_rules::{invalid_lists_error, validate_lists, ContainingRules},
+  into_comparable::IntoComparable,
+};
+use crate::protovalidate::{
+  DoubleRules, Fixed32Rules, Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules,
+  SFixed64Rules, SInt32Rules, SInt64Rules, UInt32Rules, UInt64Rules,
 };
 
 pub trait NumericRules<HashableType>

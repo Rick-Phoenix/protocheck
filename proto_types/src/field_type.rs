@@ -29,10 +29,6 @@ pub enum FieldType {
 }
 
 impl FieldType {
-  pub fn is_float(&self) -> bool {
-    matches!(self, Self::Float) || matches!(self, Self::Double)
-  }
-
   pub fn is_scalar(&self) -> bool {
     !matches!(
       self,

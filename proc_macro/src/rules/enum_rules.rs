@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use proc_macro2::{Ident, Span, TokenStream};
 use prost_reflect::EnumDescriptor;
-use proto_types::protovalidate_impls::ContainingRules;
+use proto_types::protovalidate::ContainingRules;
 use quote::quote;
 use syn::Error;
 

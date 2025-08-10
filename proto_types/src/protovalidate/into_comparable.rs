@@ -1,6 +1,7 @@
 use proc_macro2::Span;
 use syn::Error;
 
+use super::comparable_rules::{ComparableGreaterThan, ComparableLessThan, ComparableRules};
 use crate::{
   protovalidate::{
     double_rules::{GreaterThan as DoubleGreaterThan, LessThan as DoubleLessThan},
@@ -18,9 +19,6 @@ use crate::{
     u_int32_rules::{GreaterThan as U32GreaterThan, LessThan as U32LessThan},
     u_int64_rules::{GreaterThan as U64GreaterThan, LessThan as U64LessThan},
     DurationRules, TimestampRules,
-  },
-  protovalidate_impls::comparable_rules::{
-    ComparableGreaterThan, ComparableLessThan, ComparableRules,
   },
   Duration, Timestamp,
 };
