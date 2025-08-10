@@ -18,7 +18,6 @@ pub mod maps;
 pub mod oneofs;
 pub mod repeated;
 pub mod required;
-pub mod timestamps;
-pub mod well_known_strings;
-
 pub mod strings;
+pub mod timestamps;
+mod well_known_strings;

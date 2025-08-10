@@ -212,8 +212,81 @@ pub(crate) fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
 #[cfg(test)]
 mod test {
   use crate::validators::well_known_strings::{
-    is_valid_http_header_name, is_valid_http_header_value,
+    is_valid_address, is_valid_email, is_valid_host_and_port, is_valid_hostname,
+    is_valid_http_header_name, is_valid_http_header_value, is_valid_ip, is_valid_ip_prefix,
+    is_valid_ip_with_prefixlen, is_valid_ipv4, is_valid_ipv4_prefix, is_valid_ipv4_with_prefixlen,
+    is_valid_ipv6, is_valid_ipv6_prefix, is_valid_ipv6_with_prefixlen, is_valid_tuuid,
+    is_valid_uri, is_valid_uuid,
   };
+
+  #[test]
+  fn network_identifiers() {
+    assert!(is_valid_hostname("obiwan.force.com"));
+    assert!(!is_valid_hostname("-anakin.darkforce.com"));
+    assert!(!is_valid_hostname("anakin.darkforce.com-"));
+    assert!(!is_valid_hostname("anakin.darkforce.0"));
+
+    assert!(is_valid_uri(
+      "https://middleeathtracker.com/hobbits?location=isengard"
+    ));
+    assert!(!is_valid_uri(
+      "https://middleeathtracker.com/hobbits?location isengard"
+    ));
+
+    let ipv4 = "192.168.1.1";
+    let ipv4_prefix = "192.168.0.0/16";
+    let ipv4_with_prefixlen = "192.168.1.1/16";
+    let ipv6 = "2a01:c23:7b6d:a900:1de7:5cbe:d8d2:f4a1";
+    let ipv6_prefix = "2a01:c00::/24";
+    let ipv6_with_prefixlen = "2a01:c23:7b6d:a900:1de7:5cbe:d8d2:f4a1/24";
+
+    assert!(is_valid_ip(ipv4));
+    assert!(is_valid_ip(ipv6));
+    assert!(is_valid_ipv4(ipv4));
+    assert!(!is_valid_ipv4(ipv6));
+    assert!(is_valid_ipv6(ipv6));
+    assert!(!is_valid_ipv6(ipv4));
+
+    assert!(is_valid_address("obiwan.force.com"));
+    assert!(is_valid_address(ipv4));
+    assert!(is_valid_address(ipv6));
+
+    assert!(is_valid_ip_with_prefixlen(ipv4_with_prefixlen));
+    assert!(is_valid_ip_with_prefixlen(ipv6_with_prefixlen));
+    assert!(is_valid_ipv4_with_prefixlen(ipv4_with_prefixlen));
+    assert!(!is_valid_ipv4_with_prefixlen(ipv6_with_prefixlen));
+    assert!(is_valid_ipv6_with_prefixlen(ipv6_with_prefixlen));
+    assert!(!is_valid_ipv6_with_prefixlen(ipv4_with_prefixlen));
+
+    assert!(is_valid_ip_prefix(ipv4_prefix));
+    assert!(is_valid_ip_prefix(ipv6_prefix));
+    assert!(is_valid_ipv4_prefix(ipv4_prefix));
+    assert!(!is_valid_ipv4_prefix(ipv6_prefix));
+    assert!(!is_valid_ipv4_prefix(ipv4_with_prefixlen));
+    assert!(is_valid_ipv6_prefix(ipv6_prefix));
+    assert!(!is_valid_ipv6_prefix(ipv4_prefix));
+    assert!(!is_valid_ipv6_prefix(ipv6_with_prefixlen));
+
+    assert!(is_valid_host_and_port("obiwan.force:8080"));
+    assert!(is_valid_host_and_port("192.168.1.120:3000"));
+    assert!(is_valid_host_and_port("[2001:0DB8:ABCD:0012::F1]:3000"));
+
+    assert!(!is_valid_host_and_port("obiwan.force"));
+    assert!(!is_valid_host_and_port("192.168.1.120"));
+    assert!(!is_valid_host_and_port("2001:0DB8:ABCD:0012::F1"));
+  }
+
+  #[test]
+  fn identifiers() {
+    assert!(is_valid_email("obiwan@force.com"));
+    assert!(!is_valid_email("anakin@dark@force.com"));
+
+    assert!(is_valid_uuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"));
+    assert!(!is_valid_uuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
+
+    assert!(is_valid_tuuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
+    assert!(!is_valid_tuuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"))
+  }
 
   #[test]
   fn headers() {
