@@ -9,6 +9,10 @@ use chrono::{DateTime, Utc};
 use crate::{Duration, Timestamp};
 
 impl Timestamp {
+  pub fn new(seconds: i64, nanos: i32) -> Self {
+    Timestamp { seconds, nanos }
+  }
+
   pub fn as_datetime_utc(&self) -> Result<DateTime<Utc>, TimestampError> {
     (*self).try_into()
   }

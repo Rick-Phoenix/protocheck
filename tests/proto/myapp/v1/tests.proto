@@ -18,6 +18,54 @@ enum test_enum {
   PASSIVE = 2;
 }
 
+message ComparableRulesTests {
+  google.protobuf.Timestamp timestamp_gt = 1 [(buf.validate.field).timestamp.gt = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Timestamp timestamp_gte = 2 [(buf.validate.field).timestamp.gte = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Timestamp timestamp_lt = 3 [(buf.validate.field).timestamp.lt = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Timestamp timestamp_lte = 4 [(buf.validate.field).timestamp.lte = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Duration duration_gt = 5 [(buf.validate.field).duration.gt = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Duration duration_gte = 6 [(buf.validate.field).duration.gte = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Duration duration_lt = 7 [(buf.validate.field).duration.lt = {
+    seconds: 100
+    nanos: 0
+  }];
+  google.protobuf.Duration duration_lte = 8 [(buf.validate.field).duration.lte = {
+    seconds: 100
+    nanos: 0
+  }];
+  int64 int64_gt = 9 [(buf.validate.field).int64.gt = 5];
+  int64 int64_gte = 10 [(buf.validate.field).int64.gte = 5];
+  int64 int64_lt = 11 [(buf.validate.field).int64.lt = 5];
+  int64 int64_lte = 12 [(buf.validate.field).int64.lte = 5];
+}
+
+message TimestampTests {
+  google.protobuf.Timestamp within = 1 [(buf.validate.field).timestamp.within = {
+    seconds: 3600
+    nanos: 0
+  }];
+  google.protobuf.Timestamp gt_now = 2 [(buf.validate.field).timestamp.gt_now = true];
+  google.protobuf.Timestamp lt_now = 3 [(buf.validate.field).timestamp.lt_now = true];
+}
+
 message WellKnownStrings {
   string email = 1 [(buf.validate.field).string.email = true];
   string hostname = 2 [(buf.validate.field).string.hostname = true];
