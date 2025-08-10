@@ -15,6 +15,15 @@ pub mod build {
   use prost_build::Config;
   use prost_reflect::{prost::Message, prost_types::FileDescriptorSet};
 
+  #[cfg(not(feature = "cel"))]
+  fn enable_cel() -> bool {
+    false
+  }
+  #[cfg(feature = "cel")]
+  fn enable_cel() -> bool {
+    true
+  }
+
   pub fn compile_protos_with_validators(
     config: &mut Config,
     proto_files: &[impl AsRef<Path>],
@@ -45,6 +54,13 @@ pub mod build {
         );
         config.message_attribute(message_name, &attribute_str);
 
+        if enable_cel() {
+          config.message_attribute(
+            message_name,
+            "#[derive(::protocheck::macros::TryIntoCelValue)]",
+          );
+        }
+
         for oneof in message_desc.oneofs() {
           config.type_attribute(
             oneof.full_name(),
@@ -58,14 +74,18 @@ pub mod build {
             oneof.full_name(),
             r#"#[derive(::protocheck::macros::Oneof)]"#,
           );
+
           config.type_attribute(
             oneof.full_name(),
             r#"#[derive(::serde::Serialize, ::serde::Deserialize)]"#,
           );
-          config.type_attribute(
-            oneof.full_name(),
-            r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
-          );
+
+          if enable_cel() {
+            config.type_attribute(
+              oneof.full_name(),
+              r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
+            );
+          }
 
           for field in oneof.fields() {
             config.field_attribute(
