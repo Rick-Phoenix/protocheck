@@ -1,0 +1,13 @@
+[package]
+name = "protocheck-build"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prost-build = { workspace = true }
+prost-reflect = { workspace = true }
+
+[features]
+cel = []
+
+default = []

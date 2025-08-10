@@ -164,7 +164,6 @@ impl Name for Timestamp {
   }
 }
 
-#[cfg(feature = "std")]
 impl From<std::time::SystemTime> for Timestamp {
   fn from(system_time: std::time::SystemTime) -> Timestamp {
     let (seconds, nanos) = match system_time.duration_since(std::time::UNIX_EPOCH) {
@@ -233,10 +232,8 @@ impl fmt::Display for TimestampError {
   }
 }
 
-#[cfg(feature = "std")]
 impl std::error::Error for TimestampError {}
 
-#[cfg(feature = "std")]
 impl TryFrom<Timestamp> for std::time::SystemTime {
   type Error = TimestampError;
 

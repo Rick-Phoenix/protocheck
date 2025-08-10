@@ -11,11 +11,10 @@ cel-interpreter = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
 protocheck = { path = "../protocheck/", features = ["cel"] }
-prost-reflect = { workspace = true }
 chrono = { workspace = true }
 maplit = { workspace = true }
 
 [build-dependencies]
-protocheck = { path = "../protocheck/", features = ["cel"] }
+protocheck-build = { path = "../protocheck-build/", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }

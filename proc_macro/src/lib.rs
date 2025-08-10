@@ -14,17 +14,19 @@ use crate::{
 
 mod attribute_extractors;
 mod cel_rule_template;
+#[cfg(feature = "cel")]
 mod cel_try_into;
 mod pool_loader;
-mod protogen;
 mod rules;
 mod validation_data;
 
+#[cfg(feature = "cel")]
 #[proc_macro_derive(OneofTryIntoCelValue)]
 pub fn oneof_try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   cel_try_into::derive_cel_value_oneof(input)
 }
 
+#[cfg(feature = "cel")]
 #[proc_macro_derive(TryIntoCelValue)]
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   cel_try_into::derive_cel_value_struct(input)

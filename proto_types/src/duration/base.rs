@@ -169,7 +169,6 @@ impl fmt::Display for DurationError {
   }
 }
 
-#[cfg(feature = "std")]
 impl std::error::Error for DurationError {}
 
 impl FromStr for Duration {

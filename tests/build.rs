@@ -1,5 +1,5 @@
 use prost_build::Config;
-use protocheck::build::compile_protos_with_validators;
+use protocheck_build::compile_protos_with_validators;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   println!("cargo:rerun-if-changed=proto/");

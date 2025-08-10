@@ -1,10 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
 use cel_interpreter::{objects::Key as CelKey, Context, Program, Value as CelValue};
-use chrono::{DateTime, Utc};
 use proc_macro2::TokenStream;
 use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
-use proto_types::{Empty, FieldMask, FieldType};
+use proto_types::{Duration, Empty, FieldMask, FieldType, Timestamp};
 use quote::quote;
 use syn::Error;
 
@@ -234,13 +233,14 @@ fn convert_prost_value_to_cel_value_recursive(
       let full_name = msg_desc.full_name();
 
       match full_name {
-        "google.protobuf.Timestamp" => {
-          let utc: DateTime<Utc> = Utc::now();
-          Ok(CelValue::Timestamp(utc.fixed_offset()))
-        }
+        "google.protobuf.Timestamp" => Ok(CelValue::Timestamp(
+          Timestamp::default().try_into().unwrap(),
+        )),
         "google.protobuf.Empty" => Ok(Empty {}.into()),
         "google.protobuf.FieldMask" => Ok(FieldMask::new(vec![]).into()),
-        "google.protobuf.Duration" => Ok(CelValue::Duration(chrono::Duration::default())),
+        "google.protobuf.Duration" => {
+          Ok(CelValue::Duration(Duration::default().try_into().unwrap()))
+        }
         _ => {
           if depth >= MAX_RECURSION_DEPTH {
             return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));

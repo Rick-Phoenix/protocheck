@@ -5,7 +5,7 @@ members = [
   "tests",
   "proto_types",
   "core",
-  "protocheck",
+  "protocheck", "protocheck-build",
 ]
 resolver = "2"
 
@@ -15,7 +15,7 @@ cel-interpreter = { version = "=0.10.0", features = ["chrono"] }
 prost = "0.14.1"
 prost-types = { version = "0.14.1", features = ["chrono"] }
 serde = { version = "1", features = ["derive"] }
-prost-reflect = { version = "0.16.1", features = ["serde"] }
+prost-reflect = { version = "0.16.1" }
 syn = { version = "2.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = "1.0"

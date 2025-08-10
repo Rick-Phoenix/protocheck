@@ -7,21 +7,14 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-prost = { workspace = true }
-serde = { workspace = true }
 prost-reflect = { workspace = true }
 cel-interpreter = { workspace = true, optional = true }
 syn = { workspace = true }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
-bytes = { workspace = true }
 regex = { workspace = true }
 proto_types = { path = "../proto_types/" }
 protocheck_core = { path = "../core/" }
-chrono = { workspace = true }
-
-[build-dependencies]
-prost-build = { workspace = true }
 
 [features]
 cel = ["protocheck_core/cel", "proto_types/cel", "dep:cel-interpreter"]
