@@ -15,6 +15,6 @@ proto_types = { path = "../proto_types/" }
 prost-reflect = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
-url = { workspace = true }
 ipnetwork = { workspace = true }
 paste = { workspace = true }
+iri-string = { workspace = true }

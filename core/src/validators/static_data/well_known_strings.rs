@@ -5,8 +5,8 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+use iri_string::types::{UriReferenceStr, UriStr};
 use regex::Regex;
-use url::Url;
 use uuid::Uuid;
 
 static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -124,17 +124,11 @@ pub fn is_valid_email(s: &str) -> bool {
 }
 
 pub fn is_valid_uri(s: &str) -> bool {
-  Url::parse(s).is_ok()
+  <&UriStr>::try_from(s).is_ok()
 }
 
 pub fn is_valid_uri_ref(s: &str) -> bool {
-  if Url::parse(s).is_ok() {
-    return true;
-  }
-
-  let base = Url::parse("https://example.com/").unwrap();
-
-  base.join(s).is_ok()
+  <&UriReferenceStr>::try_from(s).is_ok()
 }
 
 pub fn is_valid_address(s: &str) -> bool {

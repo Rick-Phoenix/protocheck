@@ -6,3 +6,4 @@ mod optional_tests;
 mod recursion_tests;
 mod repeated_tests;
 mod strings_tests;
+mod well_known_strings_tests;

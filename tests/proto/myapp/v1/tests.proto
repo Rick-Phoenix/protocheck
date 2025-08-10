@@ -18,7 +18,93 @@ enum test_enum {
   PASSIVE = 2;
 }
 
-message IgnoresTests {
+message WellKnownStrings {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string hostname = 2 [(buf.validate.field).string.hostname = true];
+  string ip = 3 [(buf.validate.field).string.ip = true];
+  string ipv4 = 4 [(buf.validate.field).string.ipv4 = true];
+  string ipv6 = 5 [(buf.validate.field).string.ipv6 = true];
+  string uri = 6 [(buf.validate.field).string.uri = true];
+  string uri_ref = 7 [(buf.validate.field).string.uri_ref = true];
+  string address = 8 [(buf.validate.field).string.address = true];
+  string uuid = 9 [(buf.validate.field).string.uuid = true];
+  string tuuid = 10 [(buf.validate.field).string.tuuid = true];
+  string ip_with_prefixlen = 11 [(buf.validate.field).string.ip_with_prefixlen = true];
+  string ipv4_with_prefixlen = 12 [(buf.validate.field).string.ipv4_with_prefixlen = true];
+  string ipv6_with_prefixlen = 13 [(buf.validate.field).string.ipv6_with_prefixlen = true];
+  string ip_prefix = 14 [(buf.validate.field).string.ip_prefix = true];
+  string ipv4_prefix = 15 [(buf.validate.field).string.ipv4_prefix = true];
+  string ipv6_prefix = 16 [(buf.validate.field).string.ipv6_prefix = true];
+  string host_and_port = 17 [(buf.validate.field).string.host_and_port = true];
+  string header_name_strict = 18 [(buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_NAME];
+  string header_value_strict = 19 [(buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE];
+  string header_name_loose = 20 [
+    (buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_NAME,
+    (buf.validate.field).string.strict = false
+  ];
+  string header_value_loose = 21 [
+    (buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE,
+    (buf.validate.field).string.strict = false
+  ];
+}
+
+message IgnoreAlwaysTest {
+  string name = 1 [
+    (buf.validate.field).string.const = "abc",
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+
+  bytes bytes = 2 [
+    (buf.validate.field).bytes.const = "abc",
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  int64 int64 = 3 [
+    (buf.validate.field).int64.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  int32 int32 = 4 [
+    (buf.validate.field).int32.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  uint64 uint64 = 5 [
+    (buf.validate.field).uint64.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  uint32 uint32 = 6 [
+    (buf.validate.field).uint32.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  sint64 sint64 = 7 [
+    (buf.validate.field).sint64.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  sint32 sint32 = 8 [
+    (buf.validate.field).sint32.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  fixed64 fixed64 = 9 [
+    (buf.validate.field).fixed64.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  fixed32 fixed32 = 10 [
+    (buf.validate.field).fixed32.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  sfixed64 sfixed64 = 11 [
+    (buf.validate.field).sfixed64.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  sfixed32 sfixed32 = 12 [
+    (buf.validate.field).sfixed32.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+  test_enum enum_field = 13 [
+    (buf.validate.field).enum.const = 15,
+    (buf.validate.field).ignore = IGNORE_ALWAYS
+  ];
+}
+
+message IgnoreIfZeroValueTest {
   string name = 1 [
     (buf.validate.field).string.const = "abc",
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
@@ -72,20 +158,6 @@ message IgnoresTests {
     (buf.validate.field).enum.const = 15,
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
-  google.protobuf.Duration duration = 14 [
-    (buf.validate.field).duration.const = {
-      seconds: 15
-      nanos: 100
-    },
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
-  google.protobuf.Timestamp timestamp = 15 [
-    (buf.validate.field).timestamp.const = {
-      seconds: 15
-      nanos: 100
-    },
-    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
-  ];
 }
 
 message BytesTests {
@@ -93,6 +165,9 @@ message BytesTests {
   bytes contains_field = 2 [(buf.validate.field).bytes.contains = "abc"];
   bytes prefix_field = 3 [(buf.validate.field).bytes.prefix = "abc"];
   bytes suffix_field = 4 [(buf.validate.field).bytes.suffix = "abc"];
+  bytes ip = 5 [(buf.validate.field).bytes.ip = true];
+  bytes ipv4 = 6 [(buf.validate.field).bytes.ipv4 = true];
+  bytes ipv6 = 7 [(buf.validate.field).bytes.ipv6 = true];
 }
 
 message OptionalTests {

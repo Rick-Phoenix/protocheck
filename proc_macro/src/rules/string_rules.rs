@@ -296,10 +296,14 @@ pub fn get_string_rules(
       WellKnown::Ipv6WithPrefixlen(enabled) => enabled.then_some(quote! { ipv6_with_prefixlen }),
       WellKnown::IpPrefix(enabled) => enabled.then_some(quote! { ip_prefix }),
       WellKnown::Ipv4Prefix(enabled) => enabled.then_some(quote! { ipv4_prefix }),
-      WellKnown::Ipv6Prefix(enabled) => enabled.then_some(quote! { ip6_prefix }),
+      WellKnown::Ipv6Prefix(enabled) => enabled.then_some(quote! { ipv6_prefix }),
       WellKnown::HostAndPort(enabled) => enabled.then_some(quote! { host_and_port }),
       WellKnown::WellKnownRegex(well_known_regex) => {
-        is_strict = Some(rules.strict());
+        if let Some(val) = rules.strict {
+          is_strict = Some(val)
+        } else {
+          is_strict = Some(true)
+        };
 
         match well_known_regex {
           1 => Some(quote! { header_name }),
