@@ -1,6 +1,4 @@
-use proc_macro2::TokenStream;
 use proto_types::FieldType;
-use quote::{quote, ToTokens};
 
 use crate::{
   protovalidate::{field_path_element::Subscript, FieldPathElement},
@@ -60,6 +58,12 @@ impl FieldKind {
   }
 }
 
+#[cfg(feature = "totokens")]
+use proc_macro2::TokenStream;
+#[cfg(feature = "totokens")]
+use quote::{quote, ToTokens};
+
+#[cfg(feature = "totokens")]
 impl ToTokens for FieldKind {
   fn to_tokens(&self, tokens: &mut TokenStream) {
     let field_kind_path = quote! { protocheck::field_data::FieldKind };

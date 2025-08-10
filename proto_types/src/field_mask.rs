@@ -1,7 +1,3 @@
-use std::fmt;
-
-use serde::{Deserialize, Serialize};
-
 use crate::FieldMask;
 
 impl FieldMask {
@@ -14,44 +10,52 @@ impl FieldMask {
   }
 }
 
-impl Serialize for FieldMask {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: serde::Serializer,
-  {
-    let joined_paths = self.paths.join(",");
-    serializer.serialize_str(&joined_paths)
+#[cfg(feature = "serde")]
+mod serde {
+  use std::fmt;
+
+  use serde::{Deserialize, Serialize};
+
+  use crate::FieldMask;
+  impl Serialize for FieldMask {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+      S: serde::Serializer,
+    {
+      let joined_paths = self.paths.join(",");
+      serializer.serialize_str(&joined_paths)
+    }
   }
-}
 
-impl<'de> Deserialize<'de> for FieldMask {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: serde::Deserializer<'de>,
-  {
-    struct FieldMaskVisitor;
+  impl<'de> Deserialize<'de> for FieldMask {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+      D: serde::Deserializer<'de>,
+    {
+      struct FieldMaskVisitor;
 
-    impl serde::de::Visitor<'_> for FieldMaskVisitor {
-      type Value = FieldMask;
+      impl serde::de::Visitor<'_> for FieldMaskVisitor {
+        type Value = FieldMask;
 
-      fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a comma-separated string of field paths")
-      }
-
-      fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-      where
-        E: serde::de::Error,
-      {
-        if value.is_empty() {
-          return Ok(FieldMask { paths: Vec::new() });
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+          formatter.write_str("a comma-separated string of field paths")
         }
 
-        let paths: Vec<String> = value.split(",").map(|s| s.trim().to_string()).collect();
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+          E: serde::de::Error,
+        {
+          if value.is_empty() {
+            return Ok(FieldMask { paths: Vec::new() });
+          }
 
-        Ok(FieldMask { paths })
+          let paths: Vec<String> = value.split(",").map(|s| s.trim().to_string()).collect();
+
+          Ok(FieldMask { paths })
+        }
       }
-    }
 
-    deserializer.deserialize_str(FieldMaskVisitor)
+      deserializer.deserialize_str(FieldMaskVisitor)
+    }
   }
 }

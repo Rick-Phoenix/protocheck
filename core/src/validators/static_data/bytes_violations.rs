@@ -1,6 +1,6 @@
 use std::{str::from_utf8, sync::LazyLock};
 
-use prost::bytes::Bytes;
+use bytes::Bytes;
 use proto_types::{
   field_descriptor_proto::Type as ProtoType,
   protovalidate::{FieldPath, FieldPathElement, Violation},

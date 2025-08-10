@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
+use bytes::Bytes;
 use paste::paste;
-use prost::bytes::Bytes;
 use proto_types::{Any, Duration};
 
 use crate::{

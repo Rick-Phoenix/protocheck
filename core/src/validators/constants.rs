@@ -1,5 +1,5 @@
+use bytes::Bytes;
 use paste::paste;
-use prost::bytes::Bytes;
 use proto_types::{Duration, Timestamp};
 
 use crate::{

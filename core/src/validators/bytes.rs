@@ -1,5 +1,5 @@
+use bytes::Bytes;
 use paste::paste;
-use prost::bytes::Bytes;
 use regex::Regex;
 
 use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};

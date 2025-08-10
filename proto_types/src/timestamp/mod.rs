@@ -1,3 +1,4 @@
+#[cfg(feature = "serde")]
 mod serde;
 mod timestamp_conversions;
 mod timestamp_impls;
