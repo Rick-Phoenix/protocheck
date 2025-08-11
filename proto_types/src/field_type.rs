@@ -32,6 +32,48 @@ impl FieldType {
       Self::Message | Self::Duration | Self::Timestamp | Self::Any
     )
   }
+
+  /// Returns the short, lowercase name for the field type.
+  pub fn name(&self) -> &'static str {
+    match self {
+      FieldType::Double => "double",
+      FieldType::Float => "float",
+      FieldType::Int64 => "int64",
+      FieldType::Uint64 => "uint64",
+      FieldType::Int32 => "int32",
+      FieldType::Fixed64 => "fixed64",
+      FieldType::Fixed32 => "fixed32",
+      FieldType::Bool => "bool",
+      FieldType::String => "string",
+      FieldType::Bytes => "bytes",
+      FieldType::Uint32 => "uint32",
+      FieldType::Enum => "enum",
+      FieldType::Sfixed32 => "sfixed32",
+      FieldType::Sfixed64 => "sfixed64",
+      FieldType::Sint32 => "sint32",
+      FieldType::Sint64 => "sint64",
+      FieldType::Group => "group",
+      FieldType::Message => "message",
+      FieldType::Duration => "duration",
+      FieldType::Timestamp => "timestamp",
+      FieldType::Any => "any",
+    }
+  }
+
+  /// Returns the full name for the field type, using the
+  /// fully-qualified name for Google's well-known types.
+  pub fn full_name(&self) -> &'static str {
+    match self {
+      // Special cases for well-known types
+      FieldType::Duration => "google.protobuf.Duration",
+      FieldType::Timestamp => "google.protobuf.Timestamp",
+      FieldType::Any => "google.protobuf.Any",
+
+      // For all other types, it falls back to the short name.
+      // The `_` arm catches all variants not matched above.
+      _ => self.name(),
+    }
+  }
 }
 
 impl From<FieldType> for ProtoType {

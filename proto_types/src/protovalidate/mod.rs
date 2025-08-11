@@ -16,16 +16,21 @@ mod numeric_rules;
 
 #[cfg(feature = "protocheck")]
 mod rule_matching;
+
+#[cfg(feature = "protocheck")]
+mod const_rules;
+
+#[cfg(feature = "protocheck")]
+pub use const_rules::*;
+
 mod violations;
 
 use std::fmt::{self, Display};
 
 #[cfg(feature = "protocheck")]
-pub use comparable_rules::{
-  ComparableGreaterThan, ComparableLessThan, ComparableRules, LengthRules,
-};
+pub use comparable_rules::*;
 #[cfg(feature = "protocheck")]
-pub use containing_rules::ContainingRules;
+pub use containing_rules::{ContainingRules, ItemList};
 #[cfg(feature = "protocheck")]
 pub use numeric_rules::NumericRules;
 

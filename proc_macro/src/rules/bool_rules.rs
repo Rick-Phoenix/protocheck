@@ -10,11 +10,8 @@ pub fn get_bool_rules(
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 
-  if let Some(const_val) = rules.r#const {
-    let error_message = format!("has to be equal to {:?}", const_val);
-
-    let validator_tokens = validation_data.get_const_validator("bool", const_val, &error_message);
-    tokens.extend(validator_tokens);
+  if let Some(const_rule) = rules.const_rule() {
+    validation_data.get_const_validator(&mut tokens, const_rule);
   }
 
   Ok(tokens)

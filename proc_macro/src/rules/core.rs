@@ -1,10 +1,9 @@
-use std::collections::HashSet;
+use std::fmt::Debug;
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Span, TokenStream};
 use prost_reflect::{FieldDescriptor, Kind as ProstReflectKind};
 use proto_types::FieldType;
 use protocheck_core::field_data::FieldKind;
-use quote::{quote, ToTokens};
 use syn::Error;
 
 use super::{field_rules::Type as RulesType, ProtoType};
@@ -203,46 +202,19 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
   }
 }
 
-pub fn hashset_to_tokens<T>(hashset: HashSet<T>, type_tokens: &TokenStream) -> TokenStream
+pub(crate) fn invalid_lists_error<T>(
+  field_span: Span,
+  error_prefix: &str,
+  invalid_items: &[T],
+) -> Error
 where
-  T: ToTokens,
+  T: Debug,
 {
-  let set_ident = Ident::new("set", Span::call_site());
-  let mut tokens = quote! {
-    let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
-  };
-
-  for item in hashset {
-    tokens.extend(quote! {
-      #set_ident.insert(#item);
-    });
-  }
-
-  tokens.extend(quote! {
-    #set_ident
-  });
-
-  tokens
-}
-
-pub fn byte_lit_hashset_to_tokens<T>(hashset: HashSet<T>, type_tokens: &TokenStream) -> TokenStream
-where
-  T: ToTokens,
-{
-  let set_ident = Ident::new("set", Span::call_site());
-  let mut tokens = quote! {
-    let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
-  };
-
-  for item in hashset {
-    tokens.extend(quote! {
-      #set_ident.insert(::bytes::Bytes::from_static(#item));
-    });
-  }
-
-  tokens.extend(quote! {
-    #set_ident
-  });
-
-  tokens
+  Error::new(
+    field_span,
+    format!(
+      "{} the following values are contained by 'in' and 'not_in': {:?}",
+      error_prefix, invalid_items
+    ),
+  )
 }

@@ -18,6 +18,10 @@ enum test_enum {
   PASSIVE = 2;
 }
 
+message Abc {
+  bytes abcde = 1 [(buf.validate.field).bytes.const = "abc"];
+}
+
 message ComparableRulesTests {
   google.protobuf.Timestamp timestamp_gt = 1 [(buf.validate.field).timestamp.gt = {
     seconds: 100

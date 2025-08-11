@@ -6,7 +6,10 @@ use regex::Regex;
 use syn::Error;
 
 use super::protovalidate::StringRules;
-use crate::{rules::core::hashset_to_tokens, validation_data::ValidationData};
+use crate::{
+  rules::core::invalid_lists_error,
+  validation_data::{ListRule, ValidationData},
+};
 
 pub fn get_string_rules(
   static_defs: &mut Vec<TokenStream>,
@@ -19,20 +22,18 @@ pub fn get_string_rules(
   let field_span = validation_data.field_span;
   let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
-  if let Some(const_val) = &rules.r#const {
-    let error_message = format!("has to be equal to {}", const_val);
-
-    let validator_tokens = validation_data.get_const_validator("string", const_val, &error_message);
-
-    tokens.extend(validator_tokens);
+  if let Some(const_rule) = rules.const_rule() {
+    validation_data.get_const_validator(&mut tokens, const_rule);
 
     return Ok(tokens);
   }
 
   let ContainingRules {
-    in_list,
-    not_in_list,
-  } = rules.containing_rules(field_span, &error_prefix)?;
+    in_list_rule,
+    not_in_list_rule,
+  } = rules
+    .containing_rules(validation_data.full_name)
+    .map_err(|invalid_items| invalid_lists_error(field_span, &error_prefix, &invalid_items))?;
 
   let LengthRules {
     len,
@@ -79,48 +80,12 @@ pub fn get_string_rules(
     tokens.extend(validator_tokens);
   }
 
-  if let Some((in_list, in_list_str)) = in_list {
-    let in_list_ident = format_ident!("__{}_IN_LIST", validation_data.static_full_name());
-
-    let type_tokens = quote! { &'static str };
-    let hashset_tokens = hashset_to_tokens(in_list, &type_tokens);
-
-    static_defs.push(quote! {
-      static #in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<&'static str>> = ::std::sync::LazyLock::new(||{
-        #hashset_tokens
-      });
-    });
-
-    let error_message = format!("must be one of these values: [ {} ]", in_list_str);
-
-    let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_in_hashset_list(&#field_context_ident, &#value_ident, &#in_list_ident, #error_message)
-    };
-
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-    tokens.extend(validator_tokens);
+  if let Some(in_list) = in_list_rule {
+    validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
   }
 
-  if let Some((not_in_list, not_in_list_str)) = not_in_list {
-    let not_in_list_ident = format_ident!("__{}_NOT_IN_LIST", validation_data.static_full_name());
-
-    let type_tokens = quote! { &'static str };
-    let hashset_tokens = hashset_to_tokens(not_in_list, &type_tokens);
-
-    static_defs.push(quote! {
-      static #not_in_list_ident: ::std::sync::LazyLock<std::collections::HashSet<&'static str>> = ::std::sync::LazyLock::new(||{
-        #hashset_tokens
-      });
-    });
-
-    let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
-
-    let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_not_in_hashset_list(&#field_context_ident, &#value_ident, &#not_in_list_ident, #error_message)
-    };
-
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-    tokens.extend(validator_tokens);
+  if let Some(not_in_list) = not_in_list_rule {
+    validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
   }
 
   if let Some(len_value) = len {

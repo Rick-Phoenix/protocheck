@@ -1,6 +1,13 @@
+use std::fmt::{Debug, Display};
+
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
-use proto_types::{protovalidate::Ignore, FieldType};
+use proto_types::{
+  protovalidate::{
+    ComparableGreaterThan, ComparableLessThan, ComparableRules, ConstRule, Ignore, ItemList,
+  },
+  FieldType,
+};
 use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote, ToTokens};
 
@@ -43,9 +50,146 @@ pub struct MapValidator {
   pub values_rules: TokenStream,
 }
 
+pub struct ValidationParameters {
+  module_path: TokenStream,
+  func_path: TokenStream,
+  func_parameters: TokenStream,
+}
+
+pub enum ListRule {
+  In,
+  NotIn,
+}
+
+impl ListRule {
+  pub fn name(&self) -> String {
+    match self {
+      Self::In => "in".to_string(),
+      Self::NotIn => "not_in".to_string(),
+    }
+  }
+}
+
 impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
     self.full_name.to_string().replace(".", "_").to_uppercase()
+  }
+
+  pub fn get_comparable_validator<T>(
+    &self,
+    tokens: &mut TokenStream,
+    comparable_rules: &ComparableRules<T>,
+  ) where
+    T: ToTokens + Display + PartialEq + PartialOrd + Debug,
+  {
+    let module_path = quote! { ::protocheck::validators::comparables };
+    let field_context_ident = self.field_context_ident();
+    let proto_type_name = self.field_kind.inner_type().name();
+    let value_ident = self.value_ident();
+
+    if let Some(less_than) = comparable_rules.less_than.as_ref() {
+      match less_than {
+        ComparableLessThan::Lt {
+          val: lt,
+          error_message,
+        } => {
+          let func_ident = format_ident!("{}_lt", proto_type_name);
+
+          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lt, #error_message) };
+          tokens.extend(self.get_validator_tokens(&expr));
+        }
+        ComparableLessThan::Lte {
+          val: lte,
+          error_message,
+        } => {
+          let func_ident = format_ident!("{}_lte", proto_type_name);
+
+          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lte, #error_message) };
+          tokens.extend(self.get_validator_tokens(&expr));
+        }
+      };
+    }
+
+    if let Some(greater_than) = comparable_rules.greater_than.as_ref() {
+      match greater_than {
+        ComparableGreaterThan::Gt {
+          val: gt,
+          error_message,
+        } => {
+          let func_ident = format_ident!("{}_gt", proto_type_name);
+
+          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gt, #error_message) };
+          tokens.extend(self.get_validator_tokens(&expr));
+        }
+        ComparableGreaterThan::Gte {
+          val: gte,
+          error_message,
+        } => {
+          let func_ident = format_ident!("{}_gte", proto_type_name);
+
+          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gte, #error_message) };
+          tokens.extend(self.get_validator_tokens(&expr));
+        }
+      };
+    }
+  }
+
+  pub fn get_list_validator(
+    &self,
+    rule_type: ListRule,
+    tokens: &mut TokenStream,
+    list: ItemList,
+    static_defs: &mut Vec<TokenStream>,
+  ) {
+    let field_context_ident = self.field_context_ident();
+    let value_ident = self.value_ident();
+    let proto_type_name = self.field_kind.inner_type().name();
+
+    let module_path = quote! { ::protocheck::validators::containing };
+    let rule_name = rule_type.name();
+
+    match list {
+      ItemList::Slice {
+        error_message,
+        tokens: list_tokens,
+      } => {
+        let func_path = format_ident!("{}_{}_slice_list", proto_type_name, rule_name);
+        let validator_expression_tokens = quote! {
+          #module_path::#func_path(&#field_context_ident, #value_ident, &#list_tokens, #error_message)
+        };
+
+        let validator_tokens = self.get_validator_tokens(&validator_expression_tokens);
+        tokens.extend(validator_tokens);
+      }
+      ItemList::HashSet {
+        error_message,
+        tokens: hashset_tokens,
+        static_ident,
+      } => {
+        let func_path = format_ident!("{}_{}_hashset_list", proto_type_name, rule_name);
+
+        static_defs.push(hashset_tokens);
+
+        let validator_expression_tokens = quote! {
+          #module_path::#func_path(&#field_context_ident, #value_ident, &#static_ident, #error_message)
+        };
+
+        let validator_tokens = self.get_validator_tokens(&validator_expression_tokens);
+        tokens.extend(validator_tokens);
+      }
+    };
+  }
+
+  pub fn get_validator2(&self, tokens: &mut TokenStream, params: ValidationParameters) {
+    let ValidationParameters {
+      module_path,
+      func_path,
+      func_parameters,
+    } = params;
+
+    tokens.extend(quote! {
+      #module_path::#func_path(#func_parameters)
+    });
   }
 
   pub fn field_context_tokens(
@@ -220,36 +364,20 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_const_validator<T>(&self, proto_type: &str, val: T, error_message: &str) -> TokenStream
+  pub fn get_const_validator<T>(&self, tokens: &mut TokenStream, rule: ConstRule<T>)
   where
     T: ToTokens,
   {
-    let func_ident = format_ident!("{}_const", proto_type);
+    let proto_type_name = self.field_kind.inner_type().name();
+    let func_ident = format_ident!("{}_const", proto_type_name);
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
+
+    let ConstRule { val, error_message } = rule;
 
     let validator_expression_tokens = quote! { ::protocheck::validators::constants::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
 
-    self.get_validator_tokens(&validator_expression_tokens)
-  }
-
-  pub fn get_comparable_validator<T>(
-    &self,
-    proto_type: &str,
-    func_name: &str,
-    val: T,
-    error_message: &str,
-  ) -> TokenStream
-  where
-    T: ToTokens,
-  {
-    let func_ident = format_ident!("{}_{}", proto_type, func_name);
-    let field_context_ident = self.field_context_ident();
-    let value_ident = self.value_ident();
-
-    let validator_expression_tokens = quote! { ::protocheck::validators::comparables::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
-
-    self.get_validator_tokens(&validator_expression_tokens)
+    tokens.extend(self.get_validator_tokens(&validator_expression_tokens));
   }
 
   pub fn get_message_field_validator_tokens(&self, field_kind: FieldKind) -> TokenStream {

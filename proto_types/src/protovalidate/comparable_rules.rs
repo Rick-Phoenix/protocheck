@@ -4,11 +4,20 @@ use proc_macro2::Span;
 use quote::ToTokens;
 use syn::Error;
 
-use crate::protovalidate::{BytesRules, StringRules};
+use crate::{
+  protovalidate::{BytesRules, StringRules},
+  Timestamp,
+};
+
+pub struct TimestampComparableRules {
+  pub comparable_rules: ComparableRules<Timestamp>,
+  pub lt_now: bool,
+  pub gt_now: bool,
+}
 
 pub enum ComparableLessThan<T> {
-  Lt(T),
-  Lte(T),
+  Lt { val: T, error_message: String },
+  Lte { val: T, error_message: String },
 }
 
 impl<T> ComparableLessThan<T>
@@ -17,8 +26,8 @@ where
 {
   pub fn value(&self) -> T {
     match self {
-      Self::Lte(v) => *v,
-      Self::Lt(v) => *v,
+      Self::Lte { val, .. } => *val,
+      Self::Lt { val, .. } => *val,
     }
   }
 }
@@ -29,15 +38,15 @@ where
 {
   pub fn value(&self) -> T {
     match self {
-      Self::Gte(v) => *v,
-      Self::Gt(v) => *v,
+      Self::Gte { val, .. } => *val,
+      Self::Gt { val, .. } => *val,
     }
   }
 }
 
 pub enum ComparableGreaterThan<T> {
-  Gt(T),
-  Gte(T),
+  Gt { val: T, error_message: String },
+  Gte { val: T, error_message: String },
 }
 
 pub struct LengthRules {
@@ -155,6 +164,8 @@ where
   pub greater_than: Option<ComparableGreaterThan<T>>,
 }
 
+impl ComparableRules<Timestamp> {}
+
 impl<T> ComparableRules<T>
 where
   T: PartialOrd + PartialEq + Debug + ToTokens,
@@ -163,9 +174,9 @@ where
     if let Some(ref gt_rule) = self.greater_than
       && let Some(ref lt_rule) = self.less_than {
         match gt_rule {
-          ComparableGreaterThan::Gte(gte_val) => {
+          ComparableGreaterThan::Gte { val: gte_val,.. } => {
             match lt_rule {
-              ComparableLessThan::Lte(lte_val) => {
+              ComparableLessThan::Lte { val:lte_val,.. } => {
                 if lte_val < gte_val {
                   return Err(Error::new(
                     field_span,
@@ -173,7 +184,7 @@ where
                   ));
                 }
               }
-              ComparableLessThan::Lt(lt_val) => {
+              ComparableLessThan::Lt { val:lt_val,.. } => {
                 if lt_val <= gte_val {
                   return Err(Error::new(
                     field_span,
@@ -183,9 +194,9 @@ where
               }
             };
           }
-          ComparableGreaterThan::Gt(gt_val) => {
+          ComparableGreaterThan::Gt { val: gt_val, .. } => {
             match lt_rule {
-              ComparableLessThan::Lte(lte_val) => {
+              ComparableLessThan::Lte { val: lte_val, .. } => {
                 if lte_val <= gt_val {
                   return Err(Error::new(
                     field_span,
@@ -193,7 +204,7 @@ where
                   ));
                 }
               }
-              ComparableLessThan::Lt(lt_val) => {
+              ComparableLessThan::Lt { val: lt_val, .. } => {
                 if lt_val <= gt_val {
                   return Err(Error::new(
                     field_span,

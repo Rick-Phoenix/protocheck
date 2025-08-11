@@ -1,3 +1,4 @@
+use paste::paste;
 use proc_macro2::Span;
 use syn::Error;
 
@@ -9,18 +10,18 @@ use crate::{
     fixed32_rules::{GreaterThan as Fixed32GreaterThan, LessThan as Fixed32LessThan},
     fixed64_rules::{GreaterThan as Fixed64GreaterThan, LessThan as Fixed64LessThan},
     float_rules::{GreaterThan as FloatGreaterThan, LessThan as FloatLessThan},
-    int32_rules::{GreaterThan as I32GreaterThan, LessThan as I32LessThan},
-    int64_rules::{GreaterThan as I64GreaterThan, LessThan as I64LessThan},
+    int32_rules::{GreaterThan as Int32GreaterThan, LessThan as Int32LessThan},
+    int64_rules::{GreaterThan as Int64GreaterThan, LessThan as Int64LessThan},
     s_fixed32_rules::{GreaterThan as SFixed32GreaterThan, LessThan as SFixed32LessThan},
     s_fixed64_rules::{GreaterThan as SFixed64GreaterThan, LessThan as SFixed64LessThan},
-    s_int32_rules::{GreaterThan as S32GreaterThan, LessThan as S32LessThan},
-    s_int64_rules::{GreaterThan as S64GreaterThan, LessThan as S64LessThan},
+    s_int32_rules::{GreaterThan as SInt32GreaterThan, LessThan as SInt32LessThan},
+    s_int64_rules::{GreaterThan as SInt64GreaterThan, LessThan as SInt64LessThan},
     timestamp_rules::{GreaterThan as TimestampGreaterThan, LessThan as TimestampLessThan},
-    u_int32_rules::{GreaterThan as U32GreaterThan, LessThan as U32LessThan},
-    u_int64_rules::{GreaterThan as U64GreaterThan, LessThan as U64LessThan},
-    DurationRules, TimestampRules,
+    u_int32_rules::{GreaterThan as UInt32GreaterThan, LessThan as UInt32LessThan},
+    u_int64_rules::{GreaterThan as UInt64GreaterThan, LessThan as UInt64LessThan},
+    DurationRules, TimestampComparableRules, TimestampRules,
   },
-  Duration, Timestamp,
+  Duration, Timestamp, TimestampError,
 };
 
 pub trait IntoComparable<T> {
@@ -32,14 +33,68 @@ impl TimestampRules {
     &self,
     field_span: Span,
     error_prefix: &str,
-  ) -> Result<(Option<TimestampGreaterThan>, Option<TimestampLessThan>), Error> {
-    let comparable_rules = ComparableRules {
-      greater_than: self.greater_than.map(|gt| gt.into_comparable()),
-      less_than: self.less_than.map(|lt| lt.into_comparable()),
+  ) -> Result<TimestampComparableRules, Error> {
+    let format_timestamp = |t: Timestamp, msg: &str| -> Result<String, Error> {
+      t.format(&format!("{} {}", msg, "%d %b %Y %R %Z"))
+        .map_err(|e: TimestampError| {
+          Error::new(
+            field_span,
+            format!(
+              "{} failed to convert protobuf timestamp to chrono timestamp: {}",
+              error_prefix, e
+            ),
+          )
+        })
     };
-    comparable_rules.validate(field_span, error_prefix)?;
 
-    Ok((self.greater_than, self.less_than))
+    let mut greater_than: Option<ComparableGreaterThan<Timestamp>> = None;
+
+    if let Some(gt_rule) = self.greater_than {
+      greater_than = match gt_rule {
+        TimestampGreaterThan::Gt(v) => Some(ComparableGreaterThan::Gt {
+          val: v,
+          error_message: format_timestamp(v, "must be later than")?,
+        }),
+
+        TimestampGreaterThan::Gte(v) => Some(ComparableGreaterThan::Gte {
+          val: v,
+          error_message: format_timestamp(v, "cannot be earlier than")?,
+        }),
+        _ => None,
+      }
+    }
+
+    let mut less_than: Option<ComparableLessThan<Timestamp>> = None;
+
+    if let Some(gt_rule) = self.less_than {
+      less_than = match gt_rule {
+        TimestampLessThan::Lt(v) => Some(ComparableLessThan::Lt {
+          val: v,
+          error_message: format_timestamp(v, "must be earlier than")?,
+        }),
+
+        TimestampLessThan::Lte(v) => Some(ComparableLessThan::Lte {
+          val: v,
+          error_message: format_timestamp(v, "cannot be later than")?,
+        }),
+        _ => None,
+      }
+    }
+
+    let comparable_rules = ComparableRules {
+      less_than,
+      greater_than,
+    };
+
+    let lt_now = matches!(self.less_than, Some(TimestampLessThan::LtNow(true)));
+
+    let gt_now = matches!(self.greater_than, Some(TimestampGreaterThan::GtNow(true)));
+
+    Ok(TimestampComparableRules {
+      comparable_rules: comparable_rules.validate(field_span, error_prefix)?,
+      lt_now,
+      gt_now,
+    })
   }
 }
 
@@ -49,264 +104,69 @@ impl DurationRules {
     field_span: Span,
     error_prefix: &str,
   ) -> Result<ComparableRules<Duration>, Error> {
+    let greater_than = self.greater_than.map(|rule| match rule {
+      DurationGreaterThan::Gt(val) => ComparableGreaterThan::Gt {
+        val,
+        error_message: format!("must be longer than {}", val),
+      },
+      DurationGreaterThan::Gte(val) => ComparableGreaterThan::Gte {
+        val,
+        error_message: format!("cannot be shorter than {}", val),
+      },
+    });
+
+    let less_than = self.less_than.map(|rule| match rule {
+      DurationLessThan::Lt(val) => ComparableLessThan::Lt {
+        val,
+        error_message: format!("must be shorter than {}", val),
+      },
+      DurationLessThan::Lte(val) => ComparableLessThan::Lte {
+        val,
+        error_message: format!("cannot be longer than {}", val),
+      },
+    });
+
     let comparable_rules = ComparableRules {
-      greater_than: self.greater_than.map(|gt| gt.into_comparable()),
-      less_than: self.less_than.map(|lt| lt.into_comparable()),
+      greater_than,
+      less_than,
     };
     comparable_rules.validate(field_span, error_prefix)
   }
 }
 
-impl IntoComparable<ComparableLessThan<Timestamp>> for TimestampLessThan {
-  fn into_comparable(self) -> ComparableLessThan<Timestamp> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-      Self::LtNow(_) => ComparableLessThan::Lt(Timestamp::now()),
+macro_rules! into_comparable {
+  ($target_type:ty, $rule_type:ident) => {
+    paste! {
+      impl IntoComparable<ComparableLessThan<$target_type>> for [< $rule_type LessThan >] {
+        fn into_comparable(self) -> ComparableLessThan<$target_type> {
+          match self {
+            Self::Lt(val) => ComparableLessThan::Lt { val, error_message: format!("must be smaller than {}", val) },
+            Self::Lte(val) => ComparableLessThan::Lte { val, error_message: format!("cannot be greater than {}", val) },
+          }
+        }
+      }
+
+      impl IntoComparable<ComparableGreaterThan<$target_type>> for [< $rule_type GreaterThan >] {
+        fn into_comparable(self) -> ComparableGreaterThan<$target_type> {
+          match self {
+            Self::Gt(val) => ComparableGreaterThan::Gt { val, error_message: format!("must be greater than {}", val) },
+            Self::Gte(val) => ComparableGreaterThan::Gte { val, error_message: format!("cannot be smaller than {}", val) },
+          }
+        }
+      }
     }
-  }
+  };
 }
 
-impl IntoComparable<ComparableLessThan<Duration>> for DurationLessThan {
-  fn into_comparable(self) -> ComparableLessThan<Duration> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<f32>> for FloatLessThan {
-  fn into_comparable(self) -> ComparableLessThan<f32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<f64>> for DoubleLessThan {
-  fn into_comparable(self) -> ComparableLessThan<f64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i64>> for I64LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i64>> for S64LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i64>> for SFixed64LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i32>> for I32LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i32>> for S32LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<i32>> for SFixed32LessThan {
-  fn into_comparable(self) -> ComparableLessThan<i32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<u32>> for U32LessThan {
-  fn into_comparable(self) -> ComparableLessThan<u32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<u32>> for Fixed32LessThan {
-  fn into_comparable(self) -> ComparableLessThan<u32> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<u64>> for U64LessThan {
-  fn into_comparable(self) -> ComparableLessThan<u64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableLessThan<u64>> for Fixed64LessThan {
-  fn into_comparable(self) -> ComparableLessThan<u64> {
-    match self {
-      Self::Lt(v) => ComparableLessThan::Lt(v),
-      Self::Lte(v) => ComparableLessThan::Lte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<f32>> for FloatGreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<f32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<f64>> for DoubleGreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<f64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i64>> for I64GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i64>> for S64GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i64>> for SFixed64GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i32>> for I32GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i32>> for S32GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<i32>> for SFixed32GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<i32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<u32>> for U32GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<u32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<u32>> for Fixed32GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<u32> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<u64>> for U64GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<u64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<u64>> for Fixed64GreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<u64> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<Timestamp>> for TimestampGreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<Timestamp> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-      Self::GtNow(_) => ComparableGreaterThan::Gt(Timestamp::now()),
-    }
-  }
-}
-
-impl IntoComparable<ComparableGreaterThan<Duration>> for DurationGreaterThan {
-  fn into_comparable(self) -> ComparableGreaterThan<Duration> {
-    match self {
-      Self::Gt(v) => ComparableGreaterThan::Gt(v),
-      Self::Gte(v) => ComparableGreaterThan::Gte(v),
-    }
-  }
-}
+into_comparable!(f32, Float);
+into_comparable!(f64, Double);
+into_comparable!(i64, Int64);
+into_comparable!(i32, Int32);
+into_comparable!(i64, SInt64);
+into_comparable!(i32, SInt32);
+into_comparable!(i64, SFixed64);
+into_comparable!(i32, SFixed32);
+into_comparable!(u64, UInt64);
+into_comparable!(u32, UInt32);
+into_comparable!(u64, Fixed64);
+into_comparable!(u32, Fixed32);

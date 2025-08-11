@@ -42,15 +42,13 @@ macro_rules! in_list_validator {
     $(, $value_override:expr)?
   ) => {
     macro_rules! _get_value_for_contains {
-      (value, $original_val:expr) => { $original_val };
-      (type_url, $original_val:expr) => { &$original_val.type_url.as_str() };
-      (, $original_val:expr) => { &$original_val };
+      ($override:expr, $value:ident, $target:ident) => { ($override)($value, $target) };
+      (, $value:ident, $target:ident) => { $target.contains(&$value) };
     }
     paste! {
       pub fn [<$name_ty _in_ $list_ty _list>](field_context: &FieldContext, value: $value_ty, target: &'static $target_ty, error_message: &'static str) -> Result<(), Violation> {
-        let value_to_check = _get_value_for_contains!($($value_override)?, value);
+        let check = _get_value_for_contains!($($value_override)?, value, target);
 
-        let check = target.contains(value_to_check);
         if check {
           Ok(())
         } else {
@@ -64,9 +62,8 @@ macro_rules! in_list_validator {
       }
 
       pub fn [<$name_ty _not_in_ $list_ty _list>](field_context: &FieldContext, value: $value_ty, target: &'static $target_ty, error_message: &'static str) -> Result<(), Violation> {
-        let value_to_check = _get_value_for_contains!($($value_override)?, value);
+        let check = !_get_value_for_contains!($($value_override)?, value, target);
 
-        let check = !target.contains(value_to_check);
         if check {
           Ok(())
         } else {
@@ -87,21 +84,49 @@ in_hashset_list_validator!(string, &str, &'static str);
 in_slice_list_validator!(string, &str, &'static str);
 
 #[cfg(feature = "bytes")]
-in_hashset_list_validator!(bytes, &bytes::Bytes, bytes::Bytes, value);
-in_slice_list_validator!(bytes, &bytes::Bytes, bytes::Bytes, value);
+in_hashset_list_validator!(
+  bytes,
+  &bytes::Bytes,
+  bytes::Bytes,
+  |value: &bytes::Bytes, target: &'static HashSet<::bytes::Bytes>| target.contains(value)
+);
+#[cfg(feature = "bytes")]
+in_slice_list_validator!(
+  bytes,
+  &bytes::Bytes,
+  &'static [u8],
+  |value: &bytes::Bytes, target: &'static [&'static [u8]]| target.iter().any(|by| by == value)
+);
 
-in_hashset_list_validator!(any, &Any, &'static str, type_url);
-in_slice_list_validator!(any, &Any, &'static str, type_url);
+in_hashset_list_validator!(any, &Any, &'static str, |value: &Any,
+                                                     target: &'static HashSet<
+  &'static str,
+>| {
+  target.contains(value.type_url.as_str())
+});
+in_slice_list_validator!(any, &Any, &'static str, |value: &Any, target: &[&str]| {
+  target.contains(&value.type_url.as_str())
+});
 in_hashset_list_validator!(duration, Duration, Duration);
 in_slice_list_validator!(duration, Duration, Duration);
 
 in_hashset_list_validator!(enum, i32, i32);
 in_slice_list_validator!(enum, i32, i32);
 
-in_hashset_list_validator!(float, u32, u32);
-in_slice_list_validator!(float, u32, u32);
-in_hashset_list_validator!(double, u64, u64);
-in_slice_list_validator!(double, u64, u64);
+in_hashset_list_validator!(
+  float,
+  f32,
+  u32,
+  |value: f32, target: &'static HashSet<u32>| target.contains(&value.to_bits())
+);
+in_slice_list_validator!(float, f32, f32);
+in_hashset_list_validator!(
+  double,
+  f64,
+  u64,
+  |value: f64, target: &'static HashSet<u64>| target.contains(&value.to_bits())
+);
+in_slice_list_validator!(double, f64, f64);
 
 in_hashset_list_validator!(int64, i64, i64);
 in_slice_list_validator!(int64, i64, i64);
