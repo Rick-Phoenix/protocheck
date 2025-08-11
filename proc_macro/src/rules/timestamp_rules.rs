@@ -29,9 +29,7 @@ pub fn get_timestamp_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   let TimestampComparableRules {
@@ -48,18 +46,14 @@ pub fn get_timestamp_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if gt_now {
     let validator_expression_tokens = quote! {
       protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   Ok(tokens)

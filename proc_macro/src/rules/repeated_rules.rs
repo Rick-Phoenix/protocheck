@@ -107,9 +107,7 @@ pub fn get_repeated_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
       };
-      let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-      vec_level_rules.extend(validator_tokens);
+      validation_data.get_validator_tokens(&mut vec_level_rules, &validator_expression_tokens);
     }
 
     if repeated_rules.max_items() > 0 {
@@ -125,9 +123,7 @@ pub fn get_repeated_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
       };
-      let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-      vec_level_rules.extend(validator_tokens);
+      validation_data.get_validator_tokens(&mut vec_level_rules, &validator_expression_tokens);
     }
 
     if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {

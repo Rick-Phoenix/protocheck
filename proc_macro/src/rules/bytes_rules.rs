@@ -66,9 +66,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       ::protocheck::validators::bytes::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(in_list) = in_list_rule {
@@ -85,9 +83,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::len(&#field_context_ident, &#value_ident, #len_value, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(min_len_value) = min_len {
@@ -100,9 +96,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::min_len(&#field_context_ident, &#value_ident, #min_len_value, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(max_len_value) = max_len {
@@ -115,9 +109,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
           protocheck::validators::bytes::max_len(&#field_context_ident, &#value_ident, #max_len_value, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(ref contains_val) = rules.contains {
@@ -127,9 +119,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::contains(&#field_context_ident, &#value_ident, #contains_val_tokens, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(ref prefix) = rules.prefix {
@@ -139,9 +129,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::prefix(&#field_context_ident, &#value_ident, #prefix_tokens, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(ref suffix) = rules.suffix {
@@ -151,9 +139,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::suffix(&#field_context_ident, &#value_ident, #suffix_tokens, #error_message)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(well_known) = rules.well_known {
@@ -172,9 +158,7 @@ pub fn get_bytes_rules(
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::#validator_path(&#field_context_ident, &#value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   Ok(tokens)

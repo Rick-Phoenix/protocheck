@@ -96,7 +96,7 @@ impl ValidationData<'_> {
           let func_ident = format_ident!("{}_lt", proto_type_name);
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lt, #error_message) };
-          tokens.extend(self.get_validator_tokens(&expr));
+          self.get_validator_tokens(tokens, &expr);
         }
         ComparableLessThan::Lte {
           val: lte,
@@ -105,7 +105,7 @@ impl ValidationData<'_> {
           let func_ident = format_ident!("{}_lte", proto_type_name);
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lte, #error_message) };
-          tokens.extend(self.get_validator_tokens(&expr));
+          self.get_validator_tokens(tokens, &expr);
         }
       };
     }
@@ -119,7 +119,7 @@ impl ValidationData<'_> {
           let func_ident = format_ident!("{}_gt", proto_type_name);
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gt, #error_message) };
-          tokens.extend(self.get_validator_tokens(&expr));
+          self.get_validator_tokens(tokens, &expr);
         }
         ComparableGreaterThan::Gte {
           val: gte,
@@ -128,7 +128,7 @@ impl ValidationData<'_> {
           let func_ident = format_ident!("{}_gte", proto_type_name);
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gte, #error_message) };
-          tokens.extend(self.get_validator_tokens(&expr));
+          self.get_validator_tokens(tokens, &expr);
         }
       };
     }
@@ -154,12 +154,11 @@ impl ValidationData<'_> {
         tokens: list_tokens,
       } => {
         let func_path = format_ident!("{}_{}_slice_list", proto_type_name, rule_name);
-        let validator_expression_tokens = quote! {
+        let expr = quote! {
           #module_path::#func_path(&#field_context_ident, #value_ident, &#list_tokens, #error_message)
         };
 
-        let validator_tokens = self.get_validator_tokens(&validator_expression_tokens);
-        tokens.extend(validator_tokens);
+        self.get_validator_tokens(tokens, &expr);
       }
       ItemList::HashSet {
         error_message,
@@ -170,12 +169,11 @@ impl ValidationData<'_> {
 
         static_defs.push(hashset_tokens);
 
-        let validator_expression_tokens = quote! {
+        let expr = quote! {
           #module_path::#func_path(&#field_context_ident, #value_ident, &#static_ident, #error_message)
         };
 
-        let validator_tokens = self.get_validator_tokens(&validator_expression_tokens);
-        tokens.extend(validator_tokens);
+        self.get_validator_tokens(tokens, &expr);
       }
     };
   }
@@ -375,9 +373,9 @@ impl ValidationData<'_> {
 
     let ConstRule { val, error_message } = rule;
 
-    let validator_expression_tokens = quote! { ::protocheck::validators::constants::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
+    let expr = quote! { ::protocheck::validators::constants::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
 
-    tokens.extend(self.get_validator_tokens(&validator_expression_tokens));
+    self.get_validator_tokens(tokens, &expr);
   }
 
   pub fn get_message_field_validator_tokens(&self, field_kind: FieldKind) -> TokenStream {
@@ -504,15 +502,19 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_validator_tokens(&self, validator_expression_tokens: &TokenStream) -> TokenStream {
+  pub fn get_validator_tokens(
+    &self,
+    tokens: &mut TokenStream,
+    validator_expression_tokens: &TokenStream,
+  ) {
     let violations_ident = &self.violations_ident;
 
-    quote! {
+    tokens.extend(quote! {
       match #validator_expression_tokens {
         Ok(_) => {}
         Err(v) => #violations_ident.push(v)
       };
-    }
+    });
   }
 
   pub fn is_option(&self) -> bool {

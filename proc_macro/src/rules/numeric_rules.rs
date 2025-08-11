@@ -42,9 +42,6 @@ where
     .num_containing_rules(validation_data.full_name)
     .map_err(|invalid_items| invalid_lists_error(field_span, &error_prefix, &invalid_items))?;
 
-  let field_context_ident = &validation_data.field_context_ident();
-  let value_ident = validation_data.value_ident();
-
   if let Some(in_list) = in_list_rule {
     validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
   };
@@ -54,12 +51,13 @@ where
   }
 
   if let Some(func_tokens) = rules.finite() {
+    let field_context_ident = &validation_data.field_context_ident();
+    let value_ident = validation_data.value_ident();
+
     let validator_expression_tokens = quote! {
       #func_tokens(&#field_context_ident, #value_ident)
     };
-    let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
-
-    tokens.extend(validator_tokens);
+    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   Ok(tokens)

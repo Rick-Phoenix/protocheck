@@ -105,9 +105,7 @@ pub fn get_map_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident.len(), #min_pairs_value, #error_message)
       };
-      let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
-
-      map_level_rules.extend(validator_tokens);
+      map_validation_data.get_validator_tokens(&mut map_level_rules, &validator_expression_tokens);
     }
 
     if let Some(max_pairs_value) = map_rules.max_pairs {
@@ -123,9 +121,7 @@ pub fn get_map_rules(
       let validator_expression_tokens = quote! {
         protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident.len(), #max_pairs_value, #error_message)
       };
-      let validator_tokens = map_validation_data.get_validator_tokens(&validator_expression_tokens);
-
-      map_level_rules.extend(validator_tokens);
+      map_validation_data.get_validator_tokens(&mut map_level_rules, &validator_expression_tokens);
     }
 
     if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {

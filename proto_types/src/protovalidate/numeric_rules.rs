@@ -23,7 +23,6 @@ where
   HashableType: Debug + Copy + ToTokens + Eq + PartialOrd + Hash,
 {
   type Unit: ToTokens + PartialEq + PartialOrd + Debug + Display;
-  const UNIT_NAME: &'static str;
   fn constant(&self) -> Option<ConstRule<Self::Unit>>;
   fn num_containing_rules(&self, field_full_name: &str)
     -> Result<ContainingRules, Vec<Self::Unit>>;
@@ -37,7 +36,6 @@ where
 
 impl NumericRules<u32> for FloatRules {
   type Unit = f32;
-  const UNIT_NAME: &'static str = "float";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -138,7 +136,6 @@ impl NumericRules<u32> for FloatRules {
 
 impl NumericRules<u64> for DoubleRules {
   type Unit = f64;
-  const UNIT_NAME: &'static str = "double";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -238,7 +235,6 @@ impl NumericRules<u64> for DoubleRules {
 
 impl NumericRules<i64> for Int64Rules {
   type Unit = i64;
-  const UNIT_NAME: &'static str = "int64";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -267,7 +263,6 @@ impl NumericRules<i64> for Int64Rules {
 
 impl NumericRules<i64> for SInt64Rules {
   type Unit = i64;
-  const UNIT_NAME: &'static str = "sint64";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -296,7 +291,6 @@ impl NumericRules<i64> for SInt64Rules {
 
 impl NumericRules<i64> for SFixed64Rules {
   type Unit = i64;
-  const UNIT_NAME: &'static str = "sfixed64";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -325,7 +319,6 @@ impl NumericRules<i64> for SFixed64Rules {
 
 impl NumericRules<i32> for Int32Rules {
   type Unit = i32;
-  const UNIT_NAME: &'static str = "int32";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -354,7 +347,6 @@ impl NumericRules<i32> for Int32Rules {
 
 impl NumericRules<i32> for SInt32Rules {
   type Unit = i32;
-  const UNIT_NAME: &'static str = "sint32";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -383,7 +375,6 @@ impl NumericRules<i32> for SInt32Rules {
 
 impl NumericRules<i32> for SFixed32Rules {
   type Unit = i32;
-  const UNIT_NAME: &'static str = "sfixed32";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -412,7 +403,6 @@ impl NumericRules<i32> for SFixed32Rules {
 
 impl NumericRules<u64> for UInt64Rules {
   type Unit = u64;
-  const UNIT_NAME: &'static str = "uint64";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -441,7 +431,6 @@ impl NumericRules<u64> for UInt64Rules {
 
 impl NumericRules<u64> for Fixed64Rules {
   type Unit = u64;
-  const UNIT_NAME: &'static str = "fixed64";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -470,7 +459,6 @@ impl NumericRules<u64> for Fixed64Rules {
 
 impl NumericRules<u32> for UInt32Rules {
   type Unit = u32;
-  const UNIT_NAME: &'static str = "uint32";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
@@ -499,7 +487,6 @@ impl NumericRules<u32> for UInt32Rules {
 
 impl NumericRules<u32> for Fixed32Rules {
   type Unit = u32;
-  const UNIT_NAME: &'static str = "fixed32";
 
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
