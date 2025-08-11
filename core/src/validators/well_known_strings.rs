@@ -81,26 +81,9 @@ pub(crate) use regex::*;
 
 #[cfg(feature = "ip")]
 pub(crate) mod ip {
-  use std::{net::IpAddr, str::FromStr};
+  use std::str::FromStr;
 
   use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-
-  use crate::validators::well_known_strings::is_valid_hostname;
-  pub(crate) fn is_valid_ip(s: &str) -> bool {
-    s.parse::<IpAddr>().is_ok()
-  }
-
-  pub(crate) fn is_valid_ipv4(s: &str) -> bool {
-    s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv4())
-  }
-
-  pub(crate) fn is_valid_ipv6(s: &str) -> bool {
-    s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv6())
-  }
-
-  pub(crate) fn is_valid_address(s: &str) -> bool {
-    is_valid_hostname(s) || is_valid_ip(s)
-  }
 
   pub(crate) fn is_valid_ip_prefix(s: &str) -> bool {
     match IpNetwork::from_str(s) {
@@ -139,6 +122,22 @@ pub(crate) mod ip {
   pub(crate) fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
     Ipv6Network::from_str(s).is_ok()
   }
+}
+
+pub(crate) fn is_valid_ip(s: &str) -> bool {
+  s.parse::<IpAddr>().is_ok()
+}
+
+pub(crate) fn is_valid_ipv4(s: &str) -> bool {
+  s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv4())
+}
+
+pub(crate) fn is_valid_ipv6(s: &str) -> bool {
+  s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv6())
+}
+
+pub(crate) fn is_valid_address(s: &str) -> bool {
+  is_valid_hostname(s) || is_valid_ip(s)
 }
 
 pub(crate) fn is_valid_hostname(hostname: &str) -> bool {
@@ -220,41 +219,36 @@ pub(crate) fn is_valid_host_and_port(s: &str) -> bool {
 #[cfg(test)]
 mod test {
   use crate::validators::well_known_strings::{
-    ip::*, is_valid_email, is_valid_host_and_port, is_valid_hostname, is_valid_http_header_name,
-    is_valid_http_header_value, is_valid_tuuid, is_valid_uri, is_valid_uuid,
+    is_valid_address, is_valid_host_and_port, is_valid_hostname, is_valid_ip, is_valid_ipv4,
+    is_valid_ipv6,
   };
 
+  #[cfg(feature = "uri")]
   #[test]
-  fn network_identifiers() {
-    assert!(is_valid_hostname("obiwan.force.com"));
-    assert!(!is_valid_hostname("-anakin.darkforce.com"));
-    assert!(!is_valid_hostname("anakin.darkforce.com-"));
-    assert!(!is_valid_hostname("anakin.darkforce.0"));
+  fn uris() {
+    use crate::validators::well_known_strings::is_valid_uri;
 
     assert!(is_valid_uri(
       "https://middleeathtracker.com/hobbits?location=isengard"
     ));
+
     assert!(!is_valid_uri(
       "https://middleeathtracker.com/hobbits?location isengard"
     ));
+  }
 
-    let ipv4 = "192.168.1.1";
+  #[cfg(feature = "ip")]
+  #[test]
+  fn name() {
+    use crate::validators::well_known_strings::ip::{
+      is_valid_ip_prefix, is_valid_ip_with_prefixlen, is_valid_ipv4_prefix,
+      is_valid_ipv4_with_prefixlen, is_valid_ipv6_prefix, is_valid_ipv6_with_prefixlen,
+    };
+
     let ipv4_prefix = "192.168.0.0/16";
     let ipv4_with_prefixlen = "192.168.1.1/16";
-    let ipv6 = "2a01:c23:7b6d:a900:1de7:5cbe:d8d2:f4a1";
     let ipv6_prefix = "2a01:c00::/24";
     let ipv6_with_prefixlen = "2a01:c23:7b6d:a900:1de7:5cbe:d8d2:f4a1/24";
-
-    assert!(is_valid_ip(ipv4));
-    assert!(is_valid_ip(ipv6));
-    assert!(is_valid_ipv4(ipv4));
-    assert!(!is_valid_ipv4(ipv6));
-    assert!(is_valid_ipv6(ipv6));
-    assert!(!is_valid_ipv6(ipv4));
-
-    assert!(is_valid_address("obiwan.force.com"));
-    assert!(is_valid_address(ipv4));
-    assert!(is_valid_address(ipv6));
 
     assert!(is_valid_ip_with_prefixlen(ipv4_with_prefixlen));
     assert!(is_valid_ip_with_prefixlen(ipv6_with_prefixlen));
@@ -271,6 +265,23 @@ mod test {
     assert!(is_valid_ipv6_prefix(ipv6_prefix));
     assert!(!is_valid_ipv6_prefix(ipv4_prefix));
     assert!(!is_valid_ipv6_prefix(ipv6_with_prefixlen));
+  }
+
+  #[test]
+  fn network_identifiers() {
+    let ipv4 = "192.168.1.1";
+    let ipv6 = "2a01:c23:7b6d:a900:1de7:5cbe:d8d2:f4a1";
+
+    assert!(is_valid_ip(ipv4));
+    assert!(is_valid_ip(ipv6));
+    assert!(is_valid_ipv4(ipv4));
+    assert!(!is_valid_ipv4(ipv6));
+    assert!(is_valid_ipv6(ipv6));
+    assert!(!is_valid_ipv6(ipv4));
+
+    assert!(is_valid_address("obiwan.force.com"));
+    assert!(is_valid_address(ipv4));
+    assert!(is_valid_address(ipv6));
 
     assert!(is_valid_host_and_port("obiwan.force:8080"));
     assert!(is_valid_host_and_port("192.168.1.120:3000"));
@@ -279,10 +290,18 @@ mod test {
     assert!(!is_valid_host_and_port("obiwan.force"));
     assert!(!is_valid_host_and_port("192.168.1.120"));
     assert!(!is_valid_host_and_port("2001:0DB8:ABCD:0012::F1"));
+
+    assert!(is_valid_hostname("obiwan.force.com"));
+    assert!(!is_valid_hostname("-anakin.darkforce.com"));
+    assert!(!is_valid_hostname("anakin.darkforce.com-"));
+    assert!(!is_valid_hostname("anakin.darkforce.0"));
   }
 
+  #[cfg(feature = "regex")]
   #[test]
   fn identifiers() {
+    use crate::validators::well_known_strings::{is_valid_email, is_valid_tuuid, is_valid_uuid};
+
     assert!(is_valid_email("obiwan@force.com"));
     assert!(!is_valid_email("anakin@dark@force.com"));
 
@@ -293,8 +312,13 @@ mod test {
     assert!(!is_valid_tuuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"))
   }
 
+  #[cfg(feature = "regex")]
   #[test]
   fn headers() {
+    use crate::validators::well_known_strings::{
+      is_valid_http_header_name, is_valid_http_header_value,
+    };
+
     assert!(is_valid_http_header_name("content-type", true));
     assert!(is_valid_http_header_name(":authority", true));
 

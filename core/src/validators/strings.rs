@@ -103,13 +103,9 @@ well_known_rule!(uri, "uri");
 #[cfg(feature = "uri")]
 well_known_rule!(uri_ref, "URI reference");
 
-#[cfg(feature = "ip")]
 well_known_rule!(address, "hostname or ip address");
-#[cfg(feature = "ip")]
 well_known_rule!(ip, "ip address");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv4, "ipv4 address");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv6, "ipv6 address");
 #[cfg(feature = "ip")]
 well_known_rule!(ip_prefix, "ip prefix");

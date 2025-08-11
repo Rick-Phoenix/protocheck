@@ -10,4 +10,4 @@ prost-reflect = { workspace = true }
 [features]
 cel = []
 
-default = []
+default = ["cel"]

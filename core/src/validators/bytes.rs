@@ -1,9 +1,9 @@
 use bytes::Bytes;
 use paste::paste;
+#[cfg(feature = "regex")]
 use regex::Regex;
 
-#[cfg(feature = "ip")]
-use super::well_known_strings::ip::*;
+use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
@@ -22,7 +22,6 @@ macro_rules! create_bytes_violation {
   };
 }
 
-#[cfg(feature = "ip")]
 macro_rules! well_known_rule {
   (
     $name:ident,
@@ -70,15 +69,13 @@ macro_rules! bytes_validator {
   };
 }
 
-#[cfg(feature = "ip")]
 well_known_rule!(ip, "ip address");
 
-#[cfg(feature = "ip")]
 well_known_rule!(ipv4, "ipv4 address");
 
-#[cfg(feature = "ip")]
 well_known_rule!(ipv6, "ipv6 address");
 
+#[cfg(feature = "regex")]
 bytes_validator!(string_arg, pattern, &Regex, |t: &Regex, s: &str| t
   .is_match(s));
 

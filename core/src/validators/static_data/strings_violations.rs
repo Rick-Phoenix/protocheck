@@ -283,7 +283,6 @@ pub(crate) static STRING_HOSTNAME_VIOLATION: LazyLock<Vec<FieldPathElement>> =
     ]
   });
 
-#[cfg(feature = "ip")]
 pub(crate) static STRING_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -305,7 +304,6 @@ pub(crate) static STRING_IP_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLoc
   ]
 });
 
-#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -327,7 +325,6 @@ pub(crate) static STRING_IPV4_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyL
   ]
 });
 
-#[cfg(feature = "ip")]
 pub(crate) static STRING_IPV6_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
@@ -393,7 +390,6 @@ pub(crate) static STRING_URI_REF_VIOLATION: LazyLock<Vec<FieldPathElement>> = La
   ]
 });
 
-#[cfg(feature = "ip")]
 pub(crate) static STRING_ADDRESS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
