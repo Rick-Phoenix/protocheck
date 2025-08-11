@@ -19,7 +19,7 @@ use crate::{
 
 pub fn get_repeated_rules(
   validation_data: &ValidationData,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_rules: &FieldRules,

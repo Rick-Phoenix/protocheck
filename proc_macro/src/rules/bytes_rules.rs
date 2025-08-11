@@ -17,7 +17,7 @@ use crate::{
 pub fn get_bytes_rules(
   validation_data: &ValidationData,
   rules: &BytesRules,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 
@@ -55,7 +55,7 @@ pub fn get_bytes_rules(
     })?;
 
     let static_regex_ident = format_ident!("__{}_REGEX", validation_data.static_full_name());
-    static_defs.push(quote! {
+    static_defs.extend(quote! {
       static #static_regex_ident: ::std::sync::LazyLock<regex::Regex> = ::std::sync::LazyLock::new(|| {
         ::regex::Regex::new(#pattern).unwrap()
       });

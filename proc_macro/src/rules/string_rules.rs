@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn get_string_rules(
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
   rules: &StringRules,
@@ -63,7 +63,7 @@ pub fn get_string_rules(
       field_desc.full_name().replace(".", "_").to_uppercase()
     );
 
-    static_defs.push(quote! {
+    static_defs.extend(quote! {
       static #static_regex_ident: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
         regex::Regex::new(#pattern).unwrap()
       });

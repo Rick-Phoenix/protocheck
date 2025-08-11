@@ -19,7 +19,7 @@ use crate::{
 
 pub fn get_map_rules(
   validation_data: ValidationData,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
   field_rules: &FieldRules,

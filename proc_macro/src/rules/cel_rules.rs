@@ -30,7 +30,7 @@ mod cel {
   pub fn get_cel_rules(
     rule_target: &CelRuleTemplateTarget,
     rules: &[Rule],
-    static_defs: &mut Vec<TokenStream>,
+    static_defs: &mut TokenStream,
   ) -> Result<TokenStream, Error> {
     let mut tokens = TokenStream::new();
 
@@ -85,7 +85,7 @@ mod cel {
               validation_type, target_name,
             );
 
-            static_defs.push(quote! {
+            static_defs.extend(quote! {
             static #static_program_ident: std::sync::LazyLock<::cel::Program> = std::sync::LazyLock::new(|| {
               ::cel::Program::compile(#expression).expect(#compilation_error)
             });

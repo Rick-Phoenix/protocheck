@@ -13,7 +13,7 @@ use crate::{
 pub fn get_numeric_rules<HashableType, T: NumericRules<HashableType>>(
   validation_data: &ValidationData,
   rules: &T,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
 ) -> Result<TokenStream, Error>
 where
   HashableType: Debug + Copy + ToTokens + Eq + PartialOrd + Hash,

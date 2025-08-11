@@ -41,7 +41,7 @@ struct OneofField {
 #[derive(Debug)]
 pub struct OneofValidatorsOutput {
   pub validators: HashMap<Ident, TokenStream>,
-  pub static_defs: Vec<TokenStream>,
+  pub static_defs: TokenStream,
 }
 
 pub fn extract_oneof_validators(
@@ -50,7 +50,7 @@ pub fn extract_oneof_validators(
 ) -> Result<OneofValidatorsOutput, Error> {
   let mut validators: HashMap<Ident, TokenStream> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
-  let mut static_defs: Vec<TokenStream> = Vec::new();
+  let mut static_defs: TokenStream = TokenStream::new();
 
   let oneof_proto_name = &oneof_desc.name();
 
@@ -224,9 +224,9 @@ pub fn extract_oneof_validators(
 pub fn extract_message_validators(
   input_tokens: &DeriveInput,
   message_desc: &MessageDescriptor,
-) -> Result<(TokenStream, Vec<TokenStream>), Error> {
+) -> Result<(TokenStream, TokenStream), Error> {
   let mut validators: TokenStream = TokenStream::new();
-  let mut static_defs: Vec<TokenStream> = Vec::new();
+  let mut static_defs: TokenStream = TokenStream::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
   let mut rust_enum_paths: HashMap<String, String> = HashMap::new();

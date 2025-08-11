@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn get_field_rules(
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,

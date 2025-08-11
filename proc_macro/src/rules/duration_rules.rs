@@ -10,7 +10,7 @@ use crate::{
 pub fn get_duration_rules(
   validation_data: &ValidationData,
   rules: &DurationRules,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 

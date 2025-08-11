@@ -10,7 +10,7 @@ use crate::{
 pub fn get_any_rules(
   validation_data: &ValidationData,
   rules: &AnyRules,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 

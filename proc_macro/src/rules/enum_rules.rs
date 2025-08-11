@@ -17,7 +17,7 @@ pub fn get_enum_rules(
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   rules: &EnumRules,
-  static_defs: &mut Vec<TokenStream>,
+  static_defs: &mut TokenStream,
 ) -> Result<TokenStream, Error> {
   let mut tokens = TokenStream::new();
 

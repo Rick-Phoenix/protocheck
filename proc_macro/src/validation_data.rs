@@ -139,7 +139,7 @@ impl ValidationData<'_> {
     rule_type: ListRule,
     tokens: &mut TokenStream,
     list: ItemList,
-    static_defs: &mut Vec<TokenStream>,
+    static_defs: &mut TokenStream,
   ) {
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
@@ -167,7 +167,7 @@ impl ValidationData<'_> {
       } => {
         let func_path = format_ident!("{}_{}_hashset_list", proto_type_name, rule_name);
 
-        static_defs.push(hashset_tokens);
+        static_defs.extend(hashset_tokens);
 
         let expr = quote! {
           #module_path::#func_path(&#field_context_ident, #value_ident, &#static_ident, #error_message)
