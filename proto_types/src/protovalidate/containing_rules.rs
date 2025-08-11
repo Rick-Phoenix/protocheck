@@ -13,6 +13,21 @@ use crate::{
   Duration,
 };
 
+#[derive(Debug, Clone)]
+pub enum ItemList<'a, T>
+where
+  T: Debug + ToTokens + Eq,
+{
+  Slice {
+    stringified_list: &'a str,
+    items: &'a [T],
+  },
+  HashSet {
+    stringified_list: &'a str,
+    items: HashSet<T>,
+  },
+}
+
 pub struct ContainingRules<T>
 where
   T: Debug + ToTokens + Eq + Hash,

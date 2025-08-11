@@ -94,7 +94,7 @@ pub fn get_string_rules(
     let error_message = format!("must be one of these values: [ {} ]", in_list_str);
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_in_list(&#field_context_ident, &#value_ident, &#in_list_ident, #error_message)
+      protocheck::validators::containing::string_in_hashset_list(&#field_context_ident, &#value_ident, &#in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);
@@ -116,7 +116,7 @@ pub fn get_string_rules(
     let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::containing::string_not_in_list(&#field_context_ident, &#value_ident, &#not_in_list_ident, #error_message)
+      protocheck::validators::containing::string_not_in_hashset_list(&#field_context_ident, &#value_ident, &#not_in_list_ident, #error_message)
     };
 
     let validator_tokens = validation_data.get_validator_tokens(&validator_expression_tokens);

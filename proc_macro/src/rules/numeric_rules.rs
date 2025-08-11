@@ -58,7 +58,7 @@ where
       });
     });
 
-    let func_ident = get_func_ident("in_list");
+    let func_ident = get_func_ident("in_hashset_list");
     let error_message = format!("must be one of these values: [ {} ]", in_list_str);
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
@@ -87,7 +87,7 @@ where
       });
     });
 
-    let func_ident = get_func_ident("not_in_list");
+    let func_ident = get_func_ident("not_in_hashset_list");
     let error_message = format!("cannot be one of these values: [ {} ]", not_in_list_str);
 
     let validator_expression_tokens = match validation_data.field_kind.inner_type() {
