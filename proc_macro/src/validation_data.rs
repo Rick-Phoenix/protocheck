@@ -3,6 +3,7 @@ use std::{
   fmt::{Debug, Display},
 };
 
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
 use proto_types::{
@@ -75,7 +76,11 @@ impl ListRule {
 
 impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
-    self.full_name.to_string().replace(".", "_").to_uppercase()
+    self
+      .full_name
+      .to_case(Case::Snake)
+      .replace(".", "_")
+      .to_uppercase()
   }
 
   pub fn get_substring_validator(&self, tokens: &mut TokenStream, rules: SubstringRules) {

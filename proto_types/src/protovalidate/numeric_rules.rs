@@ -71,7 +71,7 @@ impl NumericRules<u32> for FloatRules {
         let static_ident = format_ident!("__{}_IN_LIST", field_full_name);
         ItemList::HashSet {
           error_message,
-          tokens: hashset_to_tokens(in_list_hashset, &quote! { u32 }, &static_ident),
+          tokens: hashset_to_tokens(in_list_hashset, quote! { u32 }, &static_ident),
           static_ident,
         }
       } else {
@@ -96,7 +96,7 @@ impl NumericRules<u32> for FloatRules {
         let static_ident = format_ident!("__{}_NOT_IN_LIST", field_full_name);
         ItemList::HashSet {
           error_message,
-          tokens: hashset_to_tokens(not_in_list_hashset, &quote! { u32 }, &static_ident),
+          tokens: hashset_to_tokens(not_in_list_hashset, quote! { u32 }, &static_ident),
           static_ident,
         }
       } else {
@@ -172,7 +172,7 @@ impl NumericRules<u64> for DoubleRules {
         let static_ident = format_ident!("__{}_IN_LIST", field_full_name);
         ItemList::HashSet {
           error_message,
-          tokens: hashset_to_tokens(in_list_hashset, &quote! { u64 }, &static_ident),
+          tokens: hashset_to_tokens(in_list_hashset, quote! { u64 }, &static_ident),
           static_ident,
         }
       } else {
@@ -197,7 +197,7 @@ impl NumericRules<u64> for DoubleRules {
         let static_ident = format_ident!("__{}_NOT_IN_LIST", field_full_name);
         ItemList::HashSet {
           error_message,
-          tokens: hashset_to_tokens(not_in_list_hashset, &quote! { u64 }, &static_ident),
+          tokens: hashset_to_tokens(not_in_list_hashset, quote! { u64 }, &static_ident),
           static_ident,
         }
       } else {

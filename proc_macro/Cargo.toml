@@ -18,6 +18,7 @@ proto_types = { path = "../proto_types/", features = [
   "totokens",
 ] }
 protocheck_core = { path = "../core/", features = ["totokens"] }
+convert_case = { workspace = true }
 
 [features]
 cel = ["protocheck_core/cel", "proto_types/cel", "dep:cel"]

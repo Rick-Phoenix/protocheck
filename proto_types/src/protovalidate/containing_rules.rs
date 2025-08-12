@@ -58,37 +58,6 @@ where
     .join(", ")
 }
 
-pub(crate) fn hashset_to_tokens<T>(
-  hashset: HashSet<T>,
-  type_tokens: &TokenStream,
-  static_ident: &Ident,
-) -> TokenStream
-where
-  T: ToTokens,
-{
-  let set_ident = Ident::new("set", Span::call_site());
-
-  let mut hashset_tokens = quote! {
-    let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
-  };
-
-  for item in hashset {
-    hashset_tokens.extend(quote! {
-      #set_ident.insert(#item);
-    });
-  }
-
-  hashset_tokens.extend(quote! {
-    #set_ident
-  });
-
-  quote! {
-    static #static_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
-      #hashset_tokens
-    });
-  }
-}
-
 pub(crate) fn get_list_kind<T, Hashable>(
   rule_name: &str,
   slice: &[T],
@@ -121,7 +90,7 @@ where
 
       Some(ItemList::HashSet {
         error_message,
-        tokens: hashset_to_tokens(set, &type_tokens, &static_ident),
+        tokens: hashset_to_tokens(set, type_tokens, &static_ident),
         static_ident,
       })
     } else {
@@ -312,14 +281,48 @@ where
   Ok((in_list_hashset, not_in_list_hashset))
 }
 
+fn wrap_hashset_tokens(
+  set_ident: Ident,
+  hashset_tokens: TokenStream,
+  type_tokens: TokenStream,
+  static_ident: &Ident,
+) -> TokenStream {
+  quote! {
+    static #static_ident: ::std::sync::LazyLock<std::collections::HashSet<#type_tokens>> = ::std::sync::LazyLock::new(||{
+      let mut #set_ident: ::std::collections::HashSet<#type_tokens> = ::std::collections::HashSet::new();
+      #hashset_tokens
+      #set_ident
+    });
+  }
+}
+
+pub(crate) fn hashset_to_tokens<T>(
+  hashset: HashSet<T>,
+  type_tokens: TokenStream,
+  static_ident: &Ident,
+) -> TokenStream
+where
+  T: ToTokens,
+{
+  let set_ident = Ident::new("set", Span::call_site());
+
+  let mut hashset_tokens = TokenStream::new();
+
+  for item in hashset {
+    hashset_tokens.extend(quote! {
+      #set_ident.insert(#item);
+    });
+  }
+
+  wrap_hashset_tokens(set_ident, hashset_tokens, type_tokens, static_ident)
+}
+
 pub(crate) fn byte_lit_hashset_to_tokens(
   hashset: HashSet<LitByteStr>,
   static_ident: &Ident,
 ) -> TokenStream {
   let set_ident = Ident::new("set", Span::call_site());
-  let mut hashset_tokens = quote! {
-    let mut #set_ident: ::std::collections::HashSet<::bytes::Bytes> = ::std::collections::HashSet::new();
-  };
+  let mut hashset_tokens = TokenStream::new();
 
   for item in hashset {
     hashset_tokens.extend(quote! {
@@ -327,13 +330,10 @@ pub(crate) fn byte_lit_hashset_to_tokens(
     });
   }
 
-  hashset_tokens.extend(quote! {
-    #set_ident
-  });
-
-  quote! {
-    static #static_ident: ::std::sync::LazyLock<std::collections::HashSet<::bytes::Bytes>> = ::std::sync::LazyLock::new(||{
-      #hashset_tokens
-    });
-  }
+  wrap_hashset_tokens(
+    set_ident,
+    hashset_tokens,
+    quote! { ::bytes::Bytes },
+    static_ident,
+  )
 }

@@ -16,6 +16,7 @@ mod cel {
   use std::{collections::HashMap, sync::Arc};
 
   use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
+  use convert_case::{Case, Casing};
   use proc_macro2::TokenStream;
   use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
   use proto_types::{Duration, Empty, FieldMask, FieldType, Timestamp};
@@ -76,7 +77,11 @@ mod cel {
             let rule_id = rule.id().to_string();
 
             let static_program_ident = Ident2::new(
-              &format!("__CEL_PROGRAM_{}_{}", target_name.to_uppercase(), index),
+              &format!(
+                "__CEL_PROGRAM_{}_{}",
+                target_name.to_case(Case::UpperSnake),
+                index
+              ),
               Span2::call_site(),
             );
 
