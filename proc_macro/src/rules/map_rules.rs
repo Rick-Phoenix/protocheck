@@ -2,7 +2,6 @@ use proc_macro2::TokenStream;
 use prost_reflect::{FieldDescriptor, Kind};
 use proto_types::{protovalidate::FieldRules, FieldType};
 use protocheck_core::field_data::FieldKind;
-use quote::quote;
 use syn::Error;
 
 #[cfg(not(feature = "cel"))]
@@ -13,7 +12,7 @@ use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_message,
-  rules::core::{convert_kind_to_proto_type, get_field_rules, get_field_type},
+  rules::core::{convert_kind_to_proto_type, get_field_error, get_field_rules, get_field_type},
   validation_data::{MapValidator, ValidationData},
 };
 
@@ -29,8 +28,8 @@ pub fn get_map_rules(
   let mut keys_rules = TokenStream::new();
   let mut values_rules = TokenStream::new();
 
-  let map_field_span = map_validation_data.field_span;
-  let error_prefix = format!("Error for field {}:", map_validation_data.full_name);
+  let field_span = map_validation_data.field_span;
+  let field_name = map_validation_data.full_name;
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -39,26 +38,23 @@ pub fn get_map_rules(
       map_entry_message_desc.get_field_by_name("value"),
     )
   } else {
-    return Err(Error::new(
-      map_field_span,
-      format!(
-        "{} map field has no associated map entry message descriptor.",
-        error_prefix
-      ),
+    return Err(get_field_error(
+      field_name,
+      field_span,
+      "map field has no associated map entry message descriptor",
     ));
   };
 
   let (key_desc, value_desc) = (
-    key_desc.ok_or(Error::new(
-      map_field_span,
-      format!("{} map entry missing 'key' field descriptor", error_prefix),
+    key_desc.ok_or(get_field_error(
+      field_name,
+      field_span,
+      "map entry missing 'key' field descriptor",
     ))?,
-    value_desc.ok_or(Error::new(
-      map_field_span,
-      format!(
-        "{} map entry missing 'value' field descriptor",
-        error_prefix
-      ),
+    value_desc.ok_or(get_field_error(
+      field_name,
+      field_span,
+      "map entry missing 'value' field descriptor",
     ))?,
   );
 
@@ -84,52 +80,12 @@ pub fn get_map_rules(
   }
 
   if let Some(RulesType::Map(map_rules)) = field_rules.r#type.as_ref() {
-    let mut min_pairs: Option<u64> = None;
-    let mut max_pairs: Option<u64> = None;
+    let length_rules = map_rules
+      .length_rules()
+      .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
-    let field_context_ident = &map_validation_data.field_context_ident();
-    let value_ident = map_validation_data.value_ident();
-
-    if let Some(min_pairs_value) = map_rules.min_pairs {
-      min_pairs = Some(min_pairs_value);
-
-      let plural_suffix = if min_pairs_value != 1 { "s" } else { "" };
-
-      let error_message = format!(
-        "must contain at least {:?} key-value pair{}",
-        min_pairs_value, plural_suffix
-      );
-
-      let validator_expression_tokens = quote! {
-        protocheck::validators::maps::min_pairs(&#field_context_ident, #value_ident.len(), #min_pairs_value, #error_message)
-      };
-      map_validation_data.get_validator_tokens(&mut map_level_rules, &validator_expression_tokens);
-    }
-
-    if let Some(max_pairs_value) = map_rules.max_pairs {
-      max_pairs = Some(max_pairs_value);
-
-      let plural_suffix = if max_pairs_value != 1 { "s" } else { "" };
-
-      let error_message = format!(
-        "cannot contain more than {:?} key-value pair{}",
-        max_pairs_value, plural_suffix
-      );
-
-      let validator_expression_tokens = quote! {
-        protocheck::validators::maps::max_pairs(&#field_context_ident, #value_ident.len(), #max_pairs_value, #error_message)
-      };
-      map_validation_data.get_validator_tokens(&mut map_level_rules, &validator_expression_tokens);
-    }
-
-    if min_pairs.is_some() && max_pairs.is_some() && min_pairs.unwrap() > max_pairs.unwrap() {
-      return Err(syn::Error::new(
-        map_field_span,
-        format!(
-          "{} map.min_pairs cannot be larger than map.max_pairs",
-          error_prefix
-        ),
-      ));
+    if length_rules.has_rule() {
+      map_validation_data.get_length_validator(&mut map_level_rules, length_rules);
     }
 
     if let Some(keys_rules_descriptor) = map_rules.keys.as_ref() {

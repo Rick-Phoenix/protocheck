@@ -8,13 +8,17 @@ use prost_reflect::FieldDescriptor;
 use proto_types::{
   protovalidate::{
     ComparableGreaterThan, ComparableLessThan, ComparableRules, ConstRule, Ignore, ItemList,
+    LengthRules, SubstringRule, SubstringRules,
   },
   FieldType,
 };
 use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote, ToTokens};
 
-use crate::{rules::core::get_field_type, Ident2, ProtoType, Span2};
+use crate::{
+  rules::core::{get_field_type, get_plural_suffix},
+  Ident2, ProtoType, Span2,
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData<'a> {
@@ -78,6 +82,140 @@ impl ListRule {
 impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
     self.full_name.to_string().replace(".", "_").to_uppercase()
+  }
+
+  pub fn get_substring_validator(&self, tokens: &mut TokenStream, rules: SubstringRules) {
+    let value_ident = self.value_ident();
+    let field_context_ident = self.field_context_ident();
+    let validator_type_ident = format_ident!("{}", self.field_kind.inner_type().name());
+
+    if let Some(contains) = rules.contains {
+      let SubstringRule {
+        error_message,
+        val_tokens,
+      } = contains;
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::contains(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+
+    if let Some(not_contains) = rules.not_contains {
+      let SubstringRule {
+        error_message,
+        val_tokens,
+      } = not_contains;
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::not_contains(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+
+    if let Some(prefix) = rules.prefix {
+      let SubstringRule {
+        error_message,
+        val_tokens,
+      } = prefix;
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::prefix(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+
+    if let Some(suffix) = rules.suffix {
+      let SubstringRule {
+        error_message,
+        val_tokens,
+      } = suffix;
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::suffix(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+  }
+
+  pub fn get_length_validator(&self, tokens: &mut TokenStream, rules: LengthRules) {
+    let value_ident = self.value_ident();
+    let field_context_ident = self.field_context_ident();
+    let validator_type_ident = format_ident!("{}", rules.name());
+    let unit = rules.unit();
+
+    if let Some(len) = rules.len {
+      let error_message = format!(
+        "must be exactly {} {}{} long",
+        len,
+        unit,
+        get_plural_suffix(len)
+      );
+      let func_name = format_ident!("{}", rules.len_name());
+
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #len, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+
+    if let Some(min_len) = rules.min_len {
+      let error_message = format!(
+        "must contain at least {} {}{}",
+        min_len,
+        unit,
+        get_plural_suffix(min_len)
+      );
+      let func_name = format_ident!("{}", rules.min_len_name());
+
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #min_len, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+
+    if let Some(max_len) = rules.max_len {
+      let error_message = format!(
+        "cannot contain more than {} {}{}",
+        max_len,
+        unit,
+        get_plural_suffix(max_len)
+      );
+      let func_name = format_ident!("{}", rules.max_len_name());
+
+      let expr = quote! {
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #max_len, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
+  }
+
+  pub fn get_regex_validator(
+    &self,
+    tokens: &mut TokenStream,
+    static_defs: &mut TokenStream,
+    regex: &str,
+  ) {
+    let value_ident = self.value_ident();
+    let field_context_ident = self.field_context_ident();
+
+    let static_regex_ident = format_ident!("__{}_REGEX", self.static_full_name());
+    static_defs.extend(quote! {
+      static #static_regex_ident: ::std::sync::LazyLock<::regex::Regex> = ::std::sync::LazyLock::new(|| {
+        ::regex::Regex::new(#regex).unwrap()
+      });
+    });
+
+    let validator_type_ident = format_ident!("{}", self.field_kind.inner_type().name());
+    let error_message = format!("must match the following regex: `{}`", regex);
+
+    let validator_expression_tokens = quote! {
+      ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident, #error_message)
+    };
+    self.get_validator_tokens(tokens, &validator_expression_tokens);
   }
 
   pub fn get_comparable_validator<T>(

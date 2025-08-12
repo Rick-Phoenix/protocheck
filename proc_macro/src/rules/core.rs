@@ -89,7 +89,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::String(string_rules) => {
-      let rules = get_string_rules(static_defs, field_desc, validation_data, string_rules)?;
+      let rules = get_string_rules(static_defs, validation_data, string_rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Enum(enum_rules) => {
@@ -204,7 +204,7 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
 
 pub(crate) fn invalid_lists_error<T>(
   field_span: Span,
-  error_prefix: &str,
+  field_name: &str,
   invalid_items: &[T],
 ) -> Error
 where
@@ -213,8 +213,23 @@ where
   Error::new(
     field_span,
     format!(
-      "{} the following values are contained by 'in' and 'not_in': {:?}",
-      error_prefix, invalid_items
+      "Error for field {}: the following values are contained by 'in' and 'not_in': {:?}",
+      field_name, invalid_items
     ),
+  )
+}
+
+pub fn get_plural_suffix(items: u64) -> &'static str {
+  if items != 1 {
+    "s"
+  } else {
+    ""
+  }
+}
+
+pub fn get_field_error(field_name: &str, field_span: Span, error: &str) -> Error {
+  Error::new(
+    field_span,
+    format!("Error for field {}: {}", field_name, error),
   )
 }

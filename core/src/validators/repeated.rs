@@ -7,13 +7,13 @@ use crate::{
   ProtoType,
 };
 
-pub fn min_items(
+pub fn min_items<T>(
   field_context: &FieldContext,
-  value: usize,
+  value: &[T],
   min_items: u64,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  let check = value >= min_items as usize;
+  let check = value.len() >= min_items as usize;
 
   if check {
     Ok(())
@@ -27,13 +27,13 @@ pub fn min_items(
   }
 }
 
-pub fn max_items(
+pub fn max_items<T>(
   field_context: &FieldContext,
-  value: usize,
+  value: &[T],
   max_items: u64,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  let check = value <= max_items as usize;
+  let check = value.len() <= max_items as usize;
 
   if check {
     Ok(())

@@ -1,6 +1,4 @@
 use paste::paste;
-use proc_macro2::Span;
-use syn::Error;
 
 use super::comparable_rules::{ComparableGreaterThan, ComparableLessThan, ComparableRules};
 use crate::{
@@ -29,20 +27,13 @@ pub trait IntoComparable<T> {
 }
 
 impl TimestampRules {
-  pub fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<TimestampComparableRules, Error> {
-    let format_timestamp = |t: Timestamp, msg: &str| -> Result<String, Error> {
+  pub fn comparable_rules(&self) -> Result<TimestampComparableRules, String> {
+    let format_timestamp = |t: Timestamp, msg: &str| -> Result<String, String> {
       t.format(&format!("{} {}", msg, "%d %b %Y %R %Z"))
         .map_err(|e: TimestampError| {
-          Error::new(
-            field_span,
-            format!(
-              "{} failed to convert protobuf timestamp to chrono timestamp: {}",
-              error_prefix, e
-            ),
+          format!(
+            "failed to convert protobuf timestamp to chrono timestamp: {}",
+            e
           )
         })
     };
@@ -91,7 +82,7 @@ impl TimestampRules {
     let gt_now = matches!(self.greater_than, Some(TimestampGreaterThan::GtNow(true)));
 
     Ok(TimestampComparableRules {
-      comparable_rules: comparable_rules.validate(field_span, error_prefix)?,
+      comparable_rules: comparable_rules.validate().map_err(|e| e.to_string())?,
       lt_now,
       gt_now,
     })
@@ -99,11 +90,7 @@ impl TimestampRules {
 }
 
 impl DurationRules {
-  pub fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Duration>, Error> {
+  pub fn comparable_rules(&self) -> Result<ComparableRules<Duration>, &'static str> {
     let greater_than = self.greater_than.map(|rule| match rule {
       DurationGreaterThan::Gt(val) => ComparableGreaterThan::Gt {
         val,
@@ -130,7 +117,7 @@ impl DurationRules {
       greater_than,
       less_than,
     };
-    comparable_rules.validate(field_span, error_prefix)
+    comparable_rules.validate()
   }
 }
 

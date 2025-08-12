@@ -1,15 +1,13 @@
-use std::fmt::Write;
-
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use proto_types::protovalidate::{bytes_rules::WellKnown, BytesRules};
-use quote::{format_ident, quote, ToTokens};
+use quote::quote;
 use regex::Regex;
-use syn::{Error, LitByteStr};
+use syn::Error;
 
 use crate::{
   rules::{
-    core::invalid_lists_error,
-    protovalidate::{ContainingRules, LengthRules},
+    core::{get_field_error, invalid_lists_error},
+    protovalidate::ContainingRules,
   },
   validation_data::{ListRule, ValidationData},
 };
@@ -22,7 +20,7 @@ pub fn get_bytes_rules(
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
-  let error_prefix = format!("Error for field {}:", validation_data.full_name);
+  let field_name = validation_data.full_name;
 
   if let Some(const_rule) = rules.const_rule() {
     validation_data.get_const_validator(&mut tokens, const_rule);
@@ -35,38 +33,32 @@ pub fn get_bytes_rules(
     not_in_list_rule,
   } = rules
     .containing_rules(validation_data.full_name)
-    .map_err(|invalid_items| invalid_lists_error(field_span, &error_prefix, &invalid_items))?;
+    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
-  let LengthRules {
-    len,
-    min_len,
-    max_len,
-  } = rules.length_rules(field_span, &error_prefix)?;
+  let length_rules = rules
+    .length_rules()
+    .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
-  let field_context_ident = &validation_data.field_context_ident();
-  let value_ident = validation_data.value_ident();
+  if length_rules.has_rule() {
+    validation_data.get_length_validator(&mut tokens, length_rules);
+  }
+
+  let substring_rules = rules.substring_rules();
+
+  if substring_rules.has_rule() {
+    validation_data.get_substring_validator(&mut tokens, substring_rules);
+  }
 
   if let Some(ref pattern) = rules.pattern {
     Regex::new(pattern).map_err(|e| {
-      Error::new(
+      get_field_error(
+        field_name,
         field_span,
-        format!("{} invalid regex pattern: {}", error_prefix, e),
+        &format!("invalid regex pattern: {}", e),
       )
     })?;
 
-    let static_regex_ident = format_ident!("__{}_REGEX", validation_data.static_full_name());
-    static_defs.extend(quote! {
-      static #static_regex_ident: ::std::sync::LazyLock<regex::Regex> = ::std::sync::LazyLock::new(|| {
-        ::regex::Regex::new(#pattern).unwrap()
-      });
-    });
-
-    let error_message = format!("must match the following regex: `{}`", pattern);
-
-    let validator_expression_tokens = quote! {
-      ::protocheck::validators::bytes::pattern(&#field_context_ident, &#value_ident, &#static_regex_ident, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
+    validation_data.get_regex_validator(&mut tokens, static_defs, pattern);
   }
 
   if let Some(in_list) = in_list_rule {
@@ -75,71 +67,6 @@ pub fn get_bytes_rules(
 
   if let Some(not_in_list) = not_in_list_rule {
     validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
-  }
-
-  if let Some(len_value) = len {
-    let plural_prefix = if len_value != 1 { "s" } else { "" };
-    let error_message = format!("must be exactly {} byte{} long", len_value, plural_prefix);
-    let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::len(&#field_context_ident, &#value_ident, #len_value, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
-  }
-
-  if let Some(min_len_value) = min_len {
-    let plural_prefix = if min_len_value != 1 { "s" } else { "" };
-    let error_message = format!(
-      "cannot be shorter than {} byte{}",
-      min_len_value, plural_prefix
-    );
-
-    let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::min_len(&#field_context_ident, &#value_ident, #min_len_value, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
-  }
-
-  if let Some(max_len_value) = max_len {
-    let plural_prefix = if max_len_value != 1 { "s" } else { "" };
-    let error_message = format!(
-      "cannot be shorter than {} byte{}",
-      max_len_value, plural_prefix
-    );
-
-    let validator_expression_tokens = quote! {
-          protocheck::validators::bytes::max_len(&#field_context_ident, &#value_ident, #max_len_value, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
-  }
-
-  if let Some(ref contains_val) = rules.contains {
-    let contains_val_tokens = LitByteStr::new(contains_val, Span::call_site()).to_token_stream();
-    let error_message = format!("must contain {}", format_bytes(contains_val));
-
-    let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::contains(&#field_context_ident, &#value_ident, #contains_val_tokens, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
-  }
-
-  if let Some(ref prefix) = rules.prefix {
-    let prefix_tokens = LitByteStr::new(prefix, Span::call_site()).to_token_stream();
-    let error_message = format!("must start with {}", format_bytes(prefix));
-
-    let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::prefix(&#field_context_ident, &#value_ident, #prefix_tokens, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
-  }
-
-  if let Some(ref suffix) = rules.suffix {
-    let suffix_tokens = LitByteStr::new(suffix, Span::call_site()).to_token_stream();
-    let error_message = format!("must end with {}", format_bytes(suffix));
-
-    let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::suffix(&#field_context_ident, &#value_ident, #suffix_tokens, #error_message)
-    };
-    validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if let Some(well_known) = rules.well_known {
@@ -155,6 +82,9 @@ pub fn get_bytes_rules(
       }),
     };
 
+    let field_context_ident = validation_data.field_context_ident();
+    let value_ident = validation_data.value_ident();
+
     let validator_expression_tokens = quote! {
       protocheck::validators::bytes::#validator_path(&#field_context_ident, &#value_ident)
     };
@@ -162,28 +92,4 @@ pub fn get_bytes_rules(
   }
 
   Ok(tokens)
-}
-
-pub(crate) fn format_bytes(bytes: &[u8]) -> String {
-  let mut s = String::with_capacity(bytes.len() * 2);
-  s.push('\'');
-
-  for &byte in bytes.iter() {
-    match byte {
-      b'\n' => s.push_str("\\n"),
-      b'\r' => s.push_str("\\r"),
-      b'\t' => s.push_str("\\t"),
-      b'\\' => s.push_str("\\\\"),
-      b'"' => s.push_str("\\\""),
-
-      32..=126 => s.push(byte as char),
-
-      _ => {
-        write!(s, "\\x{:02x}", byte).unwrap();
-      }
-    }
-  }
-
-  s.push('\'');
-  s
 }

@@ -3,6 +3,18 @@ include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
 use crate::protovalidate::field_path_element::Subscript;
 
 #[cfg(feature = "protocheck")]
+mod length_rules;
+
+#[cfg(feature = "protocheck")]
+pub use length_rules::*;
+
+#[cfg(feature = "protocheck")]
+mod substring_rules;
+
+#[cfg(feature = "protocheck")]
+pub use substring_rules::*;
+
+#[cfg(feature = "protocheck")]
 mod comparable_rules;
 
 #[cfg(feature = "protocheck")]

@@ -4,9 +4,8 @@ use std::{
   hash::Hash,
 };
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
-use syn::Error;
 
 use super::{
   comparable_rules::ComparableRules, containing_rules::ContainingRules,
@@ -27,11 +26,7 @@ where
   fn num_containing_rules(&self, field_full_name: &str)
     -> Result<ContainingRules, Vec<Self::Unit>>;
   fn finite(&self) -> Option<TokenStream>;
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error>;
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str>;
 }
 
 impl NumericRules<u32> for FloatRules {
@@ -121,16 +116,12 @@ impl NumericRules<u32> for FloatRules {
     })
   }
 
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
 }
 
@@ -145,16 +136,12 @@ impl NumericRules<u64> for DoubleRules {
       .finite()
       .then_some(quote! { protocheck::validators::floats::f64_is_finite })
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
 
   fn num_containing_rules(
@@ -242,16 +229,12 @@ impl NumericRules<i64> for Int64Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -270,16 +253,12 @@ impl NumericRules<i64> for SInt64Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -298,16 +277,12 @@ impl NumericRules<i64> for SFixed64Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -326,16 +301,12 @@ impl NumericRules<i32> for Int32Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -354,16 +325,12 @@ impl NumericRules<i32> for SInt32Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -382,16 +349,12 @@ impl NumericRules<i32> for SFixed32Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -410,16 +373,12 @@ impl NumericRules<u64> for UInt64Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -438,16 +397,12 @@ impl NumericRules<u64> for Fixed64Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -466,16 +421,12 @@ impl NumericRules<u32> for UInt32Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,
@@ -494,16 +445,12 @@ impl NumericRules<u32> for Fixed32Rules {
   fn finite(&self) -> Option<TokenStream> {
     None
   }
-  fn comparable_rules(
-    &self,
-    field_span: Span,
-    error_prefix: &str,
-  ) -> Result<ComparableRules<Self::Unit>, Error> {
+  fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
       greater_than: self.greater_than.map(|gt| gt.into_comparable()),
       less_than: self.less_than.map(|lt| lt.into_comparable()),
     };
-    rules.validate(field_span, error_prefix)
+    rules.validate()
   }
   fn num_containing_rules(
     &self,

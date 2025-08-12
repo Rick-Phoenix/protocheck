@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::{collections::HashMap, sync::LazyLock};
 
 use crate::{
   field_data::FieldContext,
@@ -7,13 +7,13 @@ use crate::{
   ProtoType,
 };
 
-pub fn min_pairs(
+pub fn min_pairs<K, V>(
   field_context: &FieldContext,
-  value: usize,
+  value: &HashMap<K, V>,
   min_pairs: u64,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  let check = value >= min_pairs as usize;
+  let check = value.len() >= min_pairs as usize;
 
   if check {
     Ok(())
@@ -27,13 +27,13 @@ pub fn min_pairs(
   }
 }
 
-pub fn max_pairs(
+pub fn max_pairs<K, V>(
   field_context: &FieldContext,
-  value: usize,
+  value: &HashMap<K, V>,
   max_pairs: u64,
   error_message: &'static str,
 ) -> Result<(), Violation> {
-  let check = value <= max_pairs as usize;
+  let check = value.len() <= max_pairs as usize;
 
   if check {
     Ok(())

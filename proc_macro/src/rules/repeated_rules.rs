@@ -13,7 +13,7 @@ use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_message,
-  rules::core::get_field_rules,
+  rules::core::{get_field_error, get_field_rules},
   validation_data::{RepeatedValidator, ValidationData},
 };
 
@@ -30,10 +30,9 @@ pub fn get_repeated_rules(
   let mut items_validation_data: Option<ValidationData> = None;
 
   let field_span = validation_data.field_span;
+  let field_name = validation_data.full_name;
 
   let item_is_message = field_is_message(&field_desc.kind());
-
-  let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let mut ignore_items_validators = false;
 
@@ -51,12 +50,10 @@ pub fn get_repeated_rules(
   if let Some(RulesType::Repeated(ref repeated_rules)) = field_rules.r#type {
     if repeated_rules.unique() {
       if !validation_data.field_kind.inner_type().is_scalar() {
-        return Err(syn::Error::new(
+        return Err(get_field_error(
+          field_name,
           field_span,
-          format!(
-            "{} repeated.unique only works for scalar fields",
-            error_prefix
-          ),
+          "repeated.unique only works for scalar fields",
         ));
       }
 
@@ -91,49 +88,12 @@ pub fn get_repeated_rules(
       });
     }
 
-    let value_ident = validation_data.value_ident();
-    let field_context_ident = &validation_data.field_context_ident();
+    let length_rules = repeated_rules
+      .length_rules()
+      .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
-    let mut min_items: Option<u64> = None;
-    let mut max_items: Option<u64> = None;
-
-    if repeated_rules.min_items() > 0 {
-      let rule_val = repeated_rules.min_items();
-      min_items = Some(rule_val);
-
-      let plural_suffix = if rule_val != 1 { "s" } else { "" };
-      let error_message = format!("must contain at least {} item{}", rule_val, plural_suffix);
-
-      let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::min_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
-      };
-      validation_data.get_validator_tokens(&mut vec_level_rules, &validator_expression_tokens);
-    }
-
-    if repeated_rules.max_items() > 0 {
-      let rule_val = repeated_rules.max_items();
-      max_items = Some(rule_val);
-
-      let plural_suffix = if rule_val != 1 { "s" } else { "" };
-      let error_message = format!(
-        "cannot contain more than {} item{}",
-        rule_val, plural_suffix
-      );
-
-      let validator_expression_tokens = quote! {
-        protocheck::validators::repeated::max_items(&#field_context_ident, #value_ident.len(), #rule_val, #error_message)
-      };
-      validation_data.get_validator_tokens(&mut vec_level_rules, &validator_expression_tokens);
-    }
-
-    if min_items.is_some() && max_items.is_some() && min_items.unwrap() > max_items.unwrap() {
-      return Err(syn::Error::new(
-        field_span,
-        format!(
-          "{} repeated.min_items cannot be larger than repeated.max_items",
-          error_prefix
-        ),
-      ));
+    if length_rules.has_rule() {
+      validation_data.get_length_validator(&mut vec_level_rules, length_rules);
     }
 
     if let Some(items_rules_descriptor) = repeated_rules.items.as_ref() {

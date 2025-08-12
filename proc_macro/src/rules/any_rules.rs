@@ -15,15 +15,14 @@ pub fn get_any_rules(
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
-
-  let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
+  let field_name = validation_data.full_name;
 
   let ContainingRules {
     in_list_rule,
     not_in_list_rule,
   } = rules
     .containing_rules(validation_data.full_name)
-    .map_err(|invalid_items| invalid_lists_error(field_span, &error_prefix, &invalid_items))?;
+    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   if let Some(in_list) = in_list_rule {
     validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);

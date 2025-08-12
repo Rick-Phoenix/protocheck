@@ -3,7 +3,7 @@ use proto_types::protovalidate::{TimestampComparableRules, TimestampRules};
 use quote::quote;
 use syn::Error;
 
-use crate::validation_data::ValidationData;
+use crate::{rules::core::get_field_error, validation_data::ValidationData};
 
 pub fn get_timestamp_rules(
   validation_data: &ValidationData,
@@ -12,7 +12,7 @@ pub fn get_timestamp_rules(
   let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
-  let error_prefix = format!("Error for field {}:", &validation_data.proto_name);
+  let field_name = validation_data.full_name;
 
   let field_context_ident = &validation_data.field_context_ident();
   let value_ident = validation_data.value_ident();
@@ -36,7 +36,9 @@ pub fn get_timestamp_rules(
     comparable_rules,
     lt_now,
     gt_now,
-  } = rules.comparable_rules(field_span, &error_prefix)?;
+  } = rules
+    .comparable_rules()
+    .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if comparable_rules.less_than.is_some() || comparable_rules.greater_than.is_some() {
     validation_data.get_comparable_validator(&mut tokens, &comparable_rules);

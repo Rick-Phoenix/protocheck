@@ -8,7 +8,7 @@ use syn::Error;
 
 use super::protovalidate::EnumRules;
 use crate::{
-  rules::core::invalid_lists_error,
+  rules::core::{get_field_error, invalid_lists_error},
   validation_data::{ListRule, ValidationData},
 };
 
@@ -22,9 +22,9 @@ pub fn get_enum_rules(
   let mut tokens = TokenStream::new();
 
   let enum_name = enum_desc.name();
-  let error_prefix = format!("Error for field {}:", validation_data.full_name);
 
   let field_span = validation_data.field_span;
+  let field_name = validation_data.full_name;
 
   if let Some(const_rule) = rules.const_rule() {
     validation_data.get_const_validator(&mut tokens, const_rule);
@@ -33,7 +33,7 @@ pub fn get_enum_rules(
   }
 
   if rules.defined_only() {
-    let enum_ident_tokens: TokenStream = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {}", field_type_ident, enum_name)) });
+    let enum_ident_tokens: TokenStream = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {} in field {}", field_type_ident, enum_name, field_name)) });
 
     let violations_ident = &validation_data.violations_ident;
     let field_context_ident = &validation_data.field_context_ident();
@@ -55,7 +55,7 @@ pub fn get_enum_rules(
     not_in_list_rule,
   } = rules
     .containing_rules(validation_data.full_name)
-    .map_err(|invalid_items| invalid_lists_error(field_span, &error_prefix, &invalid_items))?;
+    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   if let Some(in_list) = in_list_rule {
     let enum_values: HashSet<i32> = enum_desc.values().map(|e| e.number()).collect();
@@ -65,11 +65,12 @@ pub fn get_enum_rules(
         invalid_numbers.push(*n);
       }
       if !invalid_numbers.is_empty() {
-        return Err(syn::Error::new(
+        return Err(get_field_error(
+          field_name,
           field_span,
-          format!(
-            "{} enum_rules.in contains values that are not in the {} enum: {:?}",
-            error_prefix, enum_name, invalid_numbers
+          &format!(
+            "enum_rules.in contains values that are not in the {} enum: {:?}",
+            enum_name, invalid_numbers
           ),
         ));
       }
