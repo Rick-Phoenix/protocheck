@@ -5,6 +5,7 @@ use crate::{
   ProtoType,
 };
 
+/// The context for the field being validated.
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
   pub proto_name: &'a str,
@@ -16,6 +17,7 @@ pub struct FieldContext<'a> {
   pub field_kind: FieldKind,
 }
 
+/// The kind of field being validated. This extra context helps generating more precise violation reports.
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum FieldKind {
   Map(FieldType),

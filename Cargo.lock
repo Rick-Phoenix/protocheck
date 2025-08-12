@@ -510,7 +510,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "proto_types"
+name = "proto-types"
 version = "0.1.0"
 dependencies = [
  "base64",
@@ -530,9 +530,9 @@ dependencies = [
 name = "protocheck"
 version = "0.1.0"
 dependencies = [
- "proto_types",
- "protocheck_core",
- "protocheck_proc_macros",
+ "proto-types",
+ "protocheck-core",
+ "protocheck-proc-macro",
 ]
 
 [[package]]
@@ -544,7 +544,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "protocheck_core"
+name = "protocheck-core"
 version = "0.1.0"
 dependencies = [
  "bytes",
@@ -554,21 +554,21 @@ dependencies = [
  "iri-string",
  "paste",
  "proc-macro2",
- "proto_types",
+ "proto-types",
  "quote",
  "regex",
 ]
 
 [[package]]
-name = "protocheck_proc_macros"
+name = "protocheck-proc-macro"
 version = "0.1.0"
 dependencies = [
  "cel",
  "convert_case",
  "proc-macro2",
  "prost-reflect",
- "proto_types",
- "protocheck_core",
+ "proto-types",
+ "protocheck-core",
  "quote",
  "regex",
  "syn",
@@ -581,8 +581,8 @@ dependencies = [
  "cel",
  "prost",
  "prost-build",
- "proto_types",
- "protocheck_proc_macros",
+ "proto-types",
+ "protocheck-proc-macro",
  "serde",
 ]
 

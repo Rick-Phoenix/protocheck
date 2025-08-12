@@ -6,8 +6,8 @@ edition = "2024"
 [lib]
 
 [dependencies]
-protocheck_proc_macros = { path = "../proc_macro/" }
-proto_types = { path = "../proto_types/" }
+protocheck-proc-macro = { path = "../proc_macro/" }
+proto-types = { path = "../proto_types/" }
 prost = { workspace = true }
 serde = { workspace = true }
 cel = { workspace = true }

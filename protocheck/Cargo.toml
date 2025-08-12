@@ -4,18 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-protocheck_proc_macros = { path = "../proc_macro/", default-features = false }
-protocheck_core = { path = "../core/", default-features = false }
-proto_types = { path = "../proto_types/", default-features = false }
+protocheck-proc-macro = { path = "../proc_macro/", default-features = false }
+protocheck-core = { path = "../core/", default-features = false }
+proto-types = { path = "../proto_types/", default-features = false }
 
 [features]
-serde = ["proto_types/serde"]
-chrono = ["proto_types/chrono"]
-cel = ["proto_types/cel", "protocheck_core/cel", "protocheck_proc_macros/cel"]
-totokens = ["proto_types/totokens", "protocheck_core/totokens"]
-ip = ["protocheck_core/ip"]
-uri = ["protocheck_core/uri"]
-bytes = ["protocheck_core/bytes"]
-regex = ["protocheck_core/regex"]
+serde = ["proto-types/serde"]
+chrono = ["proto-types/chrono"]
+cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
+totokens = ["proto-types/totokens", "protocheck-core/totokens"]
+ip = ["protocheck-core/ip"]
+uri = ["protocheck-core/uri"]
+bytes = ["protocheck-core/bytes"]
+regex = ["protocheck-core/regex"]
 
 default = ["ip", "uri", "bytes", "regex", "cel", "serde", "totokens", "chrono"]

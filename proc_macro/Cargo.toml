@@ -1,5 +1,5 @@
 [package]
-name = "protocheck_proc_macros"
+name = "protocheck-proc-macro"
 version = "0.1.0"
 edition = "2024"
 
@@ -13,14 +13,14 @@ syn = { workspace = true, features = ["full", "extra-traits"] }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
 regex = { workspace = true }
-proto_types = { path = "../proto_types/", features = [
+proto-types = { path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck_core = { path = "../core/", features = ["totokens"] }
+protocheck-core = { path = "../core/", features = ["totokens"] }
 convert_case = { workspace = true }
 
 [features]
-cel = ["protocheck_core/cel", "proto_types/cel", "dep:cel"]
+cel = ["protocheck-core/cel", "proto-types/cel", "dep:cel"]
 
 default = ["cel"]

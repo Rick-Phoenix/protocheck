@@ -55,29 +55,27 @@ pub fn compile_protos_with_validators(
       }
 
       for oneof in message_desc.oneofs() {
+        let oneof_name = oneof.full_name();
         config.type_attribute(
-          oneof.full_name(),
+          oneof_name,
           format!(
             r#"#[::protocheck::macros::protobuf_validate_oneof("{}")]"#,
-            oneof.full_name()
+            oneof_name
           ),
         );
 
-        config.type_attribute(
-          oneof.full_name(),
-          r#"#[derive(::protocheck::macros::Oneof)]"#,
-        );
+        config.type_attribute(oneof_name, r#"#[derive(::protocheck::macros::Oneof)]"#);
 
         if enable_cel() {
           config.type_attribute(
-            oneof.full_name(),
+            oneof_name,
             r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
           );
         }
 
         for field in oneof.fields() {
           config.field_attribute(
-            format!("{}.{}", oneof.full_name(), field.name()),
+            format!("{}.{}", oneof_name, field.name()),
             format!(r#"#[protocheck(proto_name = "{}")]"#, field.name()),
           );
         }
