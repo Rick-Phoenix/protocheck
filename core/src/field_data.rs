@@ -66,7 +66,7 @@ use quote::{quote, ToTokens};
 #[cfg(feature = "totokens")]
 impl ToTokens for FieldKind {
   fn to_tokens(&self, tokens: &mut TokenStream) {
-    let field_kind_path = quote! { protocheck::field_data::FieldKind };
+    let field_kind_path = quote! { ::protocheck::field_data::FieldKind };
 
     let variant_tokens = match self {
       FieldKind::Map(v) => quote! { Map(#v) },

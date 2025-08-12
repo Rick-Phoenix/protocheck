@@ -43,7 +43,7 @@ pub fn get_enum_rules(
 
     let validator_tokens = quote! {
       if !#enum_ident_tokens::try_from(#value_ident).is_ok() {
-        #violations_ident.push(protocheck::validators::enums::defined_only(&#field_context_ident, #error_message));
+        #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, #error_message));
       }
     };
 

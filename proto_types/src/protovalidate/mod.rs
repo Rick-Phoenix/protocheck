@@ -67,7 +67,7 @@ mod totokens {
 
   impl ToTokens for Ignore {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-      let path = quote! { protocheck::types::protovalidate::Ignore };
+      let path = quote! { ::protocheck::types::protovalidate::Ignore };
 
       match self {
         Ignore::Unspecified => tokens.extend(quote! { #path::Unspecified }),
@@ -82,27 +82,27 @@ mod totokens {
       match self {
         Subscript::Index(value) => {
           tokens.extend(quote! {
-              protocheck::types::protovalidate::Subscript::Index(#value)
+              ::protocheck::types::protovalidate::Subscript::Index(#value)
           });
         }
         Subscript::BoolKey(value) => {
           tokens.extend(quote! {
-              protocheck::types::protovalidate::Subscript::BoolKey(#value)
+              ::protocheck::types::protovalidate::Subscript::BoolKey(#value)
           });
         }
         Subscript::IntKey(value) => {
           tokens.extend(quote! {
-              protocheck::types::protovalidate::Subscript::IntKey(#value)
+              ::protocheck::types::protovalidate::Subscript::IntKey(#value)
           });
         }
         Subscript::UintKey(value) => {
           tokens.extend(quote! {
-              protocheck::types::protovalidate::Subscript::UintKey(#value)
+              ::protocheck::types::protovalidate::Subscript::UintKey(#value)
           });
         }
         Subscript::StringKey(value) => {
           tokens.extend(quote! {
-              protocheck::types::protovalidate::Subscript::StringKey(#value)
+              ::protocheck::types::protovalidate::Subscript::StringKey(#value)
           });
         }
       }
@@ -124,7 +124,7 @@ mod totokens {
       };
 
       tokens.extend(quote! {
-        protocheck::types::protovalidate::FieldPathElement {
+        ::protocheck::types::protovalidate::FieldPathElement {
           field_number: #field_number,
           field_name: #field_name_expr,
           field_type: #field_type,

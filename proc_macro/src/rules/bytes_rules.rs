@@ -86,7 +86,7 @@ pub fn get_bytes_rules(
     let value_ident = validation_data.value_ident();
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::bytes::#validator_path(&#field_context_ident, &#value_ident)
+      ::protocheck::validators::bytes::#validator_path(&#field_context_ident, &#value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }

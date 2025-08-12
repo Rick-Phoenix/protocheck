@@ -21,7 +21,7 @@ mod totokens {
       let nanos = self.nanos;
 
       tokens.extend(quote! {
-        protocheck::types::Duration {
+        ::protocheck::types::Duration {
           seconds: #seconds,
           nanos: #nanos,
         }

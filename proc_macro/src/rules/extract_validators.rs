@@ -309,7 +309,7 @@ pub fn extract_message_validators(
       let item_rust_ident = proto_name_to_rust_ident(oneof_proto_name);
 
       let required_check = oneof_rules.required().then_some(quote! {
-        #violations_ident.push(protocheck::validators::oneofs::required(#oneof_proto_name, #parent_messages_ident.as_slice()));
+        #violations_ident.push(::protocheck::validators::oneofs::required(#oneof_proto_name, #parent_messages_ident.as_slice()));
       });
 
       validators.extend(quote! {

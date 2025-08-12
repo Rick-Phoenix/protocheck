@@ -166,7 +166,7 @@ mod totokens {
 
   impl ToTokens for FieldType {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-      let field_kind_path = quote! { protocheck::types::FieldType };
+      let field_kind_path = quote! { ::protocheck::types::FieldType };
 
       let variant_tokens = match self {
         FieldType::Double => quote! { Double },

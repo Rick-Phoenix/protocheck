@@ -27,7 +27,7 @@ pub fn get_timestamp_rules(
     let error_message = format!("must be within {} from now", within_val,);
 
     let validator_expression_tokens = quote! {
-      protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val, #error_message)
+      ::protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val, #error_message)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
@@ -46,14 +46,14 @@ pub fn get_timestamp_rules(
 
   if lt_now {
     let validator_expression_tokens = quote! {
-      protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
+      ::protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
   if gt_now {
     let validator_expression_tokens = quote! {
-      protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
+      ::protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
