@@ -371,7 +371,7 @@ pub fn extract_message_validators(
         continue;
       }
 
-      let validation_data = ValidationData {
+      let mut validation_data = ValidationData {
         proto_name: field_proto_name,
         tag: field_tag,
         ignore,
@@ -410,7 +410,7 @@ pub fn extract_message_validators(
         )?;
       } else if is_map {
         get_map_rules(
-          validation_data.clone(),
+          &mut validation_data,
           &mut field_validators,
           &mut static_defs,
           field_rust_enum,

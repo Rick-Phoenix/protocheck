@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn get_map_rules(
-  validation_data: ValidationData,
+  map_validation_data: &mut ValidationData,
   validation_tokens: &mut TokenStream,
   static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
@@ -29,8 +29,8 @@ pub fn get_map_rules(
   let mut keys_rules = TokenStream::new();
   let mut values_rules = TokenStream::new();
 
-  let map_field_span = validation_data.field_span;
-  let error_prefix = format!("Error for field {}:", validation_data.full_name);
+  let map_field_span = map_validation_data.field_span;
+  let error_prefix = format!("Error for field {}:", map_validation_data.full_name);
 
   let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
   {
@@ -65,8 +65,6 @@ pub fn get_map_rules(
   let key_proto_type = convert_kind_to_proto_type(key_desc.kind());
   let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
 
-  let mut map_validation_data = validation_data;
-
   map_validation_data.map_keys_type = Some(key_proto_type);
   map_validation_data.map_values_type = Some(value_proto_type);
 
@@ -78,7 +76,7 @@ pub fn get_map_rules(
     map_level_rules.extend(get_cel_rules(
       &CelRuleTemplateTarget::Field {
         field_desc: map_field_desc,
-        validation_data: &map_validation_data,
+        validation_data: map_validation_data,
       },
       &field_rules.cel,
       static_defs,
