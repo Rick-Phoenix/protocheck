@@ -1,4 +1,6 @@
 #![doc = include_str!("../README.md")]
+//! # Feature flags
+#![doc = document_features::document_features!()]
 
 pub mod types {
   pub use proto_types::{FieldType, *};

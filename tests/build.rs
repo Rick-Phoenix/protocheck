@@ -22,6 +22,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   compile_protos_with_validators(&mut config, proto_files, proto_include_paths, &["myapp.v1"])?;
 
+  config.compile_protos(proto_files, proto_include_paths)?;
+
   println!(
     "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",
     final_descriptor_path.display()

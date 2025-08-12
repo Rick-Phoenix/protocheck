@@ -87,7 +87,6 @@ pub fn compile_protos_with_validators(
   config
     .extern_path(".google.protobuf", "::protocheck::types")
     .compile_well_known_types();
-  config.compile_protos(proto_files, proto_include_paths)?;
 
   std::fs::remove_file(&temp_descriptor_path)?;
 
