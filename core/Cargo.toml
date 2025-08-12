@@ -20,7 +20,7 @@ iri-string = { workspace = true, optional = true }
 paste = { workspace = true }
 
 [features]
-cel = ["proto_types/cel", "dep:cel", "chrono"]
+cel = ["proto_types/cel", "dep:cel", "dep:chrono"]
 totokens = ["dep:proc-macro2", "dep:quote"]
 ip = ["dep:ipnetwork"]
 uri = ["dep:iri-string"]

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::OnceCell, collections::HashMap};
 
 use proc_macro2::{Ident as Ident2, TokenStream};
 use prost_reflect::{
@@ -157,6 +157,7 @@ pub fn extract_oneof_validators(
         is_required,
         is_in_oneof: true,
         is_optional: true,
+        is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
         field_span,
         proto_name: field_name,
         tag: field.number(),
@@ -175,13 +176,13 @@ pub fn extract_oneof_validators(
         map_key_context_ident: &map_key_context_ident,
         map_value_context_ident: &map_value_context_ident,
         vec_item_context_ident: &vec_item_context_ident,
+        value_ident: OnceCell::new(),
       };
 
       if !field_rules.cel.is_empty() {
         field_validators.extend(get_cel_rules(
           &CelRuleTemplateTarget::Field {
             field_desc: &field,
-            is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
             validation_data: &validation_data,
           },
           &field_rules.cel,
@@ -201,14 +202,14 @@ pub fn extract_oneof_validators(
       }
 
       if !field_validators.is_empty() {
-        field_validators = validation_data.get_aggregated_validator_tokens(&field_validators);
+        field_validators = validation_data.get_aggregated_validator_tokens(field_validators);
       }
 
       if field_is_message(&field.kind()) {
-        let validator_tokens =
-          validation_data.get_message_field_validator_tokens(FieldKind::Single(FieldType::Message));
-
-        field_validators.extend(validator_tokens);
+        validation_data.get_message_field_validator_tokens(
+          &mut field_validators,
+          FieldKind::Single(FieldType::Message),
+        );
       }
 
       validators.insert(field_ident, field_validators);
@@ -378,6 +379,7 @@ pub fn extract_message_validators(
         is_required,
         is_in_oneof: false,
         is_optional,
+        is_boxed: field_is_boxed(&field, message_desc),
         field_span,
         map_keys_type: None,
         map_values_type: None,
@@ -393,29 +395,28 @@ pub fn extract_message_validators(
         map_key_context_ident: &map_key_context_ident,
         map_value_context_ident: &map_value_context_ident,
         vec_item_context_ident: &vec_item_context_ident,
+        value_ident: OnceCell::new(),
       };
 
       let field_rules_type = field_rules.r#type.as_ref();
       if is_repeated {
-        let repeated_rules = get_repeated_rules(
+        get_repeated_rules(
           &validation_data,
+          &mut field_validators,
           &mut static_defs,
           field_rust_enum,
           &field,
           &field_rules,
         )?;
-
-        field_validators.extend(repeated_rules);
       } else if is_map {
-        let map_rules = get_map_rules(
+        get_map_rules(
           validation_data.clone(),
+          &mut field_validators,
           &mut static_defs,
           field_rust_enum,
           &field,
           &field_rules,
         )?;
-
-        field_validators.extend(map_rules);
       } else {
         if let Some(rules_type) = field_rules_type {
           let rules = get_field_rules(
@@ -433,7 +434,6 @@ pub fn extract_message_validators(
           field_validators.extend(get_cel_rules(
             &CelRuleTemplateTarget::Field {
               field_desc: &field,
-              is_boxed: field_is_boxed(&field, message_desc),
               validation_data: &validation_data,
             },
             &field_rules.cel,
@@ -442,19 +442,16 @@ pub fn extract_message_validators(
         }
 
         if field_is_message(&field.kind()) {
-          let validator_tokens = validation_data
-            .get_message_field_validator_tokens(FieldKind::Single(FieldType::Message));
-
-          field_validators.extend(validator_tokens);
+          validation_data.get_message_field_validator_tokens(
+            &mut field_validators,
+            FieldKind::Single(FieldType::Message),
+          );
         }
 
         if !field_validators.is_empty() {
-          let aggregated_validators =
-            validation_data.get_aggregated_validator_tokens(&field_validators);
-          field_validators = aggregated_validators;
+          field_validators = validation_data.get_aggregated_validator_tokens(field_validators);
         } else if is_required {
-          let validator_tokens = validation_data.get_required_only_validator();
-          field_validators.extend(validator_tokens);
+          validation_data.get_required_only_validator(&mut field_validators);
         }
       }
 
@@ -467,7 +464,7 @@ pub fn extract_message_validators(
 
 pub fn field_is_boxed(field_desc: &FieldDescriptor, message_desc: &MessageDescriptor) -> bool {
   if let Kind::Message(field_message_desc) = field_desc.kind() {
-    return field_message_desc.full_name() == message_desc.full_name();
+    return !field_desc.is_list() && field_message_desc.full_name() == message_desc.full_name();
   }
   false
 }

@@ -12,7 +12,6 @@ pub enum CelRuleTemplateTarget<'a> {
   },
   Field {
     field_desc: &'a FieldDescriptor,
-    is_boxed: bool,
     validation_data: &'a ValidationData<'a>,
   },
 }

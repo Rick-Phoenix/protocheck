@@ -19,11 +19,12 @@ use crate::{
 
 pub fn get_map_rules(
   validation_data: ValidationData,
+  validation_tokens: &mut TokenStream,
   static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
-) -> Result<TokenStream, Error> {
+) -> Result<(), Error> {
   let mut map_level_rules = TokenStream::new();
   let mut keys_rules = TokenStream::new();
   let mut values_rules = TokenStream::new();
@@ -77,7 +78,6 @@ pub fn get_map_rules(
     map_level_rules.extend(get_cel_rules(
       &CelRuleTemplateTarget::Field {
         field_desc: map_field_desc,
-        is_boxed: false,
         validation_data: &map_validation_data,
       },
       &field_rules.cel,
@@ -156,7 +156,6 @@ pub fn get_map_rules(
             &CelRuleTemplateTarget::Field {
               validation_data: &keys_validation_data,
               field_desc: &key_desc,
-              is_boxed: false,
             },
             &keys_rules_descriptor.cel,
             static_defs,
@@ -189,7 +188,6 @@ pub fn get_map_rules(
         if !values_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules(
             &CelRuleTemplateTarget::Field {
-              is_boxed: false,
               validation_data: &values_validation_data,
               field_desc: &value_desc,
             },
@@ -203,19 +201,23 @@ pub fn get_map_rules(
   }
 
   if value_is_message && !ignore_values_validators {
-    let validator_tokens = map_validation_data
-      .get_message_field_validator_tokens(FieldKind::MapValue(FieldType::Message));
-
-    values_rules.extend(validator_tokens);
+    map_validation_data.get_message_field_validator_tokens(
+      &mut values_rules,
+      FieldKind::MapValue(FieldType::Message),
+    );
   }
 
   if map_level_rules.is_empty() && keys_rules.is_empty() && values_rules.is_empty() {
-    Ok(map_level_rules)
+    Ok(())
   } else {
-    Ok(map_validation_data.aggregate_map_rules(&MapValidator {
-      map_level_rules,
-      keys_rules,
-      values_rules,
-    }))
+    map_validation_data.aggregate_map_rules(
+      validation_tokens,
+      &MapValidator {
+        map_level_rules,
+        keys_rules,
+        values_rules,
+      },
+    );
+    Ok(())
   }
 }

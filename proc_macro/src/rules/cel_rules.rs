@@ -102,40 +102,29 @@ mod cel {
 
             match rule_target {
               CelRuleTemplateTarget::Field {
-                is_boxed,
-                validation_data,
-                ..
+                validation_data, ..
               } => {
                 let field_context_ident = &validation_data.field_context_ident();
-                let value_ident = &validation_data.value_ident();
-
-                let value_tokens = if *is_boxed {
-                  quote! { *val }
-                } else {
-                  quote! { #value_ident }
-                };
+                let value_ident = validation_data.value_ident();
 
                 let validation_expression = match validation_data.field_kind.inner_type() {
-                  FieldType::Message => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens.clone()) }
-                  }
-                  FieldType::Timestamp | FieldType::Duration => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, &rule, #value_tokens) }
-                  }
-                  FieldType::Float => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as f64).into()) }
+                  FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.clone()) }
                   }
                   FieldType::Bytes => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, &rule, #value_tokens.to_vec().into()) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, #value_ident.to_vec().into()) }
+                  }
+                  FieldType::Float => {
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as f64).into()) }
                   }
                   FieldType::Int32 | FieldType::Sint32 | FieldType::Sfixed32 => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as i64).into()) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as i64).into()) }
                   }
                   FieldType::Uint32 | FieldType::Fixed32 => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens as u64).into()) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as u64).into()) }
                   }
                   _ => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, &rule, (#value_tokens).clone().into()) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident).clone().into()) }
                   }
                 };
 
@@ -154,7 +143,7 @@ mod cel {
                 let validator_tokens = quote! {
                   let rule = #rule_tokens;
 
-                  match ::protocheck::validators::cel::validate_cel_message(#parent_messages_ident, &rule, self.clone()) {
+                  match ::protocheck::validators::cel::validate_cel_message(#parent_messages_ident, rule, self.clone()) {
                     Ok(_) => {}
                     Err(v) => #violations_ident.push(v)
                   };

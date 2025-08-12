@@ -19,11 +19,12 @@ use crate::{
 
 pub fn get_repeated_rules(
   validation_data: &ValidationData,
+  validation_tokens: &mut TokenStream,
   static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
-) -> Result<TokenStream, Error> {
+) -> Result<(), Error> {
   let mut vec_level_rules: TokenStream = TokenStream::new();
   let mut items_rules: TokenStream = TokenStream::new();
   let mut items_validation_data: Option<ValidationData> = None;
@@ -40,7 +41,6 @@ pub fn get_repeated_rules(
     vec_level_rules.extend(get_cel_rules(
       &CelRuleTemplateTarget::Field {
         field_desc,
-        is_boxed: false,
         validation_data,
       },
       &field_rules.cel,
@@ -163,7 +163,6 @@ pub fn get_repeated_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
               validation_data: repeated_items_validation_data,
-              is_boxed: false,
             },
             &items_rules_descriptor.cel,
             static_defs,
@@ -175,14 +174,19 @@ pub fn get_repeated_rules(
   }
 
   if item_is_message && !ignore_items_validators {
-    let validator_tokens = validation_data
-      .get_message_field_validator_tokens(FieldKind::RepeatedItem(FieldType::Message));
-
-    items_rules.extend(validator_tokens);
+    validation_data.get_message_field_validator_tokens(
+      &mut items_rules,
+      FieldKind::RepeatedItem(FieldType::Message),
+    );
   }
 
-  Ok(validation_data.aggregate_vec_rules(&RepeatedValidator {
-    vec_level_rules,
-    items_rules,
-  }))
+  validation_data.aggregate_vec_rules(
+    validation_tokens,
+    &RepeatedValidator {
+      vec_level_rules,
+      items_rules,
+    },
+  );
+
+  Ok(())
 }

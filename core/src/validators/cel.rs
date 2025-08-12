@@ -20,7 +20,7 @@ pub struct CelRule {
 
 pub fn validate_cel_field_with_val(
   field_context: &FieldContext,
-  rule: &CelRule,
+  rule: CelRule,
   value: CelValue,
 ) -> Result<(), Violation>
 where
@@ -40,7 +40,7 @@ where
   let mut cel_context = Context::default();
   cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
 
-  cel_context.add_variable_from_value("this", value.clone());
+  cel_context.add_variable_from_value("this", value);
 
   let result = program.execute(&cel_context);
 
@@ -85,7 +85,7 @@ where
 
 pub fn validate_cel_field_try_into<T>(
   field_context: &FieldContext,
-  rule: &CelRule,
+  rule: CelRule,
   value: T,
 ) -> Result<(), Violation>
 where
@@ -113,7 +113,7 @@ where
 
 pub fn validate_cel_message<T>(
   parent_elements: &[FieldPathElement],
-  rule: &CelRule,
+  rule: CelRule,
   value: T,
 ) -> Result<(), Violation>
 where

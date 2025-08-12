@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::{
+  cell::OnceCell,
+  fmt::{Debug, Display},
+};
 
 use proc_macro2::TokenStream;
 use prost_reflect::FieldDescriptor;
@@ -22,6 +25,7 @@ pub(crate) struct ValidationData<'a> {
   pub is_required: bool,
   pub is_optional: bool,
   pub is_in_oneof: bool,
+  pub is_boxed: bool,
   pub field_span: Span2,
   pub map_keys_type: Option<ProtoType>,
   pub map_values_type: Option<ProtoType>,
@@ -37,6 +41,7 @@ pub(crate) struct ValidationData<'a> {
   pub map_value_context_ident: &'a Ident2,
   pub vec_item_context_ident: &'a Ident2,
   pub field_kind: FieldKind,
+  pub value_ident: OnceCell<TokenStream>,
 }
 
 pub struct RepeatedValidator {
@@ -225,7 +230,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn aggregate_map_rules(&self, rules_data: &MapValidator) -> TokenStream {
+  pub fn aggregate_map_rules(&self, tokens: &mut TokenStream, rules_data: &MapValidator) {
     let MapValidator {
       map_level_rules,
       keys_rules,
@@ -284,12 +289,12 @@ impl ValidationData<'_> {
       }
     });
 
-    quote! {
+    tokens.extend(quote! {
       #map_level_context_tokens
       #map_level_rules
 
       #loop_tokens
-    }
+    });
   }
 
   pub fn field_context_ident(&self) -> &Ident2 {
@@ -306,6 +311,7 @@ impl ValidationData<'_> {
   pub fn to_map_key(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut key_validation_data = self.clone();
     key_validation_data.field_kind = FieldKind::MapKey(field_type);
+    key_validation_data.value_ident = OnceCell::new();
 
     key_validation_data
   }
@@ -313,6 +319,7 @@ impl ValidationData<'_> {
   pub fn to_map_value(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut value_validation_data = self.clone();
     value_validation_data.field_kind = FieldKind::MapValue(field_type);
+    value_validation_data.value_ident = OnceCell::new();
 
     value_validation_data
   }
@@ -320,11 +327,12 @@ impl ValidationData<'_> {
   pub fn to_repeated_item(&'_ self, field_desc: &FieldDescriptor) -> ValidationData<'_> {
     let mut items_validation_data = self.clone();
     items_validation_data.field_kind = FieldKind::RepeatedItem(get_field_type(field_desc));
+    items_validation_data.value_ident = OnceCell::new();
 
     items_validation_data
   }
 
-  pub fn aggregate_vec_rules(&self, rules_data: &RepeatedValidator) -> TokenStream {
+  pub fn aggregate_vec_rules(&self, tokens: &mut TokenStream, rules_data: &RepeatedValidator) {
     let RepeatedValidator {
       vec_level_rules,
       items_rules,
@@ -354,12 +362,12 @@ impl ValidationData<'_> {
       }
     });
 
-    quote! {
+    tokens.extend(quote! {
       #vec_level_field_context
       #vec_level_rules
 
       #loop_tokens
-    }
+    });
   }
 
   pub fn get_const_validator<T>(&self, tokens: &mut TokenStream, rule: ConstRule<T>)
@@ -378,7 +386,11 @@ impl ValidationData<'_> {
     self.get_validator_tokens(tokens, &expr);
   }
 
-  pub fn get_message_field_validator_tokens(&self, field_kind: FieldKind) -> TokenStream {
+  pub fn get_message_field_validator_tokens(
+    &self,
+    tokens: &mut TokenStream,
+    field_kind: FieldKind,
+  ) {
     let Self {
       parent_messages_ident,
       violations_ident,
@@ -417,13 +429,13 @@ impl ValidationData<'_> {
       };
     };
 
-    quote! {
+    tokens.extend(quote! {
       let current_nested_field_element = #field_path_element_tokens;
 
       #parent_messages_ident.push(current_nested_field_element);
       #value_ident.nested_validate(#parent_messages_ident, #violations_ident);
       #parent_messages_ident.pop();
-    }
+    });
   }
 
   pub fn get_required_validation_tokens(&self) -> Option<TokenStream> {
@@ -439,18 +451,18 @@ impl ValidationData<'_> {
     }})
   }
 
-  pub fn get_required_only_validator(&self) -> TokenStream {
+  pub fn get_required_only_validator(&self, tokens: &mut TokenStream) {
     let item_rust_ident = &self.item_rust_ident;
     let required_validation_tokens = self.get_required_validation_tokens();
 
-    quote! {
+    tokens.extend(quote! {
       if self.#item_rust_ident.is_none() {
         #required_validation_tokens
       }
-    }
+    });
   }
 
-  pub fn get_aggregated_validator_tokens(&self, validators: &TokenStream) -> TokenStream {
+  pub fn get_aggregated_validator_tokens(&self, validators: TokenStream) -> TokenStream {
     let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
     let required_check = self.get_required_validation_tokens();
     let field_ident = self.item_rust_ident;
@@ -478,14 +490,14 @@ impl ValidationData<'_> {
       };
 
       if matches!(self.ignore, Ignore::IfZeroValue) && !self.is_in_oneof {
-        self.wrap_with_default_value_check(&validation_tokens)
+        self.wrap_with_default_value_check(validation_tokens)
       } else {
         validation_tokens
       }
     }
   }
 
-  pub fn wrap_with_default_value_check(&self, validators: &TokenStream) -> TokenStream {
+  pub fn wrap_with_default_value_check(&self, validators: TokenStream) -> TokenStream {
     let value_ident = self.value_ident();
 
     let default_check = match self.field_kind.inner_type() {
@@ -539,7 +551,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn value_ident(&self) -> TokenStream {
+  pub fn value_ident(&self) -> &TokenStream {
     let Self {
       item_rust_ident,
       map_key_ident: key_ident,
@@ -547,50 +559,55 @@ impl ValidationData<'_> {
       item_ident,
       ..
     } = self;
-    let is_copy = self.field_kind.is_copy();
+    self.value_ident.get_or_init(|| {
+      if self.is_boxed {
+        return quote! { *val };
+      }
+      let is_copy = self.field_kind.is_copy();
 
-    match self.field_kind {
-      FieldKind::RepeatedItem(_) => {
-        if is_copy {
-          quote! { #item_ident.clone() }
-        } else {
-          quote! { #item_ident }
+      match self.field_kind {
+        FieldKind::RepeatedItem(_) => {
+          if is_copy {
+            quote! { #item_ident.clone() }
+          } else {
+            quote! { #item_ident }
+          }
         }
-      }
-      FieldKind::MapKey(_) => {
-        if is_copy {
-          quote! { #key_ident.clone() }
-        } else {
-          quote! { #key_ident }
+        FieldKind::MapKey(_) => {
+          if is_copy {
+            quote! { #key_ident.clone() }
+          } else {
+            quote! { #key_ident }
+          }
         }
-      }
-      FieldKind::MapValue(_) => {
-        if is_copy {
-          quote! { #map_value_ident.clone() }
-        } else {
-          quote! { #map_value_ident }
+        FieldKind::MapValue(_) => {
+          if is_copy {
+            quote! { #map_value_ident.clone() }
+          } else {
+            quote! { #map_value_ident }
+          }
         }
-      }
-      FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
-      FieldKind::Map(_) => quote! { self.#item_rust_ident },
-      FieldKind::Single(_) => {
-        let base_ident = if self.is_optional || self.is_in_oneof {
-          quote! { val }
-        } else {
-          quote! { self.#item_rust_ident }
-        };
+        FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
+        FieldKind::Map(_) => quote! { self.#item_rust_ident },
+        FieldKind::Single(_) => {
+          let base_ident = if self.is_optional || self.is_in_oneof {
+            quote! { val }
+          } else {
+            quote! { self.#item_rust_ident }
+          };
 
-        if !is_copy && !self.is_option() {
-          quote! { &#base_ident }
-        } else {
-          base_ident
+          if !is_copy && !self.is_option() {
+            quote! { &#base_ident }
+          } else {
+            base_ident
+          }
         }
       }
-    }
+    })
   }
 }
 
-pub fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream {
+fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream {
   let subscript_path = quote! { ::protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {
