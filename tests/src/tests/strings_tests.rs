@@ -20,6 +20,7 @@ fn string_tests() {
   let result = string_tests.validate().unwrap_err();
 
   let Violations { violations } = result;
+
   assert_eq!(violations.len(), 6);
 
   assert!(violations.iter().any(|v| v.rule_id() == "string.email"));

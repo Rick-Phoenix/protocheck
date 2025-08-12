@@ -2,7 +2,7 @@ use std::{fmt::Debug, hash::Hash};
 
 use proc_macro2::TokenStream;
 use proto_types::protovalidate::{ContainingRules, NumericRules};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::Error;
 
 use crate::{
@@ -52,12 +52,16 @@ where
     validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
   }
 
-  if let Some(func_tokens) = rules.finite() {
+  if rules.finite() {
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
+    let func_ident = format_ident!(
+      "{}_is_finite",
+      validation_data.field_kind.inner_type().name()
+    );
 
     let validator_expression_tokens = quote! {
-      #func_tokens(&#field_context_ident, #value_ident)
+      ::protocheck::validators::floats::#func_ident(&#field_context_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }

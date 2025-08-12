@@ -18,8 +18,9 @@ enum test_enum {
   PASSIVE = 2;
 }
 
-message Abc {
-  bytes abcde = 1 [(buf.validate.field).bytes.const = "abc"];
+message FiniteRulesTests {
+  float finite_float = 1 [(buf.validate.field).float.finite = true];
+  double finite_double = 2 [(buf.validate.field).double.finite = true];
 }
 
 message ComparableRulesTests {
@@ -210,6 +211,16 @@ message IgnoreIfZeroValueTest {
     (buf.validate.field).enum.const = 15,
     (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE
   ];
+
+  google.protobuf.Duration duration_field = 14 [(buf.validate.field).duration.const = {
+    seconds: 3600
+    nanos: 0
+  }];
+
+  google.protobuf.Timestamp timestamp_field = 15 [(buf.validate.field).timestamp.const = {
+    seconds: 3600
+    nanos: 0
+  }];
 }
 
 message BytesTests {
@@ -312,7 +323,7 @@ message StringTests {
   string suffix_test = 6 [(buf.validate.field).string.suffix = "abc"];
 }
 
-message RepeatedTest {
+message RepeatedTests {
   message Person {
     option (buf.validate.message).cel = {
       id: "message.person_name"
@@ -327,8 +338,14 @@ message RepeatedTest {
     }];
   }
 
-  repeated float unique_floats = 2 [(buf.validate.field).repeated.unique = true];
-  repeated double unique_doubles = 3 [(buf.validate.field).repeated.unique = true];
+  repeated float unique_floats = 2 [
+    (buf.validate.field).repeated.unique = true,
+    (buf.validate.field).repeated.min_items = 3
+  ];
+  repeated double unique_doubles = 3 [
+    (buf.validate.field).repeated.unique = true,
+    (buf.validate.field).repeated.max_items = 1
+  ];
   repeated string unique_strings = 4 [(buf.validate.field).repeated.unique = true];
 
   repeated Person people = 1 [(buf.validate.field).repeated.items.cel = {

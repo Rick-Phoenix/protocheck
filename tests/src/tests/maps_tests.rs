@@ -1,7 +1,7 @@
 use maplit::hashmap;
 use protocheck::types::{
   field_descriptor_proto::Type,
-  protovalidate::{field_path_element::Subscript, Violation},
+  protovalidate::{field_path_element::Subscript, Violation, Violations},
   Duration, Timestamp,
 };
 
@@ -268,10 +268,7 @@ fn basic_map() {
     string_map: excess_pairs_map,
   };
 
-  let result = msg.validate().unwrap_err();
+  let Violations { violations } = msg.validate().unwrap_err();
 
-  assert!(result
-    .violations
-    .iter()
-    .any(|v| v.rule_id() == "map.max_pairs"));
+  assert!(violations.iter().any(|v| v.rule_id() == "map.max_pairs"));
 }

@@ -1,6 +1,6 @@
 use protocheck::types::{field_descriptor_proto::Type, protovalidate::Violation};
 
-use crate::myapp::v1::{repeated_test::Person, RepeatedTest};
+use crate::myapp::v1::{repeated_tests::Person, RepeatedTests};
 
 #[test]
 fn repeated_tests() {
@@ -14,7 +14,7 @@ fn repeated_tests() {
   let unique_doubles: Vec<f64> = vec![1.1, 1.1];
   let unique_strings = vec!["ignazio".to_string(), "ignazio".to_string()];
 
-  let msg = RepeatedTest {
+  let msg = RepeatedTests {
     people,
     unique_floats,
     unique_doubles,
@@ -23,7 +23,7 @@ fn repeated_tests() {
 
   let result = msg.validate().unwrap_err();
 
-  assert_eq!(result.violations.len(), 9);
+  assert_eq!(result.violations.len(), 11);
 
   let unique_values_violations: Vec<&Violation> = result
     .violations

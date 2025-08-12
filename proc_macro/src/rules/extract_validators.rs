@@ -10,6 +10,7 @@ use quote::{format_ident, quote};
 use syn::{DeriveInput, Error, Ident};
 
 use super::{
+  super::special_field_names::{proto_name_to_rust_ident, proto_name_to_rust_name},
   protovalidate::{FieldRules, Ignore},
   MessageRules, OneofRules,
 };
@@ -24,7 +25,6 @@ use crate::{
     core::{get_field_kind, get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
-    special_field_names::{proto_name_to_rust_ident, proto_name_to_rust_name},
   },
   validation_data::ValidationData,
   Span2,

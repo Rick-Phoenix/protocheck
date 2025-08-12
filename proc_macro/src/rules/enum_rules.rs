@@ -39,7 +39,7 @@ pub fn get_enum_rules(
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
 
-    let error_message = format!("must be a defined value of {}", enum_name);
+    let error_message = format!("must be a defined value of '{}'", enum_name);
 
     let validator_tokens = quote! {
       if !#enum_ident_tokens::try_from(#value_ident).is_ok() {

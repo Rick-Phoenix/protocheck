@@ -4,7 +4,6 @@ use std::{
   hash::Hash,
 };
 
-use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 
 use super::{
@@ -25,7 +24,7 @@ where
   fn constant(&self) -> Option<ConstRule<Self::Unit>>;
   fn num_containing_rules(&self, field_full_name: &str)
     -> Result<ContainingRules, Vec<Self::Unit>>;
-  fn finite(&self) -> Option<TokenStream>;
+  fn finite(&self) -> bool;
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str>;
 }
 
@@ -35,10 +34,8 @@ impl NumericRules<u32> for FloatRules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    self
-      .finite()
-      .then_some(quote! { protocheck::validators::floats::f32_is_finite })
+  fn finite(&self) -> bool {
+    self.finite()
   }
 
   fn num_containing_rules(
@@ -131,10 +128,8 @@ impl NumericRules<u64> for DoubleRules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    self
-      .finite()
-      .then_some(quote! { protocheck::validators::floats::f64_is_finite })
+  fn finite(&self) -> bool {
+    self.finite()
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -226,8 +221,8 @@ impl NumericRules<i64> for Int64Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -250,8 +245,8 @@ impl NumericRules<i64> for SInt64Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -274,8 +269,8 @@ impl NumericRules<i64> for SFixed64Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -298,8 +293,8 @@ impl NumericRules<i32> for Int32Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -322,8 +317,8 @@ impl NumericRules<i32> for SInt32Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -346,8 +341,8 @@ impl NumericRules<i32> for SFixed32Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -370,8 +365,8 @@ impl NumericRules<u64> for UInt64Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -394,8 +389,8 @@ impl NumericRules<u64> for Fixed64Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -418,8 +413,8 @@ impl NumericRules<u32> for UInt32Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {
@@ -442,8 +437,8 @@ impl NumericRules<u32> for Fixed32Rules {
   fn constant(&self) -> Option<ConstRule<Self::Unit>> {
     self.const_rule()
   }
-  fn finite(&self) -> Option<TokenStream> {
-    None
+  fn finite(&self) -> bool {
+    false
   }
   fn comparable_rules(&self) -> Result<ComparableRules<Self::Unit>, &'static str> {
     let rules = ComparableRules {

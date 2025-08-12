@@ -59,12 +59,6 @@ pub struct MapValidator {
   pub values_rules: TokenStream,
 }
 
-pub struct ValidationParameters {
-  module_path: TokenStream,
-  func_path: TokenStream,
-  func_parameters: TokenStream,
-}
-
 pub enum ListRule {
   In,
   NotIn,
@@ -319,18 +313,6 @@ impl ValidationData<'_> {
         self.get_validator_tokens(tokens, &expr);
       }
     };
-  }
-
-  pub fn get_validator2(&self, tokens: &mut TokenStream, params: ValidationParameters) {
-    let ValidationParameters {
-      module_path,
-      func_path,
-      func_parameters,
-    } = params;
-
-    tokens.extend(quote! {
-      #module_path::#func_path(#func_parameters)
-    });
   }
 
   pub fn field_context_tokens(

@@ -4,9 +4,9 @@ use syn::LitByteStr;
 
 use crate::{
   protovalidate::{
-    BoolRules, BytesRules, DoubleRules, DurationRules, EnumRules, Fixed32Rules, Fixed64Rules,
-    FloatRules, Int32Rules, Int64Rules, SFixed32Rules, SFixed64Rules, SInt32Rules, SInt64Rules,
-    StringRules, TimestampRules, UInt32Rules, UInt64Rules,
+    containing_rules::format_bytes, BoolRules, BytesRules, DoubleRules, DurationRules, EnumRules,
+    Fixed32Rules, Fixed64Rules, FloatRules, Int32Rules, Int64Rules, SFixed32Rules, SFixed64Rules,
+    SInt32Rules, SInt64Rules, StringRules, TimestampRules, UInt32Rules, UInt64Rules,
   },
   Duration, Timestamp,
 };
@@ -36,7 +36,7 @@ impl BytesRules {
   pub fn const_rule(&self) -> Option<ConstRule<LitByteStr>> {
     self.r#const.as_ref().map(|v| ConstRule {
       val: LitByteStr::new(v, Span::call_site()),
-      error_message: format!("must be equal to {:?}", v),
+      error_message: format!("must be equal to {}", format_bytes(v)),
     })
   }
 }

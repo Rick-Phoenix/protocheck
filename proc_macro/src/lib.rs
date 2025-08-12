@@ -18,6 +18,7 @@ mod cel_rule_template;
 mod cel_try_into;
 mod pool_loader;
 mod rules;
+mod special_field_names;
 mod validation_data;
 
 #[cfg(feature = "cel")]
