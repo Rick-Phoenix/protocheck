@@ -30,7 +30,7 @@ pub fn get_string_rules(
     in_list_rule,
     not_in_list_rule,
   } = rules
-    .containing_rules(validation_data.full_name)
+    .containing_rules(&validation_data.static_full_name())
     .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   let length_rules = rules

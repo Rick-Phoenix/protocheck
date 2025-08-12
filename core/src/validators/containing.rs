@@ -107,6 +107,7 @@ in_hashset_list_validator!(any, &Any, &'static str, |value: &Any,
 in_slice_list_validator!(any, &Any, &'static str, |value: &Any, target: &[&str]| {
   target.contains(&value.type_url.as_str())
 });
+
 in_hashset_list_validator!(duration, Duration, Duration);
 in_slice_list_validator!(duration, Duration, Duration);
 

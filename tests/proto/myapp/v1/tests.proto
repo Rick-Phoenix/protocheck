@@ -18,6 +18,346 @@ enum test_enum {
   PASSIVE = 2;
 }
 
+message LargeListsTests {
+  test_enum enum_field = 7 [(buf.validate.field).enum = {
+    in: [
+      1,
+      2
+    ]
+    not_in: [
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36
+    ]
+  }];
+
+  bytes bytes_field = 8 [(buf.validate.field).bytes = {
+    in: ["\x03\x04"]
+    not_in: [
+      "\x01\x02",
+      "\x02\x03"
+    ]
+  }];
+
+  string name = 1 [(buf.validate.field).string = {
+    in: [
+      "alfredo",
+      "maurizio"
+    ]
+    not_in: ["ermenegildo"]
+  }];
+  google.protobuf.Any any_field = 6 [(buf.validate.field).any = {
+    in: [
+      "a   1",
+      "a   2",
+      "a   3",
+      "a   4",
+      "a   5",
+      "a   6",
+      "a   7",
+      "a   8",
+      "a   9",
+      "a   10",
+      "a   11",
+      "a   12",
+      "a   13",
+      "a   14",
+      "a   15",
+      "a   16"
+    ]
+    not_in: [
+      "a   17",
+      "a   18",
+      "a   19",
+      "a   20",
+      "a   21",
+      "a   22",
+      "a   23",
+      "a   24",
+      "a   25",
+      "a   26",
+      "a   27",
+      "a   28",
+      "a   29",
+      "a   30",
+      "a   31",
+      "a   32",
+      "a   33"
+    ]
+  }];
+  float float_field = 2 [(buf.validate.field).float = {
+    in: [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+      11.0,
+      12.0,
+      13.0,
+      14.0,
+      15.0,
+      16.0,
+      17.0
+    ]
+    not_in: [
+      18.0,
+      19.0,
+      20.0,
+      21.0,
+      22.0,
+      23.0,
+      24.0,
+      25.0,
+      26.0,
+      27.0,
+      28.0,
+      29.0,
+      30.0,
+      31.0,
+      32.0
+    ]
+  }];
+  double double_field = 3 [(buf.validate.field).double = {
+    in: [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0,
+      11.0,
+      12.0,
+      13.0,
+      14.0,
+      15.0,
+      16.0,
+      17.0
+    ]
+    not_in: [
+      18.0,
+      19.0,
+      20.0,
+      21.0,
+      22.0,
+      23.0,
+      24.0,
+      25.0,
+      26.0,
+      27.0,
+      28.0,
+      29.0,
+      30.0,
+      31.0,
+      32.0
+    ]
+  }];
+  google.protobuf.Duration duration_field = 4 [(buf.validate.field).duration = {
+    in: [
+      {
+        seconds: 1
+        nanos: 0
+      },
+      {
+        seconds: 1
+        nanos: 0
+      },
+      {
+        seconds: 2
+        nanos: 0
+      },
+      {
+        seconds: 3
+        nanos: 0
+      },
+      {
+        seconds: 4
+        nanos: 0
+      },
+      {
+        seconds: 5
+        nanos: 0
+      },
+      {
+        seconds: 6
+        nanos: 0
+      },
+      {
+        seconds: 7
+        nanos: 0
+      },
+      {
+        seconds: 8
+        nanos: 0
+      },
+      {
+        seconds: 9
+        nanos: 0
+      },
+      {
+        seconds: 10
+        nanos: 0
+      },
+      {
+        seconds: 11
+        nanos: 0
+      },
+      {
+        seconds: 12
+        nanos: 0
+      },
+      {
+        seconds: 13
+        nanos: 0
+      },
+      {
+        seconds: 14
+        nanos: 0
+      },
+      {
+        seconds: 15
+        nanos: 0
+      }
+    ]
+    not_in: [
+      {
+        seconds: 16
+        nanos: 0
+      },
+      {
+        seconds: 17
+        nanos: 0
+      },
+      {
+        seconds: 18
+        nanos: 0
+      },
+      {
+        seconds: 19
+        nanos: 0
+      },
+      {
+        seconds: 20
+        nanos: 0
+      },
+      {
+        seconds: 21
+        nanos: 0
+      },
+      {
+        seconds: 22
+        nanos: 0
+      },
+      {
+        seconds: 23
+        nanos: 0
+      },
+      {
+        seconds: 24
+        nanos: 0
+      },
+      {
+        seconds: 25
+        nanos: 0
+      },
+      {
+        seconds: 26
+        nanos: 0
+      },
+      {
+        seconds: 27
+        nanos: 0
+      },
+      {
+        seconds: 28
+        nanos: 0
+      },
+      {
+        seconds: 29
+        nanos: 0
+      },
+      {
+        seconds: 30
+        nanos: 0
+      },
+      {
+        seconds: 31
+        nanos: 0
+      },
+      {
+        seconds: 32
+        nanos: 0
+      }
+    ]
+  }];
+  int64 int64_field = 5 [(buf.validate.field).int64 = {
+    in: [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+    not_in: [
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36
+    ]
+  }];
+}
+
 message FiniteRulesTests {
   float finite_float = 1 [(buf.validate.field).float.finite = true];
   double finite_double = 2 [(buf.validate.field).double.finite = true];

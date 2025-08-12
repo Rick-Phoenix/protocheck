@@ -54,26 +54,28 @@ pub fn get_enum_rules(
     in_list_rule,
     not_in_list_rule,
   } = rules
-    .containing_rules(validation_data.full_name)
+    .containing_rules(&validation_data.static_full_name())
     .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   if let Some(in_list) = in_list_rule {
     let enum_values: HashSet<i32> = enum_desc.values().map(|e| e.number()).collect();
+    let mut invalid_numbers: Vec<i32> = Vec::new();
+
     for n in rules.r#in.iter() {
-      let mut invalid_numbers: Vec<i32> = Vec::new();
       if !enum_values.contains(n) {
         invalid_numbers.push(*n);
       }
-      if !invalid_numbers.is_empty() {
-        return Err(get_field_error(
-          field_name,
-          field_span,
-          &format!(
-            "enum_rules.in contains values that are not in the {} enum: {:?}",
-            enum_name, invalid_numbers
-          ),
-        ));
-      }
+    }
+
+    if !invalid_numbers.is_empty() {
+      return Err(get_field_error(
+        field_name,
+        field_span,
+        &format!(
+          "enum_rules.in contains values that are not in the {} enum: {:?}",
+          enum_name, invalid_numbers
+        ),
+      ));
     }
 
     validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);

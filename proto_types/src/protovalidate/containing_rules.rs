@@ -135,6 +135,12 @@ where
 
 macro_rules! standard_containing_rules {
   ($struct_target:ident, $type:ty, $wrap_with_quotes:expr $(, $error_prefix:ident)?) => {
+    containing_rules!($struct_target, $type, $type, $wrap_with_quotes $(, $error_prefix)?);
+  };
+}
+
+macro_rules! containing_rules {
+  ($struct_target:ident, $type:ty, $type_tokens:ty, $wrap_with_quotes:expr $(, $error_prefix:ident)?) => {
     macro_rules! _create_error_message {
       (type_url, $constant_part:literal) => {  concat!("the type url ", $constant_part)  };
       (, $constant_part:literal) => { $constant_part };
@@ -146,8 +152,8 @@ macro_rules! standard_containing_rules {
 
         let (in_list_hashset, not_in_list_hashset) = get_validated_lists(&self.r#in, &self.not_in)?;
 
-        let in_list_rule = get_list_kind("in", in_list_slice, in_list_hashset, _create_error_message!($($error_prefix)?, "must be one of these values"), $wrap_with_quotes, quote! { $type }, field_full_name );
-        let not_in_list_rule = get_list_kind("not_in", not_in_list_slice, not_in_list_hashset, _create_error_message!($($error_prefix)?, "cannot be one of these values"), $wrap_with_quotes, quote! { $type }, field_full_name );
+        let in_list_rule = get_list_kind("in", in_list_slice, in_list_hashset, _create_error_message!($($error_prefix)?, "must be one of these values"), $wrap_with_quotes, quote! { $type_tokens }, field_full_name );
+        let not_in_list_rule = get_list_kind("not_in", not_in_list_slice, not_in_list_hashset, _create_error_message!($($error_prefix)?, "cannot be one of these values"), $wrap_with_quotes, quote! { $type_tokens }, field_full_name );
 
         Ok(ContainingRules {
           in_list_rule,
@@ -158,10 +164,10 @@ macro_rules! standard_containing_rules {
   };
 }
 
+containing_rules!(DurationRules, Duration, ::protocheck::types::Duration, true);
+containing_rules!(AnyRules, String, &'static str, true, type_url);
 standard_containing_rules!(EnumRules, i32, false);
 standard_containing_rules!(StringRules, String, true);
-standard_containing_rules!(AnyRules, String, true, type_url);
-standard_containing_rules!(DurationRules, Duration, true);
 standard_containing_rules!(Int64Rules, i64, false);
 standard_containing_rules!(Int32Rules, i32, false);
 standard_containing_rules!(SInt64Rules, i64, false);

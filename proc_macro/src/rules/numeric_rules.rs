@@ -41,7 +41,7 @@ where
     in_list_rule,
     not_in_list_rule,
   } = rules
-    .num_containing_rules(validation_data.full_name)
+    .num_containing_rules(&validation_data.static_full_name())
     .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   if let Some(in_list) = in_list_rule {
