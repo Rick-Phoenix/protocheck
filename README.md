@@ -6,7 +6,7 @@ This allows you to define your validation schemas only once, directly in your pr
 
 # Getting started 
 
-To get started, you need to use [`protocheck-build`](::protocheck-build) as a build dependency in your crate, which will use [`protocheck-proc-macro`](::protocheck-proc-macro) to add all the validation logic to your structs. The setup will look more or less like this (this is taken directly from the tests crate)
+To get started, you need to use [`protocheck-build`](::protocheck-build) as a build dependency in your crate, which will use [`protocheck-proc-macro`](::protocheck-proc-macro) to add all the validation logic to your structs. The setup will look more or less like this (this is taken directly from the [tests](https://github.com/Rick-Phoenix/protocheck/tree/main/tests)] crate)
 
 ```rust
 // In your build.rs file

@@ -20,7 +20,7 @@ fn example() {
   violations.iter().for_each(|v| {
     println!(
       "Field path: {}, Error message: {}",
-      v.field_path().unwrap(),
+      v.field_path_str().unwrap(),
       v.message()
     )
   });
@@ -30,6 +30,7 @@ fn example() {
     confirm_password: "abcde".to_string(),
   };
 
+  #[allow(unused_variables)]
   let Violations { violations } = user.validate().unwrap_err();
 
   // println!(

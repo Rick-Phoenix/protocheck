@@ -1,3 +1,4 @@
+/// Generated rust code from buf.validate protobuf package, with some added methods and structs.
 pub mod protovalidate;
 
 #[cfg(feature = "cel")]
@@ -7,8 +8,10 @@ pub use protobuf::*;
 mod protobuf;
 mod protobuf_impls;
 
+/// Implementations and units for Duration structs.
 pub mod duration;
-pub use duration::*;
+#[doc(inline)]
+pub use duration::DurationError;
 
 mod timestamp;
 pub use timestamp::*;
@@ -19,6 +22,7 @@ mod any_impls;
 mod field_mask;
 
 mod field_type;
+#[doc(inline)]
 pub use field_type::FieldType;
 
 mod empty;

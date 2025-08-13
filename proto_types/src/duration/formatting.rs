@@ -4,6 +4,7 @@ use std::fmt::Display;
 use super::data::DurationData;
 use crate::Duration;
 
+/// Formats a duration in human readable form. (e.g. "2 days 15 hours 12 minutes and 15 seconds")
 impl Display for Duration {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let DurationData {

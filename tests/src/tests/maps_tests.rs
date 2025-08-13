@@ -33,7 +33,7 @@ fn message_map() {
   assert_eq!(message_level_violations.len(), 2);
 
   for v in &message_level_violations {
-    assert_eq!(v.rule_path().unwrap(), "cel");
+    assert_eq!(v.rule_path_str().unwrap(), "cel");
   }
 
   let message_field_violations: Vec<&Violation> = result
@@ -46,7 +46,7 @@ fn message_map() {
 
   for v in &message_field_violations {
     assert_eq!(v.parent_field().unwrap().field_name(), "message_map");
-    assert_eq!(v.rule_path().unwrap(), "cel");
+    assert_eq!(v.rule_path_str().unwrap(), "cel");
   }
 
   let field_level_violations: Vec<&Violation> = result
@@ -58,7 +58,7 @@ fn message_map() {
   assert_eq!(field_level_violations.len(), 2);
 
   for v in &field_level_violations {
-    assert_eq!(v.rule_path().unwrap(), "map.values.cel");
+    assert_eq!(v.rule_path_str().unwrap(), "map.values.cel");
   }
 }
 
@@ -96,7 +96,7 @@ fn timestamp_map() {
 
   assert_eq!(values_gt_now_violation.for_key(), false);
   assert_eq!(
-    values_gt_now_violation.rule_path().as_deref(),
+    values_gt_now_violation.rule_path_str().as_deref(),
     Some("map.values.timestamp.gt_now")
   );
 
@@ -120,7 +120,7 @@ fn timestamp_map() {
 
   assert_eq!(values_cel_violation.for_key(), false);
   assert_eq!(
-    values_cel_violation.rule_path().as_deref(),
+    values_cel_violation.rule_path_str().as_deref(),
     Some("map.values.cel")
   );
 }
@@ -159,7 +159,7 @@ fn duration_map() {
 
   assert_eq!(values_gt_violation.for_key(), false);
   assert_eq!(
-    values_gt_violation.rule_path().as_deref(),
+    values_gt_violation.rule_path_str().as_deref(),
     Some("map.values.duration.gt")
   );
 
@@ -183,7 +183,7 @@ fn duration_map() {
 
   assert_eq!(values_cel_violation.for_key(), false);
   assert_eq!(
-    values_cel_violation.rule_path().as_deref(),
+    values_cel_violation.rule_path_str().as_deref(),
     Some("map.values.cel")
   );
 }
@@ -206,7 +206,7 @@ fn basic_map() {
   assert_eq!(violation_field.subscript, None);
   assert_eq!(min_pairs_violation.for_key(), false);
   assert_eq!(
-    min_pairs_violation.rule_path().as_deref(),
+    min_pairs_violation.rule_path_str().as_deref(),
     Some("map.min_pairs")
   );
 
@@ -221,7 +221,7 @@ fn basic_map() {
   );
   assert_eq!(min_len_violation.for_key(), true);
   assert_eq!(
-    min_len_violation.rule_path().as_deref(),
+    min_len_violation.rule_path_str().as_deref(),
     Some("map.keys.string.min_len")
   );
 
@@ -236,7 +236,7 @@ fn basic_map() {
   );
   assert_eq!(max_len_violation.for_key(), false);
   assert_eq!(
-    max_len_violation.rule_path().as_deref(),
+    max_len_violation.rule_path_str().as_deref(),
     Some("map.values.string.max_len")
   );
 

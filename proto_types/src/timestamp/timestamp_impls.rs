@@ -9,6 +9,7 @@ mod chrono {
   use crate::{Timestamp, TimestampError};
 
   impl Timestamp {
+    /// Converts this timestamp into a chrono::DateTime<Utc> struct and calls .format on it with the string argument being given.
     pub fn format(&self, string: &str) -> Result<String, TimestampError> {
       let chrono_timestamp: chrono::DateTime<Utc> = (*self).try_into()?;
 
@@ -30,14 +31,17 @@ impl Timestamp {
     Timestamp { seconds, nanos }
   }
 
+  /// Checks whether the Timestamp instance is within the indicated range (positive or negative) from now.
   pub fn is_within_range_from_now(&self, range: Duration) -> bool {
     (Timestamp::now() + range) >= *self && (Timestamp::now() - range) <= *self
   }
 
+  /// Checks whether the Timestamp instance is within the indicated range in the future.
   pub fn is_within_future_range(&self, range: Duration) -> bool {
     (Timestamp::now() + range) >= *self
   }
 
+  /// Checks whether the Timestamp instance is within the indicated range in the past.
   pub fn is_within_past_range(&self, range: Duration) -> bool {
     (Timestamp::now() - range) <= *self
   }

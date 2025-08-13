@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![doc = include_str!("../../README.md")]
 //! # Feature flags
 #![doc = document_features::document_features!()]
 

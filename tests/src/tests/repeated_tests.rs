@@ -55,7 +55,7 @@ fn repeated_tests() {
   assert_eq!(message_level_violations.len(), 2);
 
   for v in &message_level_violations {
-    assert_eq!(v.rule_path().unwrap(), "cel");
+    assert_eq!(v.rule_path_str().unwrap(), "cel");
   }
 
   let message_field_violations: Vec<&Violation> = result
@@ -68,7 +68,7 @@ fn repeated_tests() {
 
   for v in &message_field_violations {
     assert_eq!(v.parent_field().unwrap().field_name(), "people");
-    assert_eq!(v.rule_path().unwrap(), "cel");
+    assert_eq!(v.rule_path_str().unwrap(), "cel");
   }
 
   let field_level_violations: Vec<&Violation> = result
@@ -80,6 +80,6 @@ fn repeated_tests() {
   assert_eq!(field_level_violations.len(), 2);
 
   for v in &field_level_violations {
-    assert_eq!(v.rule_path().unwrap(), "repeated.items.cel");
+    assert_eq!(v.rule_path_str().unwrap(), "repeated.items.cel");
   }
 }

@@ -8,6 +8,7 @@ const SECONDS_PER_WEEK: u64 = 604800;
 const SECONDS_PER_MONTH_AVG: u64 = 2_629_746;
 const SECONDS_PER_YEAR_AVG: u64 = 31_556_952;
 
+/// The data for a given Duration
 #[derive(Debug, Default, Clone)]
 pub struct DurationData {
   pub years: Years,
@@ -21,10 +22,12 @@ pub struct DurationData {
 }
 
 impl Duration {
+  /// Whether the duration is negative or not.
   pub fn is_negative(&self) -> bool {
     self.normalized().seconds < 0
   }
 
+  /// Creates a DurationData instance.
   pub fn get_data(&self) -> DurationData {
     let mut total_seconds = self.seconds.unsigned_abs();
     let years = Years {

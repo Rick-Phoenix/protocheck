@@ -1,5 +1,6 @@
 use crate::field_descriptor_proto::Type as ProtoType;
 
+/// An enhanced enum for protobuf types, allowing you to identify well known types such as Any, Timestamp or Duration
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum FieldType {
   Double,

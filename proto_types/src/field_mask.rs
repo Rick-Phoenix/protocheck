@@ -8,6 +8,14 @@ impl FieldMask {
   pub fn is_empty(&self) -> bool {
     self.paths.is_empty()
   }
+
+  pub fn contains(&self, path: &str) -> bool {
+    self.paths.iter().any(|p| p == path)
+  }
+
+  pub fn add_path(&mut self, path: &str) {
+    self.paths.push(path.to_string());
+  }
 }
 
 #[cfg(feature = "serde")]
