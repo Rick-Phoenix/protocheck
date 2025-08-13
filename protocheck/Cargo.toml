@@ -3,6 +3,8 @@ name = "protocheck"
 version = "0.1.0"
 description = "A library that generates rust validation logic from schemas defined in protobuf options."
 
+readme = "../README.md"
+
 keywords = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

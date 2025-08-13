@@ -9,7 +9,7 @@ mod chrono {
   use crate::{Timestamp, TimestampError};
 
   impl Timestamp {
-    /// Converts this timestamp into a chrono::DateTime<Utc> struct and calls .format on it with the string argument being given.
+    /// Converts this timestamp into a [`chrono::DateTime<Utc>`] struct and calls .format on it with the string argument being given.
     pub fn format(&self, string: &str) -> Result<String, TimestampError> {
       let chrono_timestamp: chrono::DateTime<Utc> = (*self).try_into()?;
 

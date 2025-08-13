@@ -1,3 +1,5 @@
+//! Build-time entrypoint for [`protocheck`](::protocheck)
+
 use std::{
   env,
   error::Error,

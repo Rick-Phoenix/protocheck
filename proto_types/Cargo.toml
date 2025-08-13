@@ -10,8 +10,7 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
-include = ["proto/"]
-
+include = ["proto/", "build.rs", "src/"]
 
 [dependencies]
 quote = { workspace = true, optional = true }

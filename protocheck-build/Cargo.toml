@@ -9,6 +9,9 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
+[dev-dependencies]
+protocheck = { path = "../protocheck/" }
+
 [dependencies]
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }
