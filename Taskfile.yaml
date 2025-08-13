@@ -1,24 +1,11 @@
 version: "3"
 
-vars:
-  db_dir: src-tauri/db
-
 tasks:
-  query:
-    dir: "{{ .db_dir }}"
-    cmd: cargo run --bin show_pokemons
-  runmig:
-    dir: "{{ .db_dir }}"
-    cmd: diesel migration run
-  revmig:
-    dir: "{{ .db_dir }}"
-    cmd: diesel migration revert
-  schema:
-    dir: "{{ .db_dir }}"
-    cmd: diesel print-schema > src/schema.rs
-  ext:
-    dir: "{{ .db_dir }}"
-    cmd: diesel_ext -m -s 'src/schema.rs' -d 'Queryable, Selectable, Insertable, Associations, Identifiable, Debug' > 'models2.rs'
-  ext-proto:
-    dir: "{{ .db_dir }}"
-    cmd: diesel_ext -p -M "Integer i32" -s 'src/schema.rs' > 'schema.proto'
+  test:
+    dir: "{{ .tests }}"
+    cmd: cargo test -- --no-capture
+  docs:
+    env:
+      RUSTDOCFLAGS: --cfg docsrs
+    dir: "{{ .protocheck }}"
+    cmd: cargo +nightly doc --all-features --open
