@@ -1,6 +1,7 @@
 [package]
 name = "protocheck-build"
-version = "0.1.0"
+version = { workspace = true }
+
 description = "Build-time entrypoint for protocheck."
 
 keywords = { workspace = true }
