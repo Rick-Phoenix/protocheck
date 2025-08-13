@@ -32,7 +32,7 @@ paste = { workspace = true }
 
 [features]
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
-totokens = ["dep:proc-macro2", "dep:quote"]
+totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
 ip = ["dep:ipnetwork"]
 uri = ["dep:iri-string"]
 bytes = ["dep:bytes"]
