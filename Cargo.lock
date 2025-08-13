@@ -546,7 +546,9 @@ name = "protocheck"
 version = "0.1.0"
 dependencies = [
  "document-features",
+ "prost-build",
  "proto-types",
+ "protocheck-build",
  "protocheck-core",
  "protocheck-proc-macro",
 ]

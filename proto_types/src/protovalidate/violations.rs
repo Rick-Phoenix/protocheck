@@ -1,5 +1,3 @@
-use std::{borrow::Cow, fmt::Write};
-
 use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
 
 impl FieldPath {
@@ -19,11 +17,11 @@ impl FieldPath {
     }
   }
 
-  pub fn has_field(&self) -> bool {
+  pub fn has_fields(&self) -> bool {
     self.last_field().is_some()
   }
 
-  pub fn field_name(&self) -> Option<&str> {
+  pub fn last_field_name(&self) -> Option<&str> {
     self.last_field().map(|f| f.field_name())
   }
 
@@ -34,27 +32,22 @@ impl FieldPath {
       .find(|&field| field.field_name() == name)
   }
 
-  pub fn field_path(&self) -> Cow<'_, str> {
-    if self.elements.len() == 1 {
-      Cow::Borrowed(self.elements.last().unwrap().field_name())
-    } else {
-      let mut path = String::new();
+  pub fn field_path(&self) -> Vec<String> {
+    let mut path: Vec<String> = Vec::new();
 
-      for (idx, field) in self.elements.iter().enumerate() {
-        path.push_str(field.field_name());
+    for field in self.elements.iter() {
+      path.push(field.field_name().to_string());
 
-        if let Some(key) = &field.subscript {
-          path.push('.');
-          write!(path, "{}", key).unwrap();
-        }
-
-        if idx != self.elements.len() - 1 {
-          path.push('.');
-        }
+      if let Some(key) = &field.subscript {
+        path.push(key.to_string());
       }
-
-      Cow::Owned(path)
     }
+
+    path
+  }
+
+  pub fn field_path_str(&self) -> String {
+    self.field_path().join(".")
   }
 }
 
@@ -89,7 +82,7 @@ impl Violation {
     None
   }
 
-  pub fn field_path(&self) -> Option<Cow<'_, str>> {
+  pub fn field_path(&self) -> Option<Vec<String>> {
     if let Some(fields) = &self.field {
       return Some(fields.field_path());
     }
@@ -97,7 +90,7 @@ impl Violation {
     None
   }
 
-  pub fn rule_path(&self) -> Option<Cow<'_, str>> {
+  pub fn rule_path(&self) -> Option<Vec<String>> {
     if let Some(rules) = &self.rule {
       return Some(rules.field_path());
     }
@@ -105,8 +98,28 @@ impl Violation {
     None
   }
 
-  pub fn has_field(&self) -> bool {
+  pub fn field_path_str(&self) -> Option<String> {
+    if let Some(fields) = &self.field {
+      return Some(fields.field_path_str());
+    }
+
+    None
+  }
+
+  pub fn rule_path_str(&self) -> Option<String> {
+    if let Some(rules) = &self.rule {
+      return Some(rules.field_path_str());
+    }
+
+    None
+  }
+
+  pub fn has_fields(&self) -> bool {
     self.last_field().is_some()
+  }
+
+  pub fn has_field_by_name(&self, name: &str) -> bool {
+    self.get_field(name).is_some()
   }
 
   pub fn field_name(&self) -> Option<&str> {

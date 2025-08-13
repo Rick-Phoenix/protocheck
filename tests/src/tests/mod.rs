@@ -1,6 +1,7 @@
 mod bytes_tests;
 mod comparables_tests;
 mod containing_tests;
+mod docs_example;
 mod finite_floats_tests;
 mod ignores_tests;
 mod maps_tests;

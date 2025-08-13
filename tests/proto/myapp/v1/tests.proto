@@ -18,6 +18,40 @@ enum test_enum {
   PASSIVE = 2;
 }
 
+message User {
+  option (buf.validate.message).cel = {
+    id: "passwords_match"
+    message: "the two passwords do not match"
+    expression: "this.password == this.confirm_password"
+  };
+
+  string password = 1;
+  string confirm_password = 2;
+}
+
+message JediFight {
+  Anakin anakin = 1;
+  ObiWan obi_wan = 2;
+}
+
+message ObiWan {
+  option (buf.validate.message).cel = {
+    id: "obi-wan.high_ground"
+    message: "obi-wan must have the high ground."
+    expression: "this.has_high_ground == true"
+  };
+
+  bool has_high_ground = 1 [(buf.validate.field).cel = {
+    id: "obi-wan.high_ground"
+    message: "obi-wan must have the high ground."
+    expression: "this == true"
+  }];
+}
+
+message Anakin {
+  bool has_high_ground = 1 [(buf.validate.field).bool.const = false];
+}
+
 message LargeListsTests {
   test_enum enum_field = 7 [(buf.validate.field).enum = {
     in: [
