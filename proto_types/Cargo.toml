@@ -1,7 +1,16 @@
 [package]
 name = "proto-types"
 version = "0.1.0"
-edition = "2024"
+
+description = "Rust types generated from the google.protobuf and buf.validate protobuf packages, plus extra helpers for implementing validation with the protocheck crate."
+
+keywords = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+license-file = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
 
 [dependencies]
 quote = { workspace = true, optional = true }

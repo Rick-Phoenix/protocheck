@@ -1,7 +1,15 @@
 [package]
 name = "protocheck-core"
 version = "0.1.0"
-edition = "2024"
+
+description = "Core logic and validators for protocheck."
+
+keywords = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+license-file = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 proto-types = { path = "../proto_types/" }

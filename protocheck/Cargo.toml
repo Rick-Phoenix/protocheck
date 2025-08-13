@@ -1,7 +1,14 @@
 [package]
 name = "protocheck"
 version = "0.1.0"
-edition = "2024"
+description = "A library that generates rust validation logic from schemas defined in protobuf options."
+
+keywords = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+license-file = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 protocheck-proc-macro = { path = "../proc_macro/", default-features = false }

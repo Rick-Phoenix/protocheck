@@ -10,6 +10,15 @@ members = [
 ]
 resolver = "2"
 
+[workspace.package]
+license = "Apache-2.0"
+license-file = "LICENSE"
+authors = ["Rick-Phoenix <https://github.com/Rick-Phoenix>"]
+description = "Core logic and validators for protocheck."
+keywords = ["validation", "protobuf", "cel", "validator", "proto"]
+repository = "https://github.com/Rick-Phoenix/protocheck"
+edition = "2024"
+
 [workspace.dependencies]
 cel = { version = "=0.11.0", features = ["chrono"] }
 prost = "0.14.1"

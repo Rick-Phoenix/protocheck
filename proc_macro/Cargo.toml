@@ -1,7 +1,15 @@
 [package]
 name = "protocheck-proc-macro"
 version = "0.1.0"
-edition = "2024"
+description = "Procedural macro implementations for protocheck."
+
+keywords = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+license-file = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
 
 [lib]
 proc-macro = true
