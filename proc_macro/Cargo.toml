@@ -18,11 +18,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 proc-macro = true
 
 [dependencies]
-proto-types = { workspace = true, path = "../proto_types/", features = [
+proto-types = { version = "0.1.1", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { workspace = true, path = "../core/", features = [
+protocheck-core = { version = "0.1.1", path = "../core/", features = [
   "totokens",
 ] }
 

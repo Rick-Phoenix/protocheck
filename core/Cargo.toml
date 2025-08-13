@@ -15,7 +15,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-proto-types = { path = "../proto_types/", workspace = true }
+proto-types = { path = "../proto_types/", version = "0.1.1" }
 
 quote = { workspace = true, optional = true }
 proc-macro2 = { workspace = true, optional = true }

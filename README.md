@@ -6,7 +6,7 @@ This allows you to define your validation schemas only once, directly in your pr
 
 # Getting started 
 
-To get started, you need to use [`protocheck-build`](protocheck-build) as a build dependency in your crate, which will use [`protocheck-proc-macro`](protocheck-proc-macro) to add all the validation logic to your structs. The setup will look more or less like this (this is taken directly from the [`tests`](https://github.com/Rick-Phoenix/protocheck/tree/main/tests) crate)
+To get started, you need to use [`protocheck-build`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/) as a build dependency in your crate, which will use [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/index.html) to add all the validation logic to your structs. The setup will look more or less like this (this is taken directly from the [`tests`](https://github.com/Rick-Phoenix/protocheck/tree/main/tests) crate)
 
 ```rust
 // In your build.rs file
@@ -47,13 +47,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-[`compile_protos_with_validators`](::protocheck-build::compile_protos_with_validators) takes these arguments:
+[`compile_protos_with_validators`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/fn.compile_protos_with_validators.html) takes these arguments:
 
-1. The [`config`](prost_build::Config) struct.
-2. The proto files and include paths being used by the [`config`](::prost-build::Config).
+1. The [`config`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html) struct.
+2. The proto files and include paths being used by the [`config`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html).
 3. The list of packages to apply validators to. If a given message contains Cel validation or is validated as a field by another message, its package name must be included in this list.
 
-The function will then create an intermediary descriptor, iterate its messages, and use the information extracted from them to add the derives and attributes to the actual [`config`](::prost-build::Config) that are needed by [`protocheck-proc-macro`](::protocheck-proc-macro) to add the validation logic.
+The function will then create an intermediary descriptor, iterate its messages, and use the information extracted from them to add the derives and attributes to the actual [`config`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html) that are needed by [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/index.html) to add the validation logic.
 
 # Noteworthy features
 
@@ -65,7 +65,7 @@ First, it removes the need to include a reflection library in the consuming app'
 
 And, most importantly, it avoids the overhead that is introduced by using reflection to determine the structure of a message when validating it.
 
-Rather than using reflection, this crate leverages the [`TryIntoCelValue`](::protocheck-proc-macro::TryIntoCelValue) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate [`cel::Value`](::cel::Value) (only failing in case of a [`Duration`](crate::types::Duration) or [`Timestamp`](crate::types::Timestamp) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
+Rather than using reflection, this crate leverages the [`TryIntoCelValue`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/derive.TryIntoCelValue.html) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate [`cel::Value`](::cel::Value) (only failing in case of a [`Duration`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Duration.html) or [`Timestamp`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Timestamp.html) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
 
 #### 2. It uses native rust code for validation except for custom Cel rules. 
 
@@ -76,7 +76,7 @@ Unlike other similar libraries, all of the standard validators are implemented i
 Because of human error, some of these situations may arise:
 
 - A list of allowed values and a list of forbidden values have some items in common
-- A string field is trying to use [`BytesRules`](crate::types::protovalidate::BytesRules)
+- A string field is trying to use [`BytesRules`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.BytesRules.html)
 - An "enum.in" rule (list of allowed values for an enum field) includes values that are not part of that enum
 - An "lt" rule (meaning 'less than') specifies a value that is smaller than the "gt" (greater than) rule
 - ... and other corner cases
@@ -100,7 +100,7 @@ Error message:
 
 #### 4. Strenghtened compile-time safety for Cel programs
 
-When the [`protobuf_validate`](::protocheck-proc-macro::protobuf_validate) proc macro is being processed, it will attempt to create a test case for any given Cel expression being used, generating some default values for the given message or field and trying to execute a Cel program with those defaults. 
+When the [`protobuf_validate`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/attr.protobuf_validate.html) proc macro is being processed, it will attempt to create a test case for any given Cel expression being used, generating some default values for the given message or field and trying to execute a Cel program with those defaults. 
 This ensures that if a Cel expression is fundamentally invalid (for example for a type mismatch), the error will be caught at compile time and not at runtime. (With some caveats explained below)
 
 #### 5. Lazy initialization
@@ -117,13 +117,13 @@ If the list is longer than that, it will instead use a [`HashSet`](::std::collec
 
 # How to validate messages
 
-After the [`validate`](ProtoValidator::validate) method has been added to a struct, validating it is as simple as calling `my_struct.validate()`. 
+After the [`validate`](https://docs.rs/protocheck/0.1.0/protocheck/trait.ProtoValidator.html#tymethod.validate) method has been added to a struct, validating it is as simple as calling `my_struct.validate()`. 
 
-The validate method returns a `Result<(), Violations>`, where the [`Violations`](crate::types::protovalidate::Violations) struct contains a vector of individual [`Violation`](crate::types::protovalidate::Violation) elements, which contain the context behind a given validation error, such as the parent messages (if the field was part of a nested message) of the invalid field, along with the error message and the rule id for that given rule.  
+The validate method returns a `Result<(), Violations>`, where the [`Violations`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violations.html) struct contains a vector of individual [`Violation`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violation.html) elements, which contain the context behind a given validation error, such as the parent messages (if the field was part of a nested message) of the invalid field, along with the error message and the rule id for that given rule.  
 
-Both [`Violations`](crate::types::protovalidate::Violations) and the invidivual [`Violation`](crate::types::protovalidate::Violation) structs come with several utility methods, such as [`violation_by_rule_id`](crate::types::protovalidate::Violations::violation_by_rule_id), which allows you to select a particular violation from the list, or [`field_path_str`](crate::types::protovalidate::Violation::field_path_str), which conveniently takes a list of [`FieldPathElement`](crate::types::protovalidate::FieldPathElement) and turns it into a single string path such as `person.friends.0.address.street_name`.
+Both [`Violations`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violations.html) and the invidivual [`Violation`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violation.html) structs come with several utility methods, such as [`violation_by_rule_id`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violations.html#method.violation_by_rule_id), which allows you to select a particular violation from the list, or [`field_path_str`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.Violation.html#method.field_path_str), which conveniently takes a list of [`FieldPathElement`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/struct.FieldPathElement.html) and turns it into a single string path such as `person.friends.0.address.street_name`.
 
-The [`protocheck-proc-macro`](::protocheck-proc-macro) crate also adds a generic trait [`ProtoValidator`] that calls the [`validate`](ProtoValidator::validate) method, which can be used to develop things like a [`tower::Layer`](https://docs.rs/tower/latest/tower/trait.Layer.html) that accepts any struct with a validator, calls the `validate` method and returns the result.
+The [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/index.html) crate also adds a generic trait [`ProtoValidator`] that calls the [`validate`](https://docs.rs/protocheck/0.1.0/protocheck/trait.ProtoValidator.html#tymethod.validate) method, which can be used to develop things like a [`tower::Layer`](https://docs.rs/tower/latest/tower/trait.Layer.html) that accepts any struct with a validator, calls the method and returns the result.
 
 Example:
 
@@ -264,6 +264,6 @@ Field path: passwords_match, Error message: the two passwords do not match
 
 - Validation for `bytes` fields only works when using [`bytes::Bytes`](https://docs.rs/bytes/1.10.1/bytes/) as the rust type for them.
 
-- The types for the well known protobuf messages must be imported from [`proto-types`](::proto-types) (re-exported in this crate in the [`types`] module). These are based on the [`prost-types`](https://docs.rs/prost-types/0.14.1/prost_types/) implementation, with some extra helpers and methods that make validation smoother or even possible at all in some cases. 
+- The types for the well known protobuf messages must be imported from [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html) (re-exported in this crate in the [`types`] module). These are based on the [`prost-types`](https://docs.rs/prost-types/0.14.1/prost_types/) implementation, with some extra helpers and methods that make validation smoother or even possible at all in some cases. 
 
- [`compile_protos_with_validators`](::protocheck-build::compile_protos_with_validators) automatically takes care of calling [`compile_well_known_types`](prost_build::Config::compile_well_known_types) and assigning all of the `.google.protobuf` types to the ones defined in [`proto-types`](::proto-types). The same thing goes for the types belonging to the `protovalidate` specification.
+ [`compile_protos_with_validators`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/fn.compile_protos_with_validators.html) automatically takes care of calling [`compile_well_known_types`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types) and assigning all of the `.google.protobuf` types to the ones defined in [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html). The same thing goes for the types belonging to the [`protovalidate`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/index.html) specification.

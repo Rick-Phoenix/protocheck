@@ -1,5 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![doc = include_str!("../../README.md")]
+#![doc = include_str!("../README.md")]
 //! # Feature flags
 #![doc = document_features::document_features!()]
 
@@ -9,6 +9,8 @@ pub mod types {
 
 /// The shared trait for all structs that have validators in them. The `validate` method is available on the structs themselves, so it is not necessary to import the trait just for validation, but this is useful for making functions that accept any struct implementing ProtoValidator, such as a Tower layer.
 pub trait ProtoValidator {
+  /// The method that performs validation on the message struct.
+  /// This is available on the generated structs on its own, so you don't need to import the trait unless you want to use it with a generic.
   fn validate(&self) -> Result<(), Violations>;
 }
 

@@ -1,9 +1,9 @@
 [package]
 name = "protocheck"
-version = "0.1.0"
+version = { workspace = true }
 description = "A library that generates rust validation logic from schemas defined in protobuf options."
 
-readme = "../README.md"
+readme = "README.md"
 
 keywords = { workspace = true }
 edition = { workspace = true }
@@ -16,9 +16,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-protocheck-proc-macro = { path = "../proc_macro/", default-features = false }
-protocheck-core = { path = "../core/", default-features = false }
-proto-types = { path = "../proto_types/", default-features = false }
+protocheck-proc-macro = { version = "0.1.1", path = "../proc_macro/", default-features = false }
+protocheck-core = { version = "0.1.1", path = "../core/", default-features = false }
+proto-types = { version = "0.1.1", path = "../proto_types/", default-features = false }
 document-features = { workspace = true }
 
 [features]

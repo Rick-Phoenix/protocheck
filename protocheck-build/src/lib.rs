@@ -1,6 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-//! Build-time entrypoint for `protocheck`
+//! Build-time entrypoint for [`protocheck`](https://docs.rs/protocheck/0.1.0/protocheck/)
 
 use std::{
   env,
