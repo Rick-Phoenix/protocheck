@@ -4,7 +4,7 @@
 #![doc = document_features::document_features!()]
 
 pub mod types {
-  pub use proto_types::{FieldType, *};
+  pub use proto_types::*;
 }
 
 /// The shared trait for all structs that have validators in them. The `validate` method is available on the structs themselves, so it is not necessary to import the trait just for validation, but this is useful for making functions that accept any struct implementing ProtoValidator, such as a Tower layer.

@@ -6,7 +6,7 @@ members = [
   "proto_types",
   "core",
   "protocheck",
-  "protocheck-build",
+  "protocheck-build", "builder",
 ]
 resolver = "2"
 

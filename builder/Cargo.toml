@@ -1,0 +1,13 @@
+[package]
+name = "builder"
+version = "0.1.0"
+publish = false
+license.workspace = true
+authors.workspace = true
+description.workspace = true
+keywords.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+prost-build = { workspace = true }

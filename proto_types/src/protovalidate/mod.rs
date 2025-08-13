@@ -1,4 +1,5 @@
-include!(concat!(env!("OUT_DIR"), "/buf.validate.rs"));
+#![allow(clippy::len_without_is_empty)]
+include!("./buf.validate.rs");
 
 use crate::protovalidate::field_path_element::Subscript;
 

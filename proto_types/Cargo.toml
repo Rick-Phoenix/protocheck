@@ -10,8 +10,6 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
-include = ["proto/", "build.rs", "src/"]
-
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
@@ -39,6 +37,3 @@ totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
 
 default = ["chrono"]
-
-[build-dependencies]
-prost-build = { workspace = true }

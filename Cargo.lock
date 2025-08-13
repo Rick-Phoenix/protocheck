@@ -89,6 +89,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
+name = "builder"
+version = "0.1.0"
+dependencies = [
+ "prost-build",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -534,7 +541,6 @@ dependencies = [
  "paste",
  "proc-macro2",
  "prost",
- "prost-build",
  "quote",
  "serde",
  "syn",
