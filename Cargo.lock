@@ -555,9 +555,11 @@ checksum = "bd32293a1eba3701bca2e74a940847fa625f7a531daf27ee8b26143412e403ed"
 dependencies = [
  "cel",
  "chrono",
+ "paste",
  "proc-macro2",
  "prost",
  "quote",
+ "syn",
  "thiserror 2.0.14",
 ]
 
@@ -567,7 +569,7 @@ version = "0.1.0"
 dependencies = [
  "document-features",
  "proto-types 0.1.0",
- "protocheck-core",
+ "protocheck-core 0.1.0",
  "protocheck-proc-macro",
 ]
 
@@ -596,6 +598,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "protocheck-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a449a901b1ec96974b3fb8b678ff3c387fd6df67fcc18334b15f3bb2e103597"
+dependencies = [
+ "bytes",
+ "cel",
+ "chrono",
+ "ipnetwork",
+ "iri-string",
+ "paste",
+ "proc-macro2",
+ "proto-types 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote",
+ "regex",
+]
+
+[[package]]
 name = "protocheck-proc-macro"
 version = "0.1.0"
 dependencies = [
@@ -603,8 +623,8 @@ dependencies = [
  "convert_case",
  "proc-macro2",
  "prost-reflect",
- "proto-types 0.1.0",
- "protocheck-core",
+ "proto-types 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protocheck-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote",
  "regex",
  "syn",

@@ -18,17 +18,20 @@ rustdoc-args = ["--cfg", "docsrs"]
 proc-macro = true
 
 [dependencies]
+proto-types = { workspace = true, path = "../proto_types/", features = [
+  "protocheck",
+  "totokens",
+] }
+protocheck-core = { workspace = true, path = "../core/", features = [
+  "totokens",
+] }
+
 prost-reflect = { workspace = true }
 cel = { workspace = true, optional = true }
 syn = { workspace = true, features = ["full", "extra-traits"] }
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
 regex = { workspace = true }
-proto-types = { path = "../proto_types/", features = [
-  "protocheck",
-  "totokens",
-] }
-protocheck-core = { path = "../core/", features = ["totokens"] }
 convert_case = { workspace = true }
 
 [features]

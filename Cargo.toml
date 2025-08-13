@@ -22,6 +22,7 @@ edition = "2024"
 
 [workspace.dependencies]
 proto-types = "0.1.0"
+protocheck-core = "0.1.0"
 
 cel = { version = "=0.11.0", features = ["chrono"] }
 prost = "0.14.1"
