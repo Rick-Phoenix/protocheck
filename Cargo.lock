@@ -546,9 +546,7 @@ name = "protocheck"
 version = "0.1.0"
 dependencies = [
  "document-features",
- "prost-build",
  "proto-types",
- "protocheck-build",
  "protocheck-core",
  "protocheck-proc-macro",
 ]
@@ -559,7 +557,6 @@ version = "0.1.0"
 dependencies = [
  "prost-build",
  "prost-reflect",
- "protocheck",
 ]
 
 [[package]]
@@ -574,8 +571,6 @@ dependencies = [
  "paste",
  "proc-macro2",
  "proto-types",
- "protocheck",
- "protocheck-proc-macro",
  "quote",
  "regex",
 ]
@@ -589,8 +584,6 @@ dependencies = [
  "proc-macro2",
  "prost-reflect",
  "proto-types",
- "protocheck",
- "protocheck-build",
  "protocheck-core",
  "quote",
  "regex",

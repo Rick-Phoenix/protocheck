@@ -9,8 +9,9 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
-[dev-dependencies]
-protocheck = { path = "../protocheck/" }
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 prost-build = { workspace = true }

@@ -10,9 +10,9 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
-[dev-dependencies]
-protocheck = { path = "../protocheck/" }
-protocheck-proc-macro = { path = "../proc_macro/" }
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 proto-types = { path = "../proto_types/" }

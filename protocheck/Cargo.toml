@@ -11,15 +11,15 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 protocheck-proc-macro = { path = "../proc_macro/", default-features = false }
 protocheck-core = { path = "../core/", default-features = false }
 proto-types = { path = "../proto_types/", default-features = false }
 document-features = { workspace = true }
-
-[dev-dependencies]
-prost-build = { workspace = true }
-protocheck-build = { path = "../protocheck-build/" }
 
 [features]
 ## Enables serde support for protobuf well known types.
