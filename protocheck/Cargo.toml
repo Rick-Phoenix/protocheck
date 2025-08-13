@@ -6,7 +6,6 @@ description = "A library that generates rust validation logic from schemas defin
 keywords = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-license-file = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 

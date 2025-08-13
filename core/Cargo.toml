@@ -7,7 +7,6 @@ description = "Core logic and validators for protocheck."
 keywords = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-license-file = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
