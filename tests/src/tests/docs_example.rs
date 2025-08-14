@@ -15,15 +15,16 @@ fn example() {
     obi_wan: Some(obi_wan),
   };
 
+  #[allow(unused_variables)]
   let Violations { violations } = jedi_fight.validate().unwrap_err();
 
-  violations.iter().for_each(|v| {
-    println!(
-      "Field path: {}, Error message: {}",
-      v.field_path_str().unwrap(),
-      v.message()
-    )
-  });
+  // violations.iter().for_each(|v| {
+  //   println!(
+  //     "Field path: {}, Error message: {}",
+  //     v.field_path_str().unwrap(),
+  //     v.message()
+  //   )
+  // });
 
   let user = User {
     password: "abc".to_string(),
