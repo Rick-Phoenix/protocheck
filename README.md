@@ -1,10 +1,10 @@
-# Protocheck
+# ✅ Protocheck
 
 Protocheck is a crate that allows you to leverage [`protovalidate`](https://github.com/bufbuild/protovalidate) annotations to automatically generate validation logic for the structs generated from your protobuf messages. 
 
 This allows you to define your validation schemas only once, directly in your protobuf files, and then use libraries such as this one or others like [`protovalidate-es`](github.com/bufbuild/protovalidate-es) in the Typescript ecosystem to execute the validation logic.
 
-# Getting started 
+## ➡️ Getting started 
 
 To get started, you need to use [`protocheck-build`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/) as a build dependency in your crate, which will use [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/index.html) to add all the validation logic to your structs. The setup will look more or less like this (this is taken directly from the [`tests`](https://github.com/Rick-Phoenix/protocheck/tree/main/tests) crate)
 
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 The function will then create an intermediary descriptor, iterate its messages, and use the information extracted from them to add the derives and attributes to the actual [`config`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html) that are needed by [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/index.html) to add the validation logic.
 
-# Noteworthy features
+## 📓 Noteworthy features
 
 #### 1. It does not require reflection, except at build time. 
 
@@ -107,15 +107,7 @@ This ensures that if a Cel expression is fundamentally invalid (for example for 
 
 All Cel programs are generated using [`LazyLock`](::std::sync::LazyLock) so they are only initialized once. The same thing goes for other static elements being used in the validators, such as regexes or allowed/forbidden list of values (more on that below).
 
-#### 6. Smart list validation
-
-When a list rule is defined ("in" or "not_in"), the crate will generate two kinds of validators. 
-
-If the list is up to 15 elements long, it will generate a validator that uses a slice to check for presence.
-
-If the list is longer than that, it will instead use a [`HashSet`](::std::collections::HashSet) (also initialized in a [`LazyLock`](::std::sync::LazyLock)) containing the list of values, to ensure faster lookup times.
-
-# How to validate messages
+## ☑️ How to validate messages
 
 After the [`validate`](https://docs.rs/protocheck/0.1.0/protocheck/trait.ProtoValidator.html#tymethod.validate) method has been added to a struct, validating it is as simple as calling `my_struct.validate()`. 
 
@@ -177,7 +169,7 @@ Field path: obi_wan.has_high_ground, Error message: must be equal to true
 
 The [tests](https://github.com/Rick-Phoenix/protocheck/tree/main/tests/src) crate contains many other examples of validation schemas being implemented.
 
-# Custom validation with Cel
+## ⚙️ Custom validation with Cel
 
 With the `cel` feature (enabled by default), you can also specify some validation rules defined with the [Cel](https://cel.dev/) syntax, which can be applied to entire structs or to singular fields.
 
@@ -250,7 +242,7 @@ Outcome:
 Field path: passwords_match, Error message: the two passwords do not match
 ```
 
-# Caveats
+## ⚠️ Caveats
 
 - While the compile-time check for the validity of a Cel expression helps to catch most if not all errors relative to the Cel program compilation and execution, it is still very encouraged to have some tests that trigger the validation logic at runtime (it's just as easy as calling `.validate()` once again) to be absolutely sure that the Cel program is not causing any issues.
 
