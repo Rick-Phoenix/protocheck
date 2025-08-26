@@ -1,6 +1,6 @@
 [package]
 name = "protocheck-proc-macro"
-version = { workspace = true }
+version = "0.1.2"
 
 description = "Procedural macro implementations for protocheck."
 
@@ -22,7 +22,7 @@ proto-types = { version = "0.1.1", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { version = "0.1.1", path = "../core/", features = [
+protocheck-core = { version = "0.1.2", path = "../core/", features = [
   "totokens",
 ] }
 

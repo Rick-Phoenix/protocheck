@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "document-features",
  "proto-types",
@@ -583,7 +583,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-proc-macro"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "cel",
  "convert_case",
