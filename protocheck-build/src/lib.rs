@@ -27,7 +27,9 @@ pub fn compile_protos_with_validators(
   proto_include_paths: &[impl AsRef<Path>],
   packages: &[&str],
 ) -> Result<(), Box<dyn Error>> {
-  let out_dir = PathBuf::from(env::var("OUT_DIR").expect("Could not find OUT_DIR."));
+  let out_dir = env::var("OUT_DIR")
+    .map(PathBuf::from)
+    .unwrap_or_else(|_| env::temp_dir());
 
   let temp_descriptor_path = out_dir.join("temp_file_descriptor_set_for_protocheck.bin");
   {
