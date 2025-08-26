@@ -1,7 +1,6 @@
 [workspace]
 members = [
   "proc_macro",
-  "protoschema",
   "tests",
   "proto_types",
   "core",
@@ -9,7 +8,7 @@ members = [
   "protocheck-build",
   "builder",
 ]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 version = "0.1.1"

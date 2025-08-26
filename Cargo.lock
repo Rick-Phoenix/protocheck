@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "document-features",
  "proto-types",
@@ -567,7 +567,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bytes",
  "cel",
@@ -594,18 +594,6 @@ dependencies = [
  "quote",
  "regex",
  "syn",
-]
-
-[[package]]
-name = "protoschema"
-version = "0.1.0"
-dependencies = [
- "cel",
- "prost",
- "prost-build",
- "proto-types",
- "protocheck-proc-macro",
- "serde",
 ]
 
 [[package]]
@@ -747,7 +735,6 @@ name = "tests"
 version = "0.1.0"
 dependencies = [
  "bytes",
- "cel",
  "chrono",
  "maplit",
  "prost",

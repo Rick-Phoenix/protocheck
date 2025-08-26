@@ -91,8 +91,8 @@ mod cel {
             );
 
             static_defs.extend(quote! {
-            static #static_program_ident: std::sync::LazyLock<::cel::Program> = std::sync::LazyLock::new(|| {
-              ::cel::Program::compile(#expression).expect(#compilation_error)
+            static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
+              protocheck::cel::Program::compile(#expression).expect(#compilation_error)
             });
           });
 

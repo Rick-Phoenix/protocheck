@@ -1,6 +1,6 @@
 [package]
 name = "protocheck"
-version = { workspace = true }
+version = "0.1.2"
 description = "A library that generates rust validation logic from schemas defined in protobuf options."
 
 readme = "README.md"

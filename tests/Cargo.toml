@@ -7,7 +7,6 @@ publish = false
 [dependencies]
 prost = { workspace = true }
 serde = { workspace = true }
-cel = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
 protocheck = { path = "../protocheck/", features = ["serde"] }

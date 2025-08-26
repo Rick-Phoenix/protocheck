@@ -1,6 +1,6 @@
 [package]
 name = "protocheck-core"
-version = { workspace = true }
+version = "0.1.2"
 
 description = "Core logic and validators for protocheck."
 

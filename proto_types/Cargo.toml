@@ -1,6 +1,6 @@
 [package]
 name = "proto-types"
-version = { workspace = true }
+version = "0.1.1"
 
 description = "Rust types generated from the google.protobuf and buf.validate protobuf packages, plus extra helpers for implementing validation with the protocheck crate."
 

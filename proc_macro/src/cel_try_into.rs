@@ -149,7 +149,7 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
         let arm = quote! {
           #enum_name::#variant_ident(#val_ident) => {
             if depth >= #max_recursion_depth {
-              Ok((#proto_name.to_string(), ::cel::Value::Null))
+              Ok((#proto_name.to_string(), ::protocheck::cel::Value::Null))
             } else {
               Ok((#proto_name.to_string(), #into_expression))
             }
@@ -161,11 +161,11 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #enum_name {
-      pub fn try_into_cel_value(&self) -> Result<(String, ::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value(&self) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
-      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -246,32 +246,32 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
             if let Some(#val_ident) = &value.#field_ident {
               #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
             } else {
-              #fields_map_ident.insert(#field_name.into(), ::cel::Value::Null);
+              #fields_map_ident.insert(#field_name.into(), ::protocheck::cel::Value::Null);
             }
           });
         }
         OuterType::Vec(inner) => {
           let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
-            let mut converted: Vec<::cel::Value> = Vec::new();
+            let mut converted: Vec<::protocheck::cel::Value> = Vec::new();
             for #val_ident in &value.#field_ident {
               converted.push(#conversion_tokens);
             }
 
-            #fields_map_ident.insert(#field_name.into(), ::cel::Value::List(converted.into()));
+            #fields_map_ident.insert(#field_name.into(), ::protocheck::cel::Value::List(converted.into()));
           });
         }
 
         OuterType::HashMap(inner) => {
           let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
-            let mut field_map: ::std::collections::HashMap<::cel::objects::Key, ::cel::Value> = ::std::collections::HashMap::new();
+            let mut field_map: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = ::std::collections::HashMap::new();
 
             for (k, #val_ident) in &value.#field_ident {
               field_map.insert(k.to_owned().into(), #conversion_tokens);
             }
 
-            #fields_map_ident.insert(#field_name.into(), ::cel::Value::Map(field_map.into()));
+            #fields_map_ident.insert(#field_name.into(), ::protocheck::cel::Value::Map(field_map.into()));
           });
         }
         OuterType::Normal(ty) => {
@@ -288,21 +288,21 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
   let expanded = quote! {
     impl #struct_name {
-      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::cel::Value, ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
-          return Ok(::cel::Value::Null);
+          return Ok(::protocheck::cel::Value::Null);
         }
 
-        let mut #fields_map_ident: ::std::collections::HashMap<::cel::objects::Key, ::cel::Value> = std::collections::HashMap::new();
+        let mut #fields_map_ident: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = std::collections::HashMap::new();
         let value = self;
 
         #tokens
 
-        Ok(::cel::Value::Map(#fields_map_ident.into()))
+        Ok(::protocheck::cel::Value::Map(#fields_map_ident.into()))
       }
     }
 
-    impl TryFrom<#struct_name> for ::cel::Value {
+    impl TryFrom<#struct_name> for ::protocheck::cel::Value {
       type Error = ::protocheck::types::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
