@@ -9,11 +9,11 @@ prost = { workspace = true }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/", features = ["serde"] }
+protocheck = { version = "0.1.4", features = ["serde"] }
 chrono = { workspace = true }
 maplit = { workspace = true }
 
 [build-dependencies]
-protocheck-build = { path = "../protocheck-build/", features = ["cel"] }
+protocheck-build = { version = "0.1.2", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }
