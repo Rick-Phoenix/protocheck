@@ -65,7 +65,7 @@ First, it removes the need to include a reflection library in the consuming app'
 
 And, most importantly, it avoids the overhead that is introduced by using reflection to determine the structure of a message when validating it.
 
-Rather than using reflection, this crate leverages the [`TryIntoCelValue`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/derive.TryIntoCelValue.html) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate [`cel::Value`](::cel::Value) (only failing in case of a [`Duration`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Duration.html) or [`Timestamp`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Timestamp.html) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
+Rather than using reflection, this crate leverages the [`TryIntoCelValue`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/derive.TryIntoCelValue.html) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate cel [`Value`](protocheck_core::cel::Value) (only failing in case of a [`Duration`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Duration.html) or [`Timestamp`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Timestamp.html) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
 
 #### 2. It uses native rust code for validation except for custom Cel rules. 
 
@@ -250,11 +250,11 @@ If you are interested in composing your protobuf files programmatically, and wit
 
 - While the compile-time check for the validity of a Cel expression helps to catch most if not all errors relative to the Cel program compilation and execution, it is still very encouraged to have some tests that trigger the validation logic at runtime (it's just as easy as calling `.validate()` once again) to be absolutely sure that the Cel program is not causing any issues.
 
- This is because the Cel validation function can obviously not panic and crash the whole app if a Cel program failed to execute, so it will just return a generic error to the user while logging the actual error. 
- 
- This means that if there is an unattended error, then it would silently keep generating these generic and unhelpful error messages for users until it would be reported or noticed in the logs.
+     This is because the Cel validation function can obviously not panic and crash the whole app if a Cel program failed to execute, so it will just return a generic error to the user while logging the actual error. 
+     
+     This means that if there is an unattended error, then it would silently keep generating these generic and unhelpful error messages for users until it would be reported or noticed in the logs.
 
- But the good news is that the compile time check prevents the majority of these situations, and adding a very simple test on top of that can eradicate that problem entirely.
+     But the good news is that the compile time check prevents the majority of these situations, and adding a very simple test on top of that can eradicate that problem entirely.
 
 - For certain cases where the instructions are conflicting but could be intentional, such as using the "const" rule for a field while also having other validators, the other rules will simply be ignored and no error will be shown. This is to allow for cases when you want to have a temporary override for a field's validation without needing to remove the other validators.
 
@@ -262,4 +262,4 @@ If you are interested in composing your protobuf files programmatically, and wit
 
 - The types for the well known protobuf messages must be imported from [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html) (re-exported in this crate in the [`types`] module). These are based on the [`prost-types`](https://docs.rs/prost-types/0.14.1/prost_types/) implementation, with some extra helpers and methods that make validation smoother or even possible at all in some cases. 
 
- [`compile_protos_with_validators`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/fn.compile_protos_with_validators.html) automatically takes care of calling [`compile_well_known_types`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types) and assigning all of the `.google.protobuf` types to the ones defined in [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html). The same thing goes for the types belonging to the [`protovalidate`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/index.html) specification.
+     [`compile_protos_with_validators`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/fn.compile_protos_with_validators.html) automatically takes care of calling [`compile_well_known_types`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types) and assigning all of the `.google.protobuf` types to the ones defined in [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html). The same thing goes for the types belonging to the [`protovalidate`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/index.html) specification.
