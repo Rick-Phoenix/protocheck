@@ -1,7 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-
-//! Build-time entrypoint for [`protocheck`](https://docs.rs/protocheck/0.1.0/protocheck/)
-
+#![doc = include_str!("../README.md")]
 use std::{
   env,
   error::Error,

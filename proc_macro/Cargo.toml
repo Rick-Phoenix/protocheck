@@ -2,6 +2,8 @@
 name = "protocheck-proc-macro"
 version = "0.1.3"
 
+readme = true
+
 description = "Procedural macro implementations for protocheck."
 
 keywords = { workspace = true }

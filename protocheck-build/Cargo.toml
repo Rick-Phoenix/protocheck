@@ -2,7 +2,9 @@
 name = "protocheck-build"
 version = "0.1.2"
 
-description = "Build-time entrypoint for protocheck."
+readme = "README.md"
+
+description = "⚙️ Build-time entrypoint for protocheck"
 
 keywords = { workspace = true }
 edition = { workspace = true }

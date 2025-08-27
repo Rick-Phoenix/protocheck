@@ -2,6 +2,8 @@
 name = "protocheck-core"
 version = "0.1.2"
 
+readme = true
+
 description = "Core logic and validators for protocheck."
 
 keywords = { workspace = true }
