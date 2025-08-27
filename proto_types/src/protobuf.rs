@@ -2033,6 +2033,7 @@ pub struct FieldMask {
 /// The JSON representation for `Struct` is JSON object.
 
 #[derive(Clone, PartialEq, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Struct {
   /// Unordered map of dynamically typed values.
   #[prost(btree_map = "string, message", tag = "1")]
@@ -2241,3 +2242,120 @@ pub struct Timestamp {
 ///
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Empty {}
+
+/// Wrapper message for `double`.
+///
+/// The JSON representation for `DoubleValue` is JSON number.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct DoubleValue {
+  /// The double value.
+  #[prost(double, tag = "1")]
+  pub value: f64,
+}
+/// Wrapper message for `float`.
+///
+/// The JSON representation for `FloatValue` is JSON number.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FloatValue {
+  /// The float value.
+  #[prost(float, tag = "1")]
+  pub value: f32,
+}
+/// Wrapper message for `int64`.
+///
+/// The JSON representation for `Int64Value` is JSON string.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Int64Value {
+  /// The int64 value.
+  #[prost(int64, tag = "1")]
+  pub value: i64,
+}
+/// Wrapper message for `uint64`.
+///
+/// The JSON representation for `UInt64Value` is JSON string.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct UInt64Value {
+  /// The uint64 value.
+  #[prost(uint64, tag = "1")]
+  pub value: u64,
+}
+/// Wrapper message for `int32`.
+///
+/// The JSON representation for `Int32Value` is JSON number.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Int32Value {
+  /// The int32 value.
+  #[prost(int32, tag = "1")]
+  pub value: i32,
+}
+/// Wrapper message for `uint32`.
+///
+/// The JSON representation for `UInt32Value` is JSON number.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct UInt32Value {
+  /// The uint32 value.
+  #[prost(uint32, tag = "1")]
+  pub value: u32,
+}
+/// Wrapper message for `bool`.
+///
+/// The JSON representation for `BoolValue` is JSON `true` and `false`.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct BoolValue {
+  /// The bool value.
+  #[prost(bool, tag = "1")]
+  pub value: bool,
+}
+/// Wrapper message for `string`.
+///
+/// The JSON representation for `StringValue` is JSON string.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct StringValue {
+  /// The string value.
+  #[prost(string, tag = "1")]
+  pub value: ::prost::alloc::string::String,
+}
+/// Wrapper message for `bytes`.
+///
+/// The JSON representation for `BytesValue` is JSON string.
+///
+/// Not recommended for use in new APIs, but still useful for legacy APIs and
+/// has no plan to be removed.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct BytesValue {
+  /// The bytes value.
+  #[prost(bytes = "bytes", tag = "1")]
+  pub value: ::prost::bytes::Bytes,
+}

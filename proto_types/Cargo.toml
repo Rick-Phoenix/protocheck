@@ -24,6 +24,7 @@ prost = { workspace = true }
 chrono = { workspace = true, optional = true }
 
 serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 base64 = { workspace = true, optional = true }
 
 cel = { workspace = true, optional = true }
@@ -31,9 +32,10 @@ thiserror = { workspace = true, optional = true }
 
 [features]
 cel = ["dep:cel", "dep:thiserror"]
-serde = ["dep:serde", "dep:base64", "chrono?/serde"]
+serde = ["dep:serde", "dep:serde_json", "dep:base64", "chrono?/serde"]
 protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn", "dep:paste"]
 totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
+common = []
 
-default = ["chrono"]
+default = ["chrono", "common"]

@@ -4,7 +4,7 @@ version = "0.1.4"
 
 readme = true
 
-description = "Procedural macro implementations for protocheck."
+description = "⚙️ Procedural macro implementations for protocheck."
 
 keywords = { workspace = true }
 edition = { workspace = true }

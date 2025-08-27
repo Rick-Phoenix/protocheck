@@ -11,6 +11,8 @@ pub mod protovalidate;
 #[cfg(feature = "cel")]
 pub mod cel;
 
+#[cfg(feature = "common")]
+pub mod common;
 pub use protobuf::*;
 mod protobuf;
 mod protobuf_impls;
