@@ -13,6 +13,8 @@ pub mod cel;
 
 #[cfg(feature = "common")]
 pub mod common;
+#[cfg(feature = "rpc")]
+pub mod rpc;
 pub use protobuf::*;
 mod protobuf;
 mod protobuf_impls;

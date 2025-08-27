@@ -37,5 +37,6 @@ protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn", "dep:paste"]
 totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
 common = []
+rpc = []
 
-default = ["chrono", "common"]
+default = ["chrono"]
