@@ -1,5 +1,6 @@
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/duration.rs]
 use super::super::*;
+use crate::constants::{NANOS_PER_SECOND, PACKAGE_PREFIX, TIME_NANOS_MAX};
 
 impl Duration {
   /// Normalizes the duration to a canonical format.
@@ -22,13 +23,13 @@ impl Duration {
 
         self.seconds = i64::MIN;
 
-        self.nanos = -NANOS_MAX;
+        self.nanos = -TIME_NANOS_MAX;
       } else {
         // Positive overflow! Set to the greatest normal value.
 
         self.seconds = i64::MAX;
 
-        self.nanos = NANOS_MAX;
+        self.nanos = TIME_NANOS_MAX;
       }
     }
 
@@ -44,7 +45,7 @@ impl Duration {
 
         debug_assert_eq!(self.seconds, i64::MAX);
 
-        self.nanos = NANOS_MAX;
+        self.nanos = TIME_NANOS_MAX;
       }
     } else if self.seconds > 0 && self.nanos < 0 {
       if let Some(seconds) = self.seconds.checked_sub(1) {
@@ -56,7 +57,7 @@ impl Duration {
 
         debug_assert_eq!(self.seconds, i64::MIN);
 
-        self.nanos = -NANOS_MAX;
+        self.nanos = -TIME_NANOS_MAX;
       }
     }
 

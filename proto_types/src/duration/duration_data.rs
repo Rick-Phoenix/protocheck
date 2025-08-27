@@ -1,12 +1,5 @@
 use super::data::{Days, Hours, Minutes, Months, Seconds, Weeks, Years};
-use crate::Duration;
-
-const SECONDS_PER_MINUTE: u64 = 60;
-const SECONDS_PER_HOUR: u64 = 3600;
-const SECONDS_PER_DAY: u64 = 86400;
-const SECONDS_PER_WEEK: u64 = 604800;
-const SECONDS_PER_MONTH_AVG: u64 = 2_629_746;
-const SECONDS_PER_YEAR_AVG: u64 = 31_556_952;
+use crate::{constants::*, Duration};
 
 /// The data for a given Duration
 #[derive(Debug, Default, Clone)]
