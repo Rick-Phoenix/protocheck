@@ -7,7 +7,7 @@ use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, T
 enum OuterType {
   Option(InnerType),
   Vec(InnerType),
-  HashMap(InnerType),
+  HashMap(InnerType, InnerType),
   Normal(InnerType),
 }
 
@@ -64,8 +64,8 @@ impl TryFrom<&Type> for OuterType {
       let inner = get_inner_type(ty)?;
       Ok(Self::Vec(InnerType::from_type(inner)))
     } else if is_hashmap(ty) {
-      let value_type = get_hashmap_value_type(ty)?;
-      Ok(Self::HashMap(InnerType::from_type(value_type)))
+      let (keys_type, values_type) = get_hashmap_types(ty)?;
+      Ok(Self::HashMap(InnerType::from_type(keys_type), InnerType::from_type(values_type)))
     } else {
       Ok(Self::Normal(InnerType::from_type(ty)))
     }
@@ -88,17 +88,23 @@ fn get_inner_type(ty: &Type) -> Result<&Type, ()> {
   }
 }
 
-fn get_hashmap_value_type(ty: &Type) -> Result<&Type, ()> {
-  let mut hashmap_value_type: Option<&Type> = None;
+fn get_hashmap_types(ty: &Type) -> Result<(&Type, &Type), ()> {
+  let mut hashmap_values_type: Option<&Type> = None;
+  let mut hashmap_keys_type: Option<&Type> = None;
   if let syn::Type::Path(type_path) = ty
     && let Some(segment) = type_path.path.segments.last()
-      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments
-        && let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
-          hashmap_value_type = Some(value_type);
+      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+        if let Some(syn::GenericArgument::Type(keys_type)) = args.args.get(0) {
+          hashmap_keys_type = Some(keys_type);
         }
+        if let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
+          hashmap_values_type = Some(value_type);
+        }
+        
+  }
 
-  if let Some(output_type) = hashmap_value_type {
-    Ok(output_type)
+  if let Some(keys_type) = hashmap_keys_type && let Some(values_type) = hashmap_values_type  {
+    Ok((keys_type, values_type))
   } else {
     Err(())
   }
@@ -262,13 +268,15 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
           });
         }
 
-        OuterType::HashMap(inner) => {
-          let conversion_tokens = inner.conversion_tokens(&val_tokens);
+        OuterType::HashMap(keys_type, values_type) => {
+          let keys_ident = Ident2::new("key", Span2::call_site());
+          let keys_conversion_tokens = keys_type.conversion_tokens(&quote!{ #keys_ident });
+          let values_conversion_tokens = values_type.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut field_map: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = ::std::collections::HashMap::new();
 
-            for (k, #val_ident) in &value.#field_ident {
-              field_map.insert(k.to_owned().into(), #conversion_tokens);
+            for (#keys_ident, #val_ident) in &value.#field_ident {
+              field_map.insert(#keys_conversion_tokens, #values_conversion_tokens);
             }
 
             #fields_map_ident.insert(#field_name.into(), ::protocheck::cel::Value::Map(field_map.into()));
