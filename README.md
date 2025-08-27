@@ -242,6 +242,10 @@ Outcome:
 Field path: passwords_match, Error message: the two passwords do not match
 ```
 
+## 📘 Protoschema integration
+
+If you are interested in composing your protobuf files programmatically, and with the benefits of type safety, reusable elements and LSP integration, with a particular focus on making the definition of validation rules a quick and type-safe process, you might want to check out my other crate, [protoschema](https://crates.io/crates/protoschema). 
+
 ## ⚠️ Caveats
 
 - While the compile-time check for the validity of a Cel expression helps to catch most if not all errors relative to the Cel program compilation and execution, it is still very encouraged to have some tests that trigger the validation logic at runtime (it's just as easy as calling `.validate()` once again) to be absolutely sure that the Cel program is not causing any issues.
