@@ -4,3 +4,5 @@ include!("./google.type.rs");
 
 #[cfg(feature = "serde")]
 mod common_serde_impls;
+
+pub mod money;
