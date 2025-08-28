@@ -1,6 +1,6 @@
 use crate::rpc::{
-  bad_request::FieldViolation, ErrorInfo, LocalizedMessage, PreconditionFailureViolation,
-  QuotaFailureViolation, RequestInfo, ResourceInfo,
+  bad_request::FieldViolation, precondition_failure, quota_failure, ErrorInfo, LocalizedMessage,
+  RequestInfo, ResourceInfo,
 };
 
 impl ErrorInfo {
@@ -8,7 +8,7 @@ impl ErrorInfo {
   has_impl!(domain);
 }
 
-impl QuotaFailureViolation {
+impl quota_failure::Violation {
   has_impl!(subject);
   has_impl!(description);
   has_impl!(api_service);
@@ -16,7 +16,7 @@ impl QuotaFailureViolation {
   has_impl!(quota_id);
 }
 
-impl PreconditionFailureViolation {
+impl precondition_failure::Violation {
   has_impl!(type, r#type);
   has_impl!(subject);
   has_impl!(description);

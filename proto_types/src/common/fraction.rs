@@ -4,6 +4,7 @@ use thiserror::Error;
 
 use crate::common::Fraction;
 
+/// Errors that can occur during the creation, conversion or validation of a [`Fraction`].
 #[derive(Debug, PartialEq, Error)]
 pub enum FractionError {
   #[error("Denominator cannot be zero")]
@@ -14,16 +15,32 @@ pub enum FractionError {
   Undefined,
 }
 
-fn gcd(mut a: i64, mut b: i64) -> i64 {
-  while b != 0 {
-    let temp = b;
-    b = a % b;
-    a = temp;
-  }
-  a.abs()
-}
-
 impl Fraction {
+  /// Helper to calculate Greatest Common Divisor (GCD)
+  pub fn gcd(mut a: i64, mut b: i64) -> i64 {
+    while b != 0 {
+      let temp = b;
+      b = a % b;
+      a = temp;
+    }
+    a.abs()
+  }
+
+  /// Helper to calculate Least Common Multiple (LCM)
+  pub fn lcm(a: i64, b: i64) -> Result<i128, FractionError> {
+    if a == 0 || b == 0 {
+      return Err(FractionError::ZeroDenominator);
+    }
+    let common_divisor = Self::gcd(a, b) as i128;
+    let val_a = a as i128;
+    let val_b = b as i128;
+
+    let term1 = val_a
+      .checked_div(common_divisor)
+      .ok_or(FractionError::Overflow)?;
+    term1.checked_mul(val_b).ok_or(FractionError::Overflow)
+  }
+
   /// Creates a new Fraction, ensuring the denominator is positive
   /// and the fraction is reduced to its simplest form.
   pub fn new(numerator: i64, denominator: i64) -> Result<Self, FractionError> {
@@ -39,7 +56,7 @@ impl Fraction {
       den = -den;
     }
 
-    let common_divisor = gcd(num, den);
+    let common_divisor = Self::gcd(num, den);
     Ok(Fraction {
       numerator: num / common_divisor,
       denominator: den / common_divisor,
@@ -48,11 +65,8 @@ impl Fraction {
 
   /// Reduces the fraction to its simplest form by dividing
   /// numerator and denominator by their greatest common divisor.
-  /// Ensures the denominator is positive.
   pub fn reduce(&mut self) {
     if self.denominator == 0 {
-      // This case should ideally be prevented by Fraction::new.
-      // If it occurs, it's an invalid state, but reduce doesn't return Result.
       return;
     }
 
@@ -62,7 +76,7 @@ impl Fraction {
       self.denominator = -self.denominator;
     }
 
-    let common_divisor = gcd(self.numerator, self.denominator);
+    let common_divisor = Self::gcd(self.numerator, self.denominator);
     self.numerator /= common_divisor;
     self.denominator /= common_divisor;
   }
@@ -73,17 +87,24 @@ impl Fraction {
     self
   }
 
-  /// Checked addition for fractions.
+  /// Checked addition for [`Fraction`]s.
   pub fn checked_add(self, other: Self) -> Result<Self, FractionError> {
-    let common_denominator = (self.denominator as i128)
-      .checked_mul(other.denominator as i128)
+    let common_denominator_i128 = Self::lcm(self.denominator, other.denominator)?;
+
+    let factor_self = common_denominator_i128
+      .checked_div(self.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let factor_other = common_denominator_i128
+      .checked_div(other.denominator as i128)
       .ok_or(FractionError::Overflow)?;
 
     let new_numerator_left = (self.numerator as i128)
-      .checked_mul(other.denominator as i128)
+      .checked_mul(factor_self)
       .ok_or(FractionError::Overflow)?;
+
     let new_numerator_right = (other.numerator as i128)
-      .checked_mul(self.denominator as i128)
+      .checked_mul(factor_other)
       .ok_or(FractionError::Overflow)?;
 
     let new_numerator = new_numerator_left
@@ -91,22 +112,29 @@ impl Fraction {
       .ok_or(FractionError::Overflow)?;
 
     let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
-    let den_i64 = i64::try_from(common_denominator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(common_denominator_i128).map_err(|_| FractionError::Overflow)?;
 
     Fraction::new(num_i64, den_i64)
   }
 
-  /// Checked subtraction for fractions.
+  /// Checked subtraction for [`Fraction`]s.
   pub fn checked_sub(self, other: Self) -> Result<Self, FractionError> {
-    let common_denominator = (self.denominator as i128)
-      .checked_mul(other.denominator as i128)
+    let common_denominator_i128 = Self::lcm(self.denominator, other.denominator)?;
+
+    let factor_self = common_denominator_i128
+      .checked_div(self.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let factor_other = common_denominator_i128
+      .checked_div(other.denominator as i128)
       .ok_or(FractionError::Overflow)?;
 
     let new_numerator_left = (self.numerator as i128)
-      .checked_mul(other.denominator as i128)
+      .checked_mul(factor_self)
       .ok_or(FractionError::Overflow)?;
+
     let new_numerator_right = (other.numerator as i128)
-      .checked_mul(self.denominator as i128)
+      .checked_mul(factor_other)
       .ok_or(FractionError::Overflow)?;
 
     let new_numerator = new_numerator_left
@@ -114,16 +142,17 @@ impl Fraction {
       .ok_or(FractionError::Overflow)?;
 
     let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
-    let den_i64 = i64::try_from(common_denominator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(common_denominator_i128).map_err(|_| FractionError::Overflow)?;
 
     Fraction::new(num_i64, den_i64)
   }
 
-  /// Checked multiplication for fractions.
+  /// Checked multiplication for [`Fraction`]s.
   pub fn checked_mul(self, other: Self) -> Result<Self, FractionError> {
     let new_numerator = (self.numerator as i128)
       .checked_mul(other.numerator as i128)
       .ok_or(FractionError::Overflow)?;
+
     let new_denominator = (self.denominator as i128)
       .checked_mul(other.denominator as i128)
       .ok_or(FractionError::Overflow)?;
@@ -134,15 +163,16 @@ impl Fraction {
     Fraction::new(num_i64, den_i64)
   }
 
-  /// Checked division for fractions.
+  /// Checked division for [`Fraction`]s.
   pub fn checked_div(self, other: Self) -> Result<Self, FractionError> {
     if other.numerator == 0 {
-      return Err(FractionError::Undefined); // Division by zero fraction
+      return Err(FractionError::Undefined);
     }
 
     let new_numerator = (self.numerator as i128)
       .checked_mul(other.denominator as i128)
       .ok_or(FractionError::Overflow)?;
+
     let new_denominator = (self.denominator as i128)
       .checked_mul(other.numerator as i128)
       .ok_or(FractionError::Overflow)?;

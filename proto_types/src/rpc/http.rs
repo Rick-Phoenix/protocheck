@@ -3,19 +3,19 @@ use crate::rpc::{Code, HttpHeader, HttpRequest, HttpResponse};
 impl HttpRequest {
   has_impl!(method);
 
-  /// Returns true if the `HttpRequest` contains the given header.
+  /// Returns true if the [`HttpRequest`] contains the given header.
   pub fn has_header(&self, header: &HttpHeader) -> bool {
     self.headers.contains(header)
   }
 }
 
 impl HttpResponse {
-  /// Returns true if the status matches the argument.
+  /// Returns true if the `status` matches the argument.
   pub fn has_status(&self, status: i32) -> bool {
     self.status == status
   }
 
-  /// Returns true if the `HttpResponse` contains the given header.
+  /// Returns true if the [`HttpResponse`] contains the given header.
   pub fn has_header(&self, header: &HttpHeader) -> bool {
     self.headers.contains(header)
   }

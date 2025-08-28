@@ -5,10 +5,27 @@ use crate::{
   Duration,
 };
 
+/// Errors that can occur during the creation, conversion or validation of a [`DateTime`].
 #[derive(Debug, PartialEq, Eq, Error)]
 pub enum DateTimeError {
-  #[error("DateTime has an invalid date component (e.g., February 30th)")]
+  #[error(
+    "The year must be a value from 0 (to indicate a DateTime with no specific year) to 9999"
+  )]
+  InvalidYear,
+  #[error("If the year is set to 0, month and day cannot be set to 0")]
   InvalidDate,
+  #[error("Invalid month value (must be within 1 and 12)")]
+  InvalidMonth,
+  #[error("Invalid day value (must be within 1 and 31)")]
+  InvalidDay,
+  #[error("Invalid hours value (must be within 0 and 23)")]
+  InvalidHours,
+  #[error("Invalid minutes value (must be within 0 and 59)")]
+  InvalidMinutes,
+  #[error("Invalid seconds value (must be within 0 and 59)")]
+  InvalidSeconds,
+  #[error("Invalid nanos value (must be within 0 and 999.999.999)")]
+  InvalidNanos,
   #[error(
     "DateTime has an invalid time component (e.g., hours, minutes, seconds, nanos out of range)"
   )]
@@ -19,49 +36,21 @@ pub enum DateTimeError {
   ConversionError(String),
 }
 
-impl PartialOrd for TimeZone {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-impl Ord for TimeZone {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self
-      .id
-      .cmp(&other.id)
-      .then_with(|| self.version.cmp(&other.version))
-  }
-}
-
 impl PartialOrd for date_time::TimeOffset {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-impl Ord for date_time::TimeOffset {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
     match (self, other) {
-      (Self::UtcOffset(a), Self::UtcOffset(b)) => a.cmp(b),
-      (Self::TimeZone(a), Self::TimeZone(b)) => a.cmp(b),
-      // Define an arbitrary total ordering between different variants:
-      // UtcOffset comes before TimeZone
-      (Self::UtcOffset(_), Self::TimeZone(_)) => std::cmp::Ordering::Less,
-      (Self::TimeZone(_), Self::UtcOffset(_)) => std::cmp::Ordering::Greater,
+      (Self::UtcOffset(a), Self::UtcOffset(b)) => a.partial_cmp(b),
+      // Can't determine order without timezone information
+      (Self::TimeZone(_), Self::TimeZone(_)) => None,
+      (Self::UtcOffset(_), Self::TimeZone(_)) => None,
+      (Self::TimeZone(_), Self::UtcOffset(_)) => None,
     }
   }
 }
 
 impl PartialOrd for DateTime {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    Some(self.cmp(other))
-  }
-}
-
-impl Ord for DateTime {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self
+    let ord = self
       .year
       .cmp(&other.year)
       .then_with(|| self.month.cmp(&other.month))
@@ -69,8 +58,13 @@ impl Ord for DateTime {
       .then_with(|| self.hours.cmp(&other.hours))
       .then_with(|| self.minutes.cmp(&other.minutes))
       .then_with(|| self.seconds.cmp(&other.seconds))
-      .then_with(|| self.nanos.cmp(&other.nanos))
-      .then_with(|| self.time_offset.cmp(&other.time_offset))
+      .then_with(|| self.nanos.cmp(&other.nanos));
+
+    if ord != std::cmp::Ordering::Equal {
+      return Some(ord);
+    }
+
+    self.time_offset.partial_cmp(&other.time_offset)
   }
 }
 
@@ -84,34 +78,38 @@ fn datetime_is_valid(
   seconds: i32,
   nanos: i32,
 ) -> Result<(), DateTimeError> {
-  if year != 0 && !(1..=9999).contains(&year) {
-    return Err(DateTimeError::InvalidDate);
+  if !(0..=9999).contains(&year) {
+    return Err(DateTimeError::InvalidYear);
   }
   if !(1..=12).contains(&month) {
-    return Err(DateTimeError::InvalidDate);
+    return Err(DateTimeError::InvalidMonth);
   }
   if !(1..=31).contains(&day) {
+    return Err(DateTimeError::InvalidDay);
+  }
+
+  if year == 0 && (day == 0 || month == 0) {
     return Err(DateTimeError::InvalidDate);
   }
 
   if !(0..=23).contains(&hours) {
-    return Err(DateTimeError::InvalidTime);
+    return Err(DateTimeError::InvalidHours);
   }
   if !(0..=59).contains(&minutes) {
-    return Err(DateTimeError::InvalidTime);
+    return Err(DateTimeError::InvalidMinutes);
   }
   if !(0..=59).contains(&seconds) {
-    return Err(DateTimeError::InvalidTime);
+    return Err(DateTimeError::InvalidSeconds);
   }
   if !(0..=999_999_999).contains(&nanos) {
-    return Err(DateTimeError::InvalidTime);
+    return Err(DateTimeError::InvalidNanos);
   }
 
   Ok(())
 }
 
 impl DateTime {
-  /// Checks if this `DateTime` instance represents a valid date and time, and returns the related error if it does not.
+  /// Checks if this [`DateTime`] instance represents a valid date and time, and returns the related error if it does not.
   pub fn validate(&self) -> Result<(), DateTimeError> {
     datetime_is_valid(
       self.year,
@@ -124,23 +122,23 @@ impl DateTime {
     )
   }
 
-  /// Checks if this `DateTime` instance represents a valid date and time.
+  /// Checks if this [`DateTime`] instance represents a valid date and time.
   pub fn is_valid(&self) -> bool {
     self.validate().is_ok()
   }
 
-  /// Returns `true` if the `DateTime` has a specific year (i.e., `year` is not 0).
+  /// Returns `true` if the [`DateTime`] has a specific year (i.e., `year` is not 0).
   pub fn has_year(&self) -> bool {
     self.year != 0
   }
 
-  /// Sets the `time_offset` to a UTC offset `Duration`, clearing any existing time zone.
+  /// Sets the `time_offset` to a UTC offset [`Duration`], clearing any existing time zone.
   pub fn with_utc_offset(mut self, offset: Duration) -> Self {
     self.time_offset = Some(date_time::TimeOffset::UtcOffset(offset));
     self
   }
 
-  /// Sets the `time_offset` to a `TimeZone`, clearing any existing UTC offset.
+  /// Sets the `time_offset` to a [`TimeZone`], clearing any existing UTC offset.
   pub fn with_time_zone(mut self, time_zone: TimeZone) -> Self {
     self.time_offset = Some(date_time::TimeOffset::TimeZone(time_zone));
     self
@@ -166,6 +164,7 @@ impl TryFrom<DateTime> for chrono::NaiveDateTime {
 
     dt.validate()?;
 
+    // Casting is safe after validation
     let date = chrono::NaiveDate::from_ymd_opt(dt.year, dt.month as u32, dt.day as u32)
       .ok_or(DateTimeError::InvalidDate)?;
     let time = chrono::NaiveTime::from_hms_nano_opt(
@@ -255,6 +254,7 @@ impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
 impl From<chrono::DateTime<chrono::Utc>> for DateTime {
   fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
     use chrono::{Datelike, Timelike};
+    // Casting is safe due to chrono's constructor API
     DateTime {
       year: value.year(),
       month: value.month() as i32,
@@ -274,6 +274,7 @@ impl From<chrono::NaiveDateTime> for DateTime {
     use chrono::{Datelike, Timelike};
 
     // NaiveDateTime has no offset, so DateTime will be local time
+    // Casting is safe due to chrono's constructor API
     DateTime {
       year: ndt.year(),
       month: ndt.month() as i32,

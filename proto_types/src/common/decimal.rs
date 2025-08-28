@@ -1,18 +1,18 @@
-use thiserror::Error;
-
-#[derive(Debug, PartialEq, Error)]
-pub enum DecimalError {
-  #[error("Invalid decimal format: {0}")]
-  InvalidFormat(String),
-}
-
 #[cfg(feature = "decimal")]
 mod decimal_impl {
   use std::str::FromStr;
 
   use rust_decimal::Decimal as RustDecimal;
+  use thiserror::Error;
 
-  use crate::common::{decimal::DecimalError, Decimal};
+  use crate::common::Decimal;
+
+  /// Errors that can occur during the creation, conversion or validation of a [`Decimal`].
+  #[derive(Debug, PartialEq, Error)]
+  pub enum DecimalError {
+    #[error("Invalid decimal format: {0}")]
+    InvalidFormat(String),
+  }
 
   impl TryFrom<Decimal> for RustDecimal {
     type Error = DecimalError;

@@ -4,9 +4,11 @@ use thiserror::Error;
 
 use crate::{common::Interval, constants::NANOS_PER_SECOND, Duration, Timestamp};
 
-/// Errors that can occur during Interval operations and conversions.
+/// Errors that can occur during the creation, conversion or validation of an [`Interval`].
 #[derive(Debug, PartialEq, Eq, Error)]
 pub enum IntervalError {
+  #[error("Start and end time must be both defined or undefined")]
+  InvalidPairing,
   #[error("Interval contains an invalid Timestamp")]
   InvalidTimestamp,
   #[error("Interval's end_time is before its start_time")]
@@ -17,16 +19,27 @@ pub enum IntervalError {
   ConversionError(String),
 }
 
+fn validate_interval(
+  start: Option<Timestamp>,
+  end: Option<Timestamp>,
+) -> Result<(), IntervalError> {
+  if end < start {
+    Err(IntervalError::EndTimeBeforeStartTime)
+  } else if !((start.is_some() && end.is_some()) || start.is_none() && end.is_none()) {
+    Err(IntervalError::InvalidPairing)
+  } else {
+    Ok(())
+  }
+}
+
 impl Interval {
-  /// Creates a new `Interval` instance with validation.
-  /// `end_time` must not be before `start_time`.
+  /// Creates a new [`Interval`] instance with validation.
+  /// `end_time` must not be before `start_time`, and they must be both either set or unset.
   pub fn new(
     start_time: Option<Timestamp>,
     end_time: Option<Timestamp>,
   ) -> Result<Self, IntervalError> {
-    if end_time < start_time {
-      return Err(IntervalError::EndTimeBeforeStartTime);
-    }
+    validate_interval(start_time, end_time)?;
 
     Ok(Interval {
       start_time,
@@ -34,14 +47,12 @@ impl Interval {
     })
   }
 
-  /// Checks that end time is not before start time. And that start and end time are both either unspecified or specified.
+  /// Checks that `end_time` is not before `start_time`. And that start and `end_time` are both either unspecified or specified at the same time.
   pub fn is_valid(&self) -> bool {
-    self.end_time >= self.start_time
-      && ((self.start_time.is_some() && self.end_time.is_some())
-        || self.start_time.is_none() && self.end_time.is_none())
+    validate_interval(self.start_time, self.end_time).is_ok()
   }
 
-  /// Returns `true` if the `Interval` is empty (start_time equals end_time).
+  /// Returns `true` if the `Interval` is empty (`start_time` equals `end_time`).
   pub fn is_empty(&self) -> bool {
     self
       .start_time
@@ -50,7 +61,7 @@ impl Interval {
       .map_or_else(|| false, |(start, end)| start == end)
   }
 
-  /// Returns `true` if the `Interval` is unspecified (no start time and no end time)
+  /// Returns `true` if the `Interval` is unspecified (no `start_time` and no `end_time`)
   pub fn is_unspecified(&self) -> bool {
     self.start_time.is_none() && self.end_time.is_none()
   }

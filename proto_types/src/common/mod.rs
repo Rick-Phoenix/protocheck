@@ -116,7 +116,7 @@ impl DayOfWeek {
 
 impl PhoneNumber {
   /// Returns false if the field `kind` is missing.
-  pub fn is_valid(&self) -> bool {
+  pub fn has_kind(&self) -> bool {
     self.kind.is_some()
   }
 }

@@ -4,7 +4,6 @@ pub(crate) const TIME_NANOS_MAX: i32 = NANOS_PER_SECOND - 1;
 pub(crate) const NANOS_PER_SECOND: i32 = 1_000_000_000;
 pub(crate) const NANOS_PER_MINUTE: i64 = NANOS_PER_SECOND as i64 * 60;
 pub(crate) const NANOS_PER_HOUR: i64 = NANOS_PER_MINUTE * 60;
-pub(crate) const NANOS_PER_DAY_EXCLUSIVE: i64 = NANOS_PER_HOUR * 24;
 
 pub(crate) const SECONDS_PER_MINUTE: u64 = 60;
 pub(crate) const SECONDS_PER_HOUR: u64 = 3600;
