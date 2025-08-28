@@ -1,5 +1,6 @@
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/any.rs]
 use super::*;
+use crate::constants::PACKAGE_PREFIX;
 
 impl Any {
   /// Serialize the given message type `M` as [`Any`].

@@ -30,6 +30,8 @@ base64 = { workspace = true, optional = true }
 cel = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
+rust_decimal = { workspace = true, optional = true }
+
 [features]
 cel = ["dep:cel"]
 serde = ["dep:serde", "dep:serde_json", "dep:base64", "chrono?/serde"]
@@ -38,5 +40,6 @@ totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
 common = []
 rpc = []
+decimal = ["dep:rust_decimal"]
 
 default = ["chrono"]

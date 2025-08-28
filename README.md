@@ -105,7 +105,7 @@ This ensures that if a Cel expression is fundamentally invalid (for example for 
 
 #### 5. Lazy initialization
 
-All Cel programs are generated using [`LazyLock`](::std::sync::LazyLock) so they are only initialized once. The same thing goes for other static elements being used in the validators, such as regexes or allowed/forbidden list of values (more on that below).
+All Cel programs are generated using [`LazyLock`](::std::sync::LazyLock) so they are only initialized once. The same thing goes for other static elements being used in the validators, such as regexes or allowed/forbidden list of values.
 
 ## ☑️ How to validate messages
 

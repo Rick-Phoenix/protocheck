@@ -5,7 +5,7 @@
 
 use core::fmt;
 
-use crate::{Duration, Timestamp, TimestampError};
+use crate::{constants::NANOS_PER_SECOND, Duration, Timestamp, TimestampError};
 
 /// A point in time, represented as a date and time in the UTC timezone.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -677,7 +677,7 @@ pub(crate) fn parse_duration(s: &str) -> Option<Duration> {
 
   ensure!(s.is_empty());
 
-  ensure!(nanos < crate::NANOS_PER_SECOND as u32);
+  ensure!(nanos < NANOS_PER_SECOND as u32);
 
   // If the duration is negative, also flip the nanos sign.
   let (seconds, nanos) = if is_negative {

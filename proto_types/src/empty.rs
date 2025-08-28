@@ -1,6 +1,6 @@
 use prost::Name;
 
-use crate::{type_url_for, Empty, PACKAGE_PREFIX};
+use crate::{constants::PACKAGE_PREFIX, type_url_for, Empty};
 
 impl From<()> for Empty {
   fn from(_: ()) -> Self {

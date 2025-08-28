@@ -1,0 +1,173 @@
+use std::cmp::Ordering;
+
+use thiserror::Error;
+
+use crate::common::Fraction;
+
+#[derive(Debug, PartialEq, Error)]
+pub enum FractionError {
+  #[error("Denominator cannot be zero")]
+  ZeroDenominator,
+  #[error("Fraction arithmetic operation resulted in an overflow")]
+  Overflow,
+  #[error("Fraction arithmetic operation resulted in an undefined state")]
+  Undefined,
+}
+
+fn gcd(mut a: i64, mut b: i64) -> i64 {
+  while b != 0 {
+    let temp = b;
+    b = a % b;
+    a = temp;
+  }
+  a.abs()
+}
+
+impl Fraction {
+  /// Creates a new Fraction, ensuring the denominator is positive
+  /// and the fraction is reduced to its simplest form.
+  pub fn new(numerator: i64, denominator: i64) -> Result<Self, FractionError> {
+    if denominator == 0 {
+      return Err(FractionError::ZeroDenominator);
+    }
+
+    let (mut num, mut den) = (numerator, denominator);
+
+    // Ensure denominator is positive, sign is carried by numerator
+    if den < 0 {
+      num = -num;
+      den = -den;
+    }
+
+    let common_divisor = gcd(num, den);
+    Ok(Fraction {
+      numerator: num / common_divisor,
+      denominator: den / common_divisor,
+    })
+  }
+
+  /// Reduces the fraction to its simplest form by dividing
+  /// numerator and denominator by their greatest common divisor.
+  /// Ensures the denominator is positive.
+  pub fn reduce(&mut self) {
+    if self.denominator == 0 {
+      // This case should ideally be prevented by Fraction::new.
+      // If it occurs, it's an invalid state, but reduce doesn't return Result.
+      return;
+    }
+
+    // Ensure denominator is positive, sign is carried by numerator
+    if self.denominator < 0 {
+      self.numerator = -self.numerator;
+      self.denominator = -self.denominator;
+    }
+
+    let common_divisor = gcd(self.numerator, self.denominator);
+    self.numerator /= common_divisor;
+    self.denominator /= common_divisor;
+  }
+
+  /// Returns a new, reduced Fraction.
+  pub fn reduced(mut self) -> Self {
+    self.reduce();
+    self
+  }
+
+  /// Checked addition for fractions.
+  pub fn checked_add(self, other: Self) -> Result<Self, FractionError> {
+    let common_denominator = (self.denominator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let new_numerator_left = (self.numerator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+    let new_numerator_right = (other.numerator as i128)
+      .checked_mul(self.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let new_numerator = new_numerator_left
+      .checked_add(new_numerator_right)
+      .ok_or(FractionError::Overflow)?;
+
+    let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(common_denominator).map_err(|_| FractionError::Overflow)?;
+
+    Fraction::new(num_i64, den_i64)
+  }
+
+  /// Checked subtraction for fractions.
+  pub fn checked_sub(self, other: Self) -> Result<Self, FractionError> {
+    let common_denominator = (self.denominator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let new_numerator_left = (self.numerator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+    let new_numerator_right = (other.numerator as i128)
+      .checked_mul(self.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let new_numerator = new_numerator_left
+      .checked_sub(new_numerator_right)
+      .ok_or(FractionError::Overflow)?;
+
+    let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(common_denominator).map_err(|_| FractionError::Overflow)?;
+
+    Fraction::new(num_i64, den_i64)
+  }
+
+  /// Checked multiplication for fractions.
+  pub fn checked_mul(self, other: Self) -> Result<Self, FractionError> {
+    let new_numerator = (self.numerator as i128)
+      .checked_mul(other.numerator as i128)
+      .ok_or(FractionError::Overflow)?;
+    let new_denominator = (self.denominator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(new_denominator).map_err(|_| FractionError::Overflow)?;
+
+    Fraction::new(num_i64, den_i64)
+  }
+
+  /// Checked division for fractions.
+  pub fn checked_div(self, other: Self) -> Result<Self, FractionError> {
+    if other.numerator == 0 {
+      return Err(FractionError::Undefined); // Division by zero fraction
+    }
+
+    let new_numerator = (self.numerator as i128)
+      .checked_mul(other.denominator as i128)
+      .ok_or(FractionError::Overflow)?;
+    let new_denominator = (self.denominator as i128)
+      .checked_mul(other.numerator as i128)
+      .ok_or(FractionError::Overflow)?;
+
+    let num_i64 = i64::try_from(new_numerator).map_err(|_| FractionError::Overflow)?;
+    let den_i64 = i64::try_from(new_denominator).map_err(|_| FractionError::Overflow)?;
+
+    Fraction::new(num_i64, den_i64)
+  }
+}
+
+impl PartialOrd for Fraction {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    if self.denominator <= 0 || other.denominator <= 0 {
+      return None;
+    }
+    let self_val = (self.numerator as i128) * (other.denominator as i128);
+    let other_val = (other.numerator as i128) * (self.denominator as i128);
+
+    Some(self_val.cmp(&other_val))
+  }
+}
+
+impl From<Fraction> for f64 {
+  fn from(fraction: Fraction) -> Self {
+    fraction.numerator as f64 / fraction.denominator as f64
+  }
+}

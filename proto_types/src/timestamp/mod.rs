@@ -8,7 +8,10 @@ mod timestamp_operations;
 
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
 use super::*;
-use crate::Timestamp;
+use crate::{
+  constants::{NANOS_PER_SECOND, PACKAGE_PREFIX},
+  Timestamp,
+};
 
 impl Timestamp {
   /// Normalizes the timestamp to a canonical format.
