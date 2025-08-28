@@ -5,6 +5,9 @@ include!("./google.type.rs");
 #[cfg(feature = "serde")]
 mod common_serde_impls;
 
+#[cfg(feature = "cel")]
+mod cel_common_types_impls;
+
 pub mod color;
 pub mod date;
 pub mod datetime;
