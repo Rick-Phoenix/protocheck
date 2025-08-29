@@ -35,9 +35,6 @@ All of the structs that have fallible methods also come with their own custom er
     - Display
 - [`Empty`]
 - [`Any`]
-- [`CalendarPeriod`]
-- [`Month`]
-- [`DayOfWeek`]
 
 ## 📚 google.type
 - [`TimeOfDay`]
@@ -89,6 +86,9 @@ All of the structs that have fallible methods also come with their own custom er
 - [`Quaternion`]
 - [`LocalizedText`]
 - [`Expr`]
+- [`CalendarPeriod`]
+- [`Month`]
+- [`DayOfWeek`]
 
 ## 💻 google.rpc
 
