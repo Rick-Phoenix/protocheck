@@ -1,6 +1,6 @@
 [package]
 name = "protocheck-proc-macro"
-version = "0.1.4"
+version = "0.1.5"
 
 readme = true
 
@@ -20,11 +20,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 proc-macro = true
 
 [dependencies]
-proto-types = { version = "0.1.1", path = "../proto_types/", features = [
+proto-types = { version = "0.1.2", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { version = "0.1.3", path = "../core/", features = [
+protocheck-core = { version = "0.1.4", path = "../core/", features = [
   "totokens",
 ] }
 

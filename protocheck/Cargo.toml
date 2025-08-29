@@ -1,6 +1,6 @@
 [package]
 name = "protocheck"
-version = "0.1.5"
+version = "0.1.6"
 description = "✅ Validate protobuf messages using protobuf annotations"
 
 readme = "README.md"
@@ -16,9 +16,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-protocheck-proc-macro = { version = "0.1.*", path = "../proc_macro/", default-features = false }
-protocheck-core = { version = "0.1.*", path = "../core/", default-features = false }
-proto-types = { version = "0.1.*", path = "../proto_types/", default-features = false, features = [
+protocheck-proc-macro = { version = "0.1.5", path = "../proc_macro/", default-features = false }
+protocheck-core = { version = "0.1.4", path = "../core/", default-features = false }
+proto-types = { version = "0.1.2", path = "../proto_types/", default-features = false, features = [
   "protovalidate",
 ] }
 document-features = { workspace = true }
