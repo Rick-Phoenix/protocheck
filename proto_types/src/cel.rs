@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cel::{objects::Key as CelKey, Value as CelValue};
 use thiserror::Error;
 
-use crate::{Any, DurationError, Empty, FieldMask, TimestampError};
+use crate::{duration::DurationError, timestamp::TimestampError, Any, Empty, FieldMask};
 
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum CelConversionError {

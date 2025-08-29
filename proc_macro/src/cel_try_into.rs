@@ -1,3 +1,6 @@
+#![allow(clippy::vec_init_then_push)]
+use std::sync::LazyLock;
+
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{parse_macro_input, DeriveInput, Error, Type};
@@ -58,21 +61,24 @@ impl TryFrom<&Type> for OuterType {
 
   fn try_from(ty: &Type) -> Result<Self, Self::Error> {
     if is_option(ty) {
-      let inner = get_inner_type(ty)?;
+      let inner = get_type_argument(ty)?;
       Ok(Self::Option(InnerType::from_type(inner)))
     } else if is_vec(ty) {
-      let inner = get_inner_type(ty)?;
+      let inner = get_type_argument(ty)?;
       Ok(Self::Vec(InnerType::from_type(inner)))
     } else if is_hashmap(ty) {
       let (keys_type, values_type) = get_hashmap_types(ty)?;
-      Ok(Self::HashMap(InnerType::from_type(keys_type), InnerType::from_type(values_type)))
+      Ok(Self::HashMap(
+        InnerType::from_type(keys_type),
+        InnerType::from_type(values_type),
+      ))
     } else {
       Ok(Self::Normal(InnerType::from_type(ty)))
     }
   }
 }
 
-fn get_inner_type(ty: &Type) -> Result<&Type, ()> {
+fn get_type_argument(ty: &Type) -> Result<&Type, ()> {
   let mut output: Option<&Type> = None;
   if let syn::Type::Path(type_path) = ty
     && let Some(segment) = type_path.path.segments.last()
@@ -100,10 +106,9 @@ fn get_hashmap_types(ty: &Type) -> Result<(&Type, &Type), ()> {
         if let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
           hashmap_values_type = Some(value_type);
         }
-        
   }
 
-  if let Some(keys_type) = hashmap_keys_type && let Some(values_type) = hashmap_values_type  {
+  if let Some(keys_type) = hashmap_keys_type && let Some(values_type) = hashmap_values_type {
     Ok((keys_type, values_type))
   } else {
     Err(())
@@ -270,7 +275,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
 
         OuterType::HashMap(keys_type, values_type) => {
           let keys_ident = Ident2::new("key", Span2::call_site());
-          let keys_conversion_tokens = keys_type.conversion_tokens(&quote!{ #keys_ident });
+          let keys_conversion_tokens = keys_type.conversion_tokens(&quote! { #keys_ident });
           let values_conversion_tokens = values_type.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut field_map: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = ::std::collections::HashMap::new();
@@ -329,11 +334,57 @@ fn type_matches_path(ty: &Type, target_path: &str) -> bool {
   false
 }
 
+// static SUPPORTS_CEL_INTO: LazyLock<HashSet<String>> = LazyLock::new(|| {
+//   let mut set: HashSet<String> = HashSet::new();
+//   // DateTime, Duration, Timestamp, Interval, RetryInfo are TryInto
+//   set.insert("::protocheck::types::FieldMask".to_string());
+//   set.insert("::protocheck::types::Empty".to_string());
+//   set.insert("::protocheck::types::Any".to_string());
+//   set.insert("::protocheck::types::TimeOfDay".to_string());
+//   set.insert("::protocheck::types::LocalizedText".to_string());
+//   set.insert("::protocheck::types::Quaternion".to_string());
+//   set.insert("::protocheck::types::Money".to_string());
+//   set.insert("::protocheck::types::TimeZone".to_string());
+//   set.insert("::protocheck::types::LatLng".to_string());
+//   set.insert("::protocheck::types::PostalAddress".to_string());
+//   set.insert("::protocheck::types::Date".to_string());
+//   set.insert("::protocheck::types::Expr".to_string());
+//   set.insert("::protocheck::types::Color".to_string());
+//   set.insert("::protocheck::types::Fraction".to_string());
+//   set.insert("::protocheck::types::Decimal".to_string());
+//   set.insert("::protocheck::types::PhoneNumber".to_string());
+//   set.insert("::protocheck::types::ErrorInfo".to_string());
+//   set.insert("::protocheck::types::DebugInfo".to_string());
+//   set.insert("::protocheck::types::quota_failure::Violation".to_string());
+//   set.insert("::protocheck::types::precondition_failure::Violation".to_string());
+//   set.insert("::protocheck::types::bad_request::FieldViolation".to_string());
+//   set.insert("::protocheck::types::QuotaFailure".to_string());
+//   set.insert("::protocheck::types::PreconditionFailure".to_string());
+//   set.insert("::protocheck::types::LocalizedMessage".to_string());
+//   set.insert("::protocheck::types::RequestInfo".to_string());
+//   set.insert("::protocheck::types::ResourceInfo".to_string());
+//   set.insert("::protocheck::types::Help".to_string());
+//   set.insert("::protocheck::types::Link".to_string());
+//   set.insert("::protocheck::types::HttpHeader".to_string());
+//   set.insert("::protocheck::types::HttpRequest".to_string());
+//   set.insert("::protocheck::types::HttpResponse".to_string());
+//   set.insert("::protocheck::types::Status".to_string());
+//   set
+// });
+
+// Need a better way to do it than this
+static SUPPORTS_CEL_INTO: LazyLock<Vec<String>> = LazyLock::new(|| {
+  let mut list: Vec<String> = Vec::new();
+  // DateTime, Duration, Timestamp, Interval, RetryInfo are TryInto
+  list.push("::protocheck::types::FieldMask".to_string());
+  list.push("::protocheck::types::Empty".to_string());
+  list.push("::protocheck::types::Any".to_string());
+
+  list
+});
+
 fn supports_cel_into(ty: &Type) -> bool {
-  is_primitive(ty)
-    || type_matches_path(ty, "::protocheck::types::FieldMask")
-    || type_matches_path(ty, "::protocheck::types::Empty")
-    || type_matches_path(ty, "::protocheck::types::Any")
+  is_primitive(ty) || SUPPORTS_CEL_INTO.contains(&ty.to_token_stream().to_string())
 }
 
 fn is_bytes(ty: &Type) -> bool {

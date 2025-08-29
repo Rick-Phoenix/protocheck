@@ -11,21 +11,31 @@ mod common_serde_impls;
 #[cfg(feature = "cel")]
 mod cel_common_types_impls;
 
+/// Implementations for the google.type.LatLng message.
+#[cfg(feature = "latlng")]
+pub mod latlng;
+
+/// Implementations for the google.type.Color message.
 #[cfg(feature = "color")]
 pub mod color;
 
+/// Implementations for the google.type.Date message.
 #[cfg(feature = "date")]
 pub mod date;
 
+/// Implementations for the google.type.DateTime message.
 #[cfg(feature = "datetime")]
 pub mod datetime;
 
+/// Implementations for the google.type.Decimal message.
 #[cfg(feature = "decimal")]
 pub mod decimal;
 
+/// Implementations for the google.type.Fraction message.
 #[cfg(feature = "fraction")]
 pub mod fraction;
 
+/// Implementations for the google.type.Interval message.
 #[cfg(feature = "interval")]
 pub mod interval;
 
@@ -38,8 +48,25 @@ pub mod money;
 #[cfg(feature = "postal_address")]
 mod postal_address;
 
+/// Implementations for the google.type.TimeOfDay message.
 #[cfg(feature = "timeofday")]
 pub mod time_of_day;
+
+#[cfg(feature = "phone_number")]
+impl PhoneNumber {
+  /// Returns a new [`PhoneNumber`] instance. Ensures that `kind` is always set, as required by the spec.
+  pub fn new(extension: String, kind: phone_number::Kind) -> Self {
+    Self {
+      extension,
+      kind: Some(kind),
+    }
+  }
+
+  /// Returns false if the field `kind` is missing, which means that the instance is invalid.
+  pub fn has_kind(&self) -> bool {
+    self.kind.is_some()
+  }
+}
 
 impl CalendarPeriod {
   /// Checks if the value is of the `unspecified` variant.
@@ -139,14 +166,6 @@ impl DayOfWeek {
   }
 }
 
-#[cfg(feature = "phone_number")]
-impl PhoneNumber {
-  /// Returns false if the field `kind` is missing.
-  pub fn has_kind(&self) -> bool {
-    self.kind.is_some()
-  }
-}
-
 impl Month {
   /// Checks if the value is of the `Unspecified` variant.
   pub fn is_unspecified(&self) -> bool {
@@ -242,12 +261,5 @@ impl Display for DayOfWeek {
 impl Display for Month {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_title_case())
-  }
-}
-
-#[cfg(feature = "latlng")]
-impl std::fmt::Display for LatLng {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{:.6},{:.6}", self.latitude, self.longitude)
   }
 }

@@ -2,9 +2,11 @@
 name = "proto-types"
 version = "0.1.1"
 
-description = "Rust types generated from the google.protobuf and buf.validate protobuf packages, plus extra helpers for implementing validation with the protocheck crate."
+readme = true
 
-keywords = { workspace = true }
+description = "⚙️ Implementations for various common protobuf types."
+
+keywords = ["protobuf", "types", "common", "wkt"]
 edition = { workspace = true }
 license = { workspace = true }
 authors = { workspace = true }
@@ -19,6 +21,8 @@ quote = { workspace = true, optional = true }
 proc-macro2 = { workspace = true, optional = true }
 syn = { workspace = true, optional = true }
 paste = { workspace = true }
+
+document-features = { workspace = true }
 
 prost = { workspace = true }
 chrono = { workspace = true, optional = true }
@@ -36,13 +40,22 @@ chrono-tz = { version = "0.10.4", optional = true }
 palette = { version = "0.7.6", optional = true }
 
 [features]
+## Enables conversions into cel::Value.
 cel = ["dep:cel"]
+## Enables serde implementations.
 serde = ["dep:serde", "dep:serde_json", "dep:base64", "chrono?/serde"]
-protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn"]
+## Enables implementations for the buf.validate messages and enums.
+protovalidate = []
+## Used internally by protocheck.
+protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn", "protovalidate"]
+## Enables ToTokens implementations.
 totokens = ["dep:quote", "dep:proc-macro2"]
+## Enables conversion to and from chrono types for the time-related structs.
 chrono = ["dep:chrono", "cel?/chrono"]
+## Enables timezone support for DateTime.
 chrono-tz = ["dep:chrono-tz"]
 
+## Enables all message types from the google.type package.
 all_common = [
   "decimal",
   "color",
@@ -60,21 +73,37 @@ all_common = [
   "phone_number",
 ]
 
+## Enables all message types from the google.rpc package.
 rpc = []
+## Enables support for the google.type.Decimal, with conversions to/from rust_decimal::Decimal.
 decimal = ["dep:rust_decimal"]
+## Enables google.type.Color.
 color = []
+## Enables conversions to and from types from the `palette` crate for Color.
 palette = ["dep:palette"]
+## Enables google.type.Date.
 date = []
+## Enables google.type.DateTime.
 datetime = []
+## Enables google.type.TimeOfDay.
 timeofday = []
+## Enables google.type.Fraction.
 fraction = []
+## Enables google.type.Money.
 money = []
+## Enables google.type.Interval.
 interval = []
+## Enables google.type.LocalizedText.
 localized_text = []
+## Enables google.type.PostalAddress.
 postal_address = []
+## Enables google.type.Quaternion.
 quaternion = []
+## Enables google.type.LatLng.
 latlng = []
+## Enables google.type.Expr.
 expr = []
+## Enables google.type.PhoneNumber.
 phone_number = []
 
 default = ["chrono"]

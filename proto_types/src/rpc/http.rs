@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::rpc::{Code, HttpHeader, HttpRequest, HttpResponse};
 
 impl HttpRequest {
@@ -154,5 +156,11 @@ impl Code {
       Code::Unavailable => 503,
       Code::DataLoss => 500,
     }
+  }
+}
+
+impl Display for Code {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.as_title_case())
   }
 }

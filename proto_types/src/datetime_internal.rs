@@ -5,7 +5,7 @@
 
 use core::fmt;
 
-use crate::{constants::NANOS_PER_SECOND, Duration, Timestamp, TimestampError};
+use crate::{constants::NANOS_PER_SECOND, timestamp::TimestampError, Duration, Timestamp};
 
 /// A point in time, represented as a date and time in the UTC timezone.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

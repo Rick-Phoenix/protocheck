@@ -1,3 +1,4 @@
+//! Implementations for the google.type.Money message.
 //! DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
 
 use std::cmp::Ordering;
@@ -61,8 +62,86 @@ impl PartialOrd for Money {
 }
 
 impl Money {
+  /// Normalizes the [`Money`] amount and returns a string containing the currency symbol and the monetary amount rounded by the specified decimal places.
+  pub fn to_formatted_string(&self, symbol: &str, decimal_places: u32) -> String {
+    let decimal_places = u32::min(9, decimal_places);
+
+    let mut current_units: i128 = self.units as i128;
+    let mut current_nanos: i128 = self.nanos as i128;
+
+    let ten_pow_9 = NANO_FACTOR as i128;
+    if current_nanos >= ten_pow_9 || current_nanos <= -ten_pow_9 {
+      current_units += current_nanos / ten_pow_9;
+      current_nanos %= ten_pow_9;
+    }
+
+    if current_units > 0 && current_nanos < 0 {
+      current_units -= 1;
+      current_nanos += ten_pow_9;
+    } else if current_units < 0 && current_nanos > 0 {
+      current_units += 1;
+      current_nanos -= ten_pow_9;
+    }
+
+    let mut rounded_nanos = 0;
+    let mut units_carry = 0;
+
+    if decimal_places > 0 {
+      let power_of_10_for_display = 10_i128.pow(decimal_places);
+      let rounding_power = 10_i128.pow(9 - decimal_places);
+
+      let abs_nanos = current_nanos.abs();
+
+      let remainder_for_rounding = abs_nanos % rounding_power;
+      rounded_nanos = abs_nanos / rounding_power;
+
+      if remainder_for_rounding >= rounding_power / 2 {
+        rounded_nanos += 1;
+      }
+
+      // Handle carry-over from nanos rounding to units
+      if rounded_nanos >= power_of_10_for_display {
+        units_carry = 1;
+        rounded_nanos = 0;
+      }
+    }
+
+    let is_negative = current_units < 0 || (current_units == 0 && current_nanos < 0);
+
+    let final_units_abs = current_units.abs() + units_carry;
+
+    let mut formatted_string = String::new();
+
+    if is_negative {
+      formatted_string.push('-');
+    }
+    formatted_string.push_str(symbol);
+    formatted_string.push_str(&final_units_abs.to_string());
+
+    if decimal_places > 0 {
+      formatted_string.push('.');
+      // Format rounded_nanos to the specified number of decimal places, zero-padded
+      formatted_string.push_str(&format!(
+        "{:0width$}",
+        rounded_nanos,
+        width = decimal_places as usize
+      ));
+    }
+
+    formatted_string
+  }
+
+  /// Normalizes units and nanos. Fails in case of overflow.
+  pub fn normalize(mut self) -> Result<Self, MoneyError> {
+    let (normalized_units, normalized_nanos) =
+      normalize_money_fields_checked(self.units, self.nanos)?;
+    self.units = normalized_units;
+    self.nanos = normalized_nanos;
+
+    Ok(self)
+  }
+
   /// Creates a new instance, if the normalization does not return errors like Overflow or Underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn new(currency_code: String, units: i64, nanos: i32) -> Result<Self, MoneyError> {
     let (normalized_units, normalized_nanos) = normalize_money_fields_checked(units, nanos)?;
     Ok(Money {
@@ -80,7 +159,6 @@ impl Money {
   /// - `2` rounds to two decimal places (e.g., for cents).
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn to_rounded_imprecise_f64(&self, decimal_places: u32) -> Result<f64, MoneyError> {
     if decimal_places > i32::MAX as u32 {
       return Err(MoneyError::Overflow);
@@ -107,7 +185,6 @@ impl Money {
   /// Converts the `Money` amount into a decimal (f64) representation.
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn as_imprecise_f64(&self) -> f64 {
     self.units as f64 + (self.nanos as f64 / 1_000_000_000.0)
   }
@@ -118,7 +195,6 @@ impl Money {
   /// into units and nanos.
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn from_imprecise_f64(currency_code: String, amount: f64) -> Result<Self, MoneyError> {
     if !amount.is_finite() {
       return Err(MoneyError::NonFiniteResult);
@@ -151,7 +227,6 @@ impl Money {
 
   /// Attempts to add another [`Money`] amount to this one, returning a new [`Money`] instance.
   /// Returns an error if currencies mismatch or if addition causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_add(&self, other: &Self) -> Result<Self, MoneyError> {
     if self.currency_code != other.currency_code {
       return Err(MoneyError::CurrencyMismatch {
@@ -174,7 +249,6 @@ impl Money {
 
   /// Attempts to add another [`Money`] amount to this one in place.
   /// Returns an error if currencies mismatch or if addition causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_add_assign(&mut self, other: &Self) -> Result<(), MoneyError> {
     if self.currency_code != other.currency_code {
       return Err(MoneyError::CurrencyMismatch {
@@ -200,7 +274,6 @@ impl Money {
 
   /// Attempts to subtract another [`Money`] amount from this one, returning a new [`Money`] instance.
   /// Returns an error if currencies mismatch or if subtraction causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_sub(&self, other: &Self) -> Result<Self, MoneyError> {
     if self.currency_code != other.currency_code {
       return Err(MoneyError::CurrencyMismatch {
@@ -223,7 +296,6 @@ impl Money {
 
   /// Attempts to subtract another [`Money`] amount from this one in place.
   /// Returns an error if currencies mismatch or if subtraction causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_sub_assign(&mut self, other: &Self) -> Result<(), MoneyError> {
     if self.currency_code != other.currency_code {
       return Err(MoneyError::CurrencyMismatch {
@@ -249,7 +321,6 @@ impl Money {
 
   /// Attempts to multiply this [`Money`] amount by an integer scalar, returning a new [`Money`] instance.
   /// Returns an error if multiplication causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_mul_i64(&self, rhs: i64) -> Result<Self, MoneyError> {
     let mul_units = self.units.checked_mul(rhs).ok_or(MoneyError::Overflow)?;
     let mul_nanos_i64 = (self.nanos as i64)
@@ -264,7 +335,6 @@ impl Money {
   /// Attempts to multiply this [`Money`] amount by a float scalar, returning a new [`Money`] instance.
   /// Returns an error if the result is non-finite or causes an internal conversion error.
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_mul_f64(&self, rhs: f64) -> Result<Self, MoneyError> {
     if !rhs.is_finite() {
       return Err(MoneyError::NonFiniteResult);
@@ -283,7 +353,6 @@ impl Money {
 
   /// Attempts to divide this [`Money`] amount by an integer scalar, returning a new [`Money`] instance.
   /// Returns an error if the divisor is zero, or if division causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_div_i64(&self, rhs: i64) -> Result<Self, MoneyError> {
     if rhs == 0 {
       return Err(MoneyError::InvalidAmount); // Division by zero
@@ -311,7 +380,6 @@ impl Money {
   /// Attempts to divide this [`Money`] amount by a float scalar, returning a new [`Money`] instance.
   /// Returns an error if the divisor is zero, non-finite, or if division causes an internal conversion error.
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_div_f64(&self, rhs: f64) -> Result<Self, MoneyError> {
     if rhs == 0.0 {
       return Err(MoneyError::InvalidAmount);
@@ -332,7 +400,6 @@ impl Money {
 
   /// Attempts to negate this [`Money`] amount, returning a new [`Money`] instance.
   /// Returns an error if negation causes an overflow/underflow.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn try_neg(&self) -> Result<Self, MoneyError> {
     let neg_units = self.units.checked_neg().ok_or(MoneyError::Overflow)?;
     let neg_nanos = self.nanos.checked_neg().ok_or(MoneyError::Overflow)?;
@@ -377,19 +444,16 @@ impl Money {
   }
 
   /// Checks if the money amount is strictly positive (greater than zero).
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn is_positive(&self) -> bool {
     self.units > 0 || (self.units == 0 && self.nanos > 0)
   }
 
   /// Checks if the money amount is strictly negative (less than zero).
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn is_negative(&self) -> bool {
     self.units < 0 || (self.units == 0 && self.nanos < 0)
   }
 
   /// Checks if the money amount is exactly zero.
-  /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
   pub fn is_zero(&self) -> bool {
     self.units == 0 && self.nanos == 0
   }

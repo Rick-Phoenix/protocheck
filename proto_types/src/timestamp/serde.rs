@@ -1,6 +1,5 @@
 use std::fmt;
 
-use chrono::{DateTime, Utc};
 use serde::{de, ser};
 
 use crate::Timestamp;
@@ -13,19 +12,7 @@ impl ser::Serialize for Timestamp {
     let mut ts_normalized = *self;
     ts_normalized.normalize();
 
-    let datetime_opt =
-    // Safe casting due to normalize() changing the sign to positive
-      DateTime::<Utc>::from_timestamp(ts_normalized.seconds, ts_normalized.nanos as u32);
-
-    if let Some(datetime) = datetime_opt {
-      let rfc3339_string = datetime.to_rfc3339();
-      serializer.serialize_str(&rfc3339_string)
-    } else {
-      Err(ser::Error::custom(format!(
-        "Invalid timestamp during serialization: seconds={}, nanos={}",
-        ts_normalized.seconds, ts_normalized.nanos
-      )))
-    }
+    serializer.serialize_str(&self.to_string())
   }
 }
 
@@ -48,12 +35,12 @@ impl<'de> de::Deserialize<'de> for Timestamp {
         E: de::Error,
       {
         let datetime = value
-          .parse::<DateTime<Utc>>()
+          .parse::<Timestamp>()
           .map_err(|e| de::Error::custom(format!("Invalid timestamp string format: {}", e)))?;
 
         let prost_timestamp = Timestamp {
-          seconds: datetime.timestamp(),
-          nanos: datetime.timestamp_subsec_nanos() as i32,
+          seconds: datetime.seconds,
+          nanos: datetime.nanos,
         };
 
         Ok(prost_timestamp)

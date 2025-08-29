@@ -1,9 +1,14 @@
 use crate::common::PostalAddress;
 
 impl PostalAddress {
+  /// Checks if this [`PostalAddress`]'s `region_code` is empty. If it is, it means that the instance is invalid.
+  pub fn has_region_code(&self) -> bool {
+    !self.region_code.is_empty()
+  }
+
   /// Checks if the `region_code` of this address matches the given `code`.
   /// The `code` should be a CLDR region code (ISO 3166-1 alpha-2, e.g., "US", "CH").
-  pub fn has_region_code(&self, code: &str) -> bool {
+  pub fn matches_region_code(&self, code: &str) -> bool {
     self.region_code == code
   }
 

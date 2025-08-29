@@ -181,7 +181,7 @@ impl FromStr for Duration {
 mod chrono {
   use chrono::TimeDelta;
 
-  use crate::{Duration, DurationError};
+  use crate::{duration::DurationError, Duration};
 
   impl From<::chrono::TimeDelta> for Duration {
     fn from(value: ::chrono::TimeDelta) -> Self {

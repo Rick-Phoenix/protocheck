@@ -1,10 +1,11 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![doc = include_str!("../README.md")]
 
-//! This crate contains:
-//! 1. Implementations for the google.protobuf well known protobuf types, which are based on the [`prost-types`](https://docs.rs/prost-types/0.14.1/prost_types/) implementation, with the addition of extra methods and impls to help with validation, initialization, serialization, formatting and conversion to [`cel::Value`](::cel::Value).
-//! 2. Implementations for the types provided by the buf.validate protobuf package such as [`protovalidate::Violation`], which are used by [`protocheck`](https://docs.rs/protocheck/0.1.0/protocheck/) to perform validation.
+//! # Feature flags
+#![doc = document_features::document_features!()]
 
 /// Generated rust code from buf.validate protobuf package, with some added methods and structs.
+#[cfg(feature = "protovalidate")]
 pub mod protovalidate;
 
 /// Implementations to allow conversion from well known types to [`cel::Value`](::cel::Value)
@@ -24,11 +25,8 @@ mod protobuf_impls;
 
 /// Implementations and units for Duration structs.
 pub mod duration;
-#[doc(inline)]
-pub use duration::DurationError;
 
-mod timestamp;
-pub use timestamp::*;
+pub mod timestamp;
 
 mod any;
 mod any_impls;

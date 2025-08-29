@@ -1,6 +1,8 @@
 mod base;
 pub use base::DurationError;
 
+use crate::Duration;
+
 mod duration_impls;
 
 mod formatting;
@@ -11,4 +13,18 @@ pub mod data {
 }
 
 mod duration_data;
+mod duration_operations;
 mod duration_units;
+
+impl Duration {
+  /// Whether the duration is negative or not.
+  pub fn is_negative(&self) -> bool {
+    self.normalized().seconds < 0
+  }
+
+  pub fn new(seconds: i64, nanos: i32) -> Self {
+    let mut instance = Duration { seconds, nanos };
+    instance.normalize();
+    instance
+  }
+}

@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 /// A struct representing seconds. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Seconds {
@@ -207,7 +205,7 @@ pub struct Years {
 
 impl Years {
   /// Returns a string displaying the amount of years (e.g. "1 year", "2 years")
-  fn format(&self) -> String {
+  pub fn format(&self) -> String {
     format!(
       "{} year{}",
       self.value,
@@ -216,7 +214,7 @@ impl Years {
   }
 
   /// Returns a string with the amount of years, but only if the amount is more than 0.
-  fn format_if_nonzero(&self) -> Option<String> {
+  pub fn format_if_nonzero(&self) -> Option<String> {
     if self.is_zero() {
       return None;
     }

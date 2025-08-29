@@ -19,7 +19,8 @@ use crate::{
     u_int64_rules::{GreaterThan as UInt64GreaterThan, LessThan as UInt64LessThan},
     DurationRules, TimestampComparableRules, TimestampRules,
   },
-  Duration, Timestamp, TimestampError,
+  timestamp::TimestampError,
+  Duration, Timestamp,
 };
 
 pub trait IntoComparable<T> {

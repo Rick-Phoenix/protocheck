@@ -1,13 +1,5 @@
 use crate::Duration;
 
-impl Duration {
-  pub fn new(seconds: i64, nanos: i32) -> Self {
-    let mut instance = Duration { seconds, nanos };
-    instance.normalize();
-    instance
-  }
-}
-
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
@@ -42,12 +34,11 @@ impl std::cmp::Ord for Duration {
   }
 }
 
-#[cfg(all(feature = "serde", feature = "chrono"))]
+#[cfg(feature = "serde")]
 mod serde {
   use core::fmt;
 
-  use chrono::Duration as ChronoDuration;
-  use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
+  use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
   use crate::Duration;
   impl Serialize for Duration {
@@ -57,15 +48,8 @@ mod serde {
     {
       let self_normalized = self.normalized();
 
-      let chrono_dur: ChronoDuration = self_normalized.try_into().map_err(|e| {
-        ser::Error::custom(format!(
-          "Failed to convert duration for serialization: {}",
-          e
-        ))
-      })?;
-
-      let seconds = chrono_dur.num_seconds();
-      let nanos = chrono_dur.subsec_nanos();
+      let seconds = self_normalized.seconds;
+      let nanos = self_normalized.nanos;
 
       let formatted_string = if nanos == 0 {
         // If nanos are zero, just "Xs"

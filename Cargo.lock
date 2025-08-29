@@ -784,6 +784,7 @@ dependencies = [
  "cel",
  "chrono",
  "chrono-tz",
+ "document-features",
  "palette",
  "paste",
  "proc-macro2",

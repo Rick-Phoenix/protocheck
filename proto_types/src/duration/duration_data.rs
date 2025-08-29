@@ -15,11 +15,6 @@ pub struct DurationData {
 }
 
 impl Duration {
-  /// Whether the duration is negative or not.
-  pub fn is_negative(&self) -> bool {
-    self.normalized().seconds < 0
-  }
-
   /// Creates a DurationData instance.
   pub fn get_data(&self) -> DurationData {
     let mut total_seconds = self.seconds.unsigned_abs();

@@ -2,11 +2,20 @@ use std::time::SystemTime;
 
 use crate::{Duration, Timestamp};
 
+#[cfg(not(feature = "chrono"))]
+impl crate::Timestamp {
+  /// Returns the timestamp in YYYY-MM-DD format.
+  /// The same method, with the `chrono` feature, allows for custom formatting.
+  pub fn format(&self) -> String {
+    self.to_string()
+  }
+}
+
 #[cfg(feature = "chrono")]
 mod chrono {
   use chrono::Utc;
 
-  use crate::{Timestamp, TimestampError};
+  use crate::{timestamp::TimestampError, Timestamp};
 
   impl Timestamp {
     /// Converts this timestamp into a [`chrono::DateTime<Utc>`] struct and calls .format on it with the string argument being given.
@@ -16,7 +25,7 @@ mod chrono {
       Ok(chrono_timestamp.format(string).to_string())
     }
 
-    /// Converts this [`Timestamp`] instance to chrono::[`DateTime`](::chrono::DateTime)<Utc>.
+    /// Converts this [`Timestamp`] instance to chrono::[`DateTime`](::chrono::DateTime) with [`chrono::Utc`].
     pub fn as_datetime_utc(&self) -> Result<chrono::DateTime<Utc>, TimestampError> {
       (*self).try_into()
     }

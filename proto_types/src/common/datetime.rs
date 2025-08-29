@@ -20,7 +20,6 @@ impl Display for DateTime {
     }
     write!(f, "{:02}-{:02}", self.month, self.day)?;
 
-    // Add the 'T' separator and Time part (HH:MM:SS)
     write!(
       f,
       "T{:02}:{:02}:{:02}",
@@ -47,16 +46,10 @@ impl Display for DateTime {
       Some(TimeOffset::TimeZone(tz)) => {
         // Named timezones are not usually part of the ISO 8601 string itself
         // (it usually implies fixed offset or UTC).
-        // However, for debugging/clarity, we can append it in parentheses
-        // or just append the ID directly if that's preferred.
-        // Let's append it in square brackets for clarity that it's supplemental.
+        // However, for debugging/clarity, we can append it in parentheses.
         write!(f, "[{}]", tz.id)?;
       }
-      None => {
-        // No offset means local time, which is ambiguous.
-        // ISO 8601 would typically omit any suffix here, meaning "local time".
-        // We'll leave it blank.
-      }
+      None => {}
     }
     Ok(())
   }
