@@ -16,6 +16,7 @@ mod chrono {
       Ok(chrono_timestamp.format(string).to_string())
     }
 
+    /// Converts this [`Timestamp`] instance to chrono::[`DateTime`](::chrono::DateTime)<Utc>.
     pub fn as_datetime_utc(&self) -> Result<chrono::DateTime<Utc>, TimestampError> {
       (*self).try_into()
     }
@@ -23,10 +24,12 @@ mod chrono {
 }
 
 impl Timestamp {
+  /// Returns the current timestamp.
   pub fn now() -> Self {
     SystemTime::now().into()
   }
 
+  /// Creates a new instance.
   pub fn new(seconds: i64, nanos: i32) -> Self {
     Timestamp { seconds, nanos }
   }
@@ -46,10 +49,12 @@ impl Timestamp {
     (Timestamp::now() - range) <= *self
   }
 
+  /// Returns `true` if the timestamp is in the future.
   pub fn is_future(&self) -> bool {
     *self > Self::now()
   }
 
+  /// Returns `true` if the timestamp is in the past.
   pub fn is_past(&self) -> bool {
     *self < Self::now()
   }

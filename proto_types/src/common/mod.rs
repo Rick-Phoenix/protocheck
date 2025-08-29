@@ -1,5 +1,8 @@
 #![allow(clippy::doc_overindented_list_items)]
 #![allow(clippy::doc_lazy_continuation)]
+
+use std::fmt::Display;
+
 include!("./google.type.rs");
 
 #[cfg(feature = "serde")]
@@ -8,15 +11,34 @@ mod common_serde_impls;
 #[cfg(feature = "cel")]
 mod cel_common_types_impls;
 
+#[cfg(feature = "color")]
 pub mod color;
+
+#[cfg(feature = "date")]
 pub mod date;
+
+#[cfg(feature = "datetime")]
 pub mod datetime;
+
+#[cfg(feature = "decimal")]
 pub mod decimal;
+
+#[cfg(feature = "fraction")]
 pub mod fraction;
+
+#[cfg(feature = "interval")]
 pub mod interval;
-pub mod localized_text;
+
+#[cfg(feature = "localized_text")]
+mod localized_text;
+
+#[cfg(feature = "money")]
 pub mod money;
-pub mod postal_address;
+
+#[cfg(feature = "postal_address")]
+mod postal_address;
+
+#[cfg(feature = "timeofday")]
 pub mod time_of_day;
 
 impl CalendarPeriod {
@@ -117,6 +139,7 @@ impl DayOfWeek {
   }
 }
 
+#[cfg(feature = "phone_number")]
 impl PhoneNumber {
   /// Returns false if the field `kind` is missing.
   pub fn has_kind(&self) -> bool {
@@ -207,5 +230,24 @@ impl Month {
       Month::November => "November",
       Month::December => "December",
     }
+  }
+}
+
+impl Display for DayOfWeek {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.as_title_case())
+  }
+}
+
+impl Display for Month {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.as_title_case())
+  }
+}
+
+#[cfg(feature = "latlng")]
+impl std::fmt::Display for LatLng {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{:.6},{:.6}", self.latitude, self.longitude)
   }
 }

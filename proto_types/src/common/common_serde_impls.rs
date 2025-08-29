@@ -4,7 +4,10 @@ use serde::{
   Deserialize, Deserializer, Serialize,
 };
 
-use crate::common::{date_time, CalendarPeriod, Date, DateTime, DayOfWeek, Month};
+use crate::{
+  common::{CalendarPeriod, Month},
+  DayOfWeek,
+};
 
 impl Serialize for CalendarPeriod {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -42,7 +45,8 @@ impl<'de> Deserialize<'de> for CalendarPeriod {
   }
 }
 
-impl Serialize for DateTime {
+#[cfg(feature = "datetime")]
+impl Serialize for crate::DateTime {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: Serializer,
@@ -58,10 +62,10 @@ impl Serialize for DateTime {
     map.serialize_entry("nanos", &self.nanos)?;
 
     match self.time_offset {
-      Some(date_time::TimeOffset::UtcOffset(ref d)) => {
+      Some(crate::date_time::TimeOffset::UtcOffset(ref d)) => {
         map.serialize_entry("utcOffset", d)?;
       }
-      Some(date_time::TimeOffset::TimeZone(ref tz)) => {
+      Some(crate::date_time::TimeOffset::TimeZone(ref tz)) => {
         map.serialize_entry("timeZone", tz)?;
       }
       None => {
@@ -73,7 +77,8 @@ impl Serialize for DateTime {
   }
 }
 
-impl<'de> Deserialize<'de> for DateTime {
+#[cfg(feature = "datetime")]
+impl<'de> Deserialize<'de> for crate::DateTime {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where
     D: Deserializer<'de>,
@@ -81,7 +86,7 @@ impl<'de> Deserialize<'de> for DateTime {
     struct DateTimeVisitor;
 
     impl<'de> Visitor<'de> for DateTimeVisitor {
-      type Value = DateTime;
+      type Value = crate::DateTime;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         formatter.write_str("a JSON object representing a DateTime")
@@ -133,8 +138,8 @@ impl<'de> Deserialize<'de> for DateTime {
         }
 
         let time_offset = match (utc_offset, time_zone) {
-          (Some(d), None) => Some(date_time::TimeOffset::UtcOffset(d)),
-          (None, Some(tz)) => Some(date_time::TimeOffset::TimeZone(tz)),
+          (Some(d), None) => Some(crate::date_time::TimeOffset::UtcOffset(d)),
+          (None, Some(tz)) => Some(crate::date_time::TimeOffset::TimeZone(tz)),
           (None, None) => None,
           _ => {
             return Err(de::Error::custom(
@@ -150,7 +155,7 @@ impl<'de> Deserialize<'de> for DateTime {
         let seconds_val = seconds.ok_or_else(|| de::Error::missing_field("seconds"))?;
         let nanos_val = nanos.ok_or_else(|| de::Error::missing_field("nanos"))?;
 
-        Ok(DateTime {
+        Ok(crate::DateTime {
           year: year.unwrap_or(0), // Year is optional, default 0
           month: month_val,
           day: day_val,
@@ -167,7 +172,8 @@ impl<'de> Deserialize<'de> for DateTime {
   }
 }
 
-impl Serialize for Date {
+#[cfg(feature = "date")]
+impl Serialize for crate::Date {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
     S: Serializer,
@@ -177,7 +183,8 @@ impl Serialize for Date {
   }
 }
 
-impl<'de> Deserialize<'de> for Date {
+#[cfg(feature = "date")]
+impl<'de> Deserialize<'de> for crate::Date {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where
     D: Deserializer<'de>,
@@ -185,7 +192,7 @@ impl<'de> Deserialize<'de> for Date {
     struct DateVisitor;
 
     impl<'de> Visitor<'de> for DateVisitor {
-      type Value = Date;
+      type Value = crate::Date;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         formatter.write_str("a date string in YYYY-MM-DD format")
@@ -215,7 +222,7 @@ impl<'de> Deserialize<'de> for Date {
           return Err(E::custom(format!("invalid day: {}", day)));
         }
 
-        Ok(Date { year, month, day })
+        Ok(crate::Date { year, month, day })
       }
     }
 

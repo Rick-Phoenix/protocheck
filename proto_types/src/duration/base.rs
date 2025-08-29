@@ -129,7 +129,7 @@ impl TryFrom<Duration> for time::Duration {
 }
 
 /// A duration handling error.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 #[non_exhaustive]
 pub enum DurationError {
   /// Indicates failure to parse a [`Duration`] from a string.
@@ -173,7 +173,7 @@ impl FromStr for Duration {
   type Err = DurationError;
 
   fn from_str(s: &str) -> Result<Duration, DurationError> {
-    datetime::parse_duration(s).ok_or(DurationError::ParseFailure)
+    datetime_internal::parse_duration(s).ok_or(DurationError::ParseFailure)
   }
 }
 

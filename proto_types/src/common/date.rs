@@ -1,6 +1,7 @@
 use std::{
   cmp::{Ord, Ordering, PartialOrd},
   convert::TryFrom,
+  fmt::Display,
 };
 
 use ::prost::alloc::string::String;
@@ -9,7 +10,7 @@ use thiserror::Error;
 use crate::common::Date;
 
 /// Errors that can occur during the creation, conversion or validation of a [`Date`].
-#[derive(Debug, PartialEq, Eq, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum DateError {
   #[error("{0}")]
   InvalidYear(String),
@@ -19,6 +20,30 @@ pub enum DateError {
   InvalidDay(String),
   #[error("Date conversion error: {0}")]
   ConversionError(String),
+}
+
+impl Display for Date {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self.kind() {
+      DateKind::Full => write!(f, "{:04}-{:02}-{:02}", self.year, self.month, self.day),
+      DateKind::YearAndMonth => write!(f, "{:04}-{:02}", self.year, self.month),
+      DateKind::YearOnly => write!(f, "{:04}", self.year),
+      DateKind::MonthAndDay => write!(f, "{:02}-{:02}", self.month, self.day),
+    }
+  }
+}
+
+/// The kind of combinations that a [`Date`] can contain.
+#[derive(Debug, Clone, Eq, PartialEq, Copy)]
+pub enum DateKind {
+  /// A full date, with non-zero year, month, and day values
+  Full,
+  /// A year on its own, with zero month and day values
+  YearOnly,
+  /// A year and month value, with a zero day, such as a credit card expiration
+  YearAndMonth,
+  /// A month and day value, with a zero year, such as an anniversary
+  MonthAndDay,
 }
 
 fn validate_date(year: i32, month: i32, day: i32) -> Result<(), DateError> {
@@ -63,13 +88,26 @@ fn validate_date(year: i32, month: i32, day: i32) -> Result<(), DateError> {
 }
 
 impl Date {
-  /// Creates a new `Date` instance with validation.
+  /// Creates a new [`Date`] instance with validation.
   /// Allows `year: 0`, `month: 0`, `day: 0` as special cases described in the proto spec.
   /// Returns an error if any component is out of range or date is invalid (e.g., February 30th).
   pub fn new(year: i32, month: i32, day: i32) -> Result<Self, DateError> {
     validate_date(year, month, day)?;
 
     Ok(Date { year, month, day })
+  }
+
+  /// Returns the kind of values combination for this [`Date`]
+  pub fn kind(&self) -> DateKind {
+    if self.year != 0 && self.month == 0 && self.day == 0 {
+      DateKind::YearOnly
+    } else if self.year != 0 && self.month != 0 && self.day == 0 {
+      DateKind::YearAndMonth
+    } else if self.year == 0 && self.month != 0 && self.day != 0 {
+      DateKind::MonthAndDay
+    } else {
+      DateKind::Full
+    }
   }
 
   /// Checks if this [`Date`] instance represents a valid date according to its constraints.
@@ -95,21 +133,34 @@ impl Date {
   pub fn is_month_and_day(&self) -> bool {
     self.year == 0 && self.month != 0 && self.day != 0
   }
+
+  /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.
+  #[cfg(feature = "chrono")]
+  pub fn to_naive_date(self) -> Result<chrono::NaiveDate, DateError> {
+    self.try_into()
+  }
 }
 
 impl PartialOrd for Date {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
-  }
-}
+    if !(self.is_valid() && other.is_valid()) {
+      return None;
+    }
 
-impl Ord for Date {
-  fn cmp(&self, other: &Self) -> Ordering {
-    self
-      .year
-      .cmp(&other.year)
-      .then_with(|| self.month.cmp(&other.month))
-      .then_with(|| self.day.cmp(&other.day))
+    let self_kind = self.kind();
+    let other_kind = other.kind();
+
+    if self_kind != other_kind {
+      return None;
+    }
+
+    Some(
+      self
+        .year
+        .cmp(&other.year)
+        .then_with(|| self.month.cmp(&other.month))
+        .then_with(|| self.day.cmp(&other.day)),
+    )
   }
 }
 

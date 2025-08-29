@@ -8,6 +8,7 @@ impl From<DateTime<Utc>> for Timestamp {
   fn from(datetime: DateTime<Utc>) -> Self {
     let mut ts = Timestamp {
       seconds: datetime.timestamp(),
+      // Safe casting as this value is limited by chrono
       nanos: datetime.timestamp_subsec_nanos() as i32,
     };
     ts.normalize();

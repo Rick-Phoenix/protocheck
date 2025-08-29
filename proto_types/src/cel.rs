@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{Any, DurationError, Empty, FieldMask, TimestampError};
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum CelConversionError {
   #[error("{0}")]
   DurationError(#[from] DurationError),
@@ -17,14 +17,8 @@ pub enum CelConversionError {
 impl From<Any> for CelValue {
   fn from(value: Any) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
-    cel_map.insert(
-      "type_url".to_string().into(),
-      CelValue::String(value.type_url.clone().into()),
-    );
-    cel_map.insert(
-      "value".to_string().into(),
-      CelValue::Bytes(value.value.clone().into()),
-    );
+    cel_map.insert("type_url".into(), CelValue::String(value.type_url.into()));
+    cel_map.insert("value".into(), CelValue::Bytes(value.value.into()));
 
     CelValue::Map(cel_map.into())
   }
@@ -60,11 +54,11 @@ mod chrono {
 
 impl From<FieldMask> for CelValue {
   fn from(value: FieldMask) -> Self {
-    let paths = &value.paths;
+    let paths = value.paths;
 
     let mut cel_vals: Vec<CelValue> = Vec::new();
     for path in paths {
-      cel_vals.push(CelValue::String(path.clone().into()));
+      cel_vals.push(CelValue::String(path.into()));
     }
 
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();

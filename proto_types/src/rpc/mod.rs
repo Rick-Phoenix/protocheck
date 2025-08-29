@@ -25,7 +25,7 @@ macro_rules! has_impl {
 #[cfg(feature = "serde")]
 mod rpc_serde_impls;
 
-pub mod error_details;
-pub mod http;
+mod error_details;
+mod http;
 #[cfg(feature = "cel")]
 mod rpc_cel_impls;

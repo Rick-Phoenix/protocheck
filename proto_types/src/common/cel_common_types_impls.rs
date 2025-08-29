@@ -1,19 +1,14 @@
+#![allow(unused_imports)] // They appear as unused due to the features
+
 use std::collections::HashMap;
 
 use cel::{objects::Key as CelKey, Value as CelValue};
 
-use crate::{
-  cel::CelConversionError,
-  common::{
-    date_time::TimeOffset,
-    phone_number::{self, ShortCode},
-    Color, Date, DateTime, Decimal, Expr, Fraction, Interval, LatLng, LocalizedText, Money,
-    PhoneNumber, PostalAddress, Quaternion, TimeOfDay, TimeZone,
-  },
-};
+use crate::cel::CelConversionError;
 
-impl From<TimeOfDay> for CelValue {
-  fn from(value: TimeOfDay) -> Self {
+#[cfg(feature = "timeofday")]
+impl From<crate::TimeOfDay> for CelValue {
+  fn from(value: crate::TimeOfDay) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("hours".into(), CelValue::Int(value.hours.into()));
@@ -25,8 +20,9 @@ impl From<TimeOfDay> for CelValue {
   }
 }
 
-impl From<LocalizedText> for CelValue {
-  fn from(value: LocalizedText) -> Self {
+#[cfg(feature = "localized_text")]
+impl From<crate::LocalizedText> for CelValue {
+  fn from(value: crate::LocalizedText) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("text".into(), CelValue::String(value.text.into()));
@@ -39,8 +35,9 @@ impl From<LocalizedText> for CelValue {
   }
 }
 
-impl From<Quaternion> for CelValue {
-  fn from(value: Quaternion) -> Self {
+#[cfg(feature = "quaternion")]
+impl From<crate::Quaternion> for CelValue {
+  fn from(value: crate::Quaternion) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("x".into(), CelValue::Float(value.x));
@@ -52,8 +49,9 @@ impl From<Quaternion> for CelValue {
   }
 }
 
-impl From<Money> for CelValue {
-  fn from(value: Money) -> Self {
+#[cfg(feature = "money")]
+impl From<crate::Money> for CelValue {
+  fn from(value: crate::Money) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert(
@@ -67,8 +65,9 @@ impl From<Money> for CelValue {
   }
 }
 
-impl From<TimeZone> for CelValue {
-  fn from(value: TimeZone) -> Self {
+#[cfg(feature = "datetime")]
+impl From<crate::TimeZone> for CelValue {
+  fn from(value: crate::TimeZone) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("id".into(), CelValue::String(value.id.into()));
@@ -78,19 +77,21 @@ impl From<TimeZone> for CelValue {
   }
 }
 
-impl TryFrom<TimeOffset> for CelValue {
+#[cfg(feature = "datetime")]
+impl TryFrom<crate::date_time::TimeOffset> for CelValue {
   type Error = CelConversionError;
-  fn try_from(value: TimeOffset) -> Result<Self, Self::Error> {
+  fn try_from(value: crate::date_time::TimeOffset) -> Result<Self, Self::Error> {
     match value {
-      TimeOffset::UtcOffset(duration) => duration.try_into(),
-      TimeOffset::TimeZone(tz) => Ok(tz.into()),
+      crate::date_time::TimeOffset::UtcOffset(duration) => duration.try_into(),
+      crate::date_time::TimeOffset::TimeZone(tz) => Ok(tz.into()),
     }
   }
 }
 
-impl TryFrom<DateTime> for CelValue {
+#[cfg(feature = "datetime")]
+impl TryFrom<crate::DateTime> for CelValue {
   type Error = CelConversionError;
-  fn try_from(value: DateTime) -> Result<Self, Self::Error> {
+  fn try_from(value: crate::DateTime) -> Result<Self, Self::Error> {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("year".into(), CelValue::Int(value.year.into()));
@@ -112,8 +113,9 @@ impl TryFrom<DateTime> for CelValue {
   }
 }
 
-impl From<LatLng> for CelValue {
-  fn from(value: LatLng) -> Self {
+#[cfg(feature = "latlng")]
+impl From<crate::LatLng> for CelValue {
+  fn from(value: crate::LatLng) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("latitude".into(), CelValue::Float(value.latitude));
@@ -123,8 +125,9 @@ impl From<LatLng> for CelValue {
   }
 }
 
-impl From<PostalAddress> for CelValue {
-  fn from(value: PostalAddress) -> Self {
+#[cfg(feature = "postal_address")]
+impl From<crate::PostalAddress> for CelValue {
+  fn from(value: crate::PostalAddress) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("revision".into(), CelValue::Int(value.revision.into()));
@@ -182,8 +185,9 @@ impl From<PostalAddress> for CelValue {
   }
 }
 
-impl From<Date> for CelValue {
-  fn from(value: Date) -> Self {
+#[cfg(feature = "date")]
+impl From<crate::Date> for CelValue {
+  fn from(value: crate::Date) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("year".into(), CelValue::Int(value.year.into()));
@@ -194,9 +198,10 @@ impl From<Date> for CelValue {
   }
 }
 
-impl TryFrom<Interval> for CelValue {
+#[cfg(feature = "interval")]
+impl TryFrom<crate::Interval> for CelValue {
   type Error = CelConversionError;
-  fn try_from(value: Interval) -> Result<Self, Self::Error> {
+  fn try_from(value: crate::Interval) -> Result<Self, Self::Error> {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     let start_time = match value.start_time {
@@ -217,8 +222,9 @@ impl TryFrom<Interval> for CelValue {
   }
 }
 
-impl From<Expr> for CelValue {
-  fn from(value: Expr) -> Self {
+#[cfg(feature = "expr")]
+impl From<crate::Expr> for CelValue {
+  fn from(value: crate::Expr) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert(
@@ -236,8 +242,9 @@ impl From<Expr> for CelValue {
   }
 }
 
-impl From<Color> for CelValue {
-  fn from(value: Color) -> Self {
+#[cfg(feature = "color")]
+impl From<crate::Color> for CelValue {
+  fn from(value: crate::Color) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("red".into(), CelValue::Float(value.red as f64));
@@ -255,8 +262,9 @@ impl From<Color> for CelValue {
   }
 }
 
-impl From<Fraction> for CelValue {
-  fn from(value: Fraction) -> Self {
+#[cfg(feature = "fraction")]
+impl From<crate::Fraction> for CelValue {
+  fn from(value: crate::Fraction) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("numerator".into(), CelValue::Int(value.numerator));
@@ -266,8 +274,9 @@ impl From<Fraction> for CelValue {
   }
 }
 
-impl From<Decimal> for CelValue {
-  fn from(value: Decimal) -> Self {
+#[cfg(feature = "decimal")]
+impl From<crate::Decimal> for CelValue {
+  fn from(value: crate::Decimal) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("value".into(), CelValue::String(value.value.into()));
@@ -276,8 +285,9 @@ impl From<Decimal> for CelValue {
   }
 }
 
-impl From<ShortCode> for CelValue {
-  fn from(value: ShortCode) -> Self {
+#[cfg(feature = "phone_number")]
+impl From<crate::phone_number::ShortCode> for CelValue {
+  fn from(value: crate::phone_number::ShortCode) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert(
@@ -290,17 +300,19 @@ impl From<ShortCode> for CelValue {
   }
 }
 
-impl From<phone_number::Kind> for CelValue {
-  fn from(value: phone_number::Kind) -> Self {
+#[cfg(feature = "phone_number")]
+impl From<crate::phone_number::Kind> for CelValue {
+  fn from(value: crate::phone_number::Kind) -> Self {
     match value {
-      phone_number::Kind::E164Number(v) => CelValue::String(v.into()),
-      phone_number::Kind::ShortCode(sc) => sc.into(),
+      crate::phone_number::Kind::E164Number(v) => CelValue::String(v.into()),
+      crate::phone_number::Kind::ShortCode(sc) => sc.into(),
     }
   }
 }
 
-impl From<PhoneNumber> for CelValue {
-  fn from(value: PhoneNumber) -> Self {
+#[cfg(feature = "phone_number")]
+impl From<crate::PhoneNumber> for CelValue {
+  fn from(value: crate::PhoneNumber) -> Self {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
 
     cel_map.insert("extension".into(), CelValue::String(value.extension.into()));

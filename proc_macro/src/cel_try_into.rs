@@ -25,8 +25,8 @@ impl InnerType {
   pub fn conversion_tokens(&self, val_tokens: &TokenStream2) -> TokenStream2 {
     match self {
       Self::Box => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
-      Self::SupportsInto => quote! { #val_tokens.to_owned().into() },
-      Self::TryInto => quote! { #val_tokens.to_owned().try_into()? },
+      Self::SupportsInto => quote! { #val_tokens.into() },
+      Self::TryInto => quote! { #val_tokens.try_into()? },
       Self::Bytes => quote! { #val_tokens.to_vec().into() },
       Self::F32 => quote! { (*#val_tokens as f64).into() },
       Self::U32 => quote! { (*#val_tokens as u64).into() },

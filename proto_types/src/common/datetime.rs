@@ -1,12 +1,69 @@
+use std::fmt::{Display, Formatter};
+
 use thiserror::Error;
 
 use crate::{
-  common::{date_time, DateTime, TimeZone},
+  common::{date_time::TimeOffset, DateTime, TimeZone},
   Duration,
 };
 
+impl Display for TimeZone {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.id)
+  }
+}
+
+impl Display for DateTime {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    if self.year != 0 {
+      write!(f, "{:04}-", self.year)?;
+    }
+    write!(f, "{:02}-{:02}", self.month, self.day)?;
+
+    // Add the 'T' separator and Time part (HH:MM:SS)
+    write!(
+      f,
+      "T{:02}:{:02}:{:02}",
+      self.hours, self.minutes, self.seconds
+    )?;
+
+    match &self.time_offset {
+      Some(TimeOffset::UtcOffset(duration)) => {
+        let total_offset_seconds = duration.normalized().seconds;
+        let is_negative = total_offset_seconds < 0;
+        let abs_total_offset_seconds = total_offset_seconds.abs();
+
+        let hours = abs_total_offset_seconds / 3600;
+        let minutes = (abs_total_offset_seconds % 3600) / 60;
+
+        if is_negative {
+          write!(f, "-{:02}:{:02}", hours, minutes)?
+        } else if total_offset_seconds == 0 && duration.nanos == 0 {
+          write!(f, "Z")? // 'Z' for UTC
+        } else {
+          write!(f, "+{:02}:{:02}", hours, minutes)?
+        }
+      }
+      Some(TimeOffset::TimeZone(tz)) => {
+        // Named timezones are not usually part of the ISO 8601 string itself
+        // (it usually implies fixed offset or UTC).
+        // However, for debugging/clarity, we can append it in parentheses
+        // or just append the ID directly if that's preferred.
+        // Let's append it in square brackets for clarity that it's supplemental.
+        write!(f, "[{}]", tz.id)?;
+      }
+      None => {
+        // No offset means local time, which is ambiguous.
+        // ISO 8601 would typically omit any suffix here, meaning "local time".
+        // We'll leave it blank.
+      }
+    }
+    Ok(())
+  }
+}
+
 /// Errors that can occur during the creation, conversion or validation of a [`DateTime`].
-#[derive(Debug, PartialEq, Eq, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum DateTimeError {
   #[error(
     "The year must be a value from 0 (to indicate a DateTime with no specific year) to 9999"
@@ -36,7 +93,7 @@ pub enum DateTimeError {
   ConversionError(String),
 }
 
-impl PartialOrd for date_time::TimeOffset {
+impl PartialOrd for TimeOffset {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
     match (self, other) {
       (Self::UtcOffset(a), Self::UtcOffset(b)) => a.partial_cmp(b),
@@ -50,6 +107,14 @@ impl PartialOrd for date_time::TimeOffset {
 
 impl PartialOrd for DateTime {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    if !(self.is_valid() && other.is_valid()) {
+      return None;
+    }
+
+    if (self.year == 0 && other.year != 0) || (self.year != 0 && other.year == 0) {
+      return None;
+    }
+
     let ord = self
       .year
       .cmp(&other.year)
@@ -132,16 +197,219 @@ impl DateTime {
     self.year != 0
   }
 
+  /// Returns true if the [`TimeOffset`] is a UtcOffset.
+  pub fn has_utc_offset(&self) -> bool {
+    matches!(self.time_offset, Some(TimeOffset::UtcOffset(_)))
+  }
+
+  /// Returns true if the [`TimeOffset`] is a TimeZone.
+  pub fn has_timezone(&self) -> bool {
+    matches!(self.time_offset, Some(TimeOffset::TimeZone(_)))
+  }
+
+  /// Returns true if the [`TimeOffset`] is None.
+  pub fn is_local(&self) -> bool {
+    self.time_offset.is_none()
+  }
+
   /// Sets the `time_offset` to a UTC offset [`Duration`], clearing any existing time zone.
   pub fn with_utc_offset(mut self, offset: Duration) -> Self {
-    self.time_offset = Some(date_time::TimeOffset::UtcOffset(offset));
+    self.time_offset = Some(TimeOffset::UtcOffset(offset));
     self
   }
 
   /// Sets the `time_offset` to a [`TimeZone`], clearing any existing UTC offset.
   pub fn with_time_zone(mut self, time_zone: TimeZone) -> Self {
-    self.time_offset = Some(date_time::TimeOffset::TimeZone(time_zone));
+    self.time_offset = Some(TimeOffset::TimeZone(time_zone));
     self
+  }
+
+  #[cfg(feature = "chrono")]
+  /// Converts this [`DateTime`] to [`chrono::DateTime`]<Utc>.
+  /// It succeeds if the [`TimeOffset`] is a UtcOffset with 0 seconds and nanos.
+  pub fn to_datetime_utc(self) -> Result<chrono::DateTime<chrono::Utc>, DateTimeError> {
+    self.try_into()
+  }
+
+  #[cfg(feature = "chrono")]
+  /// Converts this [`DateTime`] to [`chrono::DateTime`]<[`FixedOffset`](chrono::FixedOffset)>.
+  /// It succeeds if the [`TimeOffset`] is a UtcOffset that results in an unambiguous [`FixedOffset`](chrono::FixedOffset).
+  pub fn to_fixed_offset_datetime(
+    self,
+  ) -> Result<chrono::DateTime<chrono::FixedOffset>, DateTimeError> {
+    self.try_into()
+  }
+
+  #[cfg(all(feature = "chrono", feature = "chrono-tz"))]
+  /// Converts this [`DateTime`] to [`chrono::DateTime`]<[`Tz`](chrono_tz::Tz)>.
+  /// It succeeds if the [`TimeOffset`] is a [`TimeZone`] that maps to a valid [`Tz`](chrono_tz::Tz) or if the [`TimeOffset`] is a UtcOffset with 0 seconds and nanos.
+  pub fn to_datetime_with_tz(self) -> Result<chrono::DateTime<chrono_tz::Tz>, DateTimeError> {
+    self.try_into()
+  }
+}
+
+pub const UTC_OFFSET: Duration = Duration {
+  seconds: 0,
+  nanos: 0,
+};
+
+#[cfg(all(feature = "chrono", feature = "chrono-tz"))]
+impl From<chrono_tz::Tz> for TimeZone {
+  fn from(value: chrono_tz::Tz) -> Self {
+    Self {
+      id: value.to_string(),
+      version: "".to_string(), // Version is optional according to the spec
+    }
+  }
+}
+
+// DateTime<Tz> conversions
+
+#[cfg(all(feature = "chrono", feature = "chrono-tz"))]
+impl From<chrono::DateTime<chrono_tz::Tz>> for DateTime {
+  fn from(value: chrono::DateTime<chrono_tz::Tz>) -> Self {
+    use chrono::{Datelike, Timelike};
+
+    Self {
+      year: value.year(),
+      month: value.month() as i32,
+      day: value.day() as i32,
+      hours: value.hour() as i32,
+      minutes: value.minute() as i32,
+      seconds: value.second() as i32,
+      nanos: value.nanosecond() as i32,
+      time_offset: Some(TimeOffset::TimeZone(TimeZone {
+        id: value.timezone().to_string(),
+        version: "".to_string(), // Version is optional according to the spec
+      })),
+    }
+  }
+}
+
+#[cfg(all(feature = "chrono", feature = "chrono-tz"))]
+impl TryFrom<DateTime> for chrono::DateTime<chrono_tz::Tz> {
+  type Error = DateTimeError;
+
+  fn try_from(value: crate::DateTime) -> Result<Self, Self::Error> {
+    use std::str::FromStr;
+
+    use chrono::{NaiveDateTime, TimeZone};
+    use chrono_tz::Tz;
+
+    let timezone = match &value.time_offset {
+      Some(TimeOffset::UtcOffset(proto_duration)) => {
+        if *proto_duration == UTC_OFFSET {
+          Tz::UTC
+        } else {
+          return Err(DateTimeError::ConversionError(
+            "Cannot convert non-zero UtcOffset to a named TimeZone (Tz)".to_string(),
+          ));
+        }
+      }
+      // Case B: TimeZone (named IANA string) -> Use chrono_tz::Tz::from_str
+      Some(TimeOffset::TimeZone(tz_name)) => Tz::from_str(&tz_name.id).map_err(|_| {
+        DateTimeError::ConversionError(format!(
+          "Unrecognized or invalid timezone name: {}",
+          tz_name.id
+        ))
+      })?,
+      None => {
+        return Err(DateTimeError::ConversionError(
+          "Cannot convert local DateTime to named TimeZone (Tz) without explicit offset or name"
+            .to_string(),
+        ));
+      }
+    };
+
+    let naive_dt: NaiveDateTime = value.try_into()?;
+
+    timezone
+      .from_local_datetime(&naive_dt)
+      .single()
+      .ok_or(DateTimeError::ConversionError(
+        "Ambiguous or invalid local time to named TimeZone (Tz) conversion".to_string(),
+      ))
+  }
+}
+
+// FixedOffset conversions
+// From FixedOffset to DateTime is not possible because the values for the offset are not retrievable
+
+#[cfg(feature = "chrono")]
+impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
+  type Error = DateTimeError;
+  fn try_from(value: DateTime) -> Result<Self, Self::Error> {
+    let offset = match &value.time_offset {
+      Some(TimeOffset::UtcOffset(proto_duration)) => {
+        use crate::constants::NANOS_PER_SECOND;
+
+        let total_nanos_i128 = (proto_duration.seconds as i128)
+          .checked_mul(NANOS_PER_SECOND as i128)
+          .ok_or(DateTimeError::ConversionError(
+            "UtcOffset seconds multiplied by NANOS_PER_SECOND overflowed i128".to_string(),
+          ))?
+          .checked_add(proto_duration.nanos as i128)
+          .ok_or(DateTimeError::ConversionError(
+            "UtcOffset nanos addition overflowed i128".to_string(),
+          ))?;
+
+        let total_seconds_i128 = total_nanos_i128
+          .checked_div(NANOS_PER_SECOND as i128)
+          .ok_or(DateTimeError::ConversionError(
+            "UtcOffset total nanoseconds division overflowed i128 (should not happen)".to_string(),
+          ))?; // Division by zero not possible for NANOS_PER_SECOND
+
+        let total_seconds_i32: i32 = total_seconds_i128.try_into().map_err(|_| {
+          DateTimeError::ConversionError(
+            "UtcOffset total seconds is outside of i32 range for FixedOffset".to_string(),
+          )
+        })?;
+
+        chrono::FixedOffset::east_opt(total_seconds_i32).ok_or_else(|| {
+          DateTimeError::ConversionError(
+            "Failed to convert proto::Duration to chrono::FixedOffset due to invalid offset values"
+              .to_string(),
+          )
+        })
+      }
+      Some(TimeOffset::TimeZone(_)) => Err(DateTimeError::ConversionError(
+        "Cannot convert DateTime with named TimeZone to FixedOffset".to_string(),
+      )),
+      None => Err(DateTimeError::ConversionError(
+        "Cannot convert local DateTime to FixedOffset without explicit offset".to_string(),
+      )),
+    }?;
+
+    let naive_dt: chrono::NaiveDateTime = value.try_into()?;
+
+    naive_dt
+      .and_local_timezone(offset)
+      .single() // Take the unique result if not ambiguous
+      .ok_or(DateTimeError::ConversionError(
+        "Ambiguous or invalid local time to FixedOffset conversion".to_string(),
+      ))
+  }
+}
+
+// NaiveDateTime conversions
+
+#[cfg(feature = "chrono")]
+impl From<chrono::NaiveDateTime> for DateTime {
+  fn from(ndt: chrono::NaiveDateTime) -> Self {
+    use chrono::{Datelike, Timelike};
+
+    // NaiveDateTime has no offset, so DateTime will be local time
+    // Casting is safe due to chrono's constructor API
+    DateTime {
+      year: ndt.year(),
+      month: ndt.month() as i32,
+      day: ndt.day() as i32,
+      hours: ndt.hour() as i32,
+      minutes: ndt.minute() as i32,
+      seconds: ndt.second() as i32,
+      nanos: ndt.nanosecond() as i32,
+      time_offset: None,
+    }
   }
 }
 
@@ -179,76 +447,7 @@ impl TryFrom<DateTime> for chrono::NaiveDateTime {
   }
 }
 
-#[cfg(feature = "chrono")]
-impl TryFrom<DateTime> for chrono::DateTime<chrono::Utc> {
-  type Error = DateTimeError;
-  fn try_from(value: DateTime) -> Result<Self, Self::Error> {
-    match &value.time_offset {
-      Some(date_time::TimeOffset::UtcOffset(proto_duration)) => {
-        if !(proto_duration.seconds == 0 && proto_duration.nanos == 0) {
-          return Err(DateTimeError::ConversionError(
-            "Cannot convert DateTime to TimeZone<Utc> when the UtcOffset is not 0.".to_string(),
-          ));
-        }
-      }
-      Some(date_time::TimeOffset::TimeZone(_)) => {
-        return Err(DateTimeError::ConversionError(
-          "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
-        ))
-      }
-      None => {
-        return Err(DateTimeError::ConversionError(
-          "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
-        ))
-      }
-    };
-
-    let naive_dt: chrono::NaiveDateTime = value.try_into()?;
-
-    Ok(naive_dt.and_utc())
-  }
-}
-
-#[cfg(feature = "chrono")]
-impl TryFrom<DateTime> for chrono::DateTime<chrono::FixedOffset> {
-  type Error = DateTimeError;
-  fn try_from(value: DateTime) -> Result<Self, Self::Error> {
-    let offset = match &value.time_offset {
-      Some(date_time::TimeOffset::UtcOffset(proto_duration)) => {
-        use crate::constants::NANOS_PER_SECOND;
-
-        let nanos_to_seconds = proto_duration.nanos / NANOS_PER_SECOND;
-        let total_seconds: i32 = (proto_duration.seconds * nanos_to_seconds as i64)
-          .try_into()
-          .or(Err(DateTimeError::ConversionError(
-            "UtcOffset is outside of the allowed range.".to_string(),
-          )))?;
-
-        chrono::FixedOffset::east_opt(total_seconds).ok_or_else(|| {
-          DateTimeError::ConversionError(
-            "Failed to convert proto::Duration to chrono::FixedOffset due to invalid offset values"
-              .to_string(),
-          )
-        })
-      }
-      Some(date_time::TimeOffset::TimeZone(_)) => Err(DateTimeError::ConversionError(
-        "Cannot convert DateTime with named TimeZone to FixedOffset".to_string(),
-      )),
-      None => Err(DateTimeError::ConversionError(
-        "Cannot convert local DateTime to FixedOffset without explicit offset".to_string(),
-      )),
-    }?;
-
-    let naive_dt: chrono::NaiveDateTime = value.try_into()?;
-
-    naive_dt
-      .and_local_timezone(offset)
-      .single() // Take the unique result if not ambiguous
-      .ok_or(DateTimeError::ConversionError(
-        "Ambiguous or invalid local time to FixedOffset conversion".to_string(),
-      ))
-  }
-}
+// UTC Conversions
 
 #[cfg(feature = "chrono")]
 impl From<chrono::DateTime<chrono::Utc>> for DateTime {
@@ -263,27 +462,37 @@ impl From<chrono::DateTime<chrono::Utc>> for DateTime {
       minutes: value.minute() as i32,
       seconds: value.second() as i32,
       nanos: value.nanosecond() as i32,
-      time_offset: Some(date_time::TimeOffset::UtcOffset(Duration::new(0, 0))),
+      time_offset: Some(TimeOffset::UtcOffset(Duration::new(0, 0))),
     }
   }
 }
 
 #[cfg(feature = "chrono")]
-impl From<chrono::NaiveDateTime> for DateTime {
-  fn from(ndt: chrono::NaiveDateTime) -> Self {
-    use chrono::{Datelike, Timelike};
+impl TryFrom<DateTime> for chrono::DateTime<chrono::Utc> {
+  type Error = DateTimeError;
+  fn try_from(value: DateTime) -> Result<Self, Self::Error> {
+    match &value.time_offset {
+      Some(TimeOffset::UtcOffset(proto_duration)) => {
+        if *proto_duration != UTC_OFFSET {
+          return Err(DateTimeError::ConversionError(
+            "Cannot convert DateTime to TimeZone<Utc> when the UtcOffset is not 0.".to_string(),
+          ));
+        }
+      }
+      Some(TimeOffset::TimeZone(_)) => {
+        return Err(DateTimeError::ConversionError(
+          "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
+        ))
+      }
+      None => {
+        return Err(DateTimeError::ConversionError(
+          "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
+        ))
+      }
+    };
 
-    // NaiveDateTime has no offset, so DateTime will be local time
-    // Casting is safe due to chrono's constructor API
-    DateTime {
-      year: ndt.year(),
-      month: ndt.month() as i32,
-      day: ndt.day() as i32,
-      hours: ndt.hour() as i32,
-      minutes: ndt.minute() as i32,
-      seconds: ndt.second() as i32,
-      nanos: ndt.nanosecond() as i32,
-      time_offset: None,
-    }
+    let naive_dt: chrono::NaiveDateTime = value.try_into()?;
+
+    Ok(naive_dt.and_utc())
   }
 }

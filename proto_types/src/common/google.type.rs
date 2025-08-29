@@ -3,6 +3,7 @@
 /// or are specified elsewhere. An API may choose to allow leap seconds. Related
 /// types are [google.type.Date][google.type.Date] and
 /// `google.protobuf.Timestamp`.
+#[cfg(feature = "timeofday")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TimeOfDay {
@@ -22,6 +23,7 @@ pub struct TimeOfDay {
   pub nanos: i32,
 }
 /// Localized variant of a text in a particular language.
+#[cfg(feature = "localized_text")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -92,6 +94,7 @@ pub struct LocalizedText {
 /// kept positive, which can be achieved by changing all the signs when `w` is
 /// negative.
 ///
+#[cfg(feature = "quaternion")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Quaternion {
@@ -169,6 +172,7 @@ impl CalendarPeriod {
 }
 
 /// Represents an amount of money with its currency type.
+#[cfg(feature = "money")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -213,6 +217,7 @@ pub struct Money {
 ///
 /// This type is more flexible than some applications may want. Make sure to
 /// document and validate your application's limitations.
+#[cfg(feature = "datetime")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DateTime {
   /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a
@@ -251,6 +256,7 @@ pub struct DateTime {
   pub time_offset: ::core::option::Option<date_time::TimeOffset>,
 }
 /// Nested message and enum types in `DateTime`.
+#[cfg(feature = "datetime")]
 pub mod date_time {
   /// Optional. Specifies either the UTC offset or the time zone of the DateTime.
   /// Choose carefully between them, considering that time zone data may change
@@ -270,8 +276,10 @@ pub mod date_time {
     TimeZone(super::TimeZone),
   }
 }
+
 /// Represents a time zone from the
 /// [IANA Time Zone Database](<https://www.iana.org/time-zones>).
+#[cfg(feature = "datetime")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TimeZone {
@@ -287,6 +295,7 @@ pub struct TimeZone {
 /// specified otherwise, this must conform to the
 /// <a href="<http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf">WGS84>
 /// standard</a>. Values must be within normalized ranges.
+#[cfg(feature = "latlng")]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LatLng {
@@ -314,6 +323,7 @@ pub struct LatLng {
 ///
 /// For more guidance on how to use this schema, please see:
 /// <https://support.google.com/business/answer/6397478>
+#[cfg(feature = "postal_address")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
@@ -423,6 +433,7 @@ pub struct PostalAddress {
 ///
 /// Related types are [google.type.TimeOfDay][google.type.TimeOfDay] and
 /// `google.protobuf.Timestamp`.
+#[cfg(feature = "date")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Date {
   /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without
@@ -445,6 +456,7 @@ pub struct Date {
 /// The start must be less than or equal to the end.
 /// When the start equals the end, the interval is empty (matches no time).
 /// When both start and end are unspecified, the interval matches any time.
+#[cfg(feature = "interval")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
@@ -493,6 +505,7 @@ pub struct Interval {
 /// The exact variables and functions that may be referenced within an expression
 /// are determined by the service that evaluates it. See the service
 /// documentation for additional information.
+#[cfg(feature = "expr")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Expr {
@@ -638,6 +651,7 @@ pub struct Expr {
 ///      };
 ///
 ///      // ...
+#[cfg(feature = "color")]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Color {
@@ -664,7 +678,9 @@ pub struct Color {
   #[prost(message, optional, tag = "4")]
   pub alpha: ::core::option::Option<crate::protobuf::FloatValue>,
 }
+
 /// Represents a fraction in terms of a numerator divided by a denominator.
+#[cfg(feature = "fraction")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Fraction {
@@ -683,6 +699,7 @@ pub struct Fraction {
 /// \[BigDecimal\]:
 /// <https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html>
 /// \[decimal.Decimal\]: <https://docs.python.org/3/library/decimal.html>
+#[cfg(feature = "decimal")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Decimal {
@@ -828,6 +845,7 @@ impl DayOfWeek {
 ///
 ///   Reference(s):
 ///    - <https://github.com/google/libphonenumber>
+#[cfg(feature = "phone_number")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PhoneNumber {
@@ -849,6 +867,7 @@ pub struct PhoneNumber {
   pub kind: ::core::option::Option<phone_number::Kind>,
 }
 /// Nested message and enum types in `PhoneNumber`.
+#[cfg(feature = "phone_number")]
 pub mod phone_number {
   /// An object representing a short code, which is a phone number that is
   /// typically much shorter than regular phone numbers and can be used to

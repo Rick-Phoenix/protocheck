@@ -1,11 +1,17 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Display};
 
 use thiserror::Error;
 
 use crate::common::Fraction;
 
+impl Display for Fraction {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}/{}", self.numerator, self.denominator)
+  }
+}
+
 /// Errors that can occur during the creation, conversion or validation of a [`Fraction`].
-#[derive(Debug, PartialEq, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum FractionError {
   #[error("Denominator cannot be zero")]
   ZeroDenominator,
@@ -182,6 +188,22 @@ impl Fraction {
 
     Fraction::new(num_i64, den_i64)
   }
+
+  /// Converts the fraction to an `f64`.
+  ///
+  /// # Panics
+  /// Panics if the denominator is zero. This should not happen for [`Fraction`]
+  /// instances created via [`Fraction::new()`] or other checked arithmetic,
+  /// but can occur if a [`Fraction`] is constructed directly in an invalid state.
+  ///
+  /// For a fallible conversion that returns a `Result`, use `TryFrom<Fraction> for f64`.
+  pub fn to_f64_unchecked(self) -> f64 {
+    // We can directly call the TryFrom implementation
+    self.try_into().unwrap_or_else(|e| {
+      // If you want a more specific panic message:
+      panic!("Failed to convert Fraction to f64: {:?}", e)
+    })
+  }
 }
 
 impl PartialOrd for Fraction {
@@ -196,8 +218,16 @@ impl PartialOrd for Fraction {
   }
 }
 
-impl From<Fraction> for f64 {
-  fn from(fraction: Fraction) -> Self {
-    fraction.numerator as f64 / fraction.denominator as f64
+impl TryFrom<Fraction> for f64 {
+  type Error = FractionError;
+  fn try_from(fraction: Fraction) -> Result<Self, Self::Error> {
+    if fraction.denominator == 0 {
+      return Err(FractionError::ZeroDenominator);
+    }
+
+    let num_f64 = fraction.numerator as f64;
+    let den_f64 = fraction.denominator as f64;
+
+    Ok(num_f64 / den_f64)
   }
 }

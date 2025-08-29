@@ -14,6 +14,7 @@ impl ser::Serialize for Timestamp {
     ts_normalized.normalize();
 
     let datetime_opt =
+    // Safe casting due to normalize() changing the sign to positive
       DateTime::<Utc>::from_timestamp(ts_normalized.seconds, ts_normalized.nanos as u32);
 
     if let Some(datetime) = datetime_opt {

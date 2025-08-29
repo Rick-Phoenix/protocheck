@@ -2,6 +2,7 @@ use crate::rpc::{Code, HttpHeader, HttpRequest, HttpResponse};
 
 impl HttpRequest {
   has_impl!(method);
+  has_impl!(uri);
 
   /// Returns true if the [`HttpRequest`] contains the given header.
   pub fn has_header(&self, header: &HttpHeader) -> bool {

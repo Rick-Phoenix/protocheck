@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+/// A struct representing seconds. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Seconds {
   pub value: u64,
@@ -27,11 +28,12 @@ impl Seconds {
     ))
   }
 
-  pub fn is_zero(&self) -> bool {
+  fn is_zero(&self) -> bool {
     self.value == 0
   }
 }
 
+/// A struct representing minutes. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Minutes {
   pub value: u64,
@@ -59,11 +61,12 @@ impl Minutes {
     ))
   }
 
-  pub fn is_zero(&self) -> bool {
+  fn is_zero(&self) -> bool {
     self.value == 0
   }
 }
 
+/// A struct representing hours. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Hours {
   pub value: u64,
@@ -91,11 +94,12 @@ impl Hours {
     ))
   }
 
-  pub fn is_zero(&self) -> bool {
+  fn is_zero(&self) -> bool {
     self.value == 0
   }
 }
 
+/// A struct representing days. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Days {
   pub value: u64,
@@ -123,11 +127,12 @@ impl Days {
     ))
   }
 
-  pub fn is_zero(&self) -> bool {
+  fn is_zero(&self) -> bool {
     self.value == 0
   }
 }
 
+/// A struct representing weeks. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Weeks {
   pub value: u64,
@@ -155,11 +160,13 @@ impl Weeks {
     ))
   }
 
-  pub fn is_zero(&self) -> bool {
+  /// Returns `true` if the value is zero.
+  fn is_zero(&self) -> bool {
     self.value == 0
   }
 }
 
+/// A struct representing months. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Months {
   pub value: u64,
@@ -192,6 +199,7 @@ impl Months {
   }
 }
 
+/// A struct representing years. Wraps the value and provides extra formatting methods.
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Years {
   pub value: u64,

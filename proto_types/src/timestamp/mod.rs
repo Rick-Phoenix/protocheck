@@ -140,7 +140,7 @@ impl Timestamp {
 
     nanos: u32,
   ) -> Result<Timestamp, TimestampError> {
-    let date_time = datetime::DateTime {
+    let date_time = datetime_internal::DateTime {
       year,
 
       month,
@@ -199,7 +199,7 @@ impl From<std::time::SystemTime> for Timestamp {
 }
 
 /// A timestamp handling error.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 #[non_exhaustive]
 pub enum TimestampError {
   /// Indicates that a [`Timestamp`] could not be converted to
@@ -271,12 +271,12 @@ impl FromStr for Timestamp {
   type Err = TimestampError;
 
   fn from_str(s: &str) -> Result<Timestamp, TimestampError> {
-    datetime::parse_timestamp(s).ok_or(TimestampError::ParseFailure)
+    datetime_internal::parse_timestamp(s).ok_or(TimestampError::ParseFailure)
   }
 }
 
 impl fmt::Display for Timestamp {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    datetime::DateTime::from(*self).fmt(f)
+    datetime_internal::DateTime::from(*self).fmt(f)
   }
 }

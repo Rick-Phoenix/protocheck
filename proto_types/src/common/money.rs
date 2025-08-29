@@ -9,7 +9,7 @@ use crate::common::Money;
 const NANO_FACTOR: i32 = 1_000_000_000;
 
 /// Errors that can occur during the creation, conversion or validation of [`Money`].
-#[derive(Clone, Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum MoneyError {
   #[error("Currency mismatch: Expected '{expected}', found '{found}'")]
   CurrencyMismatch { expected: String, found: String },
@@ -86,7 +86,7 @@ impl Money {
       return Err(MoneyError::Overflow);
     }
 
-    let full_amount = self.as_imprecise_decimal_f64();
+    let full_amount = self.as_imprecise_f64();
 
     let factor_exponent = decimal_places as i32;
     let factor = 10.0f64.powi(factor_exponent);
@@ -108,7 +108,7 @@ impl Money {
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
   /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
-  pub fn as_imprecise_decimal_f64(&self) -> f64 {
+  pub fn as_imprecise_f64(&self) -> f64 {
     self.units as f64 + (self.nanos as f64 / 1_000_000_000.0)
   }
 
@@ -119,10 +119,7 @@ impl Money {
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
   /// DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
-  pub fn imprecise_from_decimal_f64(
-    currency_code: String,
-    amount: f64,
-  ) -> Result<Self, MoneyError> {
+  pub fn from_imprecise_f64(currency_code: String, amount: f64) -> Result<Self, MoneyError> {
     if !amount.is_finite() {
       return Err(MoneyError::NonFiniteResult);
     }
@@ -273,7 +270,7 @@ impl Money {
       return Err(MoneyError::NonFiniteResult);
     }
 
-    let decimal_amount = self.as_imprecise_decimal_f64();
+    let decimal_amount = self.as_imprecise_f64();
     let result_decimal = decimal_amount * rhs;
 
     if !result_decimal.is_finite() {
@@ -281,7 +278,7 @@ impl Money {
     }
 
     // Pass the result to from_decimal_f64, which will normalize and validate.
-    Money::imprecise_from_decimal_f64(self.currency_code.clone(), result_decimal)
+    Money::from_imprecise_f64(self.currency_code.clone(), result_decimal)
   }
 
   /// Attempts to divide this [`Money`] amount by an integer scalar, returning a new [`Money`] instance.
@@ -323,14 +320,14 @@ impl Money {
       return Err(MoneyError::NonFiniteResult);
     }
 
-    let decimal_amount = self.as_imprecise_decimal_f64();
+    let decimal_amount = self.as_imprecise_f64();
     let result_decimal = decimal_amount / rhs;
 
     if !result_decimal.is_finite() {
       return Err(MoneyError::NonFiniteResult);
     }
 
-    Money::imprecise_from_decimal_f64(self.currency_code.clone(), result_decimal)
+    Money::from_imprecise_f64(self.currency_code.clone(), result_decimal)
   }
 
   /// Attempts to negate this [`Money`] amount, returning a new [`Money`] instance.

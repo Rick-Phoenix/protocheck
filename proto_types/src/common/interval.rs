@@ -5,7 +5,7 @@ use thiserror::Error;
 use crate::{common::Interval, constants::NANOS_PER_SECOND, Duration, Timestamp};
 
 /// Errors that can occur during the creation, conversion or validation of an [`Interval`].
-#[derive(Debug, PartialEq, Eq, Error)]
+#[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum IntervalError {
   #[error("Start and end time must be both defined or undefined")]
   InvalidPairing,

@@ -31,6 +31,9 @@ cel = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 rust_decimal = { workspace = true, optional = true }
+chrono-tz = { version = "0.10.4", optional = true }
+
+palette = { version = "0.7.6", optional = true }
 
 [features]
 cel = ["dep:cel"]
@@ -38,8 +41,40 @@ serde = ["dep:serde", "dep:serde_json", "dep:base64", "chrono?/serde"]
 protocheck = ["dep:quote", "dep:proc-macro2", "dep:syn"]
 totokens = ["dep:quote", "dep:proc-macro2"]
 chrono = ["dep:chrono", "cel?/chrono"]
-common = []
+chrono-tz = ["dep:chrono-tz"]
+
+all_common = [
+  "decimal",
+  "color",
+  "date",
+  "datetime",
+  "timeofday",
+  "fraction",
+  "money",
+  "interval",
+  "localized_text",
+  "postal_address",
+  "quaternion",
+  "latlng",
+  "expr",
+  "phone_number",
+]
+
 rpc = []
 decimal = ["dep:rust_decimal"]
+color = []
+palette = ["dep:palette"]
+date = []
+datetime = []
+timeofday = []
+fraction = []
+money = []
+interval = []
+localized_text = []
+postal_address = []
+quaternion = []
+latlng = []
+expr = []
+phone_number = []
 
 default = ["chrono"]
