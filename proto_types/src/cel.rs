@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::Infallible};
 
 use cel::{objects::Key as CelKey, Value as CelValue};
 use thiserror::Error;
@@ -12,6 +12,12 @@ pub enum CelConversionError {
 
   #[error("{0}")]
   TimestampError(#[from] TimestampError),
+}
+
+impl From<Infallible> for CelConversionError {
+  fn from(infallible: Infallible) -> Self {
+    match infallible {}
+  }
 }
 
 impl From<Any> for CelValue {
