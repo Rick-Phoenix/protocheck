@@ -47,6 +47,24 @@ impl Interval {
     })
   }
 
+  /// Creates an [`Interval`] going from now to the `end_time` specified.
+  /// The present moment is calculated using the SystemTime.
+  pub fn from_now_to(end_time: Timestamp) -> Self {
+    Self {
+      start_time: Some(Timestamp::now()),
+      end_time: Some(end_time),
+    }
+  }
+
+  /// Creates a new [`Interval`] going from the specified `start_time` to the present moment.
+  /// The present moment is calculated using the SystemTime.
+  pub fn from_start_to_now(start_time: Timestamp) -> Self {
+    Self {
+      start_time: Some(start_time),
+      end_time: Some(Timestamp::now()),
+    }
+  }
+
   /// Checks that `end_time` is not before `start_time`. And that start and `end_time` are both either unspecified or specified at the same time.
   pub fn is_valid(&self) -> bool {
     validate_interval(self.start_time, self.end_time).is_ok()
