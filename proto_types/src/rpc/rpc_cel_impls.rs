@@ -9,6 +9,7 @@ use crate::{
     ErrorInfo, Help, HttpHeader, HttpRequest, HttpResponse, LocalizedMessage, PreconditionFailure,
     QuotaFailure, RequestInfo, ResourceInfo, RetryInfo, Status,
   },
+  BadRequest,
 };
 
 impl From<ErrorInfo> for CelValue {
@@ -123,6 +124,25 @@ impl From<LocalizedMessage> for CelValue {
     let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
     cel_map.insert("locale".into(), CelValue::String(value.locale.into()));
     cel_map.insert("message".into(), CelValue::String(value.message.into()));
+
+    CelValue::Map(cel_map.into())
+  }
+}
+
+impl From<BadRequest> for CelValue {
+  fn from(value: BadRequest) -> Self {
+    let mut cel_map: HashMap<CelKey, CelValue> = HashMap::new();
+    cel_map.insert(
+      "field_violations".into(),
+      CelValue::List(
+        value
+          .field_violations
+          .into_iter()
+          .map(|i| i.into())
+          .collect::<Vec<CelValue>>()
+          .into(),
+      ),
+    );
 
     CelValue::Map(cel_map.into())
   }
