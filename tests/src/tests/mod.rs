@@ -1,4 +1,5 @@
 mod bytes_tests;
+mod common_types_tests;
 mod comparables_tests;
 mod containing_tests;
 mod docs_example;

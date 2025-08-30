@@ -9,11 +9,21 @@ prost = { workspace = true }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { version = "0.1.4", features = ["serde"] }
+protocheck = { path = "../protocheck/", features = ["serde"] }
+proto-types = { path = "../proto_types/", features = [
+  "serde",
+  "cel",
+  "all_common",
+  "rpc",
+] }
 chrono = { workspace = true }
 maplit = { workspace = true }
 
 [build-dependencies]
-protocheck-build = { version = "0.1.2", features = ["cel"] }
+protoschema = { path = "../../protoschema/protoschema/", features = [
+  "common_types",
+  "rpc_types",
+] }
+protocheck-build = { path = "../protocheck-build/", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }
