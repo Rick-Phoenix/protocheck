@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package myapp.v1;
+
+import "buf/validate/validate.proto";
+
+message RustKeywordsInFields {
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "abc", 
+        message: "abc", 
+        expression: "this['r#type'] == 'abc'" 
+      }
+    ] 
+  };
+
+  string type = 1 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+
+  string enum = 2 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+
+  string const = 3 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+
+  string crate = 4 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+
+  string pub = 5 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+
+  string struct = 6 [
+    (buf.validate.field) = {
+      string: { 
+      }, 
+      cel: [
+        {
+          id: "abc", 
+          message: "abc", 
+          expression: "this == 'abc'" 
+        }
+      ] 
+    }
+  ];
+}

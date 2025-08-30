@@ -1,0 +1,410 @@
+syntax = "proto3";
+
+package myapp.v1;
+
+import "buf/validate/validate.proto";
+import "google/rpc/error_details.proto";
+import "google/rpc/http.proto";
+import "google/rpc/status.proto";
+import "google/type/color.proto";
+import "google/type/date.proto";
+import "google/type/datetime.proto";
+import "google/type/decimal.proto";
+import "google/type/expr.proto";
+import "google/type/fraction.proto";
+import "google/type/interval.proto";
+import "google/type/latlng.proto";
+import "google/type/localized_text.proto";
+import "google/type/money.proto";
+import "google/type/phone_number.proto";
+import "google/type/postal_address.proto";
+import "google/type/quaternion.proto";
+import "google/type/timeofday.proto";
+
+message CommonTypesTests {
+  google.type.TimeOfDay time_of_day = 1 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.hours > 12" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.LocalizedText localized_text = 2 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.language_code == 'en-US'" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Quaternion quaternion = 3 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.x == 23.0" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Money money = 4 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.units == 23" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.DateTime datetime = 5 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.year == 1000" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.TimeZone timezone = 6 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.id == 'America/New_York'" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.LatLng lat_lng = 7 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.latitude == 23.0" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.PostalAddress postal_address = 8 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.region_code == 'AUS'" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Date date = 9 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.year == 1000" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Interval interval = 10 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.start_time == timestamp('2023-01-01T00:00:00Z')" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Expr expr = 11 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.title == 'an expr within an expr, spooky!'" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Color color = 12 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.red == 1.0" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Fraction fraction = 13 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.denominator != 0" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.Decimal decimal = 14 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.value == '0.10'" 
+        }
+      ] 
+    }
+  ];
+
+  google.type.PhoneNumber phone_number = 15 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.extension == '123'" 
+        }
+      ] 
+    }
+  ];
+}
+
+message RpcTypesTests {
+  google.rpc.ErrorInfo error_info = 1 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.reason == 'dunno'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.RetryInfo retry_info = 2 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.retry_delay == duration('14h')" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.QuotaFailure quota_failure = 3 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "size(this.violations) == 15" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.QuotaFailure.Violation quota_failure_violation = 4 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.subject == 'dunno'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.PreconditionFailure precondition_failure = 5 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "size(this.violations) == 15" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.PreconditionFailure.Violation precondition_failure_violation = 6 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.subject == 'dunno'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.BadRequest bad_request = 7 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "size(this.field_violations) == 15" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.BadRequest.FieldViolation field_violation = 8 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.field == 'and I said...'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.RequestInfo request_info = 9 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.request_id == 'heeyeey, heyyeyey, I said hey,'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.ResourceInfo resource_info = 10 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.resource_name == 'whats going on?'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.Help help = 11 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "size(this.links) == 15" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.Help.Link link = 12 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.url == 'rick_roll.com'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.LocalizedMessage localized_message = 13 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.locale == 'en-US'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.HttpRequest http_request = 14 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.method == 'GET'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.HttpResponse http_response = 15 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.status == 200" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.HttpHeader http_header = 16 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.key == 'Content-Type'" 
+        }
+      ] 
+    }
+  ];
+
+  google.rpc.Status status = 17 [
+    (buf.validate.field) = {
+      cel: [
+        {
+          id: "id", 
+          message: "msg", 
+          expression: "this.code == 200" 
+        }
+      ] 
+    }
+  ];
+}
