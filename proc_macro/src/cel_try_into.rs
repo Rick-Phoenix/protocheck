@@ -1,6 +1,3 @@
-#![allow(clippy::vec_init_then_push)]
-use std::sync::LazyLock;
-
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{parse_macro_input, DeriveInput, Error, Type};
@@ -16,7 +13,6 @@ enum OuterType {
 
 enum InnerType {
   Box,
-  SupportsInto,
   TryInto,
   Bytes,
   F32,
@@ -28,8 +24,9 @@ impl InnerType {
   pub fn conversion_tokens(&self, val_tokens: &TokenStream2) -> TokenStream2 {
     match self {
       Self::Box => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
-      Self::SupportsInto => quote! { #val_tokens.into() },
-      Self::TryInto => quote! { #val_tokens.try_into()? },
+      Self::TryInto => {
+        quote! { #val_tokens.clone().try_into().map_err(::protocheck::types::cel::CelConversionError::from)? }
+      }
       Self::Bytes => quote! { #val_tokens.to_vec().into() },
       Self::F32 => quote! { (*#val_tokens as f64).into() },
       Self::U32 => quote! { (*#val_tokens as u64).into() },
@@ -40,8 +37,6 @@ impl InnerType {
   pub fn from_type(ty: &Type) -> Self {
     if is_box(ty) {
       Self::Box
-    } else if supports_cel_into(ty) {
-      Self::SupportsInto
     } else if is_bytes(ty) {
       Self::Bytes
     } else if is_f32(ty) {
@@ -334,59 +329,6 @@ fn type_matches_path(ty: &Type, target_path: &str) -> bool {
   false
 }
 
-// static SUPPORTS_CEL_INTO: LazyLock<HashSet<String>> = LazyLock::new(|| {
-//   let mut set: HashSet<String> = HashSet::new();
-//   // DateTime, Duration, Timestamp, Interval, RetryInfo are TryInto
-//   set.insert("::protocheck::types::FieldMask".to_string());
-//   set.insert("::protocheck::types::Empty".to_string());
-//   set.insert("::protocheck::types::Any".to_string());
-//   set.insert("::protocheck::types::TimeOfDay".to_string());
-//   set.insert("::protocheck::types::LocalizedText".to_string());
-//   set.insert("::protocheck::types::Quaternion".to_string());
-//   set.insert("::protocheck::types::Money".to_string());
-//   set.insert("::protocheck::types::TimeZone".to_string());
-//   set.insert("::protocheck::types::LatLng".to_string());
-//   set.insert("::protocheck::types::PostalAddress".to_string());
-//   set.insert("::protocheck::types::Date".to_string());
-//   set.insert("::protocheck::types::Expr".to_string());
-//   set.insert("::protocheck::types::Color".to_string());
-//   set.insert("::protocheck::types::Fraction".to_string());
-//   set.insert("::protocheck::types::Decimal".to_string());
-//   set.insert("::protocheck::types::PhoneNumber".to_string());
-//   set.insert("::protocheck::types::ErrorInfo".to_string());
-//   set.insert("::protocheck::types::DebugInfo".to_string());
-//   set.insert("::protocheck::types::quota_failure::Violation".to_string());
-//   set.insert("::protocheck::types::precondition_failure::Violation".to_string());
-//   set.insert("::protocheck::types::bad_request::FieldViolation".to_string());
-//   set.insert("::protocheck::types::QuotaFailure".to_string());
-//   set.insert("::protocheck::types::PreconditionFailure".to_string());
-//   set.insert("::protocheck::types::LocalizedMessage".to_string());
-//   set.insert("::protocheck::types::RequestInfo".to_string());
-//   set.insert("::protocheck::types::ResourceInfo".to_string());
-//   set.insert("::protocheck::types::Help".to_string());
-//   set.insert("::protocheck::types::Link".to_string());
-//   set.insert("::protocheck::types::HttpHeader".to_string());
-//   set.insert("::protocheck::types::HttpRequest".to_string());
-//   set.insert("::protocheck::types::HttpResponse".to_string());
-//   set.insert("::protocheck::types::Status".to_string());
-//   set
-// });
-
-// Need a better way to do it than this
-static SUPPORTS_CEL_INTO: LazyLock<Vec<String>> = LazyLock::new(|| {
-  let mut list: Vec<String> = Vec::new();
-  // DateTime, Duration, Timestamp, Interval, RetryInfo are TryInto
-  list.push("::protocheck::types::FieldMask".to_string());
-  list.push("::protocheck::types::Empty".to_string());
-  list.push("::protocheck::types::Any".to_string());
-
-  list
-});
-
-fn supports_cel_into(ty: &Type) -> bool {
-  is_primitive(ty) || SUPPORTS_CEL_INTO.contains(&ty.to_token_stream().to_string())
-}
-
 fn is_bytes(ty: &Type) -> bool {
   type_matches_path(ty, "::prost::bytes::Bytes")
 }
@@ -443,24 +385,6 @@ fn is_i32(ty: &Type) -> bool {
   if let syn::Type::Path(type_path) = ty
     && let Some(segment) = type_path.path.segments.last() {
       return segment.ident == "i32";
-    }
-  false
-}
-
-fn is_primitive(ty: &Type) -> bool {
-  if let syn::Type::Path(type_path) = ty
-    && let Some(segment) = type_path.path.segments.last() {
-      let type_name = segment.ident.to_string();
-
-      return matches!(
-        type_name.as_str(),
-        "bool"
-          | "i64"
-          | "u64"
-          | "f64"
-          | "str"
-          | "String"
-      );
     }
   false
 }

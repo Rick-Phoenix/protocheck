@@ -473,7 +473,7 @@ pub fn field_is_message(field_kind: &Kind) -> bool {
   if let Kind::Message(field_message_desc) = field_kind
     && !field_message_desc
       .full_name()
-      .starts_with("google.protobuf")
+      .starts_with("google.")
     {
       return true;
     }
