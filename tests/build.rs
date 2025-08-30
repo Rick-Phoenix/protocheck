@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use prost_build::Config;
-use protocheck_build::{compile_protos_with_validators, get_proto_files_in_dir};
+use protocheck_build::{compile_protos_with_validators, get_proto_files_recursive};
 use protoschema::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,12 +62,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let proto_include_paths = &["proto", "proto_deps"];
 
-  let mut files = get_proto_files_in_dir(&PathBuf::from("proto/myapp/v1"))?;
-  files.extend(get_proto_files_in_dir(&PathBuf::from(
-    "proto_deps/google/type",
-  ))?);
-  files.extend(get_proto_files_in_dir(&PathBuf::from(
-    "proto_deps/google/rpc",
+  let mut files = get_proto_files_recursive(&PathBuf::from("proto/myapp/v1"))?;
+  files.extend(get_proto_files_recursive(&PathBuf::from(
+    "proto_deps/google",
   ))?);
 
   let mut config = Config::new();

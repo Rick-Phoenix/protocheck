@@ -917,6 +917,20 @@ dependencies = [
 [[package]]
 name = "proto-types"
 version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad5c75d56a64661282f69340bc7093dd2a1f8eef24d48e71f9a2b361b540e91f"
+dependencies = [
+ "cel",
+ "chrono",
+ "document-features",
+ "paste",
+ "prost",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "proto-types"
+version = "0.1.4"
 dependencies = [
  "base64",
  "cel",
@@ -936,25 +950,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "proto-types"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad5c75d56a64661282f69340bc7093dd2a1f8eef24d48e71f9a2b361b540e91f"
-dependencies = [
- "cel",
- "chrono",
- "document-features",
- "paste",
- "prost",
- "thiserror 2.0.16",
-]
-
-[[package]]
 name = "protocheck"
-version = "0.1.6"
+version = "0.1.8"
 dependencies = [
  "document-features",
- "proto-types 0.1.2",
+ "proto-types 0.1.4",
  "protocheck-core",
  "protocheck-proc-macro",
 ]
@@ -969,7 +969,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-core"
-version = "0.1.4"
+version = "0.1.6"
 dependencies = [
  "bytes",
  "cel",
@@ -978,20 +978,20 @@ dependencies = [
  "iri-string",
  "paste",
  "proc-macro2",
- "proto-types 0.1.2",
+ "proto-types 0.1.4",
  "quote",
  "regex",
 ]
 
 [[package]]
 name = "protocheck-proc-macro"
-version = "0.1.5"
+version = "0.1.7"
 dependencies = [
  "cel",
  "convert_case",
  "proc-macro2",
  "prost-reflect",
- "proto-types 0.1.2",
+ "proto-types 0.1.4",
  "protocheck-core",
  "quote",
  "regex",
@@ -1007,7 +1007,7 @@ dependencies = [
  "convert_case",
  "document-features",
  "paste",
- "proto-types 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proto-types 0.1.2",
  "regex",
  "thiserror 2.0.16",
 ]
@@ -1331,7 +1331,7 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-reflect",
- "proto-types 0.1.2",
+ "proto-types 0.1.4",
  "protocheck",
  "protocheck-build",
  "protoschema",

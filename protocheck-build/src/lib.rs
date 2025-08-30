@@ -3,7 +3,8 @@
 use std::{
   env,
   error::Error,
-  io::Read,
+  fs,
+  io::{self, Read},
   path::{Path, PathBuf},
 };
 
@@ -94,5 +95,53 @@ pub fn compile_protos_with_validators(
 
   std::fs::remove_file(&temp_descriptor_path)?;
 
+  Ok(())
+}
+
+/// A helper to use when gathering the names of proto files to pass to [`prost_build::Config::compile_protos`].
+/// Recursively collects all .proto files in a given directory and its subdirectories.
+pub fn get_proto_files_recursive(base_dir: &Path) -> io::Result<Vec<String>> {
+  let mut proto_files = Vec::new();
+
+  if !base_dir.is_dir() {
+    return Err(io::Error::new(
+      io::ErrorKind::InvalidInput,
+      format!("Path {:?} is not a directory.", base_dir),
+    ));
+  }
+
+  // We'll use a helper function to do the actual recursive work
+  // This helps keep the public function's signature clean.
+  collect_proto_files_recursive_helper(base_dir, &mut proto_files)?;
+
+  Ok(proto_files)
+}
+
+fn collect_proto_files_recursive_helper(
+  current_dir: &Path,
+  proto_files: &mut Vec<String>,
+) -> io::Result<()> {
+  for entry in fs::read_dir(current_dir)? {
+    let entry = entry?;
+    let path = entry.path();
+
+    if path.is_file() {
+      if path.extension().is_some_and(|ext| ext == "proto") {
+        proto_files.push(
+          path
+            .to_str()
+            .ok_or_else(|| {
+              io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Path {:?} contains invalid Unicode.", path),
+              )
+            })?
+            .to_owned(),
+        );
+      }
+    } else if path.is_dir() {
+      collect_proto_files_recursive_helper(&path, proto_files)?;
+    }
+  }
   Ok(())
 }
