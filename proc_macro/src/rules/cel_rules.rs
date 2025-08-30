@@ -25,7 +25,8 @@ mod cel {
 
   use super::super::Rule;
   use crate::{
-    cel_rule_template::CelRuleTemplateTarget, validation_data::ValidationData, Ident2, Span2,
+    cel_rule_template::CelRuleTemplateTarget, special_field_names::proto_name_to_rust_name,
+    validation_data::ValidationData, Ident2, Span2,
   };
 
   pub fn get_cel_rules(
@@ -259,7 +260,11 @@ mod cel {
               if field.containing_oneof().is_some() {
                 continue;
               }
-              let cel_field_name = CelKey::String(Arc::new(field.name().to_string()));
+
+              let actual_field_name_with_potential_escaping =
+                proto_name_to_rust_name(field.name()).to_string();
+              let cel_field_name =
+                CelKey::String(Arc::new(actual_field_name_with_potential_escaping));
               let cel_field_value = convert_prost_value_to_cel_value_recursive(
                 &ProstValue::default_value(&field.kind()),
                 depth + 1,

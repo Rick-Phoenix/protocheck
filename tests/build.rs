@@ -7,6 +7,21 @@ use protoschema::*;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let package = Package::new("myapp.v1");
   let file = package.new_file("common_types_tests");
+  let file2 = package.new_file("tests2");
+
+  message!(
+    file2.new_message("RustKeywordsInFields"),
+    cel = [
+      { id = "abc", msg = "abc", expr = "this['r#type'] == 'abc'" }
+    ],
+
+    1 => string!("type", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+    2 => string!("enum", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+    3 => string!("const", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+    4 => string!("crate", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+    5 => string!("pub", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+    6 => string!("struct", |v| v.cel([ cel_rule!(id = "abc", msg = "abc", expr = "this == 'abc'")])),
+  );
 
   message!(
     file.new_message("CommonTypesTests"),

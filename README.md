@@ -246,7 +246,7 @@ Field path: passwords_match, Error message: the two passwords do not match
 
 If you are interested in composing your protobuf files programmatically, and with the benefits of type safety, reusable elements and LSP integration, with a particular focus on making the definition of validation rules a quick and type-safe process, you might want to check out my other crate, [protoschema](https://crates.io/crates/protoschema). 
 
-## ⚠️ Caveats
+## ⚠️ Caveats and warnings
 
 - While the compile-time check for the validity of a Cel expression helps to catch most if not all errors relative to the Cel program compilation and execution, it is still very encouraged to have some tests that trigger the validation logic at runtime (it's just as easy as calling `.validate()` once again) to be absolutely sure that the Cel program is not causing any issues.
 
@@ -255,6 +255,8 @@ If you are interested in composing your protobuf files programmatically, and wit
      This means that if there is an unattended error, then it would silently keep generating these generic and unhelpful error messages for users until it would be reported or noticed in the logs.
 
      But the good news is that the compile time check prevents the majority of these situations, and adding a very simple test on top of that can eradicate that problem entirely.
+
+- If your message has a reserved rust keyword as a field name, your cel expression should reflect that. So if a field is named `type`, the output struct will have a field named `r#type`, and your cel expression should refer to it using `this['r#type']`, NOT `this.type`.
 
 - For certain cases where the instructions are conflicting but could be intentional, such as using the "const" rule for a field while also having other validators, the other rules will simply be ignored and no error will be shown. This is to allow for cases when you want to have a temporary override for a field's validation without needing to remove the other validators.
 
