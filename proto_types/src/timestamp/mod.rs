@@ -5,7 +5,7 @@ mod timestamp_conversions;
 mod timestamp_impls;
 mod timestamp_operations;
 
-// From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
+// Partially taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
 use super::*;
 use crate::{
   constants::{NANOS_PER_SECOND, PACKAGE_PREFIX},
@@ -173,7 +173,7 @@ impl From<std::time::SystemTime> for Timestamp {
   fn from(system_time: std::time::SystemTime) -> Timestamp {
     let (seconds, nanos) = match system_time.duration_since(std::time::UNIX_EPOCH) {
       Ok(duration) => {
-        let seconds = i64::try_from(duration.as_secs()).unwrap();
+        let seconds = i64::try_from(duration.as_secs()).unwrap_or_default();
 
         (seconds, duration.subsec_nanos() as i32)
       }
@@ -181,7 +181,7 @@ impl From<std::time::SystemTime> for Timestamp {
       Err(error) => {
         let duration = error.duration();
 
-        let seconds = i64::try_from(duration.as_secs()).unwrap();
+        let seconds = i64::try_from(duration.as_secs()).unwrap_or_default();
 
         let nanos = duration.subsec_nanos() as i32;
 
