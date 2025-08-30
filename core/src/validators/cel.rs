@@ -89,9 +89,10 @@ pub fn validate_cel_field_try_into<T>(
   value: T,
 ) -> Result<(), Violation>
 where
-  T: TryInto<CelValue, Error = CelConversionError> + Clone,
+  T: TryInto<CelValue> + Clone,
+  <T as std::convert::TryInto<cel::Value>>::Error: std::fmt::Display,
 {
-  let cel_conversion: Result<CelValue, CelConversionError> = value.try_into();
+  let cel_conversion: Result<CelValue, _> = value.try_into();
 
   match cel_conversion {
     Ok(cel_val) => validate_cel_field_with_val(field_context, rule, cel_val),
