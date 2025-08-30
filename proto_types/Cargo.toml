@@ -1,6 +1,6 @@
 [package]
 name = "proto-types"
-version = "0.1.4"
+version = { workspace = true }
 
 readme = true
 

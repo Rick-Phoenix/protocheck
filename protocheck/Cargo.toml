@@ -1,6 +1,6 @@
 [package]
 name = "protocheck"
-version = "0.1.9"
+version = { workspace = true }
 description = "✅ Validate protobuf messages using protobuf annotations"
 
 readme = "README.md"
@@ -10,6 +10,15 @@ edition = { workspace = true }
 license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
+
+[package.metadata.release]
+tag = true
+tag-name = "v{{version}}"
+pre-release-hook = [
+  "sh",
+  "-c",
+  "cd .. && git cliff -o CHANGELOG.md --tag \"{{version}}\"; cd tests && cargo test --all-features",
+]
 
 [package.metadata.docs.rs]
 all-features = true

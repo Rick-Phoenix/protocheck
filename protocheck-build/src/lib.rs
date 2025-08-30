@@ -20,6 +20,7 @@ fn enable_cel() -> bool {
   true
 }
 
+/// This function compiles the proto_files in the list, it creates an intermediary file descriptor and it uses it to extract information about the messages, enums and oneofs which can later be used to generate the validation logic with protocheck.
 pub fn compile_protos_with_validators(
   config: &mut Config,
   proto_files: &[impl AsRef<Path>],

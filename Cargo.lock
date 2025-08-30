@@ -308,7 +308,7 @@ dependencies = [
 
 [[package]]
 name = "cel-derive"
-version = "0.1.1"
+version = "0.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -916,7 +916,7 @@ dependencies = [
 
 [[package]]
 name = "proto-types"
-version = "0.1.4"
+version = "0.1.10"
 dependencies = [
  "base64",
  "cel",
@@ -936,32 +936,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "proto-types"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fe72750ea96fc18b3c95970191ef0efe1806abe40fbbfdd8c3cdf78f13da8b0"
-dependencies = [
- "cel",
- "chrono",
- "document-features",
- "paste",
- "prost",
- "thiserror 2.0.16",
-]
-
-[[package]]
 name = "protocheck"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "document-features",
- "proto-types 0.1.4",
+ "proto-types",
  "protocheck-core",
  "protocheck-proc-macro",
 ]
 
 [[package]]
 name = "protocheck-build"
-version = "0.1.4"
+version = "0.1.10"
 dependencies = [
  "prost-build",
  "prost-reflect",
@@ -969,7 +955,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-core"
-version = "0.1.6"
+version = "0.1.10"
 dependencies = [
  "bytes",
  "cel",
@@ -978,20 +964,20 @@ dependencies = [
  "iri-string",
  "paste",
  "proc-macro2",
- "proto-types 0.1.4",
+ "proto-types",
  "quote",
  "regex",
 ]
 
 [[package]]
 name = "protocheck-proc-macro"
-version = "0.1.8"
+version = "0.1.10"
 dependencies = [
  "cel",
  "convert_case",
  "proc-macro2",
  "prost-reflect",
- "proto-types 0.1.4",
+ "proto-types",
  "protocheck-core",
  "quote",
  "regex",
@@ -1007,7 +993,7 @@ dependencies = [
  "convert_case",
  "document-features",
  "paste",
- "proto-types 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proto-types",
  "regex",
  "thiserror 2.0.16",
 ]
@@ -1323,7 +1309,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "bytes",
  "chrono",
@@ -1331,7 +1317,7 @@ dependencies = [
  "prost",
  "prost-build",
  "prost-reflect",
- "proto-types 0.1.4",
+ "proto-types",
  "protocheck",
  "protocheck-build",
  "protoschema",
