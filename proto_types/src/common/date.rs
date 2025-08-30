@@ -1,6 +1,5 @@
 use std::{
   cmp::{Ord, Ordering, PartialOrd},
-  convert::TryFrom,
   fmt::Display,
 };
 
@@ -133,12 +132,6 @@ impl Date {
   pub fn is_month_and_day(&self) -> bool {
     self.year == 0 && self.month != 0 && self.day != 0
   }
-
-  /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.
-  #[cfg(feature = "chrono")]
-  pub fn to_naive_date(self) -> Result<chrono::NaiveDate, DateError> {
-    self.try_into()
-  }
 }
 
 impl PartialOrd for Date {
@@ -165,39 +158,57 @@ impl PartialOrd for Date {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<Date> for chrono::NaiveDate {
-  type Error = DateError;
+mod chrono {
+  use chrono::Utc;
 
-  fn try_from(date: Date) -> Result<Self, Self::Error> {
-    if date.year == 0 || date.month == 0 || date.day == 0 {
-      return Err(DateError::ConversionError(
-        "Cannot convert Date with year=0, month=0, or day=0 to NaiveDate".to_string(),
-      ));
+  use super::validate_date;
+  use crate::{date::DateError, Date};
+
+  impl Date {
+    /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.
+    pub fn to_naive_date(self) -> Result<::chrono::NaiveDate, DateError> {
+      self.try_into()
     }
 
-    validate_date(date.year, date.month, date.day)?;
-
-    // Safe castings after validation
-    chrono::NaiveDate::from_ymd_opt(date.year, date.month as u32, date.day as u32).ok_or_else(
-      || {
-        DateError::ConversionError(format!(
-          "Invalid date components for NaiveDate: Y:{}, M:{}, D:{}",
-          date.year, date.month, date.day
-        ))
-      },
-    )
+    /// Returns the current date.
+    pub fn today() -> Self {
+      Utc::now().naive_utc().date().into()
+    }
   }
-}
 
-#[cfg(feature = "chrono")]
-impl From<chrono::NaiveDate> for Date {
-  fn from(naive_date: chrono::NaiveDate) -> Self {
-    use chrono::Datelike;
-    // Casting is safe due to chrono's costructor API
-    Date {
-      year: naive_date.year(),
-      month: naive_date.month() as i32,
-      day: naive_date.day() as i32,
+  impl TryFrom<crate::Date> for chrono::NaiveDate {
+    type Error = DateError;
+
+    fn try_from(date: Date) -> Result<Self, Self::Error> {
+      if date.year == 0 || date.month == 0 || date.day == 0 {
+        return Err(DateError::ConversionError(
+          "Cannot convert Date with year=0, month=0, or day=0 to NaiveDate".to_string(),
+        ));
+      }
+
+      validate_date(date.year, date.month, date.day)?;
+
+      // Safe castings after validation
+      chrono::NaiveDate::from_ymd_opt(date.year, date.month as u32, date.day as u32).ok_or_else(
+        || {
+          DateError::ConversionError(format!(
+            "Invalid date components for NaiveDate: Y:{}, M:{}, D:{}",
+            date.year, date.month, date.day
+          ))
+        },
+      )
+    }
+  }
+
+  impl From<chrono::NaiveDate> for Date {
+    fn from(naive_date: chrono::NaiveDate) -> Self {
+      use chrono::Datelike;
+      // Casting is safe due to chrono's costructor API
+      Date {
+        year: naive_date.year(),
+        month: naive_date.month() as i32,
+        day: naive_date.day() as i32,
+      }
     }
   }
 }

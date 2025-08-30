@@ -1,4 +1,4 @@
-// From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/duration.rs]
+// Partially taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/duration.rs]
 use super::super::*;
 use crate::constants::{NANOS_PER_SECOND, PACKAGE_PREFIX, TIME_NANOS_MAX};
 

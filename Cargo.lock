@@ -916,20 +916,6 @@ dependencies = [
 
 [[package]]
 name = "proto-types"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad5c75d56a64661282f69340bc7093dd2a1f8eef24d48e71f9a2b361b540e91f"
-dependencies = [
- "cel",
- "chrono",
- "document-features",
- "paste",
- "prost",
- "thiserror 2.0.16",
-]
-
-[[package]]
-name = "proto-types"
 version = "0.1.4"
 dependencies = [
  "base64",
@@ -946,6 +932,20 @@ dependencies = [
  "serde",
  "serde_json",
  "syn 2.0.104",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "proto-types"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fe72750ea96fc18b3c95970191ef0efe1806abe40fbbfdd8c3cdf78f13da8b0"
+dependencies = [
+ "cel",
+ "chrono",
+ "document-features",
+ "paste",
+ "prost",
  "thiserror 2.0.16",
 ]
 
@@ -1007,7 +1007,7 @@ dependencies = [
  "convert_case",
  "document-features",
  "paste",
- "proto-types 0.1.2",
+ "proto-types 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex",
  "thiserror 2.0.16",
 ]
