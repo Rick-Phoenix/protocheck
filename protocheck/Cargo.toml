@@ -13,11 +13,10 @@ repository = { workspace = true }
 
 [package.metadata.release]
 tag = true
-tag-name = "v{{version}}"
 pre-release-hook = [
   "sh",
   "-c",
-  "cd .. && git cliff -o CHANGELOG.md --tag \"{{version}}\"; cd tests && cargo test --all-features",
+  "cd .. && git cliff --unreleased --prepend CHANGELOG.md --tag \"{{version}}\"; cd tests && cargo test --all-features",
 ]
 
 [package.metadata.docs.rs]
