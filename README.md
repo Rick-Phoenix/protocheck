@@ -248,6 +248,8 @@ If you are interested in composing your protobuf files programmatically, and wit
 
 ## ⚠️ Caveats and warnings
 
+- The protovalidate rule buf.validate.message.oneof (the one used to make custom oneofs which allow repeated and map fields) is currently not supported.
+
 - While the compile-time check for the validity of a Cel expression helps to catch most if not all errors relative to the Cel program compilation and execution, it is still very encouraged to have some tests that trigger the validation logic at runtime (it's just as easy as calling `.validate()` once again) to be absolutely sure that the Cel program is not causing any issues.
 
      This is because the Cel validation function can obviously not panic and crash the whole app if a Cel program failed to execute, so it will just return a generic error to the user while logging the actual error. 
