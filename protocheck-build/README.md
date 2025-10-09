@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let descriptor_path = out_dir.join("file_descriptor_set.bin");
 
-  let proto_include_paths = &["proto", "proto_deps"];
+  let proto_include_paths = &["proto"];
 
   // Use the helper to get all proto files recursively in a directory
   let proto_files = get_proto_files_recursive("proto")?;
@@ -67,53 +67,22 @@ The function will then:
 
 ## 🍸 Tonic example
 
-When using [`tonic-prost-build`](https://crates.io/crates/tonic-prost-build), the workflow is almost identical:
+When using [`tonic-prost-build`](https://crates.io/crates/tonic-prost-build), the workflow is almost identical, except that we pass the config to `compile_with_config`:
 
-```rust
-// In your build.rs file
-use tonic_prost_build::Config;
-use protocheck_build::{compile_protos_with_validators, get_proto_files_recursive};
-use std::{
-  env,
-  path::PathBuf
-};
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-  println!("cargo:rerun-if-changed=proto/");
-
-  let out_dir = env::var("OUT_DIR")
-    .map(PathBuf::from)
-    .unwrap_or(env::temp_dir());
-
-  let descriptor_path = out_dir.join("file_descriptor_set.bin");
-
-  let proto_include_paths = &["proto", "proto_deps"];
-
-  // Use the helper to get all proto files recursively in a directory
-  let proto_files = get_proto_files_recursive("proto")?;
-
+```rust,ignore
   let mut config = Config::new();
   config
     .file_descriptor_set_path(&descriptor_path)
-    // Enable the use of bytes::Bytes for `bytes` fields
     .bytes(["."])
     .out_dir(&out_dir);
 
   // Call the build helper
-  compile_protos_with_validators(&mut config, &proto_files, proto_include_paths, &["myapp.v1"])?;
+  compile_protos_with_validators(&mut config, &proto_files, &["proto".to_string()], &["myapp.v1"])?;
 
-  // Compile protos <-- Only this part is changed <--
+  // Compile protos
   tonic_prost_build::configure()
     // We pass the config here
-    .compile_with_config(config, proto_files, proto_include_paths)?;
-
-  // Set the env for the file descriptor location
-  println!(
-    "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",
-    descriptor_path.display()
-  );
-
-  Ok(())
+    .compile_with_config(config, &proto_files, &["proto".to_string()])?;
 }
 ```
 
