@@ -12,8 +12,10 @@ members = [
 resolver = "3"
 
 [workspace.metadata.release]
-shared-version = true
 tag = false
+tag-message = "chore: Release version {{version}}"
+shared-version = true
+allow-branch = ["main"]
 enable-all-features = true
 
 [workspace.package]

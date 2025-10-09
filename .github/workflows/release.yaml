@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  check_branch:
+    runs-on: ubuntu-latest
+
+    outputs:
+      is_on_main: ${{ steps.branch_check.outputs.is_on_main }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag is on main branch
+        id: branch_check
+        run: |
+          if git branch -r --contains ${{ github.ref }} | grep -q 'origin/main'; then
+            echo "On main branch. Proceeding with the workflow..."
+            echo "is_on_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not on main branch. Skipping workflow..."
+          fi
+
+  create_release:
+    runs-on: ubuntu-latest
+
+    needs: check_branch
+    if: needs.check_branch.outputs.is_on_main == 'true'
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: taiki-e/create-gh-release-action@v1
+        if: "!startsWith(github.ref_name, 'proto-types')"
+        with:
+          changelog: CHANGELOG.md
+          branch: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: taiki-e/create-gh-release-action@v1
+        if: startsWith(github.ref_name, 'proto-types')
+        with:
+          changelog: proto_types/CHANGELOG.md
+          branch: main
+          token: ${{ secrets.GITHUB_TOKEN }}

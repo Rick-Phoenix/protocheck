@@ -12,6 +12,9 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
+[package.metadata.release]
+tag = true
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]

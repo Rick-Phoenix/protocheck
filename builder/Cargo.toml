@@ -1,6 +1,5 @@
 [package]
 name = "builder"
-version = "0.1.0"
 publish = false
 license.workspace = true
 authors.workspace = true
