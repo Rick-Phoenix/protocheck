@@ -11,15 +11,6 @@ use std::{
 use prost_build::Config;
 use prost_reflect::{prost::Message, prost_types::FileDescriptorSet};
 
-#[cfg(not(feature = "cel"))]
-fn enable_cel() -> bool {
-  false
-}
-#[cfg(feature = "cel")]
-fn enable_cel() -> bool {
-  true
-}
-
 /// This function compiles the proto_files in the list, it creates an intermediary file descriptor and it uses it to extract information about the messages, enums and oneofs which can later be used to generate the validation logic with protocheck.
 pub fn compile_protos_with_validators(
   config: &mut Config,
@@ -53,7 +44,7 @@ pub fn compile_protos_with_validators(
       );
       config.message_attribute(message_name, &attribute_str);
 
-      if enable_cel() {
+      if cfg!(feature = "cel") {
         config.message_attribute(
           message_name,
           "#[derive(::protocheck::macros::TryIntoCelValue)]",
@@ -72,7 +63,7 @@ pub fn compile_protos_with_validators(
 
         config.type_attribute(oneof_name, r#"#[derive(::protocheck::macros::Oneof)]"#);
 
-        if enable_cel() {
+        if cfg!(feature = "cel") {
           config.type_attribute(
             oneof_name,
             r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,

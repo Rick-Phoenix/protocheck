@@ -21,7 +21,7 @@ use crate::{
     FIELD_RULES_EXT_DESCRIPTOR, MESSAGE_RULES_EXT_DESCRIPTOR, ONEOF_RULES_EXT_DESCRIPTOR,
   },
   rules::{
-    cel_rules::get_cel_rules,
+    cel_rules::get_cel_rules_checked,
     core::{get_field_kind, get_field_rules, get_field_type},
     map_rules::get_map_rules,
     repeated_rules::get_repeated_rules,
@@ -180,7 +180,7 @@ pub fn extract_oneof_validators(
       };
 
       if !field_rules.cel.is_empty() {
-        field_validators.extend(get_cel_rules(
+        field_validators.extend(get_cel_rules_checked(
           &CelRuleTemplateTarget::Field {
             field_desc: &field,
             validation_data: &validation_data,
@@ -277,7 +277,7 @@ pub fn extract_message_validators(
       })?;
 
     if !message_rules.cel.is_empty() {
-      validators.extend(get_cel_rules(
+      validators.extend(get_cel_rules_checked(
         &CelRuleTemplateTarget::Message {
           message_desc,
           parent_messages_ident: parent_messages_ident.clone(),
@@ -431,7 +431,7 @@ pub fn extract_message_validators(
         }
 
         if !field_rules.cel.is_empty() {
-          field_validators.extend(get_cel_rules(
+          field_validators.extend(get_cel_rules_checked(
             &CelRuleTemplateTarget::Field {
               field_desc: &field,
               validation_data: &validation_data,

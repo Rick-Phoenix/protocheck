@@ -1,14 +1,13 @@
-#[cfg(not(feature = "cel"))]
-#[deprecated(
-  since = "0.1.0",
-  note = "Cannot use CEL validators without enabling the 'cel' feature in your Cargo.toml."
-)]
-pub fn get_cel_rules(
-  _: &crate::cel_rule_template::CelRuleTemplateTarget,
-  _: &[Rule],
-  _: &mut Vec<proc_macro2::TokenStream>,
-) -> Result<proc_macro2::TokenStream, syn::Error> {
-  unimplemented!("Cannot use Cel validators without the 'cel' feature")
+pub fn get_cel_rules_checked(
+  rule_target: &CelRuleTemplateTarget,
+  rules: &[Rule],
+  static_defs: &mut TokenStream,
+) -> Result<TokenStream, Error> {
+  if cfg!(feature = "cel") {
+    get_cel_rules(rule_target, rules, static_defs)
+  } else {
+    unimplemented!("Cannot use Cel validators without the 'cel' feature")
+  }
 }
 
 #[cfg(feature = "cel")]
@@ -281,3 +280,8 @@ mod cel {
 
 #[cfg(feature = "cel")]
 pub use cel::*;
+use proc_macro2::TokenStream;
+use proto_types::protovalidate::Rule;
+use syn::Error;
+
+use crate::cel_rule_template::CelRuleTemplateTarget;

@@ -5,15 +5,14 @@ use protocheck_core::field_data::FieldKind;
 use quote::quote;
 use syn::Error;
 
-#[cfg(not(feature = "cel"))]
-use super::get_cel_rules;
 use super::{field_rules::Type as RulesType, protovalidate::Ignore};
-#[cfg(feature = "cel")]
-use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_message,
-  rules::core::{get_field_error, get_field_rules},
+  rules::{
+    cel_rules::get_cel_rules_checked,
+    core::{get_field_error, get_field_rules},
+  },
   validation_data::{RepeatedValidator, ValidationData},
 };
 
@@ -37,7 +36,7 @@ pub fn get_repeated_rules(
   let mut ignore_items_validators = false;
 
   if !field_rules.cel.is_empty() {
-    vec_level_rules.extend(get_cel_rules(
+    vec_level_rules.extend(get_cel_rules_checked(
       &CelRuleTemplateTarget::Field {
         field_desc,
         validation_data,
@@ -119,7 +118,7 @@ pub fn get_repeated_rules(
           }
 
         if !items_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(
+          let cel_rules = get_cel_rules_checked(
             &CelRuleTemplateTarget::Field {
               field_desc,
               validation_data: repeated_items_validation_data,

@@ -4,15 +4,14 @@ use proto_types::{protovalidate::FieldRules, FieldType};
 use protocheck_core::field_data::FieldKind;
 use syn::Error;
 
-#[cfg(not(feature = "cel"))]
-use super::get_cel_rules;
 use super::{field_rules::Type as RulesType, Ignore};
-#[cfg(feature = "cel")]
-use crate::rules::cel_rules::get_cel_rules;
 use crate::{
   cel_rule_template::CelRuleTemplateTarget,
   extract_validators::field_is_message,
-  rules::core::{convert_kind_to_proto_type, get_field_error, get_field_rules, get_field_type},
+  rules::{
+    cel_rules::get_cel_rules_checked,
+    core::{convert_kind_to_proto_type, get_field_error, get_field_rules, get_field_type},
+  },
   validation_data::{MapValidator, ValidationData},
 };
 
@@ -69,7 +68,7 @@ pub fn get_map_rules(
   let mut ignore_values_validators = false;
 
   if !field_rules.cel.is_empty() {
-    map_level_rules.extend(get_cel_rules(
+    map_level_rules.extend(get_cel_rules_checked(
       &CelRuleTemplateTarget::Field {
         field_desc: map_field_desc,
         validation_data: map_validation_data,
@@ -106,7 +105,7 @@ pub fn get_map_rules(
         }
 
         if !keys_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(
+          let cel_rules = get_cel_rules_checked(
             &CelRuleTemplateTarget::Field {
               validation_data: &keys_validation_data,
               field_desc: &key_desc,
@@ -140,7 +139,7 @@ pub fn get_map_rules(
           }
 
         if !values_rules_descriptor.cel.is_empty() {
-          let cel_rules = get_cel_rules(
+          let cel_rules = get_cel_rules_checked(
             &CelRuleTemplateTarget::Field {
               validation_data: &values_validation_data,
               field_desc: &value_desc,
