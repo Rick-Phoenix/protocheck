@@ -25,7 +25,8 @@ pub fn compile_protos_with_validators(
   let temp_descriptor_path = out_dir.join("temp_file_descriptor_set_for_protocheck.bin");
   {
     let mut temp_config = prost_build::Config::new();
-    temp_config.file_descriptor_set_path(temp_descriptor_path.clone());
+    temp_config.file_descriptor_set_path(&temp_descriptor_path);
+    temp_config.out_dir(&out_dir);
     temp_config.compile_protos(proto_files, proto_include_paths)?;
   }
 
@@ -92,7 +93,8 @@ pub fn compile_protos_with_validators(
 
 /// A helper to use when gathering the names of proto files to pass to [`prost_build::Config::compile_protos`].
 /// Recursively collects all .proto files in a given directory and its subdirectories.
-pub fn get_proto_files_recursive(base_dir: &Path) -> io::Result<Vec<String>> {
+pub fn get_proto_files_recursive(base_dir: impl Into<PathBuf>) -> io::Result<Vec<String>> {
+  let base_dir: PathBuf = base_dir.into();
   let mut proto_files = Vec::new();
 
   if !base_dir.is_dir() {
@@ -104,7 +106,7 @@ pub fn get_proto_files_recursive(base_dir: &Path) -> io::Result<Vec<String>> {
 
   // We'll use a helper function to do the actual recursive work
   // This helps keep the public function's signature clean.
-  collect_proto_files_recursive_helper(base_dir, &mut proto_files)?;
+  collect_proto_files_recursive_helper(base_dir.as_path(), &mut proto_files)?;
 
   Ok(proto_files)
 }

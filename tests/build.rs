@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 use prost_build::Config;
 use protocheck_build::{compile_protos_with_validators, get_proto_files_recursive};
@@ -72,8 +72,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   println!("cargo:rerun-if-changed=proto/");
   println!("cargo:rerun-if-changed=proto_deps/");
 
-  let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").expect("Could not find OUT_DIR"));
-  let final_descriptor_path = out_dir.join("file_descriptor_set.bin");
+  let out_dir = env::var("OUT_DIR")
+    .map(PathBuf::from)
+    .unwrap_or(env::temp_dir());
+  let descriptor_path = out_dir.join("file_descriptor_set.bin");
 
   let proto_include_paths = &["proto", "proto_deps"];
 
@@ -84,13 +86,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut config = Config::new();
   config
-    .file_descriptor_set_path(final_descriptor_path.clone())
+    .file_descriptor_set_path(&descriptor_path)
     .extern_path(".google.type", "::proto_types")
     .extern_path(".google.rpc", "::proto_types")
     .bytes(["."])
     .enable_type_names()
     .type_attribute(".", "#[derive(::serde::Serialize, ::serde::Deserialize)]")
-    .out_dir(out_dir.clone());
+    .out_dir(&out_dir);
 
   compile_protos_with_validators(
     &mut config,
@@ -103,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   println!(
     "cargo:rustc-env=PROTO_DESCRIPTOR_SET={}",
-    final_descriptor_path.display()
+    descriptor_path.display()
   );
 
   Ok(())
