@@ -58,7 +58,7 @@ where
           ))
         }
       } else {
-        println!(
+        eprintln!(
           "{} expected boolean result from expression, got `{:?}`",
           error_prefix,
           value.type_of()
@@ -72,7 +72,7 @@ where
       }
     }
     Err(e) => {
-      println!("{} {:?}", error_prefix, e);
+      eprintln!("{} {:?}", error_prefix, e);
       Err(create_violation(
         field_context,
         &CEL_VIOLATION,
@@ -97,7 +97,7 @@ where
   match cel_conversion {
     Ok(cel_val) => validate_cel_field_with_val(field_context, rule, cel_val),
     Err(e) => {
-      println!(
+      eprintln!(
         "Failed to convert field {} to Cel value: {}",
         rule.item_full_name, e
       );
@@ -152,7 +152,7 @@ where
               ))
             }
           } else {
-            println!(
+            eprintln!(
               "{} expected boolean result from expression, got `{:?}`",
               error_prefix,
               value.type_of()
@@ -165,7 +165,7 @@ where
           }
         }
         Err(e) => {
-          println!("{} program failed to compile: {:?}", error_prefix, e);
+          eprintln!("{} program failed to compile: {:?}", error_prefix, e);
           Err(create_cel_message_violation(
             "internal_server_error",
             "internal server error",
@@ -175,7 +175,7 @@ where
       }
     }
     Err(e) => {
-      println!(
+      eprintln!(
         "{} could not convert message to Cel value: {:?}",
         error_prefix, e
       );
