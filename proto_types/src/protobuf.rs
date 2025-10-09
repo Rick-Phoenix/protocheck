@@ -2236,9 +2236,11 @@ pub struct Timestamp {
 /// empty messages in your APIs. A typical example is to use it as the request
 /// or the response type of an API method. For instance:
 ///
-///      service Foo {
-///        rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);
-///      }
+/// ```proto
+/// service Foo {
+///   rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty);
+/// }
+/// ```
 ///
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Empty {}

@@ -3,7 +3,7 @@
 ///
 /// Example of an error when contacting the "pubsub.googleapis.com" API when it
 /// is not enabled:
-///
+/// ```json
 ///      { "reason": "API_DISABLED"
 ///        "domain": "googleapis.com"
 ///        "metadata": {
@@ -11,18 +11,20 @@
 ///          "service": "pubsub.googleapis.com"
 ///        }
 ///      }
+/// ```
 ///
 /// This response indicates that the pubsub.googleapis.com API is not enabled.
 ///
 /// Example of an error that is returned when attempting to create a Spanner
 /// instance in a region that is out of stock:
-///
+/// ```json
 ///      { "reason": "STOCKOUT"
 ///        "domain": "spanner.googleapis.com",
 ///        "metadata": {
 ///          "availableRegions": "us-central1,us-east2"
 ///        }
 ///      }
+/// ```
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ErrorInfo {
@@ -253,7 +255,7 @@ pub mod bad_request {
     /// field.
     ///
     /// Consider the following:
-    ///
+    /// ```proto
     ///      message CreateContactRequest {
     ///        message EmailAddress {
     ///          enum Type {
@@ -269,6 +271,7 @@ pub mod bad_request {
     ///        string full_name = 1;
     ///        repeated EmailAddress email_addresses = 2;
     ///      }
+    /// ```
     ///
     /// In this example, in proto `field` could take one of the following values:
     ///

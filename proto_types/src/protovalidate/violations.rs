@@ -76,7 +76,7 @@ impl Violations {
   ///
   /// # Examples
   /// ```rust
-  /// use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
+  /// use proto_types::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
   ///
   /// let violations = Violations {
   ///    violations: vec![Violation {

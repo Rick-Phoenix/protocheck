@@ -50,7 +50,7 @@ pub struct LocalizedText {
 ///
 /// Quaternions are generally represented in this form:
 ///
-///      w + xi + yj + zk
+///   w + xi + yj + zk
 ///
 /// where x, y, z, and w are real numbers, and i, j, and k are three imaginary
 /// numbers.
@@ -66,21 +66,21 @@ pub struct LocalizedText {
 /// buffer below *must* follow the Hamilton convention, which defines `ij = k`
 /// (i.e. a right-handed algebra), and therefore:
 ///
-///      i^2 = j^2 = k^2 = ijk = −1
-///      ij = −ji = k
-///      jk = −kj = i
-///      ki = −ik = j
+///   i^2 = j^2 = k^2 = ijk = −1
+///   ij = −ji = k
+///   jk = −kj = i
+///   ki = −ik = j
 ///
 /// Please DO NOT use this to represent quaternions that follow the JPL
 /// convention, or any of the other quaternion flavors out there.
 ///
 /// Definitions:
 ///
-///    - Quaternion norm (or magnitude): `sqrt(x^2 + y^2 + z^2 + w^2)`.
-///    - Unit (or normalized) quaternion: a quaternion whose norm is 1.
-///    - Pure quaternion: a quaternion whose scalar component (`w`) is 0.
-///    - Rotation quaternion: a unit quaternion used to represent rotation.
-///    - Orientation quaternion: a unit quaternion used to represent orientation.
+///  - Quaternion norm (or magnitude): `sqrt(x^2 + y^2 + z^2 + w^2)`.
+///  - Unit (or normalized) quaternion: a quaternion whose norm is 1.
+///  - Pure quaternion: a quaternion whose scalar component (`w`) is 0.
+///  - Rotation quaternion: a unit quaternion used to represent rotation.
+///  - Orientation quaternion: a unit quaternion used to represent orientation.
 ///
 /// A quaternion can be normalized by dividing it by its norm. The resulting
 /// quaternion maintains the same direction, but has a norm of 1, i.e. it moves
@@ -480,27 +480,27 @@ pub struct Interval {
 ///
 /// Example (Comparison):
 ///
-///      title: "Summary size limit"
-///      description: "Determines if a summary is less than 100 chars"
-///      expression: "document.summary.size() < 100"
+///   title: "Summary size limit"
+///   description: "Determines if a summary is less than 100 chars"
+///   expression: "document.summary.size() < 100"
 ///
 /// Example (Equality):
 ///
-///      title: "Requestor is owner"
-///      description: "Determines if requestor is the document owner"
-///      expression: "document.owner == request.auth.claims.email"
+///   title: "Requestor is owner"
+///   description: "Determines if requestor is the document owner"
+///   expression: "document.owner == request.auth.claims.email"
 ///
 /// Example (Logic):
 ///
-///      title: "Public documents"
-///      description: "Determine whether the document should be publicly visible"
-///      expression: "document.type != 'private' && document.type != 'internal'"
+///   title: "Public documents"
+///   description: "Determine whether the document should be publicly visible"
+///   expression: "document.type != 'private' && document.type != 'internal'"
 ///
 /// Example (Data Manipulation):
 ///
-///      title: "Notification string"
-///      description: "Create a notification string with a timestamp."
-///      expression: "'New message received at ' + string(document.create_time)"
+///   title: "Notification string"
+///   description: "Create a notification string with a timestamp."
+///   expression: "'New message received at ' + string(document.create_time)"
 ///
 /// The exact variables and functions that may be referenced within an expression
 /// are determined by the service that evaluates it. See the service
@@ -546,7 +546,7 @@ pub struct Expr {
 /// green, blue, and alpha values each differ by at most 1e-5.
 ///
 /// Example (Java):
-///
+/// ```java
 ///       import com.google.type.Color;
 ///
 ///       // ...
@@ -584,9 +584,11 @@ pub struct Expr {
 ///         return resultBuilder.build();
 ///       }
 ///       // ...
+/// ```
 ///
 /// Example (iOS / Obj-C):
 ///
+/// ```text
 ///       // ...
 ///       static UIColor* fromProto(Color* protocolor) {
 ///          float red = \[protocolor red\];
@@ -616,9 +618,10 @@ pub struct Expr {
 ///           return result;
 ///      }
 ///      // ...
-///
+/// ```
 ///   Example (JavaScript):
 ///
+/// ```javascript
 ///      // ...
 ///
 ///      var protoToCssColor = function(rgb_color) {
@@ -651,6 +654,7 @@ pub struct Expr {
 ///      };
 ///
 ///      // ...
+/// ```
 #[cfg(feature = "color")]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -667,7 +671,7 @@ pub struct Color {
   /// The fraction of this color that should be applied to the pixel. That is,
   /// the final pixel color is defined by the equation:
   ///
-  ///    `pixel color = alpha * (this color) + (1.0 - alpha) * (background color)`
+  ///   `pixel color = alpha * (this color) + (1.0 - alpha) * (background color)`
   ///
   /// This means that a value of 1.0 corresponds to a solid color, whereas
   /// a value of 0.0 corresponds to a completely transparent color. This
@@ -720,10 +724,10 @@ pub struct Decimal {
   ///
   /// Services **should** normalize decimal values before storing them by:
   ///
-  ///    - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`).
-  ///    - Replacing a zero-length integer value with `0` (`.5` -> `0.5`).
-  ///    - Coercing the exponent character to lower-case (`2.5E8` -> `2.5e8`).
-  ///    - Removing an explicitly-provided zero exponent (`2.5e0` -> `2.5`).
+  ///   - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`).
+  ///   - Replacing a zero-length integer value with `0` (`.5` -> `0.5`).
+  ///   - Coercing the exponent character to lower-case (`2.5E8` -> `2.5e8`).
+  ///   - Removing an explicitly-provided zero exponent (`2.5e0` -> `2.5`).
   ///
   /// Services **may** perform additional normalization based on its own needs
   /// and the internal decimal implementation selected, such as shifting the
@@ -738,17 +742,17 @@ pub struct Decimal {
   ///
   /// The ENBF grammar is:
   ///
-  ///      DecimalString =
+  ///   DecimalString =
   ///        \[Sign\] Significand \[Exponent\];
   ///
-  ///      Sign = '+' | '-';
+  ///   Sign = '+' | '-';
   ///
-  ///      Significand =
-  ///        Digits \['.'\] [Digits] | \[Digits\] '.' Digits;
+  ///   Significand =
+  ///     Digits \['.'\] [Digits] | \[Digits\] '.' Digits;
   ///
-  ///      Exponent = ('e' | 'E') \[Sign\] Digits;
+  ///   Exponent = ('e' | 'E') \[Sign\] Digits;
   ///
-  ///      Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' };
+  ///   Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' };
   ///
   /// Services **should** clearly document the range of supported values, the
   /// maximum supported precision (total number of digits), and, if applicable,
@@ -834,7 +838,7 @@ impl DayOfWeek {
 /// use-cases, convert it to an `i18n.phonenumbers.PhoneNumber` object first.
 ///
 /// For instance, in Java this would be:
-///
+/// ```java
 ///     com.google.type.PhoneNumber wireProto =
 ///         com.google.type.PhoneNumber.newBuilder().build();
 ///     com.google.i18n.phonenumbers.Phonenumber.PhoneNumber phoneNumber =
@@ -845,6 +849,7 @@ impl DayOfWeek {
 ///
 ///   Reference(s):
 ///    - <https://github.com/google/libphonenumber>
+/// ```
 #[cfg(feature = "phone_number")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
