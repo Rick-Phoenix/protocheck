@@ -7,9 +7,9 @@ use crate::{
   rpc::{
     bad_request::FieldViolation, help::Link, precondition_failure, quota_failure, DebugInfo,
     ErrorInfo, Help, HttpHeader, HttpRequest, HttpResponse, LocalizedMessage, PreconditionFailure,
-    QuotaFailure, RequestInfo, ResourceInfo, RetryInfo, Status,
+    QuotaFailure, RequestInfo, ResourceInfo, RetryInfo,
   },
-  BadRequest,
+  BadRequest, Status,
 };
 
 impl From<ErrorInfo> for CelValue {

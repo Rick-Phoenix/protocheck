@@ -37,6 +37,9 @@ All of the structs that have fallible methods also come with their own custom er
 - [`Any`]
 
 ## 📚 google.type
+
+All of these can be included with the `all_common` flag, or selected individually with their respective flag.
+
 - [`TimeOfDay`]
     - Constructor with validation check
     - Display
@@ -92,6 +95,10 @@ All of the structs that have fallible methods also come with their own custom er
 
 ## 💻 google.rpc
 
+- [`Status`] (available by default, even without the flag)
+
+These can be enabled with the `rpc` flag.
+
 - [`ErrorInfo`]
 - [`DebugInfo`]
 - [`RetryInfo`]
@@ -109,5 +116,4 @@ All of the structs that have fallible methods also come with their own custom er
 - [`HttpRequest`]
 - [`HttpResponse`]
 - [`HttpHeader`]
-- [`Status`]
 - [`Code`]
