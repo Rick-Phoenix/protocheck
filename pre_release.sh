@@ -2,6 +2,11 @@
 
 set -eo pipefail
 
+EXEC_RELEASE=false
+if [[ "${2:-}" == "--exec" ]]; then
+  EXEC_RELEASE=true
+  echo "Execution flag '--exec' detected."
+fi
 VERSION="$1"
 
 if [[ -z "$VERSION" ]]; then
@@ -18,7 +23,7 @@ echo "Running tests..."
 
 cargo test --all-features -- -q --nocapture
 
-if [[ "$EXEC_RELEASE" == "true" ]]; then
+if [[ "$EXEC_RELEASE" = true ]]; then
   echo "Starting pre-release process for version ${VERSION}..."
 
   echo "Generating changelog..."
@@ -44,7 +49,7 @@ if [[ "$EXEC_RELEASE" == "true" ]]; then
     git commit -m "update changelog"
   fi
 
-  cargo release "$VERSION" --exec
+  cargo release "$VERSION" --execute
 else
   cargo release "$VERSION"
 fi

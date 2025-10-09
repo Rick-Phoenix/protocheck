@@ -2,8 +2,8 @@ test:
     cargo test --all-features -- -q --nocapture
 
 release-test version:
-    cargo release {{ version }}
+    ./pre_release.sh {{ version }}
 
 [confirm]
 release-exec version:
-    EXEC_RELEASE=true cargo release {{ version }} --execute
+    ./pre_release.sh {{ version }} --exec

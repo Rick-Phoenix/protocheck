@@ -13,7 +13,6 @@ repository = { workspace = true }
 
 [package.metadata.release]
 tag = true
-pre-release-hook = ["bash", "-c", "cd .. && ./pre_release.sh {{version}}"]
 
 [package.metadata.docs.rs]
 all-features = true
