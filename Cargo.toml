@@ -19,7 +19,7 @@ allow-branch = ["main"]
 enable-all-features = true
 
 [workspace.package]
-version = "0.1.9"
+version = "0.1.10"
 license = "Apache-2.0"
 authors = ["Rick-Phoenix <https://github.com/Rick-Phoenix>"]
 description = "Core logic and validators for protocheck."

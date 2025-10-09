@@ -43,6 +43,7 @@ jobs:
         if: "!startsWith(github.ref_name, 'proto-types')"
         with:
           changelog: CHANGELOG.md
+          prefix: protocheck
           branch: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -51,4 +52,5 @@ jobs:
         with:
           changelog: proto_types/CHANGELOG.md
           branch: main
+          prefix: proto-types
           token: ${{ secrets.GITHUB_TOKEN }}

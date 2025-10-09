@@ -918,7 +918,7 @@ dependencies = [
 
 [[package]]
 name = "proto-types"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "base64",
  "bytes",
@@ -940,7 +940,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "document-features",
  "proto-types",
@@ -950,7 +950,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-build"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "prost-build",
  "prost-reflect",
@@ -959,7 +959,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-core"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "bytes",
  "cel",
@@ -975,7 +975,7 @@ dependencies = [
 
 [[package]]
 name = "protocheck-proc-macro"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "cel",
  "convert_case",

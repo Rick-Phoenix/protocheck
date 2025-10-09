@@ -20,11 +20,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 proc-macro = true
 
 [dependencies]
-proto-types = { version = "0.1.4", path = "../proto_types/", features = [
+proto-types = { version = "0.1.10", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { version = "0.1.6", path = "../core/", features = [
+protocheck-core = { version = "0.1.10", path = "../core/", features = [
   "totokens",
 ] }
 
