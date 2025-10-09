@@ -16,6 +16,9 @@ repository = { workspace = true }
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[dev-dependencies]
+tonic-prost-build = "0.14.2"
+
 [dependencies]
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }

@@ -72,6 +72,8 @@ The [`protocheck-proc-macro`](https://docs.rs/protocheck-proc-macro/0.1.0/protoc
 
 Example:
 
+>(The examples are taken from the [testing crate](https://github.com/Rick-Phoenix/protocheck/tree/main/tests/src), they show as untested just because it's a separate crate that has its own build script)
+
 ```proto
 message JediFight {
   Anakin anakin = 1;
@@ -87,7 +89,7 @@ message Anakin {
 }
 ```
 
-```rust
+```rust,ignore
 #[test]
 fn example() {
   let obi_wan = ObiWan {
@@ -115,7 +117,7 @@ fn example() {
 
 Output: 
 
-```
+```text
 Field path: anakin.has_high_ground, Error message: must be equal to false
 Field path: obi_wan.has_high_ground, Error message: must be equal to true
 ```
@@ -150,7 +152,8 @@ message ObiWan {
 
 Now the output will be:
 
-```
+```text
+Field path: anakin.has_high_ground, Error message: must be equal to false
 Field path: obi_wan, Error message: obi-wan must have the high ground.
 Field path: obi_wan.has_high_ground, Error message: obi-wan must have the high ground.
 ```
@@ -172,7 +175,7 @@ message User {
 }
 ```
 
-```rust
+```rust,ignore
 let user = User {
   password: "abc".to_string(),
   confirm_password: "abcde".to_string(),
@@ -191,7 +194,7 @@ println!(
 
 Outcome:
 
-```
+```text
 Field path: passwords_match, Error message: the two passwords do not match
 ```
 

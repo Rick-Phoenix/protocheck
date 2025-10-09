@@ -18,27 +18,47 @@ fn example() {
   #[allow(unused_variables)]
   let Violations { violations } = jedi_fight.validate().unwrap_err();
 
-  // violations.iter().for_each(|v| {
-  //   println!(
-  //     "Field path: {}, Error message: {}",
-  //     v.field_path_str().unwrap(),
-  //     v.message()
-  //   )
-  // });
+  let outcome: Vec<String> = violations
+    .iter()
+    .map(|v| {
+      format!(
+        "Field path: {}, Error message: {}",
+        v.field_path_str().unwrap(),
+        v.message()
+      )
+    })
+    .collect();
+
+  assert_eq!(
+    outcome[0],
+    "Field path: anakin.has_high_ground, Error message: must be equal to false",
+  );
+  assert_eq!(
+    outcome[1],
+    "Field path: obi_wan, Error message: obi-wan must have the high ground."
+  );
+  assert_eq!(
+    outcome[2],
+    "Field path: obi_wan.has_high_ground, Error message: obi-wan must have the high ground."
+  );
 
   let user = User {
     password: "abc".to_string(),
     confirm_password: "abcde".to_string(),
   };
 
-  #[allow(unused_variables)]
   let Violations { violations } = user.validate().unwrap_err();
 
-  // println!(
-  //   "Field path: {}, Error message: {}",
-  //   // Message-wide violations do not have a field path unless they are nested in another message
-  //   // But they do have a rule id
-  //   violations[0].rule_id(),
-  //   violations[0].message()
-  // );
+  let outcome = format!(
+    "Field path: {}, Error message: {}",
+    // Message-wide violations do not have a field path unless they are nested in another message
+    // But they do have a rule id
+    violations[0].rule_id(),
+    violations[0].message()
+  );
+
+  assert_eq!(
+    outcome,
+    "Field path: passwords_match, Error message: the two passwords do not match"
+  );
 }
