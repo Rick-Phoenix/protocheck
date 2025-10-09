@@ -1,4 +1,9 @@
-use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
+use prost::Message;
+
+use crate::{
+  protovalidate::{FieldPath, FieldPathElement, Violation, Violations},
+  Any, Status,
+};
 
 impl FieldPath {
   /// Returns the last member in the elements list, if the list is not empty.
@@ -37,7 +42,8 @@ impl FieldPath {
       .find(|&field| field.field_name() == name)
   }
 
-  /// Returns a vector with the names from each element in the list.
+  /// Returns a vector with the names from each path element (including any eventual Subscript like a vector index or map key)
+  /// (e.g. `["person", "friends", "0", "address","street_name"]`)
   pub fn field_path(&self) -> Vec<String> {
     let mut path: Vec<String> = Vec::new();
 
@@ -52,7 +58,7 @@ impl FieldPath {
     path
   }
 
-  /// Returns all of the names from each path element, joined by a dot (e.g. `person.friend.0.address.street_name`)
+  /// Returns all of the names from each path element (including any eventual Subscript like a vector index or map key), joined by a dot (e.g. `person.friends.0.address.street_name`)
   pub fn field_path_str(&self) -> String {
     self.field_path().join(".")
   }
@@ -62,6 +68,42 @@ impl Violations {
   /// Searches for a violation with a specific rule id.
   pub fn violation_by_rule_id(&self, rule_id: &str) -> Option<&Violation> {
     self.violations.iter().find(|v| v.rule_id() == rule_id)
+  }
+
+  /// Searches for a violation with a specific `field_path` string.
+  ///
+  /// Keep in mind the `field_path` will include Subscripts like vector indexes or map keys.
+  ///
+  /// # Examples
+  /// ```rust
+  /// use crate::protovalidate::{FieldPath, FieldPathElement, Violation, Violations};
+  ///
+  /// let violations = Violations {
+  ///    violations: vec![Violation {
+  ///      field: Some(FieldPath {
+  ///        elements: vec![
+  ///          FieldPathElement {
+  ///            field_name: Some("person".to_string()),
+  ///            ..Default::default()
+  ///          },
+  ///          FieldPathElement {
+  ///            field_name: Some("name".to_string()),
+  ///            ..Default::default()
+  ///          },
+  ///        ],
+  ///      }),
+  ///      ..Default::default()
+  ///    }],
+  ///  };
+
+  ///  assert!(violations.violation_by_field_path("person.name").is_some());
+  /// ```
+  pub fn violation_by_field_path(&self, path: &str) -> Option<&Violation> {
+    self.violations.iter().find(|v| {
+      v.field
+        .as_ref()
+        .is_some_and(|vi| vi.field_path_str() == path)
+    })
   }
 }
 
@@ -111,7 +153,7 @@ impl Violation {
     None
   }
 
-  /// If there is a FieldPath, it returns the path elements' names, joined by a dot (e.g. `person.friend.0.address.street_name`).
+  /// If there is a FieldPath, it returns the path elements' names, joined by a dot (e.g. `person.friends.0.address.street_name`).
   pub fn field_path_str(&self) -> Option<String> {
     if let Some(fields) = &self.field {
       return Some(fields.field_path_str());
@@ -131,7 +173,7 @@ impl Violation {
 
   /// Checks whether this violation has a FieldPath or not. This may not be the case when a violation is triggered by a rule defined with (buf.validate.message).cel in a message
   pub fn has_fields(&self) -> bool {
-    self.last_field().is_some()
+    self.field.is_some()
   }
 
   /// Checks if the list of FieldPathElements contains a field with a particular name.
@@ -142,5 +184,43 @@ impl Violation {
   /// If a list of path elements is defined, it returns the name of the invalid field (the last field in the list of path elements)
   pub fn field_name(&self) -> Option<&str> {
     self.last_field().map(|f| f.field_name())
+  }
+}
+
+impl From<Violations> for Status {
+  fn from(value: Violations) -> Self {
+    let message = if value.violations.len() == 1 && !value.violations[0].message().is_empty() {
+      value.violations[0].message()
+    } else {
+      "Validation Error"
+    };
+
+    Self {
+      code: 3,
+      message: message.to_string(),
+      details: vec![Any {
+        type_url: "type.googleapis.com/buf.validate.Violations".to_string(),
+        value: value.encode_to_vec(),
+      }],
+    }
+  }
+}
+
+impl From<Violation> for Status {
+  fn from(value: Violation) -> Self {
+    let message = if !value.message().is_empty() {
+      value.message()
+    } else {
+      "Validation Error"
+    };
+
+    Self {
+      code: 3,
+      message: message.to_string(),
+      details: vec![Any {
+        type_url: "type.googleapis.com/buf.validate.Violations".to_string(),
+        value: value.encode_to_vec(),
+      }],
+    }
   }
 }
