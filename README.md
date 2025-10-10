@@ -6,7 +6,7 @@ This allows you to define your validation schemas only once, directly in your pr
 
 ## ➡️ Getting started 
 
-Visit the [`protocheck-build`](https://docs.rs/protocheck-build/latest/protocheck_build/) docs to learn how to set up protocheck in your `build.rs` script.
+Visit the [`protocheck-build`](https://crates.io/crates/protocheck-build) docs to learn how to set up protocheck in your `build.rs` script.
 
 ## 📓 Noteworthy features
 
