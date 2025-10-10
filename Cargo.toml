@@ -18,7 +18,7 @@ enable-all-features = true
 shared-version = true
 
 [workspace.package]
-version = "0.1.10"
+version = "0.1.11"
 license = "Apache-2.0"
 authors = ["Rick-Phoenix <https://github.com/Rick-Phoenix>"]
 description = "Core logic and validators for protocheck."

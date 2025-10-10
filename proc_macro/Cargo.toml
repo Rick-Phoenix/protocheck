@@ -24,7 +24,7 @@ proto-types = { version = "0.1.11", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { version = "0.1.10", path = "../core/", features = [
+protocheck-core = { version = "0.1.11", path = "../core/", features = [
   "totokens",
 ] }
 
