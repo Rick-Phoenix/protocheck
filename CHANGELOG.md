@@ -1,4 +1,10 @@
-## [0.1.10] - 2025-10-09
+## [0.1.11] - 2025-10-10
+
+### 📚 Documentation
+
+- Changed doc_auto_cfg to doc_cfg
+- Using the readme link for protocheck-build instead of the docs.rs link
+## [protocheck-v0.1.10] - 2025-10-09
 
 ### 🐛 Bug Fixes
 
