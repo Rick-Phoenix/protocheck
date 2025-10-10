@@ -4,7 +4,7 @@ use serde::{
   Deserialize, Deserializer, Serialize,
 };
 
-use crate::rpc::Code;
+use crate::Code;
 
 impl Serialize for Code {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

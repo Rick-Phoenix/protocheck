@@ -95,9 +95,12 @@ All of these can be included with the `all_common` flag, or selected individuall
 
 ## 💻 google.rpc
 
-- [`Status`] (available by default, even without the flag)
+Available by default:
 
-These can be enabled with the `rpc` flag.
+- [`Status`] 
+- [`Code`]
+
+Enabled with the `rpc` flag:
 
 - [`ErrorInfo`]
 - [`DebugInfo`]
@@ -116,4 +119,3 @@ These can be enabled with the `rpc` flag.
 - [`HttpRequest`]
 - [`HttpResponse`]
 - [`HttpHeader`]
-- [`Code`]
