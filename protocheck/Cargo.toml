@@ -21,7 +21,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 protocheck-proc-macro = { version = "0.1.10", path = "../proc_macro/", default-features = false }
 protocheck-core = { version = "0.1.10", path = "../core/", default-features = false }
-proto-types = { version = "0.1.10", path = "../proto_types/", default-features = false, features = [
+proto-types = { version = "0.1.11", path = "../proto_types/", default-features = false, features = [
   "protovalidate",
 ] }
 document-features = { workspace = true }

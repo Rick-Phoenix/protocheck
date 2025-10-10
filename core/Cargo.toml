@@ -17,7 +17,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-proto-types = { path = "../proto_types/", version = "0.1.10", features = [
+proto-types = { path = "../proto_types/", version = "0.1.11", features = [
   "protovalidate",
 ] }
 
