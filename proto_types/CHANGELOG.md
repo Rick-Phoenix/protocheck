@@ -1,4 +1,4 @@
-## [0.1.10] - 2025-10-09
+## [0.1.11] - 2025-10-10
 
 ### ⛰️  Features
 
@@ -11,6 +11,10 @@
 ### 🚜 Refactor
 
 - Moved google.rpc.Status outside of rpc flag
+
+### 📚 Documentation
+
+- Changed doc_auto_cfg to doc_cfg
 
 ### 📦 CI/CD
 
