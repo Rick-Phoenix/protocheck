@@ -13,7 +13,7 @@ resolver = "3"
 
 [workspace.metadata.release]
 tag = false
-tag-message = "chore: Release version {{version}}"
+pre-release-commit-message = "chore: Release protocheck"
 shared-version = true
 allow-branch = ["main"]
 enable-all-features = true

@@ -21,4 +21,5 @@ commit_parsers = [
   { message = "^revert", group = "<!-- 10 -->🔙 Revert" },
 ]
 
+tag_pattern = "protocheck-v*"
 exclude_paths = ["proto_types/**/*"]

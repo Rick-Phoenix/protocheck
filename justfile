@@ -1,9 +1,9 @@
 test:
     cargo test --all-features -- -q --nocapture
 
-release-test version:
-    ./pre_release.sh {{ version }}
+release version exec="": test
+    ./pre_release.sh {{ version }} {{ exec }}
 
-[confirm]
-release-exec version:
-    ./pre_release.sh {{ version }} --exec
+[working-directory('proto_types')]
+release-proto-types version exec="": test
+    ../pre_release.sh {{ version }} {{ exec }}

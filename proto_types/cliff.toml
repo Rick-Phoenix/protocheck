@@ -20,3 +20,6 @@ commit_parsers = [
   { body = ".*security", group = "<!-- 9 -->🛡️ Security" },
   { message = "^revert", group = "<!-- 10 -->🔙 Revert" },
 ]
+
+tag_pattern = "proto-types-v*"
+include_paths = ["proto_types/**/*"]
