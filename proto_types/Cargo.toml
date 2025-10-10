@@ -15,7 +15,6 @@ repository = { workspace = true }
 [package.metadata.release]
 tag = true
 shared-version = false
-pre-release-commit-message = "chore: Release proto-types"
 
 [package.metadata.docs.rs]
 all-features = true

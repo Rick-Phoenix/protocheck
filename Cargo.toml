@@ -13,10 +13,9 @@ resolver = "3"
 
 [workspace.metadata.release]
 tag = false
-pre-release-commit-message = "chore: Release protocheck"
-shared-version = true
 allow-branch = ["main"]
 enable-all-features = true
+shared-version = true
 
 [workspace.package]
 version = "0.1.10"

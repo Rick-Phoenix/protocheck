@@ -3,9 +3,8 @@
 set -eo pipefail
 
 EXEC_RELEASE=false
-if [[ "${2:-}" == "--exec" ]]; then
+if [[ "${2:-}" == "--execute" ]]; then
   EXEC_RELEASE=true
-  echo "Execution flag '--exec' detected."
 fi
 VERSION="$1"
 
@@ -28,11 +27,5 @@ if [[ "$EXEC_RELEASE" = true ]]; then
   git add "CHANGELOG.md"
 
   echo "Committing the new changelog"
-  git commit -m "update changelog"
-
-  cargo release "$VERSION" --execute
-else
-  cargo release "$VERSION"
+  git commit -m "updated changelog"
 fi
-
-echo "Release routine finished!"
