@@ -13,11 +13,6 @@ if [[ -z "$VERSION" ]]; then
   exit 1
 fi
 
-if [[ -n $(git status --porcelain) ]]; then
-  echo "Error: Your working directory is not clean. Please commit or stash your changes."
-  exit 1
-fi
-
 if [[ "$EXEC_RELEASE" = true ]]; then
   echo "Starting pre-release process for version ${VERSION}..."
 

@@ -2,7 +2,7 @@ use prost::Message;
 
 use crate::{
   protovalidate::{FieldPath, FieldPathElement, Violation, Violations},
-  Any, Status,
+  Any, Code, Status,
 };
 
 impl FieldPath {
@@ -196,7 +196,7 @@ impl From<Violations> for Status {
     };
 
     Self {
-      code: 3,
+      code: Code::InvalidArgument.into(),
       message: message.to_string(),
       details: vec![Any {
         type_url: "type.googleapis.com/buf.validate.Violations".to_string(),
@@ -215,7 +215,7 @@ impl From<Violation> for Status {
     };
 
     Self {
-      code: 3,
+      code: Code::InvalidArgument.into(),
       message: message.to_string(),
       details: vec![Any {
         type_url: "type.googleapis.com/buf.validate.Violations".to_string(),
