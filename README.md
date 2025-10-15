@@ -202,6 +202,10 @@ Field path: passwords_match, Error message: the two passwords do not match
 
 If you are interested in composing your protobuf files programmatically, and with the benefits of type safety, reusable elements and LSP integration, with a particular focus on making the definition of validation rules a quick and type-safe process, you might want to check out my other crate, [protoschema](https://crates.io/crates/protoschema). 
 
+## 🍸 Usage With Tonic
+
+Check out [this repo](https://github.com/Rick-Phoenix/protocheck-tonic-svelte-example) for a full example of a server that uses `protocheck` to validate incoming grpc requests.
+
 ## ⚠️ Caveats and warnings
 
 - The protovalidate rule buf.validate.message.oneof (the one used to make custom oneofs which allow repeated and map fields) is currently not supported.
