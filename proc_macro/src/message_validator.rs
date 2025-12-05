@@ -10,28 +10,16 @@ pub fn extract_message_validators(
   let mut static_defs: TokenStream2 = TokenStream2::new();
 
   let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
-  let mut rust_enum_paths: HashMap<String, String> = HashMap::new();
+  // <Field name, Enum name>
+  let mut enum_fields: HashMap<String, String> = HashMap::new();
 
   for field in fields {
     if let Some(ident) = &field.ident {
       for attr in &field.attrs {
         if attr.path().is_ident("prost") {
-          match attr.parse_args::<ProstAttrData>() {
-            Ok(parsed_data) => {
-              if let Some(enum_name) = parsed_data.enum_path {
-                rust_enum_paths.insert(ident.to_string(), enum_name.clone());
-              }
-            }
-            Err(e) => {
-              bail!(
-                attr,
-                format!(
-                  "Could not extract the 'enumeration' attribute for field {} in struct {}: {}",
-                  ident, item.ident, e
-                ),
-              )
-            }
-          };
+          if let Some(enum_path) = attr.parse_args::<ProstAttrData>()?.enum_path {
+            enum_fields.insert(ident.to_string(), enum_path);
+          }
         }
       }
 
@@ -120,7 +108,7 @@ pub fn extract_message_validators(
       .cloned()
       .unwrap_or_else(Span2::call_site);
 
-    let field_rust_enum = rust_enum_paths.get(field_rust_name.as_ref()).cloned();
+    let field_rust_enum = enum_fields.get(field_rust_name.as_ref()).cloned();
 
     let is_repeated = field.is_list();
     let is_map = field.is_map();

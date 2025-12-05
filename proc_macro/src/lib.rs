@@ -14,7 +14,7 @@ use convert_case::{Case, Casing};
 use message_descriptor::*;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
+use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
 use prost_reflect::{
   prost::Message, DescriptorPool, DynamicMessage, EnumDescriptor, ExtensionDescriptor,
   FieldDescriptor, Kind as ProstReflectKind, MessageDescriptor, OneofDescriptor, ReflectMessage,
@@ -29,8 +29,8 @@ use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
-  parse::ParseStream, parse_macro_input, spanned::Spanned, Attribute, DeriveInput, Error, Ident,
-  ItemStruct, LitStr, Token, Type,
+  parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
+  DeriveInput, Error, Ident, ItemStruct, LitStr, Meta, Token, Type,
 };
 
 use crate::{

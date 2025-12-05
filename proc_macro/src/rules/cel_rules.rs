@@ -66,7 +66,7 @@ mod cel_validator {
             let error_message = rule.message().to_string();
             let rule_id = rule.id().to_string();
 
-            let static_program_ident = Ident2::new(
+            let static_program_ident = Ident::new(
               &format!(
                 "__CEL_PROGRAM_{}_{}",
                 target_name.to_case(Case::UpperSnake),

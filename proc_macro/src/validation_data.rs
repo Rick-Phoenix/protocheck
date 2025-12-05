@@ -13,17 +13,17 @@ pub(crate) struct ValidationData<'a> {
   pub field_span: Span2,
   pub map_keys_type: Option<ProtoType>,
   pub map_values_type: Option<ProtoType>,
-  pub map_key_ident: &'a Ident2,
-  pub map_value_ident: &'a Ident2,
-  pub index_ident: &'a Ident2,
-  pub item_ident: &'a Ident2,
-  pub item_rust_ident: &'a Ident2,
-  pub violations_ident: &'a Ident2,
-  pub parent_messages_ident: &'a Ident2,
-  pub field_context_ident: &'a Ident2,
-  pub map_key_context_ident: &'a Ident2,
-  pub map_value_context_ident: &'a Ident2,
-  pub vec_item_context_ident: &'a Ident2,
+  pub map_key_ident: &'a Ident,
+  pub map_value_ident: &'a Ident,
+  pub index_ident: &'a Ident,
+  pub item_ident: &'a Ident,
+  pub item_rust_ident: &'a Ident,
+  pub violations_ident: &'a Ident,
+  pub parent_messages_ident: &'a Ident,
+  pub field_context_ident: &'a Ident,
+  pub map_key_context_ident: &'a Ident,
+  pub map_value_context_ident: &'a Ident,
+  pub vec_item_context_ident: &'a Ident,
   pub field_kind: FieldKind,
   pub value_ident: OnceCell<TokenStream2>,
 }
@@ -302,7 +302,7 @@ impl ValidationData<'_> {
   pub fn field_context_tokens(
     &self,
     field_kind: FieldKind,
-    field_context_ident: &Ident2,
+    field_context_ident: &Ident,
   ) -> TokenStream2 {
     let Self {
       parent_messages_ident,
@@ -401,7 +401,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn field_context_ident(&self) -> &Ident2 {
+  pub fn field_context_ident(&self) -> &Ident {
     match self.field_kind {
       FieldKind::RepeatedItem(_) => self.vec_item_context_ident,
       FieldKind::MapKey(_) => self.map_key_context_ident,
@@ -711,7 +711,7 @@ impl ValidationData<'_> {
   }
 }
 
-fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream2 {
+fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident) -> TokenStream2 {
   let subscript_path = quote! { ::protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {

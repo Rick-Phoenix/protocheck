@@ -110,7 +110,7 @@ pub fn extract_oneof_validators(
 
       let field_name = field.name();
 
-      let item_rust_ident = Ident2::new(field.name(), Span2::call_site());
+      let item_rust_ident = Ident::new(field.name(), Span2::call_site());
       let field_context_ident = format_ident!("field_context");
       let index_ident = format_ident!("idx");
       let item_ident = format_ident!("item");

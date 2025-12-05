@@ -3,7 +3,7 @@ use crate::*;
 pub fn extract_proto_name_attribute(
   oneof_name: &str,
   attr: &Attribute,
-  variant_ident: &Ident2,
+  variant_ident: &Ident,
   meta: syn::meta::ParseNestedMeta<'_>,
 ) -> Result<String, Error> {
   let not_found_error = Error::new_spanned(
@@ -48,30 +48,31 @@ static MAP_ENUM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 
 impl syn::parse::Parse for ProstAttrData {
   fn parse(input: ParseStream) -> Result<Self, Error> {
+    let metas = Punctuated::<Meta, Token![,]>::parse_terminated(input)?;
+
     let mut enum_path: Option<String> = None;
 
-    while !input.is_empty() {
-      let ident: syn::Ident = input.parse()?;
+    for meta in metas {
+      if let Meta::NameValue(nv) = meta {
+        let ident = nv.path.require_ident()?.to_string();
 
-      if ident == "enumeration" {
-        input.parse::<syn::Token![=]>()?;
-        let lit_str: LitStr = input.parse()?;
-        enum_path = Some(lit_str.value());
-      } else if ident == "map" {
-        input.parse::<Token![=]>()?;
-        let lit_str: LitStr = input.parse()?;
-        let content = lit_str.value();
-        if let Some(captures) = MAP_ENUM_REGEX.captures(&content)
-          && let Some(enum_name_match) = captures.get(1) {
-            enum_path = Some(enum_name_match.as_str().to_string());
+        match ident.as_str() {
+          "enumeration" => {
+            let lit_str: LitStr = syn::parse2(nv.value.into_token_stream())?;
+
+            enum_path = Some(lit_str.value());
           }
-      } else if input.peek(Token![=]) {
-        input.parse::<Token![=]>()?;
-        input.parse::<syn::Lit>()?;
-      }
+          "map" => {
+            let lit_str: LitStr = syn::parse2(nv.value.into_token_stream())?;
+            let map_attr = lit_str.value();
 
-      if input.peek(Token![,]) {
-        input.parse::<Token![,]>()?;
+            if let Some(captures) = MAP_ENUM_REGEX.captures(&map_attr)
+            && let Some(enum_name_match) = captures.get(1) {
+              enum_path = Some(enum_name_match.as_str().to_string());
+            }
+          }
+          _ => {}
+        };
       }
     }
 
