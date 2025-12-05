@@ -1,15 +1,10 @@
-use proc_macro2::TokenStream;
-use proto_types::protovalidate::{TimestampComparableRules, TimestampRules};
-use quote::quote;
-use syn::Error;
-
-use crate::{rules::core::get_field_error, validation_data::ValidationData};
+use crate::*;
 
 pub fn get_timestamp_rules(
   validation_data: &ValidationData,
   rules: &TimestampRules,
-) -> Result<TokenStream, Error> {
-  let mut tokens = TokenStream::new();
+) -> Result<TokenStream2, Error> {
+  let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;

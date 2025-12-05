@@ -1,18 +1,11 @@
-use proc_macro2::TokenStream;
-use proto_types::protovalidate::{ContainingRules, DurationRules};
-use syn::Error;
-
-use crate::{
-  rules::core::{get_field_error, invalid_lists_error},
-  validation_data::{ListRule, ValidationData},
-};
+use crate::*;
 
 pub fn get_duration_rules(
   validation_data: &ValidationData,
   rules: &DurationRules,
-  static_defs: &mut TokenStream,
-) -> Result<TokenStream, Error> {
-  let mut tokens = TokenStream::new();
+  static_defs: &mut TokenStream2,
+) -> Result<TokenStream2, Error> {
+  let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;

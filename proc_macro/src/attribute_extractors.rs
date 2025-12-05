@@ -1,9 +1,4 @@
-use std::sync::LazyLock;
-
-use regex::Regex;
-use syn::{parse::ParseStream, Attribute, Error, LitStr, Token};
-
-use crate::Ident2;
+use crate::*;
 
 pub fn extract_proto_name_attribute(
   oneof_name: &str,

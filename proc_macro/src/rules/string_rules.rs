@@ -1,21 +1,13 @@
-use proc_macro2::TokenStream;
 use proto_types::protovalidate::{string_rules::WellKnown, ContainingRules};
-use quote::quote;
-use regex::Regex;
-use syn::Error;
 
-use super::protovalidate::StringRules;
-use crate::{
-  rules::core::{get_field_error, invalid_lists_error},
-  validation_data::{ListRule, ValidationData},
-};
+use crate::*;
 
 pub fn get_string_rules(
-  static_defs: &mut TokenStream,
+  static_defs: &mut TokenStream2,
   validation_data: &ValidationData,
   rules: &StringRules,
-) -> Result<TokenStream, Error> {
-  let mut tokens = TokenStream::new();
+) -> Result<TokenStream2, Error> {
+  let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;

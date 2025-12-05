@@ -1,31 +1,15 @@
-use proc_macro2::TokenStream;
-use prost_reflect::FieldDescriptor;
-use proto_types::{protovalidate::FieldRules, FieldType};
-use protocheck_core::field_data::FieldKind;
-use quote::quote;
-use syn::Error;
-
-use super::{field_rules::Type as RulesType, protovalidate::Ignore};
-use crate::{
-  cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::field_is_message,
-  rules::{
-    cel_rules::get_cel_rules_checked,
-    core::{get_field_error, get_field_rules},
-  },
-  validation_data::{RepeatedValidator, ValidationData},
-};
+use crate::*;
 
 pub fn get_repeated_rules(
   validation_data: &ValidationData,
-  validation_tokens: &mut TokenStream,
-  static_defs: &mut TokenStream,
+  validation_tokens: &mut TokenStream2,
+  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
 ) -> Result<(), Error> {
-  let mut vec_level_rules: TokenStream = TokenStream::new();
-  let mut items_rules: TokenStream = TokenStream::new();
+  let mut vec_level_rules: TokenStream2 = TokenStream2::new();
+  let mut items_rules: TokenStream2 = TokenStream2::new();
   let mut items_validation_data: Option<ValidationData> = None;
 
   let field_span = validation_data.field_span;

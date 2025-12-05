@@ -1,24 +1,14 @@
-use std::{fmt::Debug, hash::Hash};
-
-use proc_macro2::TokenStream;
-use proto_types::protovalidate::{ContainingRules, NumericRules};
-use quote::{format_ident, quote, ToTokens};
-use syn::Error;
-
-use crate::{
-  rules::core::{get_field_error, invalid_lists_error},
-  validation_data::{ListRule, ValidationData},
-};
+use crate::*;
 
 pub fn get_numeric_rules<HashableType, T: NumericRules<HashableType>>(
   validation_data: &ValidationData,
   rules: &T,
-  static_defs: &mut TokenStream,
-) -> Result<TokenStream, Error>
+  static_defs: &mut TokenStream2,
+) -> Result<TokenStream2, Error>
 where
   HashableType: Debug + Copy + ToTokens + Eq + PartialOrd + Hash,
 {
-  let mut tokens = TokenStream::new();
+  let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;

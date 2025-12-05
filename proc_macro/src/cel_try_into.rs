@@ -1,8 +1,4 @@
-use proc_macro::TokenStream;
-use quote::{format_ident, quote, ToTokens};
-use syn::{parse_macro_input, DeriveInput, Error, Type};
-
-use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
+use crate::*;
 
 enum OuterType {
   Option(InnerType),

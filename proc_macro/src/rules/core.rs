@@ -1,30 +1,13 @@
-use std::fmt::Debug;
-
-use proc_macro2::{Span, TokenStream};
-use prost_reflect::{FieldDescriptor, Kind as ProstReflectKind};
-use proto_types::FieldType;
-use protocheck_core::field_data::FieldKind;
-use syn::Error;
-
-use super::{field_rules::Type as RulesType, ProtoType};
-use crate::{
-  rules::{
-    any_rules::get_any_rules, bool_rules::get_bool_rules, bytes_rules::get_bytes_rules,
-    duration_rules::get_duration_rules, enum_rules::get_enum_rules,
-    numeric_rules::get_numeric_rules, string_rules::get_string_rules,
-    timestamp_rules::get_timestamp_rules,
-  },
-  validation_data::ValidationData,
-};
+use crate::*;
 
 pub fn get_field_rules(
-  static_defs: &mut TokenStream,
+  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
   field_rules: &RulesType,
-) -> Result<TokenStream, Error> {
-  let mut rules_tokens = TokenStream::new();
+) -> Result<TokenStream2, Error> {
+  let mut rules_tokens = TokenStream2::new();
   let mut error: Option<&str> = None;
 
   let field_name = &validation_data.full_name;
@@ -203,7 +186,7 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
 }
 
 pub(crate) fn invalid_lists_error<T>(
-  field_span: Span,
+  field_span: Span2,
   field_name: &str,
   invalid_items: &[T],
 ) -> Error
@@ -227,7 +210,7 @@ pub fn get_plural_suffix(items: u64) -> &'static str {
   }
 }
 
-pub fn get_field_error(field_name: &str, field_span: Span, error: &str) -> Error {
+pub fn get_field_error(field_name: &str, field_span: Span2, error: &str) -> Error {
   Error::new(
     field_span,
     format!("Error for field {}: {}", field_name, error),

@@ -1,24 +1,52 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 
-use std::collections::HashMap;
-
-use pool_loader::DESCRIPTOR_POOL;
-use proc_macro::TokenStream;
-pub(crate) use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
-pub(crate) use proto_types::field_descriptor_proto::Type as ProtoType;
-use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Error, Ident, LitStr};
-
-use crate::{
-  extract_validators::{extract_oneof_validators, OneofValidatorsOutput},
-  rules::extract_validators::{self, extract_message_validators},
+use std::{
+  borrow::Cow,
+  cell::OnceCell,
+  collections::{HashMap, HashSet},
+  fmt::{Debug, Display},
+  hash::Hash,
+  sync::{Arc, LazyLock},
 };
 
+use convert_case::{Case, Casing};
+use message_descriptor::*;
+use pool_loader::DESCRIPTOR_POOL;
+use proc_macro::TokenStream;
+use proc_macro2::{Ident as Ident2, Span as Span2, TokenStream as TokenStream2};
+use prost_reflect::{
+  prost::Message, DescriptorPool, DynamicMessage, EnumDescriptor, ExtensionDescriptor,
+  FieldDescriptor, Kind as ProstReflectKind, MessageDescriptor, OneofDescriptor, ReflectMessage,
+  Value as ProstValue,
+};
+use proto_types::{
+  field_descriptor_proto::Type as ProtoType,
+  protovalidate::{field_rules::Type as RulesType, *},
+  Duration, Empty, FieldMask, FieldType, Timestamp,
+};
+use protocheck_core::field_data::FieldKind;
+use quote::{format_ident, quote, ToTokens};
+use regex::Regex;
+use syn::{
+  parse::ParseStream, parse_macro_input, spanned::Spanned, Attribute, DeriveInput, Error, Ident,
+  ItemStruct, LitStr, Token, Type,
+};
+
+use crate::{
+  attribute_extractors::*, cel_rule_template::*, message_validator::*, oneof_validator::*,
+  pool_loader::*, rules::*, special_field_names::*, validation_data::*,
+};
+
+#[macro_use]
+mod macros;
 mod attribute_extractors;
 mod cel_rule_template;
 #[cfg(feature = "cel")]
 mod cel_try_into;
+mod message_descriptor;
+mod message_validator;
+mod oneof_validator;
 mod pool_loader;
 mod rules;
 mod special_field_names;
@@ -44,24 +72,17 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   let proto_message_name_tokens = parse_macro_input!(attrs as LitStr);
   let proto_message_name = proto_message_name_tokens.value();
 
-  let input_clone = input.clone();
-  let ast = parse_macro_input!(input_clone as DeriveInput);
-
-  if proto_message_name.is_empty() {
-    return Error::new_spanned(
-      &ast.ident,
-      format!("Found empty message name for {}", &ast.ident),
-    )
-    .to_compile_error()
-    .into();
-  }
+  let input = parse_macro_input!(input as ItemStruct);
 
   let message_desc = match DESCRIPTOR_POOL.get_message_by_name(&proto_message_name) {
     Some(message) => message,
     None => {
       return Error::new_spanned(
         proto_message_name_tokens,
-        format!("Message {} not found", proto_message_name),
+        format!(
+          "Message {} not found in the descriptor pool",
+          proto_message_name
+        ),
       )
       .to_compile_error()
       .into()
@@ -69,18 +90,17 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   };
 
   let (validators, static_defs): (TokenStream2, TokenStream2) =
-    match extract_message_validators(&ast, &message_desc) {
+    match extract_message_validators(&input, &message_desc) {
       Ok((validators_data, static_defs)) => (validators_data, static_defs),
       Err(e) => return e.to_compile_error().into(),
     };
 
-  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
-  let struct_ident = &ast.ident;
+  let struct_ident = &input.ident;
 
   let output = quote! {
     #static_defs
 
-    #original_input_as_proc_macro2
+    #input
 
     impl #struct_ident {
       pub fn validate(&self) -> Result<(), ::protocheck::types::protovalidate::Violations> {
@@ -112,8 +132,6 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
       }
     }
   };
-
-  // eprintln!("{}", output);
 
   output.into()
 }

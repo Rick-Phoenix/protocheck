@@ -1,25 +1,13 @@
-use std::collections::HashSet;
-
-use proc_macro2::TokenStream;
-use prost_reflect::EnumDescriptor;
-use proto_types::protovalidate::ContainingRules;
-use quote::quote;
-use syn::Error;
-
-use super::protovalidate::EnumRules;
-use crate::{
-  rules::core::{get_field_error, invalid_lists_error},
-  validation_data::{ListRule, ValidationData},
-};
+use crate::*;
 
 pub fn get_enum_rules(
   enum_ident_str: String,
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   rules: &EnumRules,
-  static_defs: &mut TokenStream,
-) -> Result<TokenStream, Error> {
-  let mut tokens = TokenStream::new();
+  static_defs: &mut TokenStream2,
+) -> Result<TokenStream2, Error> {
+  let mut tokens = TokenStream2::new();
 
   let enum_name = enum_desc.name();
 
@@ -33,7 +21,7 @@ pub fn get_enum_rules(
   }
 
   if rules.defined_only() {
-    let enum_ident_tokens: TokenStream = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {} in field {}", field_type_ident, enum_name, field_name)) });
+    let enum_ident_tokens: TokenStream2 = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {} in field {}", field_type_ident, enum_name, field_name)) });
 
     let violations_ident = &validation_data.violations_ident;
     let field_context_ident = &validation_data.field_context_ident();

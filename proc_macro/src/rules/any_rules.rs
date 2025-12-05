@@ -1,18 +1,11 @@
-use proc_macro2::TokenStream;
-use proto_types::protovalidate::AnyRules;
-use syn::Error;
-
-use crate::{
-  rules::{core::invalid_lists_error, protovalidate::ContainingRules},
-  validation_data::{ListRule, ValidationData},
-};
+use crate::*;
 
 pub fn get_any_rules(
   validation_data: &ValidationData,
   rules: &AnyRules,
-  static_defs: &mut TokenStream,
-) -> Result<TokenStream, Error> {
-  let mut tokens = TokenStream::new();
+  static_defs: &mut TokenStream2,
+) -> Result<TokenStream2, Error> {
+  let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;

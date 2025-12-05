@@ -1,48 +1,33 @@
-use proc_macro2::TokenStream;
-use prost_reflect::{FieldDescriptor, Kind};
-use proto_types::{protovalidate::FieldRules, FieldType};
-use protocheck_core::field_data::FieldKind;
-use syn::Error;
-
-use super::{field_rules::Type as RulesType, Ignore};
-use crate::{
-  cel_rule_template::CelRuleTemplateTarget,
-  extract_validators::field_is_message,
-  rules::{
-    cel_rules::get_cel_rules_checked,
-    core::{convert_kind_to_proto_type, get_field_error, get_field_rules, get_field_type},
-  },
-  validation_data::{MapValidator, ValidationData},
-};
+use crate::*;
 
 pub fn get_map_rules(
   map_validation_data: &mut ValidationData,
-  validation_tokens: &mut TokenStream,
-  static_defs: &mut TokenStream,
+  validation_tokens: &mut TokenStream2,
+  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
 ) -> Result<(), Error> {
-  let mut map_level_rules = TokenStream::new();
-  let mut keys_rules = TokenStream::new();
-  let mut values_rules = TokenStream::new();
+  let mut map_level_rules = TokenStream2::new();
+  let mut keys_rules = TokenStream2::new();
+  let mut values_rules = TokenStream2::new();
 
   let field_span = map_validation_data.field_span;
   let field_name = map_validation_data.full_name;
 
-  let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
-  {
-    (
-      map_entry_message_desc.get_field_by_name("key"),
-      map_entry_message_desc.get_field_by_name("value"),
-    )
-  } else {
-    return Err(get_field_error(
-      field_name,
-      field_span,
-      "map field has no associated map entry message descriptor",
-    ));
-  };
+  let (key_desc, value_desc) =
+    if let ProstReflectKind::Message(map_entry_message_desc) = map_field_desc.kind() {
+      (
+        map_entry_message_desc.get_field_by_name("key"),
+        map_entry_message_desc.get_field_by_name("value"),
+      )
+    } else {
+      return Err(get_field_error(
+        field_name,
+        field_span,
+        "map field has no associated map entry message descriptor",
+      ));
+    };
 
   let (key_desc, value_desc) = (
     key_desc.ok_or(get_field_error(

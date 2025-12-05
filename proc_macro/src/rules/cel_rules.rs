@@ -1,39 +1,29 @@
+use crate::*;
+
 pub fn get_cel_rules_checked(
   rule_target: &CelRuleTemplateTarget,
   rules: &[Rule],
-  static_defs: &mut TokenStream,
-) -> Result<TokenStream, Error> {
+  static_defs: &mut TokenStream2,
+) -> Result<TokenStream2, Error> {
   if cfg!(feature = "cel") {
-    get_cel_rules(rule_target, rules, static_defs)
+    cel_validator::get_cel_rules(rule_target, rules, static_defs)
   } else {
     unimplemented!("Cannot use Cel validators without the 'cel' feature")
   }
 }
 
 #[cfg(feature = "cel")]
-mod cel {
-  use std::{collections::HashMap, sync::Arc};
-
+mod cel_validator {
   use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
-  use convert_case::{Case, Casing};
-  use proc_macro2::TokenStream;
-  use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
-  use proto_types::{Duration, Empty, FieldMask, FieldType, Timestamp};
-  use quote::quote;
-  use syn::Error;
 
-  use super::super::Rule;
-  use crate::{
-    cel_rule_template::CelRuleTemplateTarget, special_field_names::proto_name_to_rust_name,
-    validation_data::ValidationData, Ident2, Span2,
-  };
+  use crate::*;
 
   pub fn get_cel_rules(
     rule_target: &CelRuleTemplateTarget,
     rules: &[Rule],
-    static_defs: &mut TokenStream,
-  ) -> Result<TokenStream, Error> {
-    let mut tokens = TokenStream::new();
+    static_defs: &mut TokenStream2,
+  ) -> Result<TokenStream2, Error> {
+    let mut tokens = TokenStream2::new();
 
     let cel_value: CelValue = match rule_target {
       CelRuleTemplateTarget::Message { message_desc, .. } => {
@@ -277,11 +267,3 @@ mod cel {
     }
   }
 }
-
-#[cfg(feature = "cel")]
-pub use cel::*;
-use proc_macro2::TokenStream;
-use proto_types::protovalidate::Rule;
-use syn::Error;
-
-use crate::cel_rule_template::CelRuleTemplateTarget;

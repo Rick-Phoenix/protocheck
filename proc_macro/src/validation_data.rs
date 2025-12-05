@@ -1,25 +1,4 @@
-use std::{
-  cell::OnceCell,
-  fmt::{Debug, Display},
-};
-
-use convert_case::{Case, Casing};
-use proc_macro2::TokenStream;
-use prost_reflect::FieldDescriptor;
-use proto_types::{
-  protovalidate::{
-    ComparableGreaterThan, ComparableLessThan, ComparableRules, ConstRule, Ignore, ItemList,
-    LengthRules, SubstringRule, SubstringRules,
-  },
-  FieldType,
-};
-use protocheck_core::field_data::FieldKind;
-use quote::{format_ident, quote, ToTokens};
-
-use crate::{
-  rules::core::{get_field_type, get_plural_suffix},
-  Ident2, ProtoType, Span2,
-};
+use crate::*;
 
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData<'a> {
@@ -46,18 +25,18 @@ pub(crate) struct ValidationData<'a> {
   pub map_value_context_ident: &'a Ident2,
   pub vec_item_context_ident: &'a Ident2,
   pub field_kind: FieldKind,
-  pub value_ident: OnceCell<TokenStream>,
+  pub value_ident: OnceCell<TokenStream2>,
 }
 
 pub struct RepeatedValidator {
-  pub vec_level_rules: TokenStream,
-  pub items_rules: TokenStream,
+  pub vec_level_rules: TokenStream2,
+  pub items_rules: TokenStream2,
 }
 
 pub struct MapValidator {
-  pub map_level_rules: TokenStream,
-  pub keys_rules: TokenStream,
-  pub values_rules: TokenStream,
+  pub map_level_rules: TokenStream2,
+  pub keys_rules: TokenStream2,
+  pub values_rules: TokenStream2,
 }
 
 pub enum ListRule {
@@ -83,7 +62,7 @@ impl ValidationData<'_> {
       .to_uppercase()
   }
 
-  pub fn get_substring_validator(&self, tokens: &mut TokenStream, rules: SubstringRules) {
+  pub fn get_substring_validator(&self, tokens: &mut TokenStream2, rules: SubstringRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
     let validator_type_ident = format_ident!("{}", self.field_kind.inner_type().name());
@@ -137,7 +116,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_length_validator(&self, tokens: &mut TokenStream, rules: LengthRules) {
+  pub fn get_length_validator(&self, tokens: &mut TokenStream2, rules: LengthRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
     let validator_type_ident = format_ident!("{}", rules.name());
@@ -194,8 +173,8 @@ impl ValidationData<'_> {
 
   pub fn get_regex_validator(
     &self,
-    tokens: &mut TokenStream,
-    static_defs: &mut TokenStream,
+    tokens: &mut TokenStream2,
+    static_defs: &mut TokenStream2,
     regex: &str,
   ) {
     let value_ident = self.value_ident();
@@ -219,7 +198,7 @@ impl ValidationData<'_> {
 
   pub fn get_comparable_validator<T>(
     &self,
-    tokens: &mut TokenStream,
+    tokens: &mut TokenStream2,
     comparable_rules: &ComparableRules<T>,
   ) where
     T: ToTokens + Display + PartialEq + PartialOrd + Debug,
@@ -279,9 +258,9 @@ impl ValidationData<'_> {
   pub fn get_list_validator(
     &self,
     rule_type: ListRule,
-    tokens: &mut TokenStream,
+    tokens: &mut TokenStream2,
     list: ItemList,
-    static_defs: &mut TokenStream,
+    static_defs: &mut TokenStream2,
   ) {
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
@@ -324,7 +303,7 @@ impl ValidationData<'_> {
     &self,
     field_kind: FieldKind,
     field_context_ident: &Ident2,
-  ) -> TokenStream {
+  ) -> TokenStream2 {
     let Self {
       parent_messages_ident,
       proto_name,
@@ -355,7 +334,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn aggregate_map_rules(&self, tokens: &mut TokenStream, rules_data: &MapValidator) {
+  pub fn aggregate_map_rules(&self, tokens: &mut TokenStream2, rules_data: &MapValidator) {
     let MapValidator {
       map_level_rules,
       keys_rules,
@@ -457,7 +436,7 @@ impl ValidationData<'_> {
     items_validation_data
   }
 
-  pub fn aggregate_vec_rules(&self, tokens: &mut TokenStream, rules_data: &RepeatedValidator) {
+  pub fn aggregate_vec_rules(&self, tokens: &mut TokenStream2, rules_data: &RepeatedValidator) {
     let RepeatedValidator {
       vec_level_rules,
       items_rules,
@@ -495,7 +474,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn get_const_validator<T>(&self, tokens: &mut TokenStream, rule: ConstRule<T>)
+  pub fn get_const_validator<T>(&self, tokens: &mut TokenStream2, rule: ConstRule<T>)
   where
     T: ToTokens,
   {
@@ -513,7 +492,7 @@ impl ValidationData<'_> {
 
   pub fn get_message_field_validator_tokens(
     &self,
-    tokens: &mut TokenStream,
+    tokens: &mut TokenStream2,
     field_kind: FieldKind,
   ) {
     let Self {
@@ -563,7 +542,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn get_required_validation_tokens(&self) -> Option<TokenStream> {
+  pub fn get_required_validation_tokens(&self) -> Option<TokenStream2> {
     self.is_required.then(|| {
       let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
       let field_context_ident = self.field_context_ident();
@@ -576,7 +555,7 @@ impl ValidationData<'_> {
     }})
   }
 
-  pub fn get_required_only_validator(&self, tokens: &mut TokenStream) {
+  pub fn get_required_only_validator(&self, tokens: &mut TokenStream2) {
     let item_rust_ident = &self.item_rust_ident;
     let required_validation_tokens = self.get_required_validation_tokens();
 
@@ -587,7 +566,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn get_aggregated_validator_tokens(&self, validators: TokenStream) -> TokenStream {
+  pub fn get_aggregated_validator_tokens(&self, validators: TokenStream2) -> TokenStream2 {
     let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
     let required_check = self.get_required_validation_tokens();
     let field_ident = self.item_rust_ident;
@@ -622,7 +601,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn wrap_with_default_value_check(&self, validators: TokenStream) -> TokenStream {
+  pub fn wrap_with_default_value_check(&self, validators: TokenStream2) -> TokenStream2 {
     let value_ident = self.value_ident();
 
     let default_check = match self.field_kind.inner_type() {
@@ -641,8 +620,8 @@ impl ValidationData<'_> {
 
   pub fn get_validator_tokens(
     &self,
-    tokens: &mut TokenStream,
-    validator_expression_tokens: &TokenStream,
+    tokens: &mut TokenStream2,
+    validator_expression_tokens: &TokenStream2,
   ) {
     let violations_ident = &self.violations_ident;
 
@@ -658,7 +637,7 @@ impl ValidationData<'_> {
     self.is_optional && !self.is_in_oneof
   }
 
-  pub fn subscript_tokens(&self, field_kind: FieldKind) -> TokenStream {
+  pub fn subscript_tokens(&self, field_kind: FieldKind) -> TokenStream2 {
     match field_kind {
       FieldKind::RepeatedItem(_) => {
         let index_ident = self.index_ident;
@@ -676,7 +655,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn value_ident(&self) -> &TokenStream {
+  pub fn value_ident(&self) -> &TokenStream2 {
     let Self {
       item_rust_ident,
       map_key_ident: key_ident,
@@ -732,7 +711,7 @@ impl ValidationData<'_> {
   }
 }
 
-fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream {
+fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident2) -> TokenStream2 {
   let subscript_path = quote! { ::protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {

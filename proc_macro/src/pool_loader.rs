@@ -1,6 +1,6 @@
-use std::{fs, sync::LazyLock};
+use std::fs;
 
-use prost_reflect::{DescriptorPool, ExtensionDescriptor};
+use crate::*;
 
 pub static DESCRIPTOR_POOL: LazyLock<DescriptorPool> = LazyLock::new(|| {
   let descriptor_set_path = std::env::var("PROTO_DESCRIPTOR_SET")
