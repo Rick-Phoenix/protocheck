@@ -19,7 +19,7 @@ shared-version = true
 
 [workspace.package]
 version = "0.1.11"
-license = "Apache-2.0"
+license = "MPL-2.0"
 authors = ["Rick-Phoenix <https://github.com/Rick-Phoenix>"]
 description = "Core logic and validators for protocheck."
 keywords = ["validation", "protobuf", "cel", "validator", "proto"]

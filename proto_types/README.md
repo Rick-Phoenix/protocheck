@@ -119,3 +119,7 @@ Enabled with the `rpc` flag:
 - [`HttpRequest`]
 - [`HttpResponse`]
 - [`HttpHeader`]
+
+# 📜 License
+
+Licensed under MPL-2.0.

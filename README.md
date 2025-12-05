@@ -227,3 +227,7 @@ Check out [this repo](https://github.com/Rick-Phoenix/protocheck-tonic-svelte-ex
 - The types for the well known protobuf messages must be imported from [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html) (re-exported in this crate in the [`types`] module). These are based on the [`prost-types`](https://docs.rs/prost-types/0.14.1/prost_types/) implementation, with some extra helpers and methods that make validation smoother or even possible at all in some cases. 
 
      [`compile_protos_with_validators`](https://docs.rs/protocheck-build/0.1.0/protocheck_build/fn.compile_protos_with_validators.html) automatically takes care of calling [`compile_well_known_types`](https://docs.rs/prost-build/latest/prost_build/struct.Config.html#method.compile_well_known_types) and assigning all of the `.google.protobuf` types to the ones defined in [`proto-types`](https://docs.rs/proto-types/0.1.0/proto_types/index.html). The same thing goes for the types belonging to the [`protovalidate`](https://docs.rs/proto-types/0.1.0/proto_types/protovalidate/index.html) specification.
+
+# 📜 License
+
+Licensed under the MPL-2.0 license.
