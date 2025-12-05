@@ -19,7 +19,7 @@ chrono = { workspace = true }
 maplit = { workspace = true }
 
 [build-dependencies]
-protoschema = { path = "../../protoschema/protoschema/", features = [
+protoschema = { version = "0.1.9", path = "../../protoschema-legacy/protoschema", features = [
   "common_types",
   "rpc_types",
 ] }

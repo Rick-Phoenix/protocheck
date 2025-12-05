@@ -79,10 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let proto_include_paths = &["proto", "proto_deps"];
 
-  let mut files = get_proto_files_recursive(&PathBuf::from("proto/myapp/v1"))?;
-  files.extend(get_proto_files_recursive(&PathBuf::from(
-    "proto_deps/google",
-  ))?);
+  let files = get_proto_files_recursive(PathBuf::from("proto/myapp/v1"))?;
 
   let mut config = Config::new();
   config
