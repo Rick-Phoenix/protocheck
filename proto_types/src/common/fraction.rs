@@ -198,11 +198,7 @@ impl Fraction {
   ///
   /// For a fallible conversion that returns a `Result`, use `TryFrom<Fraction> for f64`.
   pub fn to_f64_unchecked(self) -> f64 {
-    // We can directly call the TryFrom implementation
-    self.try_into().unwrap_or_else(|e| {
-      // If you want a more specific panic message:
-      panic!("Failed to convert Fraction to f64: {:?}", e)
-    })
+    self.try_into().unwrap()
   }
 }
 
