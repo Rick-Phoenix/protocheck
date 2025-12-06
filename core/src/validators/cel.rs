@@ -32,54 +32,49 @@ where
     ..
   } = rule;
 
-  let error_prefix = format!(
-    "Error during Cel validation for field {}:",
-    field_context.proto_name
-  );
-
   let mut cel_context = Context::default();
   cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
 
   cel_context.add_variable_from_value("this", value);
 
-  let result = program.execute(&cel_context);
+  let result = program.execute(&cel_context).map_err(|e| {
+    eprintln!(
+      "Error during Cel validation for field {}: {e}",
+      field_context.proto_name
+    );
 
-  match result {
-    Ok(value) => {
-      if let CelValue::Bool(bool_value) = value {
-        if bool_value {
-          Ok(())
-        } else {
-          Err(create_violation(
-            field_context,
-            &CEL_VIOLATION,
-            rule_id,
-            error_message,
-          ))
-        }
-      } else {
-        eprintln!(
-          "{} expected boolean result from expression, got `{:?}`",
-          error_prefix,
-          value.type_of()
-        );
-        Err(create_violation(
-          field_context,
-          &CEL_VIOLATION,
-          "internal server error",
-          "internal server error",
-        ))
-      }
-    }
-    Err(e) => {
-      eprintln!("{} {:?}", error_prefix, e);
+    create_violation(
+      field_context,
+      &CEL_VIOLATION,
+      "internal server error",
+      "internal server error",
+    )
+  })?;
+
+  if let CelValue::Bool(bool_value) = result {
+    if bool_value {
+      Ok(())
+    } else {
       Err(create_violation(
         field_context,
         &CEL_VIOLATION,
-        "internal server error",
-        "internal server error",
+        rule_id,
+        error_message,
       ))
     }
+  } else {
+    eprintln!(
+      "Error during Cel validation for field {}: expected boolean result from expression, got `{:?}`",
+      field_context.proto_name,
+      result.type_of()
+    );
+
+    Err(create_violation(
+      field_context,
+      &CEL_VIOLATION,
+      "internal server error",
+      "internal server error",
+    ))
   }
 }
 
@@ -127,58 +122,54 @@ where
     item_full_name: message_name,
   } = rule;
 
-  let error_prefix = format!("Error during Cel validation for message {}:", message_name);
-
   let mut cel_context = Context::default();
   cel_context.add_variable_from_value("now", CelValue::Timestamp(Utc::now().into()));
 
-  let cel_conversion: Result<CelValue, CelConversionError> = value.try_into();
+  let cel_val: CelValue = value.try_into().map_err(|e| {
+    eprintln!(
+      "Error during Cel validation for message {message_name}: could not convert message to Cel value: {e}"
+    );
 
-  match cel_conversion {
-    Ok(cel_val) => {
-      cel_context.add_variable_from_value("this", cel_val);
-      let result = program.execute(&cel_context);
+    create_cel_message_violation(
+      "internal_server_error",
+      "internal server error",
+      parent_elements,
+    )
+  })?;
 
-      match result {
-        Ok(value) => {
-          if let CelValue::Bool(bool_value) = value {
-            if bool_value {
-              Ok(())
-            } else {
-              Err(create_cel_message_violation(
-                rule_id,
-                error_message,
-                parent_elements,
-              ))
-            }
-          } else {
-            eprintln!(
-              "{} expected boolean result from expression, got `{:?}`",
-              error_prefix,
-              value.type_of()
-            );
-            Err(create_cel_message_violation(
-              "internal_server_error",
-              "internal server error",
-              parent_elements,
-            ))
-          }
-        }
-        Err(e) => {
-          eprintln!("{} program failed to compile: {:?}", error_prefix, e);
+  cel_context.add_variable_from_value("this", cel_val);
+  let result = program.execute(&cel_context);
+
+  match result {
+    Ok(value) => {
+      if let CelValue::Bool(bool_value) = value {
+        if bool_value {
+          Ok(())
+        } else {
           Err(create_cel_message_violation(
-            "internal_server_error",
-            "internal server error",
+            rule_id,
+            error_message,
             parent_elements,
           ))
         }
+      } else {
+        eprintln!(
+          "Error during Cel validation for message {message_name}: expected boolean result from expression, got `{:?}`",
+          value.type_of()
+        );
+
+        Err(create_cel_message_violation(
+          "internal_server_error",
+          "internal server error",
+          parent_elements,
+        ))
       }
     }
     Err(e) => {
       eprintln!(
-        "{} could not convert message to Cel value: {:?}",
-        error_prefix, e
+        "Error during Cel validation for message {message_name}: program failed to compile: {e}",
       );
+
       Err(create_cel_message_violation(
         "internal_server_error",
         "internal server error",
