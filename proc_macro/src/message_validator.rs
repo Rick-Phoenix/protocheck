@@ -9,17 +9,19 @@ pub fn extract_message_validators(
   let mut validators: TokenStream2 = TokenStream2::new();
   let mut static_defs: TokenStream2 = TokenStream2::new();
 
-  let mut rust_field_spans: HashMap<String, Span2> = HashMap::new();
+  let mut rust_field_spans: HashMap<String, Span> = HashMap::new();
   // <Field name, Enum name>
   let mut enum_fields: HashMap<String, String> = HashMap::new();
 
   for field in fields {
     if let Some(ident) = &field.ident {
-      for attr in &field.attrs {
-        if attr.path().is_ident("prost") {
-          if let Some(enum_path) = attr.parse_args::<ProstAttrData>()?.enum_path {
-            enum_fields.insert(ident.to_string(), enum_path);
-          }
+      for attr in field
+        .attrs
+        .iter()
+        .filter(|attr| attr.path().is_ident("prost"))
+      {
+        if let Some(enum_path) = attr.parse_args::<ProstAttrData>()?.enum_path {
+          enum_fields.insert(ident.to_string(), enum_path);
         }
       }
 
@@ -30,8 +32,8 @@ pub fn extract_message_validators(
   let message_options = message_desc.options();
   let message_rules_descriptor = message_options.get_extension(&MESSAGE_RULES_EXT_DESCRIPTOR);
 
-  let violations_ident = format_ident!("violations");
-  let parent_messages_ident = format_ident!("parent_messages");
+  let violations_ident = new_ident("violations");
+  let parent_messages_ident = new_ident("parent_messages");
 
   // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
@@ -44,6 +46,7 @@ pub fn extract_message_validators(
           message_desc,
           parent_messages_ident: parent_messages_ident.clone(),
           violations_ident: violations_ident.clone(),
+          struct_span: item.span(),
         },
         &message_rules.cel,
         &mut static_defs,
@@ -94,19 +97,19 @@ pub fn extract_message_validators(
     let mut field_validators = TokenStream2::new();
 
     let item_rust_ident = proto_name_to_rust_ident(field_proto_name);
-    let field_context_ident = format_ident!("field_context");
-    let index_ident = format_ident!("idx");
-    let item_ident = format_ident!("item");
-    let key_ident = format_ident!("key");
-    let map_value_ident = format_ident!("val");
-    let map_key_context_ident = format_ident!("key_context");
-    let map_value_context_ident = format_ident!("value_context");
-    let vec_item_context_ident = format_ident!("item_context");
+    let field_context_ident = new_ident("field_context");
+    let index_ident = new_ident("idx");
+    let item_ident = new_ident("item");
+    let key_ident = new_ident("key");
+    let map_value_ident = new_ident("val");
+    let map_key_context_ident = new_ident("key_context");
+    let map_value_context_ident = new_ident("value_context");
+    let vec_item_context_ident = new_ident("item_context");
 
     let field_span = rust_field_spans
       .get(field_rust_name.as_ref())
       .cloned()
-      .unwrap_or_else(Span2::call_site);
+      .unwrap_or_else(Span::call_site);
 
     let field_rust_enum = enum_fields.get(field_rust_name.as_ref()).cloned();
 
@@ -193,6 +196,7 @@ pub fn extract_message_validators(
             &CelRuleTemplateTarget::Field {
               field_desc: &field,
               validation_data: &validation_data,
+              field_span,
             },
             &field_rules.cel,
             &mut static_defs,

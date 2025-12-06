@@ -28,19 +28,20 @@ mod cel_validator {
     let cel_value: CelValue = match rule_target {
       CelRuleTemplateTarget::Message { message_desc, .. } => {
         let dyn_message = DynamicMessage::new((*message_desc).clone());
-        convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
+        convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message))?
       }
       CelRuleTemplateTarget::Field {
         field_desc,
         validation_data,
         ..
-      } => get_default_field_prost_value(validation_data, field_desc).unwrap(),
+      } => get_default_field_prost_value(validation_data, field_desc)?,
     };
 
     let validation_type = rule_target.get_validation_type();
     let target_name = rule_target.get_full_name();
 
-    let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
+    let compilation_error_msg =
+      format!("Cel program error for {} {}", validation_type, target_name);
 
     let (parent_messages_ident, violations_ident) = rule_target.get_idents();
 
@@ -48,10 +49,10 @@ mod cel_validator {
       let program = match Program::compile(rule.expression()) {
         Ok(prog) => prog,
         Err(e) => {
-          return Err(syn::Error::new(
-            Span2::call_site(),
-            format!("{} failed to compile: {}", error_prefix, e),
-          ))
+          bail_spanned!(
+            rule_target.span(),
+            format!("{compilation_error_msg}: failed to compile: {e}")
+          );
         }
       };
 
@@ -66,23 +67,15 @@ mod cel_validator {
             let error_message = rule.message().to_string();
             let rule_id = rule.id().to_string();
 
-            let static_program_ident = Ident::new(
-              &format!(
-                "__CEL_PROGRAM_{}_{}",
-                target_name.to_case(Case::UpperSnake),
-                index
-              ),
-              Span2::call_site(),
-            );
-
-            let compilation_error = format!(
-              "Cel program failed to compile for {} {}",
-              validation_type, target_name,
-            );
+            let static_program_ident = new_ident(&format!(
+              "__CEL_PROGRAM_{}_{}",
+              target_name.to_case(Case::UpperSnake),
+              index
+            ));
 
             static_defs.extend(quote! {
             static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
-              protocheck::cel::Program::compile(#expression).expect(#compilation_error)
+              protocheck::cel::Program::compile(#expression).expect(#compilation_error_msg)
             });
           });
 
@@ -134,6 +127,7 @@ mod cel_validator {
 
                 tokens.extend(validator_tokens);
               }
+
               CelRuleTemplateTarget::Message { .. } => {
                 let validator_tokens = quote! {
                   let rule = #rule_tokens;
@@ -148,21 +142,20 @@ mod cel_validator {
               }
             };
           } else {
-            return Err(Error::new(
-              Span2::call_site(),
+            bail_spanned!(
+              rule_target.span(),
               format!(
-                "{} expected boolean, got {}",
-                error_prefix,
+                "{compilation_error_msg}: expected boolean, got {}",
                 result.type_of()
-              ),
-            ));
+              )
+            );
           }
         }
         Err(e) => {
-          return Err(syn::Error::new(
-            Span2::call_site(),
-            format!("{} failed execution: {}", error_prefix, e),
-          ))
+          bail_spanned!(
+            rule_target.span(),
+            format!("{compilation_error_msg}: failed execution: {e}"),
+          );
         }
       };
     }
@@ -209,10 +202,12 @@ mod cel_validator {
           .iter()
           .map(convert_prost_value_to_cel_value)
           .collect();
+
         Ok(CelValue::List(Arc::new(cel_elements?)))
       }
       ProstValue::Map(map_values) => {
         let mut cel_map = HashMap::new();
+
         for (key, val) in map_values.iter() {
           let cel_key = match key {
             prost_reflect::MapKey::String(s) => CelKey::String(Arc::new(s.clone())),
@@ -223,8 +218,10 @@ mod cel_validator {
             prost_reflect::MapKey::Bool(v) => CelKey::Bool(*v),
           };
           let cel_val = convert_prost_value_to_cel_value_recursive(val, depth + 1)?;
+
           cel_map.insert(cel_key, cel_val);
         }
+
         Ok(CelValue::Map(cel_map.into()))
       }
       ProstValue::Message(dynamic_msg) => {
@@ -244,7 +241,9 @@ mod cel_validator {
             if depth >= MAX_RECURSION_DEPTH {
               return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));
             }
+
             let mut cel_map = HashMap::new();
+
             for field in msg_desc.fields() {
               if field.containing_oneof().is_some() {
                 continue;
@@ -252,14 +251,18 @@ mod cel_validator {
 
               let actual_field_name_with_potential_escaping =
                 proto_name_to_rust_name(field.name()).to_string();
+
               let cel_field_name =
                 CelKey::String(Arc::new(actual_field_name_with_potential_escaping));
+
               let cel_field_value = convert_prost_value_to_cel_value_recursive(
                 &ProstValue::default_value(&field.kind()),
                 depth + 1,
               )?;
+
               cel_map.insert(cel_field_name, cel_field_value);
             }
+
             Ok(CelValue::Map(cel_map.into()))
           }
         }

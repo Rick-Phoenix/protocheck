@@ -1,3 +1,9 @@
+macro_rules! bail_spanned {
+  ($span:expr, $($tokens:tt)*) => {
+    return Err(syn::Error::new($span, $($tokens)*))
+  };
+}
+
 macro_rules! bail {
   ($item:expr, $($tokens:tt)*) => {
     return Err(syn::Error::new_spanned($item, $($tokens)*))

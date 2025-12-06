@@ -5,7 +5,7 @@ struct OneofField {
   pub ident: Ident,
   pub proto_name: String,
   pub enum_ident: Option<String>,
-  pub span: Span2,
+  pub span: Span,
 }
 
 #[derive(Debug)]
@@ -82,7 +82,7 @@ pub fn extract_oneof_validators(
       span: field_span,
       ..
     } = fields_data.get(field.name()).cloned().ok_or(Error::new(
-      Span2::call_site(),
+      Span::call_site(),
       format!(
         "Could not process the data for field {} in oneof {}. Is proto_name set correctly?",
         field.name(),
@@ -110,17 +110,17 @@ pub fn extract_oneof_validators(
 
       let field_name = field.name();
 
-      let item_rust_ident = Ident::new(field.name(), Span2::call_site());
-      let field_context_ident = format_ident!("field_context");
-      let index_ident = format_ident!("idx");
-      let item_ident = format_ident!("item");
-      let key_ident = format_ident!("key");
-      let map_value_ident = format_ident!("val");
-      let violations_ident = format_ident!("violations");
-      let parent_messages_ident = format_ident!("parent_messages");
-      let map_key_context_ident = format_ident!("key_context");
-      let map_value_context_ident = format_ident!("value_context");
-      let vec_item_context_ident = format_ident!("item_context");
+      let item_rust_ident = new_ident(field.name());
+      let field_context_ident = new_ident("field_context");
+      let index_ident = new_ident("idx");
+      let item_ident = new_ident("item");
+      let key_ident = new_ident("key");
+      let map_value_ident = new_ident("val");
+      let violations_ident = new_ident("violations");
+      let parent_messages_ident = new_ident("parent_messages");
+      let map_key_context_ident = new_ident("key_context");
+      let map_value_context_ident = new_ident("value_context");
+      let vec_item_context_ident = new_ident("item_context");
 
       let validation_data = ValidationData {
         full_name: field.full_name(),
@@ -154,6 +154,7 @@ pub fn extract_oneof_validators(
           &CelRuleTemplateTarget::Field {
             field_desc: &field,
             validation_data: &validation_data,
+            field_span,
           },
           &field_rules.cel,
           &mut static_defs,

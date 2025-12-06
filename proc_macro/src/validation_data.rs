@@ -10,9 +10,13 @@ pub(crate) struct ValidationData<'a> {
   pub is_optional: bool,
   pub is_in_oneof: bool,
   pub is_boxed: bool,
-  pub field_span: Span2,
+  pub field_span: Span,
+
+  // These two are always needed to populate
+  // the protovalidate data, for all types
   pub map_keys_type: Option<ProtoType>,
   pub map_values_type: Option<ProtoType>,
+
   pub map_key_ident: &'a Ident,
   pub map_value_ident: &'a Ident,
   pub index_ident: &'a Ident,
@@ -214,16 +218,17 @@ impl ValidationData<'_> {
           val: lt,
           error_message,
         } => {
-          let func_ident = format_ident!("{}_lt", proto_type_name);
+          let func_ident = format_ident!("{proto_type_name}_lt");
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
+
         ComparableLessThan::Lte {
           val: lte,
           error_message,
         } => {
-          let func_ident = format_ident!("{}_lte", proto_type_name);
+          let func_ident = format_ident!("{proto_type_name}_lte");
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
@@ -237,7 +242,7 @@ impl ValidationData<'_> {
           val: gt,
           error_message,
         } => {
-          let func_ident = format_ident!("{}_gt", proto_type_name);
+          let func_ident = format_ident!("{proto_type_name}_gt");
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
@@ -246,7 +251,7 @@ impl ValidationData<'_> {
           val: gte,
           error_message,
         } => {
-          let func_ident = format_ident!("{}_gte", proto_type_name);
+          let func_ident = format_ident!("{proto_type_name}_gte");
 
           let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
@@ -274,7 +279,7 @@ impl ValidationData<'_> {
         error_message,
         tokens: list_tokens,
       } => {
-        let func_path = format_ident!("{}_{}_slice_list", proto_type_name, rule_name);
+        let func_path = format_ident!("{proto_type_name}_{rule_name}_slice_list");
         let expr = quote! {
           #module_path::#func_path(&#field_context_ident, #value_ident, &#list_tokens, #error_message)
         };
@@ -286,7 +291,7 @@ impl ValidationData<'_> {
         tokens: hashset_tokens,
         static_ident,
       } => {
-        let func_path = format_ident!("{}_{}_hashset_list", proto_type_name, rule_name);
+        let func_path = format_ident!("{proto_type_name}_{rule_name}_hashset_list");
 
         static_defs.extend(hashset_tokens);
 
@@ -311,13 +316,19 @@ impl ValidationData<'_> {
       ..
     } = self;
 
-    let key_type_tokens = self.map_keys_type.map_or(quote! { None }, |key_type| {
-      quote! { Some(#key_type) }
-    });
+    let key_type_tokens = self.map_keys_type.map_or_else(
+      || quote! { None },
+      |key_type| {
+        quote! { Some(#key_type) }
+      },
+    );
 
-    let value_type_tokens = self.map_values_type.map_or(quote! { None }, |value_type| {
-      quote! { Some(#value_type) }
-    });
+    let value_type_tokens = self.map_values_type.map_or_else(
+      || quote! { None },
+      |value_type| {
+        quote! { Some(#value_type) }
+      },
+    );
 
     let subscript_tokens = self.subscript_tokens(field_kind);
 
@@ -341,14 +352,19 @@ impl ValidationData<'_> {
       values_rules,
     } = rules_data;
 
+    // At this point, the rules have already been gathered, all we do here
+    // is simply injecting the context for the keys/values/map so that
+    // the validators can refer to them
+
     let has_map_level_rules = !map_level_rules.is_empty();
+
+    let map_level_context_tokens = has_map_level_rules
+      .then(|| self.field_context_tokens(self.field_kind, self.field_context_ident));
+
     let has_keys_rules = !keys_rules.is_empty();
     let has_values_rules = !values_rules.is_empty();
 
     let has_loop = has_keys_rules || has_values_rules;
-
-    let map_level_context_tokens = has_map_level_rules
-      .then(|| self.field_context_tokens(self.field_kind, self.field_context_ident));
 
     let keys_context_tokens = has_keys_rules.then(|| {
       let keys_proto_type = self.map_keys_type.unwrap_or_else(|| {
@@ -357,6 +373,7 @@ impl ValidationData<'_> {
           self.full_name
         )
       });
+
       self.field_context_tokens(
         FieldKind::MapKey(keys_proto_type.into()),
         self.map_key_context_ident,
@@ -370,6 +387,7 @@ impl ValidationData<'_> {
           self.full_name
         )
       });
+
       self.field_context_tokens(
         FieldKind::MapValue(values_proto_type.into()),
         self.map_value_context_ident,
@@ -384,10 +402,9 @@ impl ValidationData<'_> {
       quote! {
         for (#key_ident, #map_value_ident) in self.#field_ident.iter() {
           #keys_context_tokens
-          #values_context_tokens
-
           #keys_rules
 
+          #values_context_tokens
           #values_rules
         }
       }
@@ -402,13 +419,14 @@ impl ValidationData<'_> {
   }
 
   pub fn field_context_ident(&self) -> &Ident {
+    // These must be different because a map might have validators for keys, values and
+    // for the map as a whole, with separate contexts
+
     match self.field_kind {
+      FieldKind::Single(_) | FieldKind::Repeated(_) | FieldKind::Map(_) => self.field_context_ident,
       FieldKind::RepeatedItem(_) => self.vec_item_context_ident,
       FieldKind::MapKey(_) => self.map_key_context_ident,
       FieldKind::MapValue(_) => self.map_value_context_ident,
-      FieldKind::Single(_) => self.field_context_ident,
-      FieldKind::Map(_) => self.field_context_ident,
-      FieldKind::Repeated(_) => self.field_context_ident,
     }
   }
 
@@ -441,6 +459,9 @@ impl ValidationData<'_> {
       vec_level_rules,
       items_rules,
     } = rules_data;
+
+    // Validators are already aggregated here, we just inject the context for the
+    // vec or its items, and the surrounding loop
 
     let has_loop = !items_rules.is_empty();
     let has_vec_level_rules = !vec_level_rules.is_empty();
@@ -479,7 +500,7 @@ impl ValidationData<'_> {
     T: ToTokens,
   {
     let proto_type_name = self.field_kind.inner_type().name();
-    let func_ident = format_ident!("{}_const", proto_type_name);
+    let func_ident = format_ident!("{proto_type_name}_const");
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
 
@@ -505,6 +526,8 @@ impl ValidationData<'_> {
     let field_tag = self.tag;
     let field_proto_type: ProtoType = self.field_kind.inner_type().into();
 
+    // Not using self.value_ident() on purpose here
+    // because we don't care about box or refs here, it's always a ref anyway
     let value_ident = match field_kind {
       FieldKind::RepeatedItem(_) => self.item_ident,
       FieldKind::MapKey(_) => self.map_key_ident,
@@ -512,11 +535,13 @@ impl ValidationData<'_> {
       _ => &format_ident!("val"),
     };
 
-    let key_type = self
+    // These are not part of the FieldContext but of FieldPathElement
+    // so they need to be cast as integers
+    let field_key_type = self
       .map_keys_type
       .map_or(quote! { None }, |k| quote! { Some(#k as i32) });
 
-    let value_type = self
+    let field_value_type = self
       .map_values_type
       .map_or(quote! { None }, |v| quote! { Some(#v as i32) });
 
@@ -527,8 +552,8 @@ impl ValidationData<'_> {
         field_name: Some(#field_proto_name.to_string()),
         field_number: Some(#field_tag as i32),
         field_type: Some(#field_proto_type as i32),
-        key_type: #key_type,
-        value_type: #value_type,
+        key_type: #field_key_type,
+        value_type: #field_value_type,
         subscript: #subscript_tokens,
       };
     };
@@ -549,10 +574,11 @@ impl ValidationData<'_> {
       let violations_ident = &self.violations_ident;
 
       quote! {
-      #field_context_tokens
-      let required_violation = ::protocheck::validators::required::required(&#field_context_ident);
-      #violations_ident.push(required_violation);
-    }})
+        #field_context_tokens
+        let required_violation = ::protocheck::validators::required::required(&#field_context_ident);
+        #violations_ident.push(required_violation);
+      }
+    })
   }
 
   pub fn get_required_only_validator(&self, tokens: &mut TokenStream2) {
@@ -643,12 +669,19 @@ impl ValidationData<'_> {
         let index_ident = self.index_ident;
         quote! { Some(::protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
+
       FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
-        if let Some(key_type_enum) = self.map_keys_type {
-          let key_subscript_tokens = generate_key_subscript(&key_type_enum, self.map_key_ident);
+        if let Some(key_type) = self.map_keys_type {
+          let key_subscript_tokens = generate_key_subscript(&key_type, self.map_key_ident);
           quote! { Some(#key_subscript_tokens) }
         } else {
-          quote! { compile_error!("Map key type is missing during macro expansion.") }
+          let error = Error::new(
+            self.field_span,
+            "Map key type is missing during macro expansion.",
+          )
+          .to_compile_error();
+
+          quote! { #error }
         }
       }
       _ => quote! { None },
@@ -663,6 +696,7 @@ impl ValidationData<'_> {
       item_ident,
       ..
     } = self;
+
     self.value_ident.get_or_init(|| {
       if self.is_boxed {
         return quote! { *val };
@@ -716,22 +750,20 @@ fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident) -> Toke
 
   match key_proto_type {
     ProtoType::String => quote! { #subscript_path::StringKey(#key_ident.clone().into()) },
-    ProtoType::Uint64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
-    ProtoType::Uint32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
-    ProtoType::Int64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Int32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Fixed64 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
-    ProtoType::Fixed32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
-    ProtoType::Sfixed64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Sfixed32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Sint64 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Sint32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
-    ProtoType::Bool => quote! { #subscript_path::BoolKey(#key_ident.clone().into()) },
+
+    ProtoType::Uint64 | ProtoType::Uint32 | ProtoType::Fixed64 | ProtoType::Fixed32 => quote! { #subscript_path::UintKey(#key_ident.clone().into()) },
+
+    ProtoType::Int64 | ProtoType::Int32 | ProtoType::Sfixed64 | ProtoType::Sfixed32 | ProtoType::Sint64 | ProtoType::Sint32 => quote! { #subscript_path::IntKey(#key_ident.clone().into()) },
+
+    ProtoType::Bool => quote! { #subscript_path::BoolKey(#key_ident) },
 
     _ => {
-      quote! { compile_error!(format!("Unsupported Protobuf type {:?} for map key. Only integral, string, and bool types are allowed.",
-          key_proto_type
-      )) }
+      Error::new_spanned(
+        key_ident,
+        format!("Unsupported Protobuf type {key_proto_type:?} for map key. Only integer, string, and bool types are allowed."
+      ))
+        .into_compile_error()
+        .into_token_stream()
     }
   }
 }

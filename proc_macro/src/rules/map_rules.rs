@@ -57,6 +57,7 @@ pub fn get_map_rules(
       &CelRuleTemplateTarget::Field {
         field_desc: map_field_desc,
         validation_data: map_validation_data,
+        field_span: map_validation_data.field_span,
       },
       &field_rules.cel,
       static_defs,
@@ -94,6 +95,7 @@ pub fn get_map_rules(
             &CelRuleTemplateTarget::Field {
               validation_data: &keys_validation_data,
               field_desc: &key_desc,
+              field_span: map_validation_data.field_span,
             },
             &keys_rules_descriptor.cel,
             static_defs,
@@ -128,6 +130,7 @@ pub fn get_map_rules(
             &CelRuleTemplateTarget::Field {
               validation_data: &values_validation_data,
               field_desc: &value_desc,
+              field_span: map_validation_data.field_span,
             },
             &values_rules_descriptor.cel,
             static_defs,

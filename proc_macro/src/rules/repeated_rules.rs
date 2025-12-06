@@ -24,6 +24,7 @@ pub fn get_repeated_rules(
       &CelRuleTemplateTarget::Field {
         field_desc,
         validation_data,
+        field_span: validation_data.field_span,
       },
       &field_rules.cel,
       static_defs,
@@ -106,6 +107,7 @@ pub fn get_repeated_rules(
             &CelRuleTemplateTarget::Field {
               field_desc,
               validation_data: repeated_items_validation_data,
+              field_span: validation_data.field_span,
             },
             &items_rules_descriptor.cel,
             static_defs,

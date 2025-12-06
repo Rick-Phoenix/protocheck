@@ -190,10 +190,15 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
   {
     &fields.named
   } else {
-    panic!("This derive macro only works on structs with named fields");
+    return Error::new_spanned(
+      ast,
+      "This derive macro only works on structs with named fields",
+    )
+    .to_compile_error()
+    .into();
   };
 
-  let fields_map_ident = Ident::new("fields", Span2::call_site());
+  let fields_map_ident = Ident::new("fields", Span::call_site());
   let mut tokens = TokenStream2::new();
 
   let max_recursion_depth = quote! { 10 };
@@ -265,7 +270,7 @@ pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
         }
 
         OuterType::HashMap(keys_type, values_type) => {
-          let keys_ident = Ident::new("key", Span2::call_site());
+          let keys_ident = Ident::new("key", Span::call_site());
           let keys_conversion_tokens = keys_type.conversion_tokens(&quote! { #keys_ident });
           let values_conversion_tokens = values_type.conversion_tokens(&val_tokens);
           tokens.extend(quote! {

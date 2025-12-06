@@ -7,7 +7,6 @@ members = [
   "protocheck",
   "protocheck-build",
   "builder",
-  "cel-derive",
 ]
 resolver = "3"
 

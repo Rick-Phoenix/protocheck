@@ -186,7 +186,7 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
 }
 
 pub(crate) fn invalid_lists_error<T>(
-  field_span: Span2,
+  field_span: Span,
   field_name: &str,
   invalid_items: &[T],
 ) -> Error
@@ -210,7 +210,7 @@ pub fn get_plural_suffix(items: u64) -> &'static str {
   }
 }
 
-pub fn get_field_error(field_name: &str, field_span: Span2, error: &str) -> Error {
+pub fn get_field_error(field_name: &str, field_span: Span, error: &str) -> Error {
   Error::new(
     field_span,
     format!("Error for field {}: {}", field_name, error),

@@ -1,5 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
+#![allow(clippy::collapsible_if)]
 
 use std::{
   borrow::Cow,
@@ -14,7 +15,7 @@ use convert_case::{Case, Casing};
 use message_descriptor::*;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
-use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use prost_reflect::{
   prost::Message, DescriptorPool, DynamicMessage, EnumDescriptor, ExtensionDescriptor,
   FieldDescriptor, Kind as ProstReflectKind, MessageDescriptor, OneofDescriptor, ReflectMessage,
@@ -35,7 +36,7 @@ use syn::{
 
 use crate::{
   attribute_extractors::*, cel_rule_template::*, message_validator::*, oneof_validator::*,
-  pool_loader::*, rules::*, special_field_names::*, validation_data::*,
+  pool_loader::*, rules::*, special_field_names::*, utils::*, validation_data::*,
 };
 
 #[macro_use]
@@ -50,6 +51,7 @@ mod oneof_validator;
 mod pool_loader;
 mod rules;
 mod special_field_names;
+mod utils;
 mod validation_data;
 
 /// Adds conversion functions into [`cel::Value`] for oneofs.
