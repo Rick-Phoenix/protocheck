@@ -3,49 +3,9 @@ include!("./buf.validate.rs");
 
 use crate::protovalidate::field_path_element::Subscript;
 
-#[cfg(feature = "protocheck")]
-mod length_rules;
-
-#[cfg(feature = "protocheck")]
-pub use length_rules::*;
-
-#[cfg(feature = "protocheck")]
-mod substring_rules;
-
-#[cfg(feature = "protocheck")]
-pub use substring_rules::*;
-
-#[cfg(feature = "protocheck")]
-mod comparable_rules;
-
-#[cfg(feature = "protocheck")]
-mod containing_rules;
-
-#[cfg(feature = "protocheck")]
-mod into_comparable;
-
-#[cfg(feature = "protocheck")]
-mod numeric_rules;
-
-#[cfg(feature = "protocheck")]
-mod rule_matching;
-
-#[cfg(feature = "protocheck")]
-mod const_rules;
-
-#[cfg(feature = "protocheck")]
-pub use const_rules::*;
-
 mod violations;
 
 use std::fmt::{self, Display};
-
-#[cfg(feature = "protocheck")]
-pub use comparable_rules::*;
-#[cfg(feature = "protocheck")]
-pub use containing_rules::{ContainingRules, ItemList};
-#[cfg(feature = "protocheck")]
-pub use numeric_rules::NumericRules;
 
 impl Display for Subscript {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

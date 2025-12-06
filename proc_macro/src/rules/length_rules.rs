@@ -1,4 +1,4 @@
-use crate::protovalidate::{BytesRules, MapRules, RepeatedRules, StringRules};
+use crate::*;
 
 pub enum LengthRulesTarget {
   String,
@@ -95,8 +95,12 @@ impl LengthRules {
   }
 }
 
-impl RepeatedRules {
-  pub fn length_rules(&self) -> Result<LengthRules, String> {
+pub trait RulesWithLen {
+  fn length_rules(&self) -> Result<LengthRules, String>;
+}
+
+impl RulesWithLen for RepeatedRules {
+  fn length_rules(&self) -> Result<LengthRules, String> {
     let min_len = self.min_items;
     let max_len = self.max_items;
 
@@ -111,8 +115,8 @@ impl RepeatedRules {
   }
 }
 
-impl MapRules {
-  pub fn length_rules(&self) -> Result<LengthRules, String> {
+impl RulesWithLen for MapRules {
+  fn length_rules(&self) -> Result<LengthRules, String> {
     let min_len = self.min_pairs;
     let max_len = self.max_pairs;
 
@@ -127,8 +131,8 @@ impl MapRules {
   }
 }
 
-impl BytesRules {
-  pub fn length_rules(&self) -> Result<LengthRules, String> {
+impl RulesWithLen for BytesRules {
+  fn length_rules(&self) -> Result<LengthRules, String> {
     let len = self.len;
     let min_len = self.min_len;
     let max_len = self.max_len;
@@ -144,8 +148,8 @@ impl BytesRules {
   }
 }
 
-impl StringRules {
-  pub fn length_rules(&self) -> Result<LengthRules, String> {
+impl RulesWithLen for StringRules {
+  fn length_rules(&self) -> Result<LengthRules, String> {
     let len = self.len;
     let min_len = self.min_len;
     let max_len = self.max_len;
@@ -159,19 +163,19 @@ impl StringRules {
     }
     .validate()
   }
+}
 
-  pub fn bytes_length_rules(&self) -> Result<LengthRules, String> {
-    let len = self.len_bytes;
-    let min_len = self.min_bytes;
-    let max_len = self.max_bytes;
+pub fn string_bytes_length_rules(string_rules: &StringRules) -> Result<LengthRules, String> {
+  let len = string_rules.len_bytes;
+  let min_len = string_rules.min_bytes;
+  let max_len = string_rules.max_bytes;
 
-    LengthRules {
-      len,
-      min_len,
-      max_len,
-      target: LengthRulesTarget::String,
-      kind: LengthRulesKind::LenBytes,
-    }
-    .validate()
+  LengthRules {
+    len,
+    min_len,
+    max_len,
+    target: LengthRulesTarget::String,
+    kind: LengthRulesKind::LenBytes,
   }
+  .validate()
 }

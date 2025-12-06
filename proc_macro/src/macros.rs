@@ -15,3 +15,9 @@ macro_rules! error {
     syn::Error::new_spanned($item, $($tokens)*)
   };
 }
+
+macro_rules! error_spanned {
+  ($item:expr, $($tokens:tt)*) => {
+    syn::Error::new($item, $($tokens)*)
+  };
+}

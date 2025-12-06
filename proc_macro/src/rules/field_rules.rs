@@ -14,12 +14,11 @@ pub fn get_field_rules(
   let field_proto_kind = &field_desc.kind();
   let field_span = validation_data.field_span;
 
-  let error_prefix = &format!("Error for field {}:", field_name);
-
-  field_rules.matches_type(
+  rules_match_type(
+    field_rules,
     validation_data.field_kind.inner_type(),
+    field_name,
     field_span,
-    error_prefix,
   )?;
 
   match field_rules {
@@ -118,7 +117,10 @@ pub fn get_field_rules(
   };
 
   if let Some(err) = error {
-    return Err(Error::new(field_span, format!("{} {}", error_prefix, err)));
+    return Err(Error::new(
+      field_span,
+      format!("Error for field {field_name}: {err}"),
+    ));
   }
 
   Ok(rules_tokens)
@@ -215,4 +217,48 @@ pub fn get_field_error(field_name: &str, field_span: Span, error: &str) -> Error
     field_span,
     format!("Error for field {}: {}", field_name, error),
   )
+}
+
+pub fn rules_match_type(
+  rules_type: &RulesType,
+  field_type: FieldType,
+  field_name: &str,
+  field_span: Span,
+) -> Result<(), Error> {
+  let matching_type = match rules_type {
+    RulesType::Float(_) => FieldType::Float,
+    RulesType::Double(_) => FieldType::Double,
+    RulesType::Int32(_) => FieldType::Int32,
+    RulesType::Int64(_) => FieldType::Int64,
+    RulesType::Uint32(_) => FieldType::Uint32,
+    RulesType::Uint64(_) => FieldType::Uint64,
+    RulesType::Sint32(_) => FieldType::Sint32,
+    RulesType::Sint64(_) => FieldType::Sint64,
+    RulesType::Fixed32(_) => FieldType::Fixed32,
+    RulesType::Fixed64(_) => FieldType::Fixed64,
+    RulesType::Sfixed32(_) => FieldType::Sfixed32,
+    RulesType::Sfixed64(_) => FieldType::Sfixed64,
+    RulesType::Bool(_) => FieldType::Bool,
+    RulesType::String(_) => FieldType::String,
+    RulesType::Bytes(_) => FieldType::Bytes,
+    RulesType::Enum(_) => FieldType::Enum,
+    RulesType::Repeated(_) => return Ok(()),
+    RulesType::Map(_) => return Ok(()),
+    RulesType::Any(_) => return Ok(()),
+    RulesType::Duration(_) => return Ok(()),
+    RulesType::Timestamp(_) => return Ok(()),
+  };
+
+  if matching_type != field_type {
+    bail_spanned!(
+      field_span,
+      get_field_error(
+        field_name,
+        field_span,
+        &format!("wrong rule type. Expected {matching_type:?}, found {field_type:?}")
+      )
+    )
+  } else {
+    Ok(())
+  }
 }

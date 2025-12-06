@@ -31,7 +31,7 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
-  DeriveInput, Error, Ident, ItemStruct, LitStr, Meta, Token, Type,
+  DeriveInput, Error, Ident, ItemStruct, LitStr, Meta, Path, Token, Type,
 };
 
 use crate::{

@@ -42,7 +42,7 @@ pub fn get_bytes_rules(
       get_field_error(
         field_name,
         field_span,
-        &format!("invalid regex pattern: {}", e),
+        &format!("invalid regex pattern: {e}"),
       )
     })?;
 

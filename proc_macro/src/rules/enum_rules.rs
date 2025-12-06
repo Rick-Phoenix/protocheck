@@ -1,7 +1,7 @@
 use crate::*;
 
 pub fn get_enum_rules(
-  enum_ident_str: String,
+  enum_path_str: String,
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   rules: &EnumRules,
@@ -21,17 +21,22 @@ pub fn get_enum_rules(
   }
 
   if rules.defined_only() {
-    let enum_ident_tokens: TokenStream2 = enum_ident_str.parse().unwrap_or(quote! { compile_error!(format!("Failed to parse enum ident {} into tokens for enum {} in field {}", field_type_ident, enum_name, field_name)) });
+    let enum_path: Path = syn::parse_str(&enum_path_str).map_err(|e| {
+      error_spanned!(
+        field_span,
+        format!(
+          "Failed to parse enum path `{enum_path_str}` into rust Path for proto enum `{enum_name}` in field `{field_name}`: {e}",
+        )
+      )
+    })?;
 
     let violations_ident = &validation_data.violations_ident;
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
 
-    let error_message = format!("must be a defined value of '{}'", enum_name);
-
     let validator_tokens = quote! {
-      if !#enum_ident_tokens::try_from(#value_ident).is_ok() {
-        #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, #error_message));
+      if !#enum_path::try_from(#value_ident).is_ok() {
+        #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, #enum_name));
       }
     };
 
