@@ -1,3 +1,5 @@
+use proto_types::protovalidate::FieldPathElement;
+
 #[macro_use]
 pub mod base_violations;
 
@@ -11,3 +13,8 @@ pub mod lt_violations;
 pub mod lte_violations;
 pub mod not_in_violations;
 pub mod strings_violations;
+
+pub struct ViolationData {
+  pub name: &'static str,
+  pub violation: Vec<FieldPathElement>,
+}
