@@ -23,7 +23,7 @@ pub struct LengthRules {
 }
 
 impl LengthRules {
-  pub fn name(&self) -> &'static str {
+  pub fn target(&self) -> &'static str {
     match self.target {
       LengthRulesTarget::String => "string",
       LengthRulesTarget::Bytes => "bytes",

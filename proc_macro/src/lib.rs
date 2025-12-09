@@ -6,7 +6,7 @@ use std::{
   borrow::Cow,
   cell::OnceCell,
   collections::{HashMap, HashSet},
-  fmt::{Debug, Display, Write},
+  fmt::{Debug, Display},
   hash::Hash,
   sync::{Arc, LazyLock},
 };

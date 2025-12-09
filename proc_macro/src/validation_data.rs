@@ -44,18 +44,10 @@ pub struct MapValidator {
 }
 
 impl ValidationData<'_> {
-  pub fn static_full_name(&self) -> String {
-    self
-      .full_name
-      .to_case(Case::Snake)
-      .replace(".", "_")
-      .to_uppercase()
-  }
-
   pub fn get_substring_validator(&self, tokens: &mut TokenStream2, rules: SubstringRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
-    let validator_type_ident = format_ident!("{}", self.field_kind.inner_type().name());
+    let validator_type_ident = new_ident(self.field_kind.inner_type().name());
 
     if let Some(contains) = rules.contains {
       let SubstringRule {
@@ -109,7 +101,7 @@ impl ValidationData<'_> {
   pub fn get_length_validator(&self, tokens: &mut TokenStream2, rules: LengthRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
-    let validator_type_ident = format_ident!("{}", rules.name());
+    let validator_type_ident = new_ident(rules.target());
     let unit = rules.unit();
 
     if let Some(len) = rules.len {
@@ -119,7 +111,7 @@ impl ValidationData<'_> {
         unit,
         get_plural_suffix(len)
       );
-      let func_name = format_ident!("{}", rules.len_name());
+      let func_name = new_ident(rules.len_name());
 
       let expr = quote! {
         ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #len, #error_message)
@@ -135,7 +127,7 @@ impl ValidationData<'_> {
         unit,
         get_plural_suffix(min_len)
       );
-      let func_name = format_ident!("{}", rules.min_len_name());
+      let func_name = new_ident(rules.min_len_name());
 
       let expr = quote! {
         ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #min_len, #error_message)
@@ -151,7 +143,7 @@ impl ValidationData<'_> {
         unit,
         get_plural_suffix(max_len)
       );
-      let func_name = format_ident!("{}", rules.max_len_name());
+      let func_name = new_ident(rules.max_len_name());
 
       let expr = quote! {
         ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #max_len, #error_message)
