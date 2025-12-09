@@ -20,9 +20,9 @@ pub trait ListLookup<Item = Self>: Sized {
   fn is_in(container: &Self::Container, item: Item) -> bool;
 }
 
-pub enum HashLookup<T: 'static> {
-  Slice(&'static [T]),
-  Set(&'static HashSet<T>),
+pub enum HashLookup<'a, T> {
+  Slice(&'a [T]),
+  Set(&'a HashSet<T>),
 }
 
 macro_rules! impl_hash_lookup {
@@ -32,7 +32,7 @@ macro_rules! impl_hash_lookup {
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        type Container = HashLookup<$typ>;
+        type Container = HashLookup<'static, $typ>;
 
         fn is_in(container: &Self::Container, item: $typ) -> bool {
           match container {
@@ -50,7 +50,7 @@ macro_rules! impl_hash_lookup {
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        type Container = HashLookup<$target>;
+        type Container = HashLookup<'static, $target>;
 
         fn is_in(container: &Self::Container, item: $wrapper) -> bool {
           match container {
@@ -67,7 +67,7 @@ macro_rules! impl_hash_lookup {
 impl ListLookup for f32 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
-  type Container = HashLookup<f32>;
+  type Container = HashLookup<'static, f32>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
     match container {
@@ -83,7 +83,7 @@ impl ListLookup for f32 {
 impl ListLookup for f64 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
-  type Container = HashLookup<f64>;
+  type Container = HashLookup<'static, f64>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
     match container {
@@ -99,7 +99,7 @@ impl ListLookup for f64 {
 impl ListLookup for f32 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
-  type Container = HashLookup<ordered_float::OrderedFloat<f32>>;
+  type Container = HashLookup<'static, ordered_float::OrderedFloat<f32>>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
     match container {
@@ -113,7 +113,7 @@ impl ListLookup for f32 {
 impl ListLookup for f64 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
-  type Container = HashLookup<ordered_float::OrderedFloat<f64>>;
+  type Container = HashLookup<'static, ordered_float::OrderedFloat<f64>>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
     match container {
@@ -142,7 +142,7 @@ impl_hash_lookup!(Duration, DURATION);
 impl ListLookup<&bytes::Bytes> for &bytes::Bytes {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_NOT_IN_VIOLATION;
-  type Container = HashLookup<&'static [u8]>;
+  type Container = HashLookup<'static, &'static [u8]>;
 
   fn is_in(container: &Self::Container, item: &bytes::Bytes) -> bool {
     match container {
@@ -155,7 +155,7 @@ impl ListLookup<&bytes::Bytes> for &bytes::Bytes {
 impl ListLookup<&Any> for &Any {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_NOT_IN_VIOLATION;
-  type Container = HashLookup<&'static str>;
+  type Container = HashLookup<'static, &'static str>;
 
   fn is_in(container: &Self::Container, item: &Any) -> bool {
     match container {
@@ -168,7 +168,7 @@ impl ListLookup<&Any> for &Any {
 impl ListLookup<&str> for &str {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_NOT_IN_VIOLATION;
-  type Container = HashLookup<&'static str>;
+  type Container = HashLookup<'static, &'static str>;
 
   fn is_in(container: &Self::Container, item: &str) -> bool {
     match container {

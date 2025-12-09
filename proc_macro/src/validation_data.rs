@@ -670,10 +670,11 @@ impl ValidationData<'_> {
       }
 
       let mut base_ident = match &self.field_kind {
+        // No need for further processing if we get a collection, we only check .len() anyway
+        FieldKind::Map(_) | FieldKind::Repeated(_) => return quote! { self.#item_rust_ident },
         FieldKind::MapKey(_) => quote! { #map_key_ident },
         FieldKind::MapValue(_) => quote! { #map_value_ident },
         FieldKind::RepeatedItem(_) => quote! { #item_ident },
-        FieldKind::Map(_) | FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
         FieldKind::Single(_) => {
           if self.is_optional || self.is_in_oneof {
             quote! { val }

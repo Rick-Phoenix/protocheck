@@ -48,23 +48,38 @@ pub fn get_repeated_rules(
       let value_ident = items_validation_data.value_ident();
       let violations_ident = items_validation_data.violations_ident;
 
-      vec_level_rules.extend(quote! {
-        let mut processed_values = ::std::collections::HashSet::new();
-        let mut not_unique = false;
-      });
+      let vec_ident = validation_data.value_ident();
 
-      let func_name = match validation_data.field_kind.inner_type() {
-        FieldType::Float => quote! { unique_f32 },
-        FieldType::Double => quote! { unique_f64 },
-        _ => quote! { unique },
+      let is_float = matches!(
+        validation_data.field_kind.inner_type(),
+        FieldType::Float | FieldType::Double
+      );
+
+      let ordered_floats_enabled = cfg!(feature = "ordered-float");
+
+      let lookup_tokens = if is_float && !ordered_floats_enabled {
+        quote! { ::protocheck::validators::repeated::UniqueLookup::Vec(vec![]) }
+      } else {
+        quote! {
+          if #vec_ident.len() < 16 {
+            ::protocheck::validators::repeated::UniqueLookup::Vec(vec![])
+          } else {
+            ::protocheck::validators::repeated::UniqueLookup::Set(::std::collections::HashSet::new())
+          }
+        }
       };
 
+      vec_level_rules.extend(quote! {
+        let mut processed_values = #lookup_tokens;
+        let mut found_not_unique_items = false;
+      });
+
       items_rules.extend(quote! {
-        if !not_unique {
-          match ::protocheck::validators::repeated::#func_name(&#field_context_ident, #value_ident, &mut processed_values) {
+        if !found_not_unique_items {
+          match ::protocheck::validators::repeated::unique(&#field_context_ident, #value_ident, &mut processed_values) {
             Ok(_) => {},
             Err(v) => {
-              not_unique = true;
+              found_not_unique_items = true;
               #violations_ident.push(v);
             }
           };
