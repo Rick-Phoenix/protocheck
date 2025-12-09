@@ -31,17 +31,18 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned,
-  Attribute, Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
+  Attribute, Error, Expr, Ident, Item, ItemEnum, ItemStruct, Lit, LitByteStr, LitStr, Meta, Path,
+  Token, Type,
 };
 
 use crate::{
-  attribute_extractors::*, cel_rule_template::*, message_validator::*, oneof_validator::*,
-  pool_loader::*, rules::*, special_field_names::*, utils::*, validation_data::*,
+  attributes::*, cel_rule_template::*, message_validator::*, oneof_validator::*, pool_loader::*,
+  rules::*, special_field_names::*, utils::*, validation_data::*,
 };
 
 #[macro_use]
 mod macros;
-mod attribute_extractors;
+mod attributes;
 mod cel_rule_template;
 #[cfg(feature = "cel")]
 mod cel_try_into;
@@ -59,12 +60,19 @@ mod validation_data;
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   let item = parse_macro_input!(input as Item);
 
-  match item {
+  let result = match item {
     Item::Struct(s) => cel_try_into::derive_cel_value_struct(s),
     Item::Enum(e) => cel_try_into::derive_cel_value_oneof(e),
-    _ => error!(item, "This macro only works on enums (oneofs) and structs")
-      .into_compile_error()
-      .into(),
+    _ => {
+      return error!(item, "This macro only works on enums (oneofs) and structs")
+        .into_compile_error()
+        .into()
+    }
+  };
+
+  match result {
+    Ok(tokens) => tokens.into(),
+    Err(e) => e.into_compile_error().into(),
   }
 }
 
@@ -214,6 +222,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   }
 
   let output = quote! {
+    #[derive(::protocheck::macros::Oneof)]
     #item
 
     impl #oneof_rust_ident {

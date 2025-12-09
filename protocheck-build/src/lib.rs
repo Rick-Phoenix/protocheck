@@ -54,15 +54,6 @@ pub fn compile_protos_with_validators(
             oneof_name
           ),
         );
-
-        config.type_attribute(oneof_name, r#"#[derive(::protocheck::macros::Oneof)]"#);
-
-        for field in oneof.fields() {
-          config.field_attribute(
-            format!("{}.{}", oneof_name, field.name()),
-            format!(r#"#[protocheck(proto_name = "{}")]"#, field.name()),
-          );
-        }
       }
     }
   }

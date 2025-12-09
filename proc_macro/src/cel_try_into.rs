@@ -106,7 +106,7 @@ fn get_hashmap_types(ty: &Type) -> Result<(&Type, &Type), ()> {
   }
 }
 
-pub fn derive_cel_value_oneof(item: ItemEnum) -> TokenStream {
+pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
   let enum_name = &item.ident;
 
   let variants = &item.variants;
@@ -120,24 +120,19 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> TokenStream {
     let mut proto_name: String = String::new();
 
     for attr in variant.attrs.iter() {
-      if attr.path().is_ident("protocheck") {
-        match attr.parse_nested_meta(|meta| {
-          proto_name =
-            extract_proto_name_attribute(&enum_name.to_string(), attr, variant_ident, meta)?;
-          Ok(())
-        }) {
-          Ok(_) => {}
-          Err(e) => return e.to_compile_error().into(),
-        };
-
-        break;
+      if attr.path().is_ident("protocheck") && let Ok(nv) = attr.meta.require_name_value() && nv.path.is_ident("name") {
+        proto_name = extract_string_lit(&nv.value)?;
       }
+    }
+
+    if proto_name.is_empty() {
+      proto_name = variant_ident.to_string().to_case(Case::Snake);
     }
 
     if let syn::Fields::Unnamed(fields) = &variant.fields
       && let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
-        let val_ident = format_ident!("v");
+        let val_ident = new_ident("v");
 
         let into_expression = InnerType::from_type(type_ident).conversion_tokens(&quote! { #val_ident });
 
@@ -154,7 +149,7 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> TokenStream {
       }
   }
 
-  let expanded = quote! {
+  Ok(quote! {
     impl #enum_name {
       pub fn try_into_cel_value(&self) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
@@ -166,23 +161,19 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> TokenStream {
         }
       }
     }
-  };
-
-  expanded.into()
+  })
 }
 
-pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> TokenStream {
+pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, Error> {
   let struct_name = &item.ident;
 
   let fields = if let syn::Fields::Named(fields) = &item.fields {
     &fields.named
   } else {
-    return Error::new_spanned(
+    bail!(
       item,
-      "This derive macro only works on structs with named fields",
-    )
-    .to_compile_error()
-    .into();
+      "This derive macro only works on structs with named fields"
+    );
   };
 
   let fields_map_ident = Ident::new("fields", Span::call_site());
@@ -215,20 +206,15 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> TokenStream {
         }
       });
     } else {
-      let outer_type = match OuterType::try_from(field_type) {
-        Ok(ty) => ty,
-        Err(_) => {
-          return Error::new_spanned(
-            field,
-            format!(
-              "Could not parse the outer type for field {} in struct {}",
-              field_name, struct_name
-            ),
+      let outer_type = OuterType::try_from(field_type).map_err(|_| {
+        error!(
+          field,
+          format!(
+            "Could not parse the outer type for field {} in struct {}",
+            field_name, struct_name
           )
-          .to_compile_error()
-          .into()
-        }
-      };
+        )
+      })?;
 
       let val_ident = format_ident!("v");
       let val_tokens = quote! { #val_ident };
@@ -282,7 +268,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> TokenStream {
     }
   }
 
-  let expanded = quote! {
+  Ok(quote! {
     impl #struct_name {
       fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
@@ -305,9 +291,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> TokenStream {
         value.try_into_cel_value_recursive(0)
       }
     }
-  };
-
-  expanded.into()
+  })
 }
 
 fn type_matches_path(ty: &Type, target_path: &str) -> bool {

@@ -3,8 +3,7 @@ use crate::*;
 #[derive(Clone, Debug)]
 struct OneofField {
   pub ident: Ident,
-  pub proto_name: String,
-  pub enum_ident: Option<String>,
+  pub enum_path: Option<String>,
   pub span: Span,
 }
 
@@ -18,69 +17,34 @@ pub fn extract_oneof_validators(
   oneof_desc: &OneofDescriptor,
 ) -> Result<OneofValidatorsOutput, Error> {
   let mut validators: HashMap<Ident, TokenStream2> = HashMap::new();
-  let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
+  let mut oneof_variants: HashMap<String, OneofField> = HashMap::new();
 
   let oneof_proto_name = &oneof_desc.name();
 
   for variant in &item.variants {
+    let OneofVariantAttrs { name, enum_path } =
+      extract_oneof_variant_attrs(&variant.attrs, &variant.ident)?;
+
     oneof_variants.insert(
-      variant.ident.clone(),
+      name,
       OneofField {
         ident: variant.ident.clone(),
-        proto_name: String::new(),
-        enum_ident: None,
-        span: variant.ident.span(),
+        enum_path,
+        span: variant.span(),
       },
     );
-
-    for attr in &variant.attrs {
-      if attr.path().is_ident("protocheck") {
-        attr.parse_nested_meta(|meta| {
-          let proto_field_name =
-            extract_proto_name_attribute(oneof_proto_name, attr, &variant.ident, meta)?;
-          let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-          field_ident_entry.proto_name = proto_field_name;
-
-          Ok(())
-        })?;
-      } else if attr.path().is_ident("prost") {
-        match attr.parse_args::<ProstAttrData>() {
-          Ok(parsed_data) => {
-            if let Some(enum_name) = parsed_data.enum_path {
-              let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-              field_ident_entry.enum_ident = Some(enum_name);
-            }
-          }
-          Err(e) => {
-            return Err(Error::new_spanned(
-              attr,
-              format!(
-                "Could not extract the 'enumeration' attribute for variant {} in oneof {}: {}",
-                &variant.ident, oneof_proto_name, e
-              ),
-            ))
-          }
-        };
-      }
-    }
-  }
-
-  let mut fields_data: HashMap<String, OneofField> = HashMap::new();
-
-  for data in oneof_variants.into_values() {
-    fields_data.insert(data.proto_name.clone(), data);
   }
 
   for field in oneof_desc.fields() {
     let OneofField {
-      enum_ident,
+      enum_path: enum_ident,
       ident: field_ident,
       span: field_span,
       ..
-    } = fields_data.get(field.name()).cloned().ok_or(Error::new(
+    } = oneof_variants.remove(field.name()).ok_or(Error::new(
       Span::call_site(),
       format!(
-        "Could not process the data for field {} in oneof {}. Is proto_name set correctly?",
+        "Could not process the data for field {} in oneof {}. Is the name set correctly?",
         field.name(),
         oneof_proto_name
       ),

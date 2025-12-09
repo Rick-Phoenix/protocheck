@@ -1,3 +1,7 @@
+mod oneof_attrs;
+
+pub use oneof_attrs::*;
+
 use crate::*;
 
 pub fn extract_proto_name_attribute(
@@ -9,12 +13,12 @@ pub fn extract_proto_name_attribute(
   let not_found_error = Error::new_spanned(
     attr,
     format!(
-      "Could not extract proto_name attribute for variant {} in oneof enum {}",
+      "Could not extract name attribute for variant {} in oneof enum {}",
       variant_ident, oneof_name,
     ),
   );
 
-  if meta.path.is_ident("proto_name") {
+  if meta.path.is_ident("name") {
     if let Ok(proto_name_tokens) = meta.value() {
       Ok(
         proto_name_tokens
@@ -23,7 +27,7 @@ pub fn extract_proto_name_attribute(
             Error::new_spanned(
               attr,
               format!(
-                "Could not extract proto_name attribute for variant {} in oneof enum {}: {}",
+                "Could not extract name attribute for variant {} in oneof enum {}: {}",
                 variant_ident, oneof_name, e
               ),
             )
@@ -77,5 +81,13 @@ impl syn::parse::Parse for ProstAttrData {
     }
 
     Ok(ProstAttrData { enum_path })
+  }
+}
+
+pub fn extract_string_lit(expr: &Expr) -> Result<String, Error> {
+  if let Expr::Lit(expr_lit) = expr && let Lit::Str(value) = &expr_lit.lit {
+    Ok(value.value())
+  } else {
+    Err(error!(expr, "Expected a string literal"))
   }
 }
