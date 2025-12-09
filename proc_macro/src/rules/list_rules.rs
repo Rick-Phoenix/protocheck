@@ -55,10 +55,36 @@ impl<'a, T: ToTokens + Clone> List<'a, T> {
     let list_item_type = self.kind.list_item_type();
 
     if self.kind.is_float() {
-      quote! {
-        {
-          static ARR: &[#list_item_type] = &[ #(#item_tokens),* ];
-          protocheck::validators::containing::SliceLookup(ARR)
+      let ordered_float_enabled = cfg!(feature = "ordered-float");
+
+      let float_type = if !ordered_float_enabled {
+        list_item_type.clone()
+      } else {
+        quote! { ordered_float::OrderedFloat<#list_item_type> }
+      };
+
+      let floats_tokens = if !ordered_float_enabled {
+        quote! { #(#item_tokens),* }
+      } else {
+        quote! { #(ordered_float::OrderedFloat(#item_tokens)),* }
+      };
+
+      if !ordered_float_enabled || items.len() < 16 {
+        quote! {
+          {
+            static ARR: &[#float_type] = &[ #floats_tokens ];
+            protocheck::validators::containing::HashLookup::<#float_type>::Slice(ARR)
+          }
+        }
+      } else {
+        quote! {
+          protocheck::validators::containing::HashLookup::<#float_type>::Set({
+            static SET: std::sync::LazyLock<std::collections::HashSet<#float_type>> = std::sync::LazyLock::new(|| {
+              [ #floats_tokens ].into_iter().collect()
+            });
+
+            &SET
+          })
         }
       }
     } else if items.len() < 16 {

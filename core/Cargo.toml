@@ -28,11 +28,13 @@ cel = { workspace = true, optional = true }
 bytes = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
+ordered-float = { workspace = true, optional = true }
 
 ipnetwork = { workspace = true, optional = true }
 iri-string = { workspace = true, optional = true }
 
 paste = { workspace = true }
+
 
 [features]
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
@@ -41,5 +43,6 @@ ip = ["dep:ipnetwork"]
 uri = ["dep:iri-string"]
 bytes = ["dep:bytes"]
 regex = ["dep:regex"]
+ordered-float = ["dep:ordered-float"]
 
 default = ["ip", "uri", "bytes", "regex", "cel", "totokens"]

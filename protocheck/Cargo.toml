@@ -27,6 +27,11 @@ proto-types = { version = "0.1.11", path = "../proto_types/", default-features =
 document-features = { workspace = true }
 
 [features]
+## Enables support for set lookups in validators involving floating point numbers
+ordered-float = [
+  "protocheck-core/ordered-float",
+  "protocheck-proc-macro/ordered-float",
+]
 ## Enables serde support for protobuf well known types.
 serde = ["proto-types/serde"]
 chrono = ["proto-types/chrono"]

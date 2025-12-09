@@ -25,8 +25,6 @@ pub enum HashLookup<T: 'static> {
   Set(&'static HashSet<T>),
 }
 
-pub struct SliceLookup<T: 'static>(pub &'static [T]);
-
 macro_rules! impl_hash_lookup {
   ($typ:ty, $proto_type:ident) => {
     paste::paste! {
@@ -65,23 +63,63 @@ macro_rules! impl_hash_lookup {
   };
 }
 
+#[cfg(not(feature = "ordered-float"))]
 impl ListLookup for f32 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
-  type Container = SliceLookup<f32>;
+  type Container = HashLookup<f32>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
-    container.0.contains(&item)
+    match container {
+      HashLookup::Slice(items) => items.contains(&item),
+      HashLookup::Set(_) => {
+        panic!("Cannot use a set with floats unless the ordered-float flag is enabled")
+      }
+    }
   }
 }
 
+#[cfg(not(feature = "ordered-float"))]
 impl ListLookup for f64 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
-  type Container = SliceLookup<f64>;
+  type Container = HashLookup<f64>;
 
   fn is_in(container: &Self::Container, item: Self) -> bool {
-    container.0.contains(&item)
+    match container {
+      HashLookup::Slice(items) => items.contains(&item),
+      HashLookup::Set(_) => {
+        panic!("Cannot use a set with floats unless the ordered-float flag is enabled")
+      }
+    }
+  }
+}
+
+#[cfg(feature = "ordered-float")]
+impl ListLookup for f32 {
+  const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
+  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
+  type Container = HashLookup<ordered_float::OrderedFloat<f32>>;
+
+  fn is_in(container: &Self::Container, item: Self) -> bool {
+    match container {
+      HashLookup::Slice(items) => items.contains(&ordered_float::OrderedFloat(item)),
+      HashLookup::Set(set) => set.contains(&ordered_float::OrderedFloat(item)),
+    }
+  }
+}
+
+#[cfg(feature = "ordered-float")]
+impl ListLookup for f64 {
+  const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
+  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
+  type Container = HashLookup<ordered_float::OrderedFloat<f64>>;
+
+  fn is_in(container: &Self::Container, item: Self) -> bool {
+    match container {
+      HashLookup::Slice(items) => items.contains(&ordered_float::OrderedFloat(item)),
+      HashLookup::Set(set) => set.contains(&ordered_float::OrderedFloat(item)),
+    }
   }
 }
 

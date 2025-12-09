@@ -527,7 +527,7 @@ impl ValidationData<'_> {
       };
     };
 
-    // We build the nested context and delegate to the struct of the field
+    // We build the nested context and delegate validation to the struct of the field
     tokens.extend(quote! {
       let current_nested_field_element = #field_path_element_tokens;
 
@@ -662,7 +662,7 @@ impl ValidationData<'_> {
     } = self;
 
     self.value_ident.get_or_init(|| {
-      // Happens only for messages, and messages are only used with CEL
+      // Happens only for recursive messages, and messages are only used with CEL
       // so we get a deref from Box to &Message, which then gets cloned
       // by the CEL helper
       if self.is_boxed {

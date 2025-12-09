@@ -36,11 +36,12 @@ proc-macro2 = { workspace = true }
 regex = { workspace = true }
 convert_case = { workspace = true }
 paste = "1"
-ordered-float = "5.1"
+ordered-float = { workspace = true }
 itertools = "0.14"
 bytes = "1"
 
 [features]
 cel = ["protocheck-core/cel", "proto-types/cel", "dep:cel"]
+ordered-float = []
 
 default = ["cel"]
