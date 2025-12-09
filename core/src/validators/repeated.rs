@@ -1,5 +1,7 @@
 use std::{collections::HashSet, sync::LazyLock};
 
+use proto_types::{Duration, Timestamp};
+
 use crate::{
   field_data::FieldContext,
   protovalidate::{FieldPathElement, Violation},
@@ -92,6 +94,8 @@ impl_unique!(Sfixed64);
 impl_unique!(Sfixed32);
 impl_unique!(Fixed64);
 impl_unique!(Fixed32);
+impl_unique!(Timestamp);
+impl_unique!(Duration);
 
 #[cfg(not(feature = "ordered-float"))]
 impl UniqueItem for f32 {

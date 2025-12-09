@@ -33,7 +33,7 @@ pub fn get_repeated_rules(
 
   if let Some(RulesType::Repeated(ref repeated_rules)) = field_rules.r#type {
     if repeated_rules.unique() {
-      if !validation_data.field_kind.inner_type().is_scalar() {
+      if !supports_unique(validation_data.field_kind.inner_type()) {
         return Err(get_field_error(
           field_name,
           field_span,
@@ -149,4 +149,8 @@ pub fn get_repeated_rules(
   );
 
   Ok(())
+}
+
+fn supports_unique(field_type: FieldType) -> bool {
+  !matches!(field_type, FieldType::Message | FieldType::Any)
 }
