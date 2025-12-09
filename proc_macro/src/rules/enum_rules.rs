@@ -34,7 +34,7 @@ pub fn get_enum_rules(
     let value_ident = validation_data.value_ident();
 
     let validator_tokens = quote! {
-      if !#enum_path::try_from(#value_ident).is_ok() {
+      if !#enum_path::try_from(i32::from(#value_ident)).is_ok() {
         #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, #enum_name));
       }
     };

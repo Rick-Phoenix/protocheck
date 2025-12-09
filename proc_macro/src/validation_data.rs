@@ -470,13 +470,8 @@ impl ValidationData<'_> {
   where
     T: ToTokens,
   {
-    let proto_type = self.field_kind.inner_type();
     let field_context_ident = self.field_context_ident();
-    let mut value_ident = self.value_ident().to_token_stream();
-
-    if matches!(proto_type, FieldType::Bytes) {
-      value_ident = quote! { *#value_ident.as_ref() }
-    }
+    let value_ident = self.value_ident();
 
     let ConstRule { val, error_message } = const_rule;
 
@@ -532,6 +527,7 @@ impl ValidationData<'_> {
       };
     };
 
+    // We build the nested context and delegate to the struct of the field
     tokens.extend(quote! {
       let current_nested_field_element = #field_path_element_tokens;
 
@@ -572,14 +568,8 @@ impl ValidationData<'_> {
     let field_ident = self.item_rust_ident;
 
     if self.is_option() {
-      let match_kind = if self.field_kind.is_copy() {
-        quote! { self.#field_ident }
-      } else {
-        quote! { self.#field_ident.as_ref() }
-      };
-
       quote! {
-        match #match_kind {
+        match self.#field_ident.as_ref() {
           Some(val) => {
             #field_context_tokens
             #validators
@@ -665,55 +655,69 @@ impl ValidationData<'_> {
   pub fn value_ident(&self) -> &TokenStream2 {
     let Self {
       item_rust_ident,
-      map_key_ident: key_ident,
+      map_key_ident,
       map_value_ident,
       item_ident,
       ..
     } = self;
 
     self.value_ident.get_or_init(|| {
+      // Happens only for messages, and messages are only used with CEL
+      // so we get a deref from Box to &Message, which then gets cloned
+      // by the CEL helper
       if self.is_boxed {
         return quote! { *val };
       }
-      let is_copy = self.field_kind.is_copy();
 
-      match self.field_kind {
-        FieldKind::RepeatedItem(_) => {
-          if is_copy {
-            quote! { #item_ident.clone() }
-          } else {
-            quote! { #item_ident }
-          }
-        }
-        FieldKind::MapKey(_) => {
-          if is_copy {
-            quote! { #key_ident.clone() }
-          } else {
-            quote! { #key_ident }
-          }
-        }
-        FieldKind::MapValue(_) => {
-          if is_copy {
-            quote! { #map_value_ident.clone() }
-          } else {
-            quote! { #map_value_ident }
-          }
-        }
-        FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
-        FieldKind::Map(_) => quote! { self.#item_rust_ident },
+      let mut base_ident = match &self.field_kind {
+        FieldKind::MapKey(_) => quote! { #map_key_ident },
+        FieldKind::MapValue(_) => quote! { #map_value_ident },
+        FieldKind::RepeatedItem(_) => quote! { #item_ident },
+        FieldKind::Map(_) | FieldKind::Repeated(_) => quote! { self.#item_rust_ident },
         FieldKind::Single(_) => {
-          let base_ident = if self.is_optional || self.is_in_oneof {
+          if self.is_optional || self.is_in_oneof {
             quote! { val }
           } else {
             quote! { self.#item_rust_ident }
-          };
-
-          if !is_copy && !self.is_option() {
-            quote! { &#base_ident }
-          } else {
-            base_ident
           }
         }
+      };
+
+      let ident_is_ref = match &self.field_kind {
+        FieldKind::Map(_) => false,
+        FieldKind::Repeated(_) => false,
+        FieldKind::MapKey(_) => true,
+        FieldKind::MapValue(_) => true,
+        FieldKind::RepeatedItem(_) => true,
+        FieldKind::Single(_) => self.is_optional || self.is_in_oneof,
+      };
+
+      if ident_is_ref && self.field_kind.is_copy() {
+        base_ident = quote! { (*#base_ident) }
+      }
+
+      match &self.field_kind.inner_type() {
+        FieldType::Double => base_ident,
+        FieldType::Float => base_ident,
+        FieldType::Int64 => base_ident,
+        FieldType::Uint64 => base_ident,
+        FieldType::Int32 => base_ident,
+        FieldType::Bool => base_ident,
+        FieldType::Uint32 => base_ident,
+        FieldType::Group => base_ident,
+        FieldType::Message => base_ident,
+        FieldType::Duration => base_ident,
+        FieldType::Timestamp => base_ident,
+        FieldType::Any => base_ident,
+        FieldType::Bytes => quote! { &#base_ident },
+        FieldType::String => quote! { #base_ident.as_str() },
+        FieldType::Fixed64 => quote! { protocheck::wrappers::Fixed64(#base_ident) },
+        FieldType::Fixed32 => quote! { protocheck::wrappers::Fixed32(#base_ident) },
+        FieldType::Enum => quote! { protocheck::wrappers::EnumVariant(#base_ident) },
+        FieldType::Sfixed32 => quote! { protocheck::wrappers::Sfixed32(#base_ident) },
+        FieldType::Sfixed64 => quote! { protocheck::wrappers::Sfixed64(#base_ident) },
+        FieldType::Sint32 => quote! { protocheck::wrappers::Sint32(#base_ident) },
+        FieldType::Sint64 => quote! { protocheck::wrappers::Sint64(#base_ident) },
       }
     })
   }

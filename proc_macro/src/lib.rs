@@ -13,7 +13,6 @@ use std::{
 
 use bytes::Bytes;
 use convert_case::{Case, Casing};
-use message_descriptor::*;
 use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
@@ -46,7 +45,6 @@ mod attribute_extractors;
 mod cel_rule_template;
 #[cfg(feature = "cel")]
 mod cel_try_into;
-mod message_descriptor;
 mod message_validator;
 mod oneof_validator;
 mod pool_loader;

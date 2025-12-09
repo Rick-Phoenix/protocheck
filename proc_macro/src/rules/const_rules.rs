@@ -27,10 +27,14 @@ macro_rules! const_rule {
   };
 }
 
-impl RuleWithConst<LitByteStr> for BytesRules {
-  fn const_rule(&self) -> Option<ConstRule<LitByteStr>> {
+impl RuleWithConst<TokenStream2> for BytesRules {
+  fn const_rule(&self) -> Option<ConstRule<TokenStream2>> {
     self.r#const.as_ref().map(|v| ConstRule {
-      val: LitByteStr::new(v, Span::call_site()),
+      val: {
+        let byte_str = LitByteStr::new(v, Span::call_site());
+        // Need to assert it as a slice because Bytes does not have PartialEq with arrays
+        quote! { &#byte_str[..] }
+      },
       error_message: format!("must be equal to {}", v.escape_ascii()),
     })
   }

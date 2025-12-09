@@ -96,23 +96,23 @@ mod cel_validator {
                 let value_ident = validation_data.value_ident();
 
                 let validation_expression = match validation_data.field_kind.inner_type() {
-                  FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
+                  FieldType::Message => {
                     quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.clone()) }
                   }
                   FieldType::Bytes => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, #value_ident.to_vec().into()) }
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.to_vec()) }
                   }
                   FieldType::Float => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as f64).into()) }
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as f64)) }
                   }
                   FieldType::Int32 | FieldType::Sint32 | FieldType::Sfixed32 => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as i64).into()) }
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as i64)) }
                   }
                   FieldType::Uint32 | FieldType::Fixed32 => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as u64).into()) }
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as u64)) }
                   }
                   _ => {
-                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident).clone().into()) }
+                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident) }
                   }
                 };
 

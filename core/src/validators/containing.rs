@@ -45,6 +45,24 @@ macro_rules! impl_hash_lookup {
       }
     }
   };
+
+  ($wrapper:ty, $target:ty, $proto_type:ident) => {
+    paste::paste! {
+      impl ListLookup<$wrapper> for $wrapper {
+        const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
+        const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
+
+        type Container = HashLookup<$target>;
+
+        fn is_in(container: &Self::Container, item: $wrapper) -> bool {
+          match container {
+            HashLookup::Slice(slice) => slice.contains(&item),
+            HashLookup::Set(set) => set.contains(&item),
+          }
+        }
+      }
+    }
+  };
 }
 
 impl ListLookup for f32 {
@@ -67,17 +85,19 @@ impl ListLookup for f64 {
   }
 }
 
-impl_hash_lookup!(EnumVariant, ENUM);
+// Wrappers
+impl_hash_lookup!(EnumVariant, i32, ENUM);
+impl_hash_lookup!(Sint64, i64, SINT64);
+impl_hash_lookup!(Sint32, i32, SINT32);
+impl_hash_lookup!(Sfixed64, i64, SFIXED64);
+impl_hash_lookup!(Sfixed32, i32, SFIXED32);
+impl_hash_lookup!(Fixed64, u64, FIXED64);
+impl_hash_lookup!(Fixed32, u32, FIXED32);
+
 impl_hash_lookup!(i64, INT64);
 impl_hash_lookup!(i32, INT32);
 impl_hash_lookup!(u64, UINT64);
 impl_hash_lookup!(u32, UINT32);
-impl_hash_lookup!(Sint64, SINT64);
-impl_hash_lookup!(Sint32, SINT32);
-impl_hash_lookup!(Sfixed64, SFIXED64);
-impl_hash_lookup!(Sfixed32, SFIXED32);
-impl_hash_lookup!(Fixed64, FIXED64);
-impl_hash_lookup!(Fixed32, FIXED32);
 impl_hash_lookup!(Duration, DURATION);
 
 #[cfg(feature = "bytes")]
@@ -107,15 +127,15 @@ impl ListLookup<&Any> for &Any {
   }
 }
 
-impl ListLookup<&String> for &String {
+impl ListLookup<&str> for &str {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_NOT_IN_VIOLATION;
   type Container = HashLookup<&'static str>;
 
-  fn is_in(container: &Self::Container, item: &String) -> bool {
+  fn is_in(container: &Self::Container, item: &str) -> bool {
     match container {
-      HashLookup::Slice(slice) => slice.contains(&item.as_ref()),
-      HashLookup::Set(set) => set.contains(&item.as_ref()),
+      HashLookup::Slice(slice) => slice.contains(&item),
+      HashLookup::Set(set) => set.contains(&item),
     }
   }
 }

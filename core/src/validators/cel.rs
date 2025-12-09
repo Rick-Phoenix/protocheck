@@ -87,24 +87,21 @@ where
   T: TryInto<CelValue> + Clone,
   <T as std::convert::TryInto<cel::Value>>::Error: std::fmt::Display,
 {
-  let cel_conversion: Result<CelValue, _> = value.try_into();
+  let cel_val: CelValue = value.try_into().map_err(|e| {
+    eprintln!(
+      "Failed to convert field {} to Cel value: {}",
+      rule.item_full_name, e
+    );
 
-  match cel_conversion {
-    Ok(cel_val) => validate_cel_field_with_val(field_context, rule, cel_val),
-    Err(e) => {
-      eprintln!(
-        "Failed to convert field {} to Cel value: {}",
-        rule.item_full_name, e
-      );
+    create_violation(
+      field_context,
+      &CEL_VIOLATION,
+      "internal server error",
+      "internal server error",
+    )
+  })?;
 
-      Err(create_violation(
-        field_context,
-        &CEL_VIOLATION,
-        "internal server error",
-        "internal server error",
-      ))
-    }
-  }
+  validate_cel_field_with_val(field_context, rule, cel_val)
 }
 
 pub fn validate_cel_message<T>(
