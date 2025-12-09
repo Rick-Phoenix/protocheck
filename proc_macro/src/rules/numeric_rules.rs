@@ -1,19 +1,23 @@
 use crate::*;
 
-pub fn get_numeric_rules<HashableType, T: NumericRules<HashableType>>(
+pub fn get_numeric_rules<HashableType, T>(
   validation_data: &ValidationData,
   rules: &T,
-  static_defs: &mut TokenStream2,
 ) -> Result<TokenStream2, Error>
 where
-  HashableType: Debug + Copy + ToTokens + Eq + PartialOrd + Hash,
+  HashableType: Copy + ToTokens + Eq + PartialOrd + Hash + Display,
+  T: NumericRules<HashableType>
+    + RuleWithConst<T::Unit>
+    + RulesWithComparables<T::Unit>
+    + RuleWithLists<HashableType>,
+  <T as NumericRules<HashableType>>::Unit: ComparableError + Copy,
 {
   let mut tokens = TokenStream2::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;
 
-  if let Some(const_rule) = rules.constant() {
+  if let Some(const_rule) = rules.const_rule() {
     validation_data.get_const_validator(&mut tokens, const_rule);
 
     return Ok(tokens);
@@ -21,25 +25,19 @@ where
 
   let comparable_rules = rules
     .comparable_rules()
+    .validate()
     .map_err(|e| get_field_error(field_name, field_span, e))?;
 
   if comparable_rules.less_than.is_some() || comparable_rules.greater_than.is_some() {
     validation_data.get_comparable_validator(&mut tokens, &comparable_rules);
   }
 
-  let ContainingRules {
-    in_list_rule,
-    not_in_list_rule,
-  } = rules
-    .num_containing_rules(&validation_data.static_full_name())
-    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
+  let lists_rules = rules
+    .list_rules()
+    .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
-  if let Some(in_list) = in_list_rule {
-    validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
-  };
-
-  if let Some(not_in_list) = not_in_list_rule {
-    validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
+  if !lists_rules.is_empty() {
+    validation_data.get_list_validators(lists_rules, &mut tokens);
   }
 
   if rules.finite() {
@@ -57,4 +55,109 @@ where
   }
 
   Ok(tokens)
+}
+
+pub trait NumericRules<HashableType>
+where
+  HashableType: ToTokens + Eq + PartialOrd + Hash,
+{
+  type Unit: ToTokens + PartialEq + PartialOrd + Debug + Display;
+
+  fn finite(&self) -> bool;
+}
+
+impl NumericRules<FloatWrapper> for FloatRules {
+  type Unit = f32;
+
+  fn finite(&self) -> bool {
+    self.finite()
+  }
+}
+
+impl NumericRules<FloatWrapper> for DoubleRules {
+  type Unit = f64;
+
+  fn finite(&self) -> bool {
+    self.finite()
+  }
+}
+
+impl NumericRules<i64> for Int64Rules {
+  type Unit = i64;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<i64> for SInt64Rules {
+  type Unit = i64;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<i64> for SFixed64Rules {
+  type Unit = i64;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<i32> for Int32Rules {
+  type Unit = i32;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<i32> for SInt32Rules {
+  type Unit = i32;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<i32> for SFixed32Rules {
+  type Unit = i32;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<u64> for UInt64Rules {
+  type Unit = u64;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<u64> for Fixed64Rules {
+  type Unit = u64;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<u32> for UInt32Rules {
+  type Unit = u32;
+
+  fn finite(&self) -> bool {
+    false
+  }
+}
+
+impl NumericRules<u32> for Fixed32Rules {
+  type Unit = u32;
+
+  fn finite(&self) -> bool {
+    false
+  }
 }

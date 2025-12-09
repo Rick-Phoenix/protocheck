@@ -27,26 +27,39 @@ pub fn get_timestamp_rules(
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
-  let TimestampComparableRules {
-    comparable_rules,
-    lt_now,
-    gt_now,
-  } = rules
+  let comparable_rules = rules
     .comparable_rules()
+    .validate()
     .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if comparable_rules.less_than.is_some() || comparable_rules.greater_than.is_some() {
     validation_data.get_comparable_validator(&mut tokens, &comparable_rules);
   }
 
-  if lt_now {
+  if let Some(timestamp_rules::LessThan::LtNow(true)) = rules.less_than {
+    if comparable_rules.less_than.is_some() {
+      return Err(get_field_error(
+        field_name,
+        field_span,
+        "lt_now and lt/lte cannot be used together",
+      ));
+    }
+
     let validator_expression_tokens = quote! {
       ::protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
-  if gt_now {
+  if let Some(timestamp_rules::GreaterThan::GtNow(true)) = rules.greater_than {
+    if comparable_rules.greater_than.is_some() {
+      return Err(get_field_error(
+        field_name,
+        field_span,
+        "gt_now and gt/gte cannot be used together",
+      ));
+    }
+
     let validator_expression_tokens = quote! {
       ::protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
     };

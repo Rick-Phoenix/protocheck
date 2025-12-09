@@ -1,55 +1,71 @@
-use paste::paste;
+use std::sync::LazyLock;
+
 use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
   protovalidate::Violation,
-  validators::static_data::{base_violations::create_violation, const_violations::*},
+  validators::static_data::{
+    base_violations::create_violation, const_violations::*, ViolationData,
+  },
+  wrappers::*,
 };
 
-macro_rules! const_validator {
-  ($proto_type:ident, $value_type:ty) => {
-    paste! {
-      pub fn [< $proto_type _const>](field_context: &FieldContext, value: $value_type, target: $value_type, error_message: &'static str) -> Result<(), Violation> {
-        let check = value == target;
+pub trait ConstRule {
+  const CONST_VIOLATION: &'static LazyLock<ViolationData>;
+}
 
-        create_violation!($proto_type, check, field_context, const, error_message)
+macro_rules! impl_const {
+  ($target:ty, $proto_ty:ident) => {
+    paste::paste! {
+      impl ConstRule for $target {
+        const CONST_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _CONST_VIOLATION >];
       }
     }
   };
 }
 
+impl_const!(&str, STRING);
+impl_const!(&String, STRING);
+impl_const!(EnumVariant, ENUM);
+impl_const!(bool, BOOL);
 #[cfg(feature = "bytes")]
-pub fn bytes_const(
+impl_const!(&::bytes::Bytes, BYTES);
+impl_const!(&[u8], BYTES);
+impl_const!(Duration, DURATION);
+impl_const!(Timestamp, TIMESTAMP);
+impl_const!(i64, INT64);
+impl_const!(i32, INT32);
+impl_const!(u64, UINT64);
+impl_const!(u32, UINT32);
+impl_const!(Sint64, SINT64);
+impl_const!(Sint32, SINT32);
+impl_const!(Sfixed64, SFIXED64);
+impl_const!(Sfixed32, SFIXED32);
+impl_const!(Fixed64, FIXED64);
+impl_const!(Fixed32, FIXED32);
+impl_const!(f64, DOUBLE);
+impl_const!(f32, FLOAT);
+
+pub fn constant<T, V>(
   field_context: &FieldContext,
-  value: &bytes::Bytes,
-  target: &'static [u8],
+  value: V,
+  target: T,
   error_message: &'static str,
-) -> Result<(), Violation> {
-  let check = value == target;
+) -> Result<(), Violation>
+where
+  V: ConstRule + PartialEq<T>,
+{
+  let is_valid = value == target;
 
-  create_violation!(bytes, check, field_context, const, error_message)
+  if is_valid {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &V::CONST_VIOLATION.violation,
+      V::CONST_VIOLATION.name,
+      error_message,
+    ))
+  }
 }
-
-const_validator!(string, &str);
-const_validator!(bool, bool);
-
-const_validator!(duration, Duration);
-const_validator!(timestamp, Timestamp);
-
-const_validator!(float, f32);
-const_validator!(double, f64);
-
-const_validator!(int64, i64);
-const_validator!(int32, i32);
-const_validator!(sint64, i64);
-const_validator!(sint32, i32);
-const_validator!(sfixed64, i64);
-const_validator!(sfixed32, i32);
-
-const_validator!(uint64, u64);
-const_validator!(uint32, u32);
-const_validator!(fixed64, u64);
-const_validator!(fixed32, u32);
-
-const_validator!(enum, i32);

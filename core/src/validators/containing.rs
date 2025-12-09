@@ -8,6 +8,7 @@ use crate::{
   validators::static_data::{
     base_violations::create_violation, in_violations::*, not_in_violations::*, ViolationData,
   },
+  wrappers::*,
 };
 
 pub trait ListLookup<Item = Self>: Sized {
@@ -66,10 +67,17 @@ impl ListLookup for f64 {
   }
 }
 
+impl_hash_lookup!(EnumVariant, ENUM);
 impl_hash_lookup!(i64, INT64);
 impl_hash_lookup!(i32, INT32);
 impl_hash_lookup!(u64, UINT64);
 impl_hash_lookup!(u32, UINT32);
+impl_hash_lookup!(Sint64, SINT64);
+impl_hash_lookup!(Sint32, SINT32);
+impl_hash_lookup!(Sfixed64, SFIXED64);
+impl_hash_lookup!(Sfixed32, SFIXED32);
+impl_hash_lookup!(Fixed64, FIXED64);
+impl_hash_lookup!(Fixed32, FIXED32);
 impl_hash_lookup!(Duration, DURATION);
 
 #[cfg(feature = "bytes")]

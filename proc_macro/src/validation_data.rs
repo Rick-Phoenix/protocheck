@@ -43,20 +43,6 @@ pub struct MapValidator {
   pub values_rules: TokenStream2,
 }
 
-pub enum ListRule {
-  In,
-  NotIn,
-}
-
-impl ListRule {
-  pub fn name(&self) -> String {
-    match self {
-      Self::In => "in".to_string(),
-      Self::NotIn => "not_in".to_string(),
-    }
-  }
-}
-
 impl ValidationData<'_> {
   pub fn static_full_name(&self) -> String {
     self
@@ -205,103 +191,88 @@ impl ValidationData<'_> {
     tokens: &mut TokenStream2,
     comparable_rules: &ComparableRules<T>,
   ) where
-    T: ToTokens + Display + PartialEq + PartialOrd + Debug,
+    T: ToTokens + PartialEq + PartialOrd + ComparableError + Copy,
   {
     let module_path = quote! { ::protocheck::validators::comparables };
     let field_context_ident = self.field_context_ident();
-    let proto_type_name = self.field_kind.inner_type().name();
     let value_ident = self.value_ident();
 
     if let Some(less_than) = comparable_rules.less_than.as_ref() {
-      match less_than {
-        ComparableLessThan::Lt {
-          val: lt,
-          error_message,
-        } => {
-          let func_ident = format_ident!("{proto_type_name}_lt");
+      let error_message = less_than.error_message();
 
-          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lt, #error_message) };
+      match less_than {
+        ComparableLessThan::Lt(lt) => {
+          let expr =
+            quote! { #module_path::lt(&#field_context_ident, #value_ident, #lt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
 
-        ComparableLessThan::Lte {
-          val: lte,
-          error_message,
-        } => {
-          let func_ident = format_ident!("{proto_type_name}_lte");
-
-          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #lte, #error_message) };
+        ComparableLessThan::Lte(lte) => {
+          let expr =
+            quote! { #module_path::lte(&#field_context_ident, #value_ident, #lte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
       };
     }
 
     if let Some(greater_than) = comparable_rules.greater_than.as_ref() {
-      match greater_than {
-        ComparableGreaterThan::Gt {
-          val: gt,
-          error_message,
-        } => {
-          let func_ident = format_ident!("{proto_type_name}_gt");
+      let error_message = greater_than.error_message();
 
-          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gt, #error_message) };
+      match greater_than {
+        ComparableGreaterThan::Gt(gt) => {
+          let expr =
+            quote! { #module_path::gt(&#field_context_ident, #value_ident, #gt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
-        ComparableGreaterThan::Gte {
-          val: gte,
-          error_message,
-        } => {
-          let func_ident = format_ident!("{proto_type_name}_gte");
-
-          let expr = quote! { #module_path::#func_ident(&#field_context_ident, #value_ident, #gte, #error_message) };
+        ComparableGreaterThan::Gte(gte) => {
+          let expr =
+            quote! { #module_path::gte(&#field_context_ident, #value_ident, #gte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
       };
     }
   }
 
-  pub fn get_list_validator(
-    &self,
-    rule_type: ListRule,
-    tokens: &mut TokenStream2,
-    list: ItemList,
-    static_defs: &mut TokenStream2,
-  ) {
+  pub fn get_list_validators<T>(&self, rules: ListsRules<T>, tokens: &mut TokenStream2)
+  where
+    T: ToTokens + Clone,
+  {
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
-    let proto_type_name = self.field_kind.inner_type().name();
 
-    let module_path = quote! { ::protocheck::validators::containing };
-    let rule_name = rule_type.name();
+    if let Some(in_list_rule) = rules.in_list_rule {
+      let items_tokens = in_list_rule.output_list();
+      let error_message = in_list_rule.error_message;
 
-    match list {
-      ItemList::Slice {
-        error_message,
-        tokens: list_tokens,
-      } => {
-        let func_path = format_ident!("{proto_type_name}_{rule_name}_slice_list");
-        let expr = quote! {
-          #module_path::#func_path(&#field_context_ident, #value_ident, &#list_tokens, #error_message)
-        };
+      let list_tokens = quote! {
+        let items = #items_tokens;
+      };
 
-        self.get_validator_tokens(tokens, &expr);
-      }
-      ItemList::HashSet {
-        error_message,
-        tokens: hashset_tokens,
-        static_ident,
-      } => {
-        let func_path = format_ident!("{proto_type_name}_{rule_name}_hashset_list");
+      tokens.extend(list_tokens);
 
-        static_defs.extend(hashset_tokens);
+      let expr = quote! {
+        ::protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &items, #error_message)
+      };
 
-        let expr = quote! {
-          #module_path::#func_path(&#field_context_ident, #value_ident, &#static_ident, #error_message)
-        };
+      self.get_validator_tokens(tokens, &expr);
+    }
 
-        self.get_validator_tokens(tokens, &expr);
-      }
-    };
+    if let Some(not_in_list_rule) = rules.not_in_list_rule {
+      let items_tokens = not_in_list_rule.output_list();
+      let error_message = not_in_list_rule.error_message;
+
+      let list_tokens = quote! {
+        let items = #items_tokens;
+      };
+
+      tokens.extend(list_tokens);
+
+      let expr = quote! {
+        ::protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &items, #error_message)
+      };
+
+      self.get_validator_tokens(tokens, &expr);
+    }
   }
 
   pub fn field_context_tokens(
@@ -495,18 +466,21 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn get_const_validator<T>(&self, tokens: &mut TokenStream2, rule: ConstRule<T>)
+  pub fn get_const_validator<T>(&self, tokens: &mut TokenStream2, const_rule: ConstRule<T>)
   where
     T: ToTokens,
   {
-    let proto_type_name = self.field_kind.inner_type().name();
-    let func_ident = format_ident!("{proto_type_name}_const");
+    let proto_type = self.field_kind.inner_type();
     let field_context_ident = self.field_context_ident();
-    let value_ident = self.value_ident();
+    let mut value_ident = self.value_ident().to_token_stream();
 
-    let ConstRule { val, error_message } = rule;
+    if matches!(proto_type, FieldType::Bytes) {
+      value_ident = quote! { *#value_ident.as_ref() }
+    }
 
-    let expr = quote! { ::protocheck::validators::constants::#func_ident(&#field_context_ident, #value_ident, #val, #error_message) };
+    let ConstRule { val, error_message } = const_rule;
+
+    let expr = quote! { ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #val, #error_message) };
 
     self.get_validator_tokens(tokens, &expr);
   }

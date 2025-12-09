@@ -6,11 +6,12 @@ use std::{
   borrow::Cow,
   cell::OnceCell,
   collections::{HashMap, HashSet},
-  fmt::{Debug, Display},
+  fmt::{Debug, Display, Write},
   hash::Hash,
   sync::{Arc, LazyLock},
 };
 
+use bytes::Bytes;
 use convert_case::{Case, Casing};
 use message_descriptor::*;
 use pool_loader::DESCRIPTOR_POOL;
@@ -31,7 +32,7 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
-  DeriveInput, Error, Ident, ItemStruct, LitStr, Meta, Path, Token, Type,
+  DeriveInput, Error, Ident, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
 };
 
 use crate::{

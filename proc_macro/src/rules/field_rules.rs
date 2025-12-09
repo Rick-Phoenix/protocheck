@@ -23,51 +23,51 @@ pub fn get_field_rules(
 
   match field_rules {
     RulesType::Float(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Double(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Int32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Int64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Uint32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Uint64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sint32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sint64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Fixed32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Fixed64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sfixed32(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Sfixed64(rules) => {
-      let rules = get_numeric_rules(validation_data, rules, static_defs)?;
+      let rules = get_numeric_rules(validation_data, rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::String(string_rules) => {
@@ -78,13 +78,7 @@ pub fn get_field_rules(
       if let ProstReflectKind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
-            let rules = get_enum_rules(
-              enum_ident,
-              enum_descriptor,
-              validation_data,
-              enum_rules,
-              static_defs,
-            )?;
+            let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
             rules_tokens.extend(rules);
           }
           None => error = Some("could not find enum field ident"),
@@ -94,7 +88,7 @@ pub fn get_field_rules(
       }
     }
     RulesType::Duration(duration_rules) => {
-      let rules = get_duration_rules(validation_data, duration_rules, static_defs)?;
+      let rules = get_duration_rules(validation_data, duration_rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Timestamp(timestamp_rules) => {
@@ -102,7 +96,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::Any(any_rules) => {
-      let rules = get_any_rules(validation_data, any_rules, static_defs)?;
+      let rules = get_any_rules(validation_data, any_rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Bool(bool_rules) => {
@@ -185,23 +179,6 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
     ProstReflectKind::Message(_) => ProtoType::Message,
     ProstReflectKind::Enum(_) => ProtoType::Enum,
   }
-}
-
-pub(crate) fn invalid_lists_error<T>(
-  field_span: Span,
-  field_name: &str,
-  invalid_items: &[T],
-) -> Error
-where
-  T: Debug,
-{
-  Error::new(
-    field_span,
-    format!(
-      "Error for field {}: the following values are contained by 'in' and 'not_in': {:?}",
-      field_name, invalid_items
-    ),
-  )
 }
 
 pub fn get_plural_suffix(items: u64) -> &'static str {

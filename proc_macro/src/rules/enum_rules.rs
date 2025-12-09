@@ -5,7 +5,6 @@ pub fn get_enum_rules(
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   rules: &EnumRules,
-  static_defs: &mut TokenStream2,
 ) -> Result<TokenStream2, Error> {
   let mut tokens = TokenStream2::new();
 
@@ -43,14 +42,7 @@ pub fn get_enum_rules(
     tokens.extend(validator_tokens);
   }
 
-  let ContainingRules {
-    in_list_rule,
-    not_in_list_rule,
-  } = rules
-    .containing_rules(&validation_data.static_full_name())
-    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
-
-  if let Some(in_list) = in_list_rule {
+  if !rules.r#in.is_empty() {
     let enum_values: HashSet<i32> = enum_desc.values().map(|e| e.number()).collect();
     let mut invalid_numbers: Vec<i32> = Vec::new();
 
@@ -70,12 +62,14 @@ pub fn get_enum_rules(
         ),
       ));
     }
-
-    validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
   }
 
-  if let Some(not_in_list) = not_in_list_rule {
-    validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
+  let lists_rules = rules
+    .list_rules()
+    .map_err(|e| get_field_error(field_name, field_span, &e))?;
+
+  if !lists_rules.is_empty() {
+    validation_data.get_list_validators(lists_rules, &mut tokens);
   }
 
   Ok(tokens)
