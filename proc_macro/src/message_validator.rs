@@ -3,11 +3,10 @@ use crate::*;
 pub fn extract_message_validators(
   item: &ItemStruct,
   message_desc: &MessageDescriptor,
-) -> Result<(TokenStream2, TokenStream2), Error> {
+) -> Result<TokenStream2, Error> {
   let ItemStruct { fields, .. } = item;
 
   let mut validators: TokenStream2 = TokenStream2::new();
-  let mut static_defs: TokenStream2 = TokenStream2::new();
 
   let mut rust_field_spans: HashMap<String, Span> = HashMap::new();
   // <Field name, Enum name>
@@ -49,7 +48,6 @@ pub fn extract_message_validators(
           struct_span: item.span(),
         },
         &message_rules.cel,
-        &mut static_defs,
       )?);
     }
   }
@@ -164,7 +162,6 @@ pub fn extract_message_validators(
         get_repeated_rules(
           &validation_data,
           &mut field_validators,
-          &mut static_defs,
           field_rust_enum,
           &field,
           &field_rules,
@@ -173,7 +170,6 @@ pub fn extract_message_validators(
         get_map_rules(
           &mut validation_data,
           &mut field_validators,
-          &mut static_defs,
           field_rust_enum,
           &field,
           &field_rules,
@@ -193,7 +189,6 @@ pub fn extract_message_validators(
               field_span,
             },
             &field_rules.cel,
-            &mut static_defs,
           )?);
         }
 
@@ -215,7 +210,7 @@ pub fn extract_message_validators(
     }
   }
 
-  Ok((validators, static_defs))
+  Ok(validators)
 }
 
 pub fn field_is_boxed(field_desc: &FieldDescriptor, message_desc: &MessageDescriptor) -> bool {

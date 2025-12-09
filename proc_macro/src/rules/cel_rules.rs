@@ -3,10 +3,9 @@ use crate::*;
 pub fn get_cel_rules_checked(
   rule_target: &CelRuleTemplateTarget,
   rules: &[Rule],
-  static_defs: &mut TokenStream2,
 ) -> Result<TokenStream2, Error> {
   if cfg!(feature = "cel") {
-    cel_validator::get_cel_rules(rule_target, rules, static_defs)
+    cel_validator::get_cel_rules(rule_target, rules)
   } else {
     unimplemented!("Cannot use Cel validators without the 'cel' feature")
   }
@@ -21,7 +20,6 @@ mod cel_validator {
   pub fn get_cel_rules(
     rule_target: &CelRuleTemplateTarget,
     rules: &[Rule],
-    static_defs: &mut TokenStream2,
   ) -> Result<TokenStream2, Error> {
     let mut tokens = TokenStream2::new();
 
@@ -68,16 +66,16 @@ mod cel_validator {
             let rule_id = rule.id().to_string();
 
             let static_program_ident = new_ident(&format!(
-              "__CEL_PROGRAM_{}_{}",
+              "CEL_PROGRAM_{}_{}",
               target_name.to_case(Case::UpperSnake),
               index
             ));
 
-            static_defs.extend(quote! {
-            static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
-              protocheck::cel::Program::compile(#expression).expect(#compilation_error_msg)
+            tokens.extend(quote! {
+              static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
+                protocheck::cel::Program::compile(#expression).expect(#compilation_error_msg)
+              });
             });
-          });
 
             let rule_tokens = quote! {
               ::protocheck::validators::cel::CelRule {

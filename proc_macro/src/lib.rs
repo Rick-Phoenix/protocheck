@@ -90,17 +90,14 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  let (validators, static_defs): (TokenStream2, TokenStream2) =
-    match extract_message_validators(&input, &message_desc) {
-      Ok((validators_data, static_defs)) => (validators_data, static_defs),
-      Err(e) => return e.to_compile_error().into(),
-    };
+  let validators = match extract_message_validators(&input, &message_desc) {
+    Ok(v) => v,
+    Err(e) => return e.to_compile_error().into(),
+  };
 
   let struct_ident = &input.ident;
 
   let output = quote! {
-    #static_defs
-
     #input
 
     impl #struct_ident {
@@ -186,17 +183,14 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   };
 
   let mut validators: HashMap<Ident, TokenStream2> = HashMap::new();
-  let mut static_defs: TokenStream2 = TokenStream2::new();
 
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
       match extract_oneof_validators(&ast, &oneof) {
         Ok(OneofValidatorsOutput {
           validators: validators_data,
-          static_defs: static_definitions,
         }) => {
           validators = validators_data;
-          static_defs = static_definitions;
         }
         Err(e) => return e.to_compile_error().into(),
       };
@@ -218,8 +212,6 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   let oneof_rust_ident = &ast.ident;
 
   let output = quote! {
-    #static_defs
-
     #original_input_as_proc_macro2
 
     impl #oneof_rust_ident {
@@ -234,8 +226,6 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
       }
     }
   };
-
-  // eprintln!("{}", output);
 
   output.into()
 }

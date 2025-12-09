@@ -11,7 +11,6 @@ struct OneofField {
 #[derive(Debug)]
 pub struct OneofValidatorsOutput {
   pub validators: HashMap<Ident, TokenStream2>,
-  pub static_defs: TokenStream2,
 }
 
 pub fn extract_oneof_validators(
@@ -20,7 +19,6 @@ pub fn extract_oneof_validators(
 ) -> Result<OneofValidatorsOutput, Error> {
   let mut validators: HashMap<Ident, TokenStream2> = HashMap::new();
   let mut oneof_variants: HashMap<Ident, OneofField> = HashMap::new();
-  let mut static_defs: TokenStream2 = TokenStream2::new();
 
   let oneof_proto_name = &oneof_desc.name();
 
@@ -157,7 +155,6 @@ pub fn extract_oneof_validators(
             field_span,
           },
           &field_rules.cel,
-          &mut static_defs,
         )?);
       }
 
@@ -181,8 +178,5 @@ pub fn extract_oneof_validators(
     }
   }
 
-  Ok(OneofValidatorsOutput {
-    validators,
-    static_defs,
-  })
+  Ok(OneofValidatorsOutput { validators })
 }

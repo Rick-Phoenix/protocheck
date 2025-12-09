@@ -3,7 +3,6 @@ use crate::*;
 pub fn get_repeated_rules(
   validation_data: &ValidationData,
   validation_tokens: &mut TokenStream2,
-  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
@@ -27,7 +26,6 @@ pub fn get_repeated_rules(
         field_span: validation_data.field_span,
       },
       &field_rules.cel,
-      static_defs,
     )?);
   }
 
@@ -124,7 +122,6 @@ pub fn get_repeated_rules(
               field_span: validation_data.field_span,
             },
             &items_rules_descriptor.cel,
-            static_defs,
           )?;
           items_rules.extend(cel_rules);
         }

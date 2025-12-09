@@ -3,7 +3,6 @@ use crate::*;
 pub fn get_map_rules(
   map_validation_data: &mut ValidationData,
   validation_tokens: &mut TokenStream2,
-  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
@@ -60,7 +59,6 @@ pub fn get_map_rules(
         field_span: map_validation_data.field_span,
       },
       &field_rules.cel,
-      static_defs,
     )?);
   }
 
@@ -97,7 +95,6 @@ pub fn get_map_rules(
               field_span: map_validation_data.field_span,
             },
             &keys_rules_descriptor.cel,
-            static_defs,
           )?;
           keys_rules.extend(cel_rules);
         }
@@ -131,7 +128,6 @@ pub fn get_map_rules(
               field_span: map_validation_data.field_span,
             },
             &values_rules_descriptor.cel,
-            static_defs,
           )?;
           values_rules.extend(cel_rules);
         }
