@@ -14,7 +14,7 @@ pub struct OneofValidatorsOutput {
 }
 
 pub fn extract_oneof_validators(
-  input_tokens: &DeriveInput,
+  item: &ItemEnum,
   oneof_desc: &OneofDescriptor,
 ) -> Result<OneofValidatorsOutput, Error> {
   let mut validators: HashMap<Ident, TokenStream2> = HashMap::new();
@@ -22,47 +22,45 @@ pub fn extract_oneof_validators(
 
   let oneof_proto_name = &oneof_desc.name();
 
-  if let syn::Data::Enum(data_enum) = &input_tokens.data {
-    for variant in &data_enum.variants {
-      oneof_variants.insert(
-        variant.ident.clone(),
-        OneofField {
-          ident: variant.ident.clone(),
-          proto_name: String::new(),
-          enum_ident: None,
-          span: variant.ident.span(),
-        },
-      );
+  for variant in &item.variants {
+    oneof_variants.insert(
+      variant.ident.clone(),
+      OneofField {
+        ident: variant.ident.clone(),
+        proto_name: String::new(),
+        enum_ident: None,
+        span: variant.ident.span(),
+      },
+    );
 
-      for attr in &variant.attrs {
-        if attr.path().is_ident("protocheck") {
-          attr.parse_nested_meta(|meta| {
-            let proto_field_name =
-              extract_proto_name_attribute(oneof_proto_name, attr, &variant.ident, meta)?;
-            let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-            field_ident_entry.proto_name = proto_field_name;
+    for attr in &variant.attrs {
+      if attr.path().is_ident("protocheck") {
+        attr.parse_nested_meta(|meta| {
+          let proto_field_name =
+            extract_proto_name_attribute(oneof_proto_name, attr, &variant.ident, meta)?;
+          let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
+          field_ident_entry.proto_name = proto_field_name;
 
-            Ok(())
-          })?;
-        } else if attr.path().is_ident("prost") {
-          match attr.parse_args::<ProstAttrData>() {
-            Ok(parsed_data) => {
-              if let Some(enum_name) = parsed_data.enum_path {
-                let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
-                field_ident_entry.enum_ident = Some(enum_name);
-              }
+          Ok(())
+        })?;
+      } else if attr.path().is_ident("prost") {
+        match attr.parse_args::<ProstAttrData>() {
+          Ok(parsed_data) => {
+            if let Some(enum_name) = parsed_data.enum_path {
+              let field_ident_entry = oneof_variants.get_mut(&variant.ident).unwrap();
+              field_ident_entry.enum_ident = Some(enum_name);
             }
-            Err(e) => {
-              return Err(Error::new_spanned(
-                attr,
-                format!(
-                  "Could not extract the 'enumeration' attribute for variant {} in oneof {}: {}",
-                  &variant.ident, oneof_proto_name, e
-                ),
-              ))
-            }
-          };
-        }
+          }
+          Err(e) => {
+            return Err(Error::new_spanned(
+              attr,
+              format!(
+                "Could not extract the 'enumeration' attribute for variant {} in oneof {}: {}",
+                &variant.ident, oneof_proto_name, e
+              ),
+            ))
+          }
+        };
       }
     }
   }
@@ -95,9 +93,7 @@ pub fn extract_oneof_validators(
 
     if let ProstValue::Message(field_rules_message) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_message.encode_to_vec().as_slice())
-        .map_err(|e| {
-          Error::new_spanned(input_tokens, format!("Could not decode field rules: {}", e))
-        })?;
+        .map_err(|e| Error::new_spanned(item, format!("Could not decode field rules: {}", e)))?;
 
       let ignore = field_rules.ignore();
       let is_required = field_rules.required() && field.supports_presence();

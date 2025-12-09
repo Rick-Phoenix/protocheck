@@ -31,8 +31,7 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
-  DeriveInput, Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token,
-  Type,
+  Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
 };
 
 use crate::{
@@ -139,26 +138,16 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 /// Adds validation methods to oneofs contained in messages with validators.
 #[proc_macro_attribute]
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
-  let input_clone = input.clone();
-  let ast = parse_macro_input!(input_clone as DeriveInput);
+  let item = parse_macro_input!(input as ItemEnum);
 
   let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
   let oneof_full_name = proto_oneof_name_tokens.value();
-
-  if oneof_full_name.is_empty() {
-    return Error::new_spanned(
-      &ast,
-      format!("Found empty oneof name attribute for {}", &ast.ident),
-    )
-    .to_compile_error()
-    .into();
-  }
 
   let (parent_message_name, oneof_name) = match oneof_full_name.rsplit_once('.') {
     Some((parent, oneof)) => (parent, oneof),
     None => {
       return Error::new_spanned(
-        ast,
+        proto_oneof_name_tokens,
         format!(
           "Could not extract parent message and oneof name for {}",
           oneof_full_name
@@ -173,7 +162,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     Some(message) => message,
     None => {
       return Error::new_spanned(
-        ast,
+        item,
         format!(
           "Parent message {} not found for oneof {}",
           parent_message_name, oneof_name
@@ -188,7 +177,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
 
   for oneof in message_desc.oneofs() {
     if oneof.name() == oneof_name {
-      match extract_oneof_validators(&ast, &oneof) {
+      match extract_oneof_validators(&item, &oneof) {
         Ok(OneofValidatorsOutput {
           validators: validators_data,
         }) => {
@@ -210,11 +199,10 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     });
   }
 
-  let original_input_as_proc_macro2: proc_macro2::TokenStream = input.into();
-  let oneof_rust_ident = &ast.ident;
+  let oneof_rust_ident = &item.ident;
 
   let output = quote! {
-    #original_input_as_proc_macro2
+    #item
 
     impl #oneof_rust_ident {
       pub fn validate(
