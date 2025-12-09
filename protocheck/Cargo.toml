@@ -32,8 +32,6 @@ ordered-float = [
   "protocheck-core/ordered-float",
   "protocheck-proc-macro/ordered-float",
 ]
-## Enables serde support for protobuf well known types.
-serde = ["proto-types/serde"]
 chrono = ["proto-types/chrono"]
 ## Enables validation with custom Cel expressions.
 cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
@@ -48,4 +46,4 @@ bytes = ["protocheck-core/bytes"]
 ## Enables the validators that use the Regex crate, such as 'pattern', or the well known strings such as 'header_name', 'email' and so on.
 regex = ["protocheck-core/regex"]
 
-default = ["ip", "uri", "bytes", "regex", "cel", "serde", "totokens", "chrono"]
+default = ["ip", "uri", "bytes", "regex", "cel", "totokens", "chrono"]
