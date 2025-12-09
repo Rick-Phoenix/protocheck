@@ -107,7 +107,6 @@ pub fn get_repeated_rules(
         if let Some(ref rules_type) = items_rules_descriptor.r#type
           && !item_is_message {
             let items_rules_tokens = get_field_rules(
-              static_defs,
               field_rust_enum,
               field_desc,
               repeated_items_validation_data,

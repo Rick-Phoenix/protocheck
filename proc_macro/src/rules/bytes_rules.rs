@@ -3,7 +3,6 @@ use crate::{bytes_rules::WellKnown, *};
 pub fn get_bytes_rules(
   validation_data: &ValidationData,
   rules: &BytesRules,
-  static_defs: &mut TokenStream2,
 ) -> Result<TokenStream2, Error> {
   let mut tokens = TokenStream2::new();
 
@@ -47,7 +46,7 @@ pub fn get_bytes_rules(
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, static_defs, pattern, true);
+    validation_data.get_regex_validator(&mut tokens, pattern, true);
   }
 
   if let Some(well_known) = rules.well_known {

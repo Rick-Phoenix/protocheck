@@ -81,7 +81,6 @@ pub fn get_map_rules(
 
         if let Some(ref rules) = keys_rules_descriptor.r#type {
           let key_validators_tokens = get_field_rules(
-            static_defs,
             field_rust_enum.clone(),
             &key_desc,
             &keys_validation_data,
@@ -116,7 +115,6 @@ pub fn get_map_rules(
         if let Some(ref rules) = values_rules_descriptor.r#type
           && !value_is_message {
             let value_validators_tokens = get_field_rules(
-              static_defs,
               field_rust_enum,
               &value_desc,
               &values_validation_data,

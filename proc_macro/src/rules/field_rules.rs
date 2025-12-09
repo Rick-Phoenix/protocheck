@@ -1,7 +1,6 @@
 use crate::*;
 
 pub fn get_field_rules(
-  static_defs: &mut TokenStream2,
   field_rust_enum: Option<String>,
   field_desc: &FieldDescriptor,
   validation_data: &ValidationData,
@@ -71,7 +70,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::String(string_rules) => {
-      let rules = get_string_rules(static_defs, validation_data, string_rules)?;
+      let rules = get_string_rules(validation_data, string_rules)?;
       rules_tokens.extend(rules);
     }
     RulesType::Enum(enum_rules) => {
@@ -104,7 +103,7 @@ pub fn get_field_rules(
       rules_tokens.extend(rules);
     }
     RulesType::Bytes(bytes_rules) => {
-      let rules = get_bytes_rules(validation_data, bytes_rules, static_defs)?;
+      let rules = get_bytes_rules(validation_data, bytes_rules)?;
       rules_tokens.extend(rules);
     }
     _ => {}

@@ -3,7 +3,6 @@ use proto_types::protovalidate::string_rules::WellKnown;
 use crate::*;
 
 pub fn get_string_rules(
-  static_defs: &mut TokenStream2,
   validation_data: &ValidationData,
   rules: &StringRules,
 ) -> Result<TokenStream2, Error> {
@@ -56,7 +55,7 @@ pub fn get_string_rules(
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, static_defs, pattern, false);
+    validation_data.get_regex_validator(&mut tokens, pattern, false);
   }
 
   if let Some(well_known_kind) = rules.well_known {

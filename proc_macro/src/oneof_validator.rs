@@ -162,13 +162,7 @@ pub fn extract_oneof_validators(
       }
 
       if let Some(ref rules_type) = field_rules.r#type {
-        let rules = get_field_rules(
-          &mut static_defs,
-          enum_ident,
-          &field,
-          &validation_data,
-          rules_type,
-        )?;
+        let rules = get_field_rules(enum_ident, &field, &validation_data, rules_type)?;
         field_validators.extend(rules);
       }
 

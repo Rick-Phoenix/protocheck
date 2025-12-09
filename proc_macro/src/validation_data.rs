@@ -161,13 +161,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_regex_validator(
-    &self,
-    tokens: &mut TokenStream2,
-    static_defs: &mut TokenStream2,
-    regex: &str,
-    is_bytes: bool,
-  ) {
+  pub fn get_regex_validator(&self, tokens: &mut TokenStream2, regex: &str, is_bytes: bool) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
 
@@ -177,9 +171,8 @@ impl ValidationData<'_> {
       quote! { ::regex::Regex }
     };
 
-    let static_regex_ident = format_ident!("__{}_REGEX", self.static_full_name());
-    static_defs.extend(quote! {
-      static #static_regex_ident: ::std::sync::LazyLock<#regex_type> = ::std::sync::LazyLock::new(|| {
+    tokens.extend(quote! {
+      static REGEX: ::std::sync::LazyLock<#regex_type> = ::std::sync::LazyLock::new(|| {
         #regex_type::new(#regex).unwrap()
       });
     });
@@ -188,7 +181,7 @@ impl ValidationData<'_> {
     let error_message = format!("must match the following regex: `{}`", regex);
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, #value_ident, &#static_regex_ident, #error_message)
+      ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, #value_ident, &REGEX, #error_message)
     };
     self.get_validator_tokens(tokens, &validator_expression_tokens);
   }

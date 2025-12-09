@@ -180,13 +180,7 @@ pub fn extract_message_validators(
         )?;
       } else {
         if let Some(rules_type) = field_rules_type {
-          let rules = get_field_rules(
-            &mut static_defs,
-            field_rust_enum,
-            &field,
-            &validation_data,
-            rules_type,
-          )?;
+          let rules = get_field_rules(field_rust_enum, &field, &validation_data, rules_type)?;
 
           field_validators.extend(rules);
         }
