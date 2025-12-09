@@ -56,24 +56,29 @@ macro_rules! string_validator {
 }
 
 // Char length
-string_validator!(max_len, u64, |value: &str, max_len: u64| value
-  .chars()
-  .count()
-  <= max_len as usize);
-string_validator!(min_len, u64, |value: &str, min_len: u64| value
-  .chars()
-  .count()
-  >= min_len as usize);
+string_validator!(
+  max_len,
+  u64,
+  |value: &str, max_len: u64| value.chars().count() as u64 <= max_len
+);
+string_validator!(
+  min_len,
+  u64,
+  |value: &str, min_len: u64| value.chars().count() as u64 >= min_len
+);
 string_validator!(len, u64, |value: &str, max_len: u64| value.chars().count()
-  == max_len as usize);
+  as u64
+  == max_len);
 
 // Bytes length
-string_validator!(len_bytes, u64, |value: &str, len: u64| value.len()
-  == len as usize);
+string_validator!(len_bytes, u64, |value: &str, len: u64| value.len() as u64
+  == len);
 string_validator!(max_bytes, u64, |value: &str, max_bytes: u64| value.len()
-  <= max_bytes as usize);
+  as u64
+  <= max_bytes);
 string_validator!(min_bytes, u64, |value: &str, min_bytes: u64| value.len()
-  >= min_bytes as usize);
+  as u64
+  >= min_bytes);
 
 // Patterns
 #[cfg(feature = "regex")]

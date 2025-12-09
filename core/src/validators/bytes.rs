@@ -94,14 +94,13 @@ pub fn pattern(
   }
 }
 
-bytes_validator!(bytes_arg, min_len, u64, |t: u64, v: &Bytes| v.len()
-  >= t as usize);
+bytes_validator!(bytes_arg, min_len, u64, |t: u64, v: &Bytes| v.len() as u64
+  >= t);
 
-bytes_validator!(bytes_arg, max_len, u64, |t: u64, v: &Bytes| v.len()
-  <= t as usize);
+bytes_validator!(bytes_arg, max_len, u64, |t: u64, v: &Bytes| v.len() as u64
+  <= t);
 
-bytes_validator!(bytes_arg, len, u64, |t: u64, v: &Bytes| v.len()
-  == t as usize);
+bytes_validator!(bytes_arg, len, u64, |t: u64, v: &Bytes| v.len() as u64 == t);
 
 bytes_validator!(
   bytes_arg,
