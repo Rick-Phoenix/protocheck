@@ -31,7 +31,8 @@ use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
-  DeriveInput, Error, Ident, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
+  DeriveInput, Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token,
+  Type,
 };
 
 use crate::{
@@ -53,18 +54,19 @@ mod special_field_names;
 mod utils;
 mod validation_data;
 
-/// Adds conversion functions into [`cel::Value`] for oneofs.
-#[cfg(feature = "cel")]
-#[proc_macro_derive(OneofTryIntoCelValue)]
-pub fn oneof_try_into_cel_value_derive(input: TokenStream) -> TokenStream {
-  cel_try_into::derive_cel_value_oneof(input)
-}
-
 /// Adds conversion functions into [`cel::Value`] for messages.
 #[cfg(feature = "cel")]
 #[proc_macro_derive(TryIntoCelValue)]
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
-  cel_try_into::derive_cel_value_struct(input)
+  let item = parse_macro_input!(input as Item);
+
+  match item {
+    Item::Struct(s) => cel_try_into::derive_cel_value_struct(s),
+    Item::Enum(e) => cel_try_into::derive_cel_value_oneof(e),
+    _ => error!(item, "This macro only works on enums (oneofs) and structs")
+      .into_compile_error()
+      .into(),
+  }
 }
 
 /// Adds the validation methods to the generated protobuf message structs.

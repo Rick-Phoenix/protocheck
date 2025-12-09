@@ -106,17 +106,10 @@ fn get_hashmap_types(ty: &Type) -> Result<(&Type, &Type), ()> {
   }
 }
 
-pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
-  let ast = parse_macro_input!(input as DeriveInput);
-  let enum_name = &ast.ident;
+pub fn derive_cel_value_oneof(item: ItemEnum) -> TokenStream {
+  let enum_name = &item.ident;
 
-  let variants = if let syn::Data::Enum(data_enum) = &ast.data {
-    &data_enum.variants
-  } else {
-    return syn::Error::new_spanned(ast, "OneofTryIntoCelValue can only be used on enums")
-      .to_compile_error()
-      .into();
-  };
+  let variants = &item.variants;
 
   let max_recursion_depth = quote! { 10 };
 
@@ -178,20 +171,14 @@ pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
   expanded.into()
 }
 
-pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
-  let ast = parse_macro_input!(input as DeriveInput);
+pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> TokenStream {
+  let struct_name = &item.ident;
 
-  let struct_name = &ast.ident;
-
-  let fields = if let syn::Data::Struct(syn::DataStruct {
-    fields: syn::Fields::Named(fields),
-    ..
-  }) = &ast.data
-  {
+  let fields = if let syn::Fields::Named(fields) = &item.fields {
     &fields.named
   } else {
     return Error::new_spanned(
-      ast,
+      item,
       "This derive macro only works on structs with named fields",
     )
     .to_compile_error()

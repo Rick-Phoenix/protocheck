@@ -67,7 +67,7 @@ pub fn compile_protos_with_validators(
         if cfg!(feature = "cel") {
           config.type_attribute(
             oneof_name,
-            r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
+            r#"#[derive(::protocheck::macros::TryIntoCelValue)]"#,
           );
         }
 
