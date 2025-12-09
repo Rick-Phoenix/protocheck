@@ -1,7 +1,5 @@
 use bytes::Bytes;
 use paste::paste;
-#[cfg(feature = "regex")]
-use regex::Regex;
 
 use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
 use crate::{
@@ -76,8 +74,25 @@ well_known_rule!(ipv4, "ipv4 address");
 well_known_rule!(ipv6, "ipv6 address");
 
 #[cfg(feature = "regex")]
-bytes_validator!(string_arg, pattern, &Regex, |t: &Regex, s: &str| t
-  .is_match(s));
+pub fn pattern(
+  field_context: &FieldContext,
+  value: &Bytes,
+  regex: &regex::bytes::Regex,
+  error_message: &'static str,
+) -> Result<(), Violation> {
+  let is_valid = regex.is_match(value.as_ref());
+
+  if is_valid {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &BYTES_PATTERN_VIOLATION,
+      "bytes.pattern",
+      error_message,
+    ))
+  }
+}
 
 bytes_validator!(bytes_arg, min_len, u64, |t: u64, v: &Bytes| v.len()
   >= t as usize);

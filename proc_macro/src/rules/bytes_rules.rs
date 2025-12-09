@@ -47,7 +47,7 @@ pub fn get_bytes_rules(
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, static_defs, pattern);
+    validation_data.get_regex_validator(&mut tokens, static_defs, pattern, true);
   }
 
   if let Some(well_known) = rules.well_known {

@@ -56,7 +56,7 @@ pub fn get_string_rules(
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, static_defs, pattern);
+    validation_data.get_regex_validator(&mut tokens, static_defs, pattern, false);
   }
 
   if let Some(well_known_kind) = rules.well_known {
