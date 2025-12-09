@@ -45,13 +45,6 @@ pub fn compile_protos_with_validators(
       );
       config.message_attribute(message_name, &attribute_str);
 
-      if cfg!(feature = "cel") {
-        config.message_attribute(
-          message_name,
-          "#[derive(::protocheck::macros::TryIntoCelValue)]",
-        );
-      }
-
       for oneof in message_desc.oneofs() {
         let oneof_name = oneof.full_name();
         config.type_attribute(
@@ -63,13 +56,6 @@ pub fn compile_protos_with_validators(
         );
 
         config.type_attribute(oneof_name, r#"#[derive(::protocheck::macros::Oneof)]"#);
-
-        if cfg!(feature = "cel") {
-          config.type_attribute(
-            oneof_name,
-            r#"#[derive(::protocheck::macros::TryIntoCelValue)]"#,
-          );
-        }
 
         for field in oneof.fields() {
           config.field_attribute(

@@ -30,8 +30,8 @@ use protocheck_core::field_data::FieldKind;
 use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use syn::{
-  parse::ParseStream, parse_macro_input, punctuated::Punctuated, spanned::Spanned, Attribute,
-  Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
+  parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned,
+  Attribute, Error, Ident, Item, ItemEnum, ItemStruct, LitByteStr, LitStr, Meta, Path, Token, Type,
 };
 
 use crate::{
@@ -74,7 +74,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   let proto_message_name_tokens = parse_macro_input!(attrs as LitStr);
   let proto_message_name = proto_message_name_tokens.value();
 
-  let input = parse_macro_input!(input as ItemStruct);
+  let mut item = parse_macro_input!(input as ItemStruct);
 
   let message_desc = match DESCRIPTOR_POOL.get_message_by_name(&proto_message_name) {
     Some(message) => message,
@@ -91,15 +91,21 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     }
   };
 
-  let validators = match extract_message_validators(&input, &message_desc) {
+  let validators = match extract_message_validators(&item, &message_desc) {
     Ok(v) => v,
     Err(e) => return e.to_compile_error().into(),
   };
 
-  let struct_ident = &input.ident;
+  let struct_ident = &item.ident;
+
+  if cfg!(feature = "cel") {
+    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCelValue)]);
+
+    item.attrs.push(cel_attr);
+  }
 
   let output = quote! {
-    #input
+    #item
 
     impl #struct_ident {
       pub fn validate(&self) -> Result<(), ::protocheck::types::protovalidate::Violations> {
@@ -138,7 +144,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
 /// Adds validation methods to oneofs contained in messages with validators.
 #[proc_macro_attribute]
 pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenStream {
-  let item = parse_macro_input!(input as ItemEnum);
+  let mut item = parse_macro_input!(input as ItemEnum);
 
   let proto_oneof_name_tokens = parse_macro_input!(attrs as LitStr);
   let oneof_full_name = proto_oneof_name_tokens.value();
@@ -200,6 +206,12 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   }
 
   let oneof_rust_ident = &item.ident;
+
+  if cfg!(feature = "cel") {
+    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCelValue)]);
+
+    item.attrs.push(cel_attr);
+  }
 
   let output = quote! {
     #item
