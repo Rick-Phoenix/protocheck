@@ -38,6 +38,7 @@ pub fn compile_protos_with_validators(
 
   for message_desc in pool.all_messages() {
     let message_name = message_desc.full_name();
+
     if packages.contains(&message_desc.package_name()) {
       let attribute_str = format!(
         r#"#[::protocheck::macros::protobuf_validate("{}")]"#,

@@ -216,7 +216,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
         )
       })?;
 
-      let val_ident = format_ident!("v");
+      let val_ident = new_ident("v");
       let val_tokens = quote! { #val_ident };
 
       match outer_type {
@@ -243,7 +243,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
         }
 
         OuterType::HashMap(keys_type, values_type) => {
-          let keys_ident = Ident::new("key", Span::call_site());
+          let keys_ident = new_ident("key");
           let keys_conversion_tokens = keys_type.conversion_tokens(&quote! { #keys_ident });
           let values_conversion_tokens = values_type.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
