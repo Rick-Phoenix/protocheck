@@ -1,14 +1,11 @@
-use std::{sync::LazyLock, vec};
-
 use cel::{Context, Program, Value as CelValue};
 use chrono::Utc;
 use proto_types::cel::CelConversionError;
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::{FieldPath, FieldPathElement, Violation},
+  protovalidate::{violations_data::CEL_VIOLATION, FieldPath, FieldPathElement, Violation},
   validators::static_data::base_violations::create_violation,
-  ProtoType,
 };
 
 pub struct CelRule {
@@ -43,22 +40,16 @@ where
       field_context.proto_name
     );
 
-    create_violation(
-      field_context,
-      &CEL_VIOLATION,
-      "internal server error",
-      "internal server error",
-    )
+    create_cel_field_violation(rule_id, field_context, "internal server error")
   })?;
 
   if let CelValue::Bool(bool_value) = result {
     if bool_value {
       Ok(())
     } else {
-      Err(create_violation(
-        field_context,
-        &CEL_VIOLATION,
+      Err(create_cel_field_violation(
         rule_id,
+        field_context,
         error_message,
       ))
     }
@@ -69,10 +60,9 @@ where
       result.type_of()
     );
 
-    Err(create_violation(
+    Err(create_cel_field_violation(
+      rule_id,
       field_context,
-      &CEL_VIOLATION,
-      "internal server error",
       "internal server error",
     ))
   }
@@ -93,12 +83,7 @@ where
       rule.item_full_name, e
     );
 
-    create_violation(
-      field_context,
-      &CEL_VIOLATION,
-      "internal server error",
-      "internal server error",
-    )
+    create_cel_field_violation(rule.id, field_context, "internal server error")
   })?;
 
   validate_cel_field_with_val(field_context, rule, cel_val)
@@ -176,6 +161,18 @@ where
   }
 }
 
+fn create_cel_field_violation(
+  rule_id: &str,
+  field_context: &FieldContext,
+  error_message: &str,
+) -> Violation {
+  let mut violation = create_violation(field_context, &CEL_VIOLATION, error_message);
+
+  violation.rule_id = Some(rule_id.to_string());
+
+  violation
+}
+
 fn create_cel_message_violation(
   rule_id: &str,
   error_message: &str,
@@ -190,20 +187,9 @@ fn create_cel_message_violation(
     message: Some(error_message.to_string()),
     rule_id: Some(rule_id.to_string()),
     rule: Some(FieldPath {
-      elements: CEL_VIOLATION.clone(),
+      elements: CEL_VIOLATION.elements.to_vec(),
     }),
     field: field_path,
     for_key: None,
   }
 }
-
-static CEL_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![FieldPathElement {
-    field_name: Some("cel".to_string()),
-    field_number: Some(23),
-    field_type: Some(ProtoType::Message as i32),
-    key_type: None,
-    value_type: None,
-    subscript: None,
-  }]
-});

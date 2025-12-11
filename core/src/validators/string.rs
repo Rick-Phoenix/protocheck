@@ -5,8 +5,8 @@ use super::well_known_strings::ip::*;
 use super::well_known_strings::*;
 use crate::{
   field_data::FieldContext,
-  protovalidate::Violation,
-  validators::static_data::{base_violations::create_violation, strings_violations::*},
+  protovalidate::{violations_data::string_violations::*, Violation},
+  validators::static_data::base_violations::create_violation,
 };
 
 macro_rules! create_string_violation {
@@ -146,7 +146,6 @@ pub fn header_name(
     Err(create_violation(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
-      "string.well_known_regex.header_name",
       "must be a valid HTTP header name",
     ))
   }
@@ -166,7 +165,6 @@ pub fn header_value(
     Err(create_violation(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
-      "string.well_known_regex.header_value",
       "must be a valid HTTP header value",
     ))
   }

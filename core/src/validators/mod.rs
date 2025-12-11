@@ -1,5 +1,3 @@
-use crate::protovalidate::FieldPathElement;
-
 /// All the static data being used by validators, such as definitions for protovalidate violations.
 #[macro_use]
 pub mod static_data;

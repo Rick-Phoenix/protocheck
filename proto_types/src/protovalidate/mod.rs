@@ -7,6 +7,8 @@ mod violations;
 
 use std::fmt::{self, Display};
 
+pub use violations::*;
+
 impl Display for Subscript {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {

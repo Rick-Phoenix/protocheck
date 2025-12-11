@@ -95,7 +95,6 @@ impl Violations {
   ///      ..Default::default()
   ///    }],
   ///  };
-
   ///  assert!(violations.violation_by_field_path("person.name").is_some());
   /// ```
   pub fn violation_by_field_path(&self, path: &str) -> Option<&Violation> {

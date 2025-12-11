@@ -5,11 +5,8 @@ use proto_types::protovalidate::{FieldPath, FieldPathElement};
 use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
 use crate::{
   field_data::FieldContext,
-  protovalidate::Violation,
-  validators::static_data::{
-    base_violations::{create_violation, get_violation_elements},
-    bytes_violations::*,
-  },
+  protovalidate::{violations_data::bytes_violations::*, Violation},
+  validators::static_data::base_violations::{create_violation, get_violation_elements},
 };
 
 fn get_invalid_bytes_violation(elements: Vec<FieldPathElement>) -> Violation {
@@ -112,7 +109,6 @@ pub fn pattern(
     Err(create_violation(
       field_context,
       &BYTES_PATTERN_VIOLATION,
-      "bytes.pattern",
       error_message,
     ))
   }

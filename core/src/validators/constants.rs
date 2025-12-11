@@ -4,10 +4,11 @@ use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::Violation,
-  validators::static_data::{
-    base_violations::create_violation, const_violations::*, ViolationData,
+  protovalidate::{
+    violations_data::{const_violations::*, ViolationData},
+    Violation,
   },
+  validators::static_data::base_violations::create_violation,
   wrappers::*,
 };
 
@@ -61,8 +62,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &V::CONST_VIOLATION.violation,
-      V::CONST_VIOLATION.name,
+      V::CONST_VIOLATION,
       error_message,
     ))
   }

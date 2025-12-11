@@ -4,11 +4,13 @@ use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::Violation,
-  validators::static_data::{
-    base_violations::create_violation, gt_violations::*, gte_violations::*, lt_violations::*,
-    lte_violations::*, ViolationData,
+  protovalidate::{
+    violations_data::{
+      gt_violations::*, gte_violations::*, lt_violations::*, lte_violations::*, ViolationData,
+    },
+    Violation,
   },
+  validators::static_data::base_violations::create_violation,
   wrappers::*,
 };
 
@@ -64,8 +66,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::LT_VIOLATION.violation,
-      T::LT_VIOLATION.name,
+      T::LT_VIOLATION,
       error_message,
     ))
   }
@@ -87,8 +88,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::LTE_VIOLATION.violation,
-      T::LTE_VIOLATION.name,
+      T::LTE_VIOLATION,
       error_message,
     ))
   }
@@ -110,8 +110,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::GT_VIOLATION.violation,
-      T::GT_VIOLATION.name,
+      T::GT_VIOLATION,
       error_message,
     ))
   }
@@ -133,8 +132,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::GTE_VIOLATION.violation,
-      T::GTE_VIOLATION.name,
+      T::GTE_VIOLATION,
       error_message,
     ))
   }

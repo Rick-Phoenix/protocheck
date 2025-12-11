@@ -4,10 +4,11 @@ use proto_types::{Any, Duration};
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::Violation,
-  validators::static_data::{
-    base_violations::create_violation, in_violations::*, not_in_violations::*, ViolationData,
+  protovalidate::{
+    violations_data::{in_violations::*, not_in_violations::*, ViolationData},
+    Violation,
   },
+  validators::static_data::base_violations::create_violation,
   wrappers::*,
 };
 
@@ -194,8 +195,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::IN_VIOLATION.violation,
-      T::IN_VIOLATION.name,
+      T::IN_VIOLATION,
       error_message,
     ))
   }
@@ -217,8 +217,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &T::NOT_IN_VIOLATION.violation,
-      T::NOT_IN_VIOLATION.name,
+      T::NOT_IN_VIOLATION,
       error_message,
     ))
   }

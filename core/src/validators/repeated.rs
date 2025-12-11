@@ -1,13 +1,17 @@
-use std::{collections::HashSet, sync::LazyLock};
+use std::collections::HashSet;
 
 use proto_types::{Duration, Timestamp};
 
 use crate::{
   field_data::FieldContext,
-  protovalidate::{FieldPathElement, Violation},
+  protovalidate::{
+    violations_data::{
+      REPEATED_MAX_ITEMS_VIOLATION, REPEATED_MIN_ITEMS_VIOLATION, REPEATED_UNIQUE_VIOLATION,
+    },
+    Violation,
+  },
   validators::static_data::base_violations::create_violation,
   wrappers::*,
-  ProtoType,
 };
 
 pub fn min_items<T>(
@@ -24,7 +28,6 @@ pub fn min_items<T>(
     Err(create_violation(
       field_context,
       &REPEATED_MIN_ITEMS_VIOLATION,
-      "repeated.min_items",
       error_message,
     ))
   }
@@ -44,7 +47,6 @@ pub fn max_items<T>(
     Err(create_violation(
       field_context,
       &REPEATED_MAX_ITEMS_VIOLATION,
-      "repeated.max_items",
       error_message,
     ))
   }
@@ -240,71 +242,7 @@ where
     Err(create_violation(
       field_context,
       &REPEATED_UNIQUE_VIOLATION,
-      "repeated.unique",
       "must contain unique values",
     ))
   }
 }
-
-static REPEATED_MIN_ITEMS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("repeated".to_string()),
-      field_number: Some(18),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("min_items".to_string()),
-      field_number: Some(1),
-      field_type: Some(ProtoType::Uint64 as i32),
-      key_type: None,
-      value_type: None,
-      subscript: None,
-    },
-  ]
-});
-
-static REPEATED_MAX_ITEMS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("repeated".to_string()),
-      field_number: Some(18),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("max_items".to_string()),
-      field_number: Some(2),
-      field_type: Some(ProtoType::Uint64 as i32),
-      key_type: None,
-      value_type: None,
-      subscript: None,
-    },
-  ]
-});
-
-static REPEATED_UNIQUE_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("repeated".to_string()),
-      field_number: Some(18),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("unique".to_string()),
-      field_number: Some(3),
-      field_type: Some(ProtoType::Uint64 as i32),
-      key_type: None,
-      value_type: None,
-      subscript: None,
-    },
-  ]
-});

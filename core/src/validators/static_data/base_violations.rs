@@ -1,11 +1,10 @@
-use std::sync::LazyLock;
-
-use proto_types::protovalidate::{FieldPath, Violation};
+use proto_types::protovalidate::{FieldPath, Violation, ViolationData};
 
 use crate::{
   field_data::{FieldContext, FieldKind},
-  protovalidate::FieldPathElement,
-  ProtoType,
+  protovalidate::{
+    FieldPathElement, MAP_KEY_VIOLATION, MAP_VALUE_VIOLATION, REPEATED_ITEM_VIOLATION,
+  },
 };
 
 macro_rules! create_violation {
@@ -17,7 +16,6 @@ macro_rules! create_violation {
         Err(create_violation(
           $field_context,
           &[< $proto_type:upper _ $violation_name:upper _ VIOLATION >],
-          concat!(stringify!($proto_type), ".", stringify!($violation_name)),
           $error_message,
         ))
       }
@@ -27,18 +25,17 @@ macro_rules! create_violation {
 
 pub fn create_violation(
   field_context: &FieldContext,
-  violation_path: &'static [FieldPathElement],
-  rule_id: &str,
+  violation_data: &ViolationData,
   error_message: &str,
 ) -> Violation {
   let elements = get_violation_elements(field_context);
 
   let mut rule_elements = get_base_violations_path(field_context.field_kind);
 
-  rule_elements.extend(violation_path.to_vec());
+  rule_elements.extend(violation_data.elements.to_vec());
 
   Violation {
-    rule_id: Some(rule_id.to_string()),
+    rule_id: Some(violation_data.name.to_string()),
     message: Some(error_message.to_string()),
     for_key: field_context.field_kind.is_map_key().then_some(true),
     field: Some(FieldPath { elements }),
@@ -68,75 +65,12 @@ pub fn get_base_violations_path(field_kind: FieldKind) -> Vec<FieldPathElement> 
   let mut violations_path = vec![];
 
   if field_kind.is_repeated_item() {
-    violations_path.extend(REPEATED_ITEM_VIOLATION.clone());
+    violations_path.extend(REPEATED_ITEM_VIOLATION.elements.to_vec());
   } else if field_kind.is_map_key() {
-    violations_path.extend(MAP_KEY_VIOLATION.clone());
+    violations_path.extend(MAP_KEY_VIOLATION.elements.to_vec());
   } else if field_kind.is_map_value() {
-    violations_path.extend(MAP_VALUE_VIOLATION.clone());
+    violations_path.extend(MAP_VALUE_VIOLATION.elements.to_vec());
   }
 
   violations_path
 }
-
-static MAP_KEY_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("map".to_string()),
-      field_number: Some(19),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("keys".to_string()),
-      field_number: Some(4),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-  ]
-});
-
-static MAP_VALUE_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("map".to_string()),
-      field_number: Some(19),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("values".to_string()),
-      field_number: Some(5),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-  ]
-});
-
-static REPEATED_ITEM_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
-  vec![
-    FieldPathElement {
-      field_name: Some("repeated".to_string()),
-      field_number: Some(18),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-    FieldPathElement {
-      field_name: Some("items".to_string()),
-      field_number: Some(4),
-      field_type: Some(ProtoType::Message as i32),
-      subscript: None,
-      key_type: None,
-      value_type: None,
-    },
-  ]
-});
