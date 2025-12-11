@@ -105,9 +105,9 @@ impl fmt::Display for DateTime {
 
     if nanos == 0 {
       write!(f, "Z")
-    } else if nanos % 1_000_000 == 0 {
+    } else if nanos.is_multiple_of(1_000_000) {
       write!(f, ".{:03}Z", nanos / 1_000_000)
-    } else if nanos % 1_000 == 0 {
+    } else if nanos.is_multiple_of(1_000) {
       write!(f, ".{:06}Z", nanos / 1_000)
     } else {
       write!(f, ".{:09}Z", nanos)

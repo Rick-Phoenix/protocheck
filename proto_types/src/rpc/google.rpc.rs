@@ -277,17 +277,17 @@ pub mod bad_request {
     ///
     /// * `full_name` for a violation in the `full_name` value
     /// * `email_addresses\[1\].email` for a violation in the `email` field of the
-    ///    first `email_addresses` message
+    ///   first `email_addresses` message
     /// * `email_addresses\[3\].type\[2\]` for a violation in the second `type`
-    ///    value in the third `email_addresses` message.
+    ///   value in the third `email_addresses` message.
     ///
     /// In JSON, the same values are represented as:
     ///
     /// * `fullName` for a violation in the `fullName` value
     /// * `emailAddresses\[1\].email` for a violation in the `email` field of the
-    ///    first `emailAddresses` message
+    ///   first `emailAddresses` message
     /// * `emailAddresses\[3\].type\[2\]` for a violation in the second `type`
-    ///    value in the third `emailAddresses` message.
+    ///   value in the third `emailAddresses` message.
     #[prost(string, tag = "1")]
     pub field: ::prost::alloc::string::String,
     /// A description of why the request element is bad.
