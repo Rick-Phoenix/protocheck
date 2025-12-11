@@ -189,7 +189,6 @@ impl UniqueItem<ordered_float::OrderedFloat<f64>> for f64 {
   }
 }
 
-#[cfg(feature = "bytes")]
 impl UniqueItem for &::bytes::Bytes {
   type Container = UniqueLookup<Self>;
 

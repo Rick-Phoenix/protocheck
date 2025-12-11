@@ -39,9 +39,7 @@ cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
 ip = ["protocheck-core/ip"]
 ## Enables validation for URIs.
 uri = ["protocheck-core/uri"]
-## Enables validation for bytes fields.
-bytes = ["protocheck-core/bytes"]
 ## Enables the validators that use the Regex crate, such as 'pattern', or the well known strings such as 'header_name', 'email' and so on.
 regex = ["protocheck-core/regex"]
 
-default = ["ip", "uri", "bytes", "regex", "cel", "chrono"]
+default = ["ip", "uri", "regex", "cel", "chrono"]

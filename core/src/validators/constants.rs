@@ -29,7 +29,6 @@ macro_rules! impl_const {
 impl_const!(&str, STRING);
 impl_const!(EnumVariant, ENUM);
 impl_const!(bool, BOOL);
-#[cfg(feature = "bytes")]
 impl_const!(&::bytes::Bytes, BYTES);
 impl_const!(Duration, DURATION);
 impl_const!(Timestamp, TIMESTAMP);

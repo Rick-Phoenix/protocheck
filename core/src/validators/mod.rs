@@ -3,7 +3,6 @@
 pub mod static_data;
 
 /// Validators for bytes fields.
-#[cfg(feature = "bytes")]
 pub mod bytes;
 
 /// Cel validation for messages or message fields.
