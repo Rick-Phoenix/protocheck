@@ -5,7 +5,7 @@ use proto_types::cel::CelConversionError;
 use crate::{
   field_data::FieldContext,
   protovalidate::{violations_data::CEL_VIOLATION, FieldPath, FieldPathElement, Violation},
-  validators::static_data::base_violations::create_violation,
+  validators::static_data::base_violations::create_violation_with_custom_id,
 };
 
 pub struct CelRule {
@@ -166,11 +166,7 @@ fn create_cel_field_violation(
   field_context: &FieldContext,
   error_message: &str,
 ) -> Violation {
-  let mut violation = create_violation(field_context, &CEL_VIOLATION, error_message);
-
-  violation.rule_id = Some(rule_id.to_string());
-
-  violation
+  create_violation_with_custom_id(rule_id, field_context, &CEL_VIOLATION, error_message)
 }
 
 fn create_cel_message_violation(

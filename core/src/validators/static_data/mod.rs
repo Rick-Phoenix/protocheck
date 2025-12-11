@@ -1,2 +1,2 @@
 #[macro_use]
-pub mod base_violations;
+pub(crate) mod base_violations;

@@ -23,7 +23,7 @@ macro_rules! create_violation {
   };
 }
 
-pub fn create_violation(
+pub(crate) fn create_violation(
   field_context: &FieldContext,
   violation_data: &ViolationData,
   error_message: &str,
@@ -45,7 +45,30 @@ pub fn create_violation(
   }
 }
 
-pub fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElement> {
+pub(crate) fn create_violation_with_custom_id(
+  rule_id: &str,
+  field_context: &FieldContext,
+  violation_data: &ViolationData,
+  error_message: &str,
+) -> Violation {
+  let elements = get_violation_elements(field_context);
+
+  let mut rule_elements = get_base_violations_path(field_context.field_kind);
+
+  rule_elements.extend(violation_data.elements.to_vec());
+
+  Violation {
+    rule_id: Some(rule_id.to_string()),
+    message: Some(error_message.to_string()),
+    for_key: field_context.field_kind.is_map_key().then_some(true),
+    field: Some(FieldPath { elements }),
+    rule: Some(FieldPath {
+      elements: rule_elements,
+    }),
+  }
+}
+
+pub(crate) fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElement> {
   let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
     field_type: Some(field_context.field_kind.inner_type().into()),
@@ -61,7 +84,7 @@ pub fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElem
   elements
 }
 
-pub fn get_base_violations_path(field_kind: FieldKind) -> Vec<FieldPathElement> {
+pub(crate) fn get_base_violations_path(field_kind: FieldKind) -> Vec<FieldPathElement> {
   let mut violations_path = vec![];
 
   if field_kind.is_repeated_item() {

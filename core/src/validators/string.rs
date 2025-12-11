@@ -143,7 +143,10 @@ pub fn header_name(
   if check {
     Ok(())
   } else {
-    Err(create_violation(
+    use crate::validators::static_data::base_violations::create_violation_with_custom_id;
+
+    Err(create_violation_with_custom_id(
+      "string.well_known_regex.header_name",
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header name",
@@ -162,7 +165,10 @@ pub fn header_value(
   if check {
     Ok(())
   } else {
-    Err(create_violation(
+    use crate::validators::static_data::base_violations::create_violation_with_custom_id;
+
+    Err(create_violation_with_custom_id(
+      "string.well_known_regex.header_value",
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header value",
