@@ -18,7 +18,7 @@ pub fn min_items<T>(
   field_context: &FieldContext,
   value: &[T],
   min_items: u64,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let check = value.len() >= min_items as usize;
 
@@ -37,7 +37,7 @@ pub fn max_items<T>(
   field_context: &FieldContext,
   value: &[T],
   max_items: u64,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let check = value.len() <= max_items as usize;
 

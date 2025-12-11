@@ -9,7 +9,7 @@ pub fn within(
   field_context: &FieldContext,
   value: Timestamp,
   time_range: Duration,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let check = value.is_within_range_from_now(time_range);
 

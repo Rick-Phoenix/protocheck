@@ -69,7 +69,7 @@ pub fn pattern(
   field_context: &FieldContext,
   value: &Bytes,
   regex: &regex::bytes::Regex,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let is_valid = regex.is_match(value.as_ref());
 
@@ -92,23 +92,12 @@ bytes_validator!(bytes_arg, max_len, u64, |t: u64, v: &Bytes| v.len() as u64
 
 bytes_validator!(bytes_arg, len, u64, |t: u64, v: &Bytes| v.len() as u64 == t);
 
-bytes_validator!(
-  bytes_arg,
-  contains,
-  &'static [u8],
-  |t: &'static [u8], v: &Bytes| v.windows(t.len()).any(|win| win == t)
-);
+bytes_validator!(bytes_arg, contains, &[u8], |t: &[u8], v: &Bytes| v
+  .windows(t.len())
+  .any(|win| win == t));
 
-bytes_validator!(
-  bytes_arg,
-  suffix,
-  &'static [u8],
-  |t: &'static [u8], v: &Bytes| v.ends_with(t)
-);
+bytes_validator!(bytes_arg, suffix, &[u8], |t: &[u8], v: &Bytes| v
+  .ends_with(t));
 
-bytes_validator!(
-  bytes_arg,
-  prefix,
-  &'static [u8],
-  |t: &'static [u8], v: &Bytes| v.starts_with(t)
-);
+bytes_validator!(bytes_arg, prefix, &[u8], |t: &[u8], v: &Bytes| v
+  .starts_with(t));

@@ -182,7 +182,7 @@ pub fn in_list<T>(
   field_context: &FieldContext,
   value: T,
   list: &T::Container,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: ListLookup<T>,
@@ -204,7 +204,7 @@ pub fn not_in_list<T>(
   field_context: &FieldContext,
   value: T,
   list: &T::Container,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: ListLookup<T>,

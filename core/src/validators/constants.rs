@@ -49,7 +49,7 @@ pub fn constant<T, V>(
   field_context: &FieldContext,
   value: V,
   target: T,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   V: ConstRule + PartialEq<T>,

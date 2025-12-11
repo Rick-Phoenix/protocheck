@@ -39,7 +39,7 @@ macro_rules! string_validator {
         field_context: &FieldContext,
         value: &str,
         target: $target_type,
-        error_message: &'static str,
+        error_message: &str,
       ) -> Result<(), Violation> {
         let is_valid = ($validation_expression)(value, target);
 

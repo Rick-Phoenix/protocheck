@@ -49,6 +49,10 @@ mod regex {
   }
 
   pub(crate) fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
+    if s.is_empty() {
+      return false;
+    }
+
     let re = if strict {
       &HTTP_HEADER_VALUE_STRICT_REGEX
     } else {
@@ -66,10 +70,18 @@ mod regex {
     LazyLock::new(|| Regex::new(r"^(?i)[0-9a-f]{32}$").unwrap());
 
   pub(crate) fn is_valid_uuid(s: &str) -> bool {
+    if s.is_empty() {
+      return false;
+    }
+
     UUID_REGEX.is_match(s)
   }
 
   pub(crate) fn is_valid_tuuid(s: &str) -> bool {
+    if s.is_empty() {
+      return false;
+    }
+
     TUUID_REGEX.is_match(s)
   }
 }

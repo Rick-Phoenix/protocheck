@@ -54,7 +54,7 @@ pub fn lt<T>(
   field_context: &FieldContext,
   value: T,
   target: T,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: Comparable,
@@ -76,7 +76,7 @@ pub fn lte<T>(
   field_context: &FieldContext,
   value: T,
   target: T,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: Comparable,
@@ -98,7 +98,7 @@ pub fn gt<T>(
   field_context: &FieldContext,
   value: T,
   target: T,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: Comparable,
@@ -120,7 +120,7 @@ pub fn gte<T>(
   field_context: &FieldContext,
   value: T,
   target: T,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation>
 where
   T: Comparable,

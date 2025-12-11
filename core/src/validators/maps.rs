@@ -13,7 +13,7 @@ pub fn min_pairs<K, V>(
   field_context: &FieldContext,
   value: &HashMap<K, V>,
   min_pairs: u64,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let check = value.len() >= min_pairs as usize;
 
@@ -32,7 +32,7 @@ pub fn max_pairs<K, V>(
   field_context: &FieldContext,
   value: &HashMap<K, V>,
   max_pairs: u64,
-  error_message: &'static str,
+  error_message: &str,
 ) -> Result<(), Violation> {
   let check = value.len() <= max_pairs as usize;
 
