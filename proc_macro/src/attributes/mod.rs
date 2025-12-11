@@ -4,44 +4,6 @@ pub use oneof_attrs::*;
 
 use crate::*;
 
-pub fn extract_proto_name_attribute(
-  oneof_name: &str,
-  attr: &Attribute,
-  variant_ident: &Ident,
-  meta: syn::meta::ParseNestedMeta<'_>,
-) -> Result<String, Error> {
-  let not_found_error = Error::new_spanned(
-    attr,
-    format!(
-      "Could not extract name attribute for variant {} in oneof enum {}",
-      variant_ident, oneof_name,
-    ),
-  );
-
-  if meta.path.is_ident("name") {
-    if let Ok(proto_name_tokens) = meta.value() {
-      Ok(
-        proto_name_tokens
-          .parse::<LitStr>()
-          .map_err(|e| {
-            Error::new_spanned(
-              attr,
-              format!(
-                "Could not extract name attribute for variant {} in oneof enum {}: {}",
-                variant_ident, oneof_name, e
-              ),
-            )
-          })?
-          .value(),
-      )
-    } else {
-      Err(not_found_error)
-    }
-  } else {
-    Err(not_found_error)
-  }
-}
-
 pub struct ProstAttrData {
   pub enum_path: Option<String>,
 }
