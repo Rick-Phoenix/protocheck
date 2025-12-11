@@ -10,26 +10,6 @@ use crate::{
   field_data::FieldContext, validators::static_data::base_violations::get_violation_elements,
 };
 
-fn get_invalid_bytes_violation(elements: Vec<FieldPathElement>) -> Violation {
-  Violation {
-    rule_id: Some("utf8_error".to_string()),
-    message: Some("invalid utf8 bytes".to_string()),
-    field: Some(FieldPath { elements }),
-    rule: None,
-    for_key: None,
-  }
-}
-
-pub(crate) fn parse_bytes_input<'a>(
-  value: &'a Bytes,
-  field_context: &'a FieldContext<'a>,
-) -> Result<&'a str, Violation> {
-  from_utf8(value).map_err(|_| {
-    let elements = get_violation_elements(field_context);
-    get_invalid_bytes_violation(elements)
-  })
-}
-
 pub(crate) static BYTES_LEN_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
   vec![
     FieldPathElement {
