@@ -103,9 +103,7 @@ well_known_rule!(
 
 well_known_rule!(hostname, "hostname");
 
-#[cfg(feature = "uri")]
 well_known_rule!(uri, "uri");
-#[cfg(feature = "uri")]
 well_known_rule!(uri_ref, "URI reference");
 
 well_known_rule!(address, "hostname or ip address");

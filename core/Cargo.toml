@@ -31,7 +31,7 @@ chrono = { workspace = true, optional = true }
 ordered-float = { workspace = true, optional = true }
 
 ipnetwork = { workspace = true, optional = true }
-iri-string = { workspace = true, optional = true }
+fluent-uri = "0.4"
 
 paste = { workspace = true }
 
@@ -40,8 +40,7 @@ paste = { workspace = true }
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
 totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
 ip = ["dep:ipnetwork"]
-uri = ["dep:iri-string"]
 regex = ["dep:regex"]
 ordered-float = ["dep:ordered-float"]
 
-default = ["ip", "uri", "regex", "cel", "totokens"]
+default = ["ip", "regex", "cel", "totokens"]

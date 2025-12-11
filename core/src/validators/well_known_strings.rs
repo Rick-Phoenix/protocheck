@@ -1,13 +1,11 @@
 use std::net::{IpAddr, Ipv6Addr};
 
-#[cfg(feature = "uri")]
 pub(crate) fn is_valid_uri(s: &str) -> bool {
-  <&iri_string::types::UriStr>::try_from(s).is_ok()
+  fluent_uri::Uri::parse(s).is_ok()
 }
 
-#[cfg(feature = "uri")]
 pub(crate) fn is_valid_uri_ref(s: &str) -> bool {
-  <&iri_string::types::UriReferenceStr>::try_from(s).is_ok()
+  fluent_uri::UriRef::parse(s).is_ok()
 }
 
 #[cfg(feature = "regex")]
@@ -223,7 +221,6 @@ mod test {
     is_valid_ipv6,
   };
 
-  #[cfg(feature = "uri")]
   #[test]
   fn uris() {
     use crate::validators::well_known_strings::is_valid_uri;
