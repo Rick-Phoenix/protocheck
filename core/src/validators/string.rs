@@ -1,5 +1,3 @@
-use paste::paste;
-
 use super::well_known_strings::*;
 use crate::{
   field_data::FieldContext,
@@ -7,28 +5,24 @@ use crate::{
   validators::static_data::base_violations::create_violation,
 };
 
-macro_rules! create_string_violation {
-  ($check:ident, $field_context:ident, $violation_name:ident, $error_message:expr) => {
-    create_violation!(
-      string,
-      $check,
-      $field_context,
-      $violation_name,
-      $error_message
-    )
-  };
-}
-
 macro_rules! well_known_rule {
   (
     $name:ident,
     $definition:literal
   ) => {
-    paste! {
+    paste::paste! {
       pub fn $name(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-        let check = [<is_valid _ $name>](value);
+        let is_valid = [<is_valid _ $name>](value);
 
-        create_string_violation!(check, field_context, $name, concat!("must be a valid ", $definition))
+        if is_valid {
+          Ok(())
+        } else {
+          Err(create_violation(
+            field_context,
+            &[< STRING _ $name:upper _ VIOLATION >],
+            concat!("must be a valid ", $definition)
+          ))
+        }
       }
     }
   };
@@ -40,15 +34,25 @@ macro_rules! string_validator {
     $target_type:ty,
     $validation_expression:expr
   ) => {
-    pub fn $name(
-      field_context: &FieldContext,
-      value: &str,
-      target: $target_type,
-      error_message: &'static str,
-    ) -> Result<(), Violation> {
-      let check = ($validation_expression)(value, target);
+    paste::paste! {
+      pub fn $name(
+        field_context: &FieldContext,
+        value: &str,
+        target: $target_type,
+        error_message: &'static str,
+      ) -> Result<(), Violation> {
+        let is_valid = ($validation_expression)(value, target);
 
-      create_string_violation!(check, field_context, $name, error_message)
+        if is_valid {
+          Ok(())
+        } else {
+          Err(create_violation(
+            field_context,
+            &[< STRING _ $name:upper _ VIOLATION >],
+            error_message
+          ))
+        }
+      }
     }
   };
 }

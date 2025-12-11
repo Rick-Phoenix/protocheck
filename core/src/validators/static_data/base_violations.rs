@@ -7,69 +7,14 @@ use crate::{
   },
 };
 
-macro_rules! create_violation {
-  ($proto_type:ident, $check:ident, $field_context:ident, $violation_name:ident, $error_message:expr ) => {
-    paste! {
-      if $check {
-        Ok(())
-      } else {
-        Err(create_violation(
-          $field_context,
-          &[< $proto_type:upper _ $violation_name:upper _ VIOLATION >],
-          $error_message,
-        ))
-      }
-    }
-  };
-}
-
-pub(crate) fn create_violation(
+fn create_violation_core(
+  custom_rule_id: Option<&str>,
   field_context: &FieldContext,
   violation_data: &ViolationData,
   error_message: &str,
 ) -> Violation {
-  let elements = get_violation_elements(field_context);
+  let mut field_elements = field_context.parent_elements.to_vec();
 
-  let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-  rule_elements.extend(violation_data.elements.to_vec());
-
-  Violation {
-    rule_id: Some(violation_data.name.to_string()),
-    message: Some(error_message.to_string()),
-    for_key: field_context.field_kind.is_map_key().then_some(true),
-    field: Some(FieldPath { elements }),
-    rule: Some(FieldPath {
-      elements: rule_elements,
-    }),
-  }
-}
-
-pub(crate) fn create_violation_with_custom_id(
-  rule_id: &str,
-  field_context: &FieldContext,
-  violation_data: &ViolationData,
-  error_message: &str,
-) -> Violation {
-  let elements = get_violation_elements(field_context);
-
-  let mut rule_elements = get_base_violations_path(field_context.field_kind);
-
-  rule_elements.extend(violation_data.elements.to_vec());
-
-  Violation {
-    rule_id: Some(rule_id.to_string()),
-    message: Some(error_message.to_string()),
-    for_key: field_context.field_kind.is_map_key().then_some(true),
-    field: Some(FieldPath { elements }),
-    rule: Some(FieldPath {
-      elements: rule_elements,
-    }),
-  }
-}
-
-pub(crate) fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldPathElement> {
-  let mut elements = field_context.parent_elements.to_vec();
   let current_elem = FieldPathElement {
     field_type: Some(field_context.field_kind.inner_type().into()),
     field_name: Some(field_context.proto_name.to_string()),
@@ -79,21 +24,47 @@ pub(crate) fn get_violation_elements(field_context: &FieldContext) -> Vec<FieldP
     subscript: field_context.subscript.clone(),
   };
 
-  elements.push(current_elem);
+  field_elements.push(current_elem);
 
-  elements
+  let mut rule_elements: Vec<FieldPathElement> = Vec::new();
+
+  match &field_context.field_kind {
+    FieldKind::MapKey(_) => rule_elements.extend(MAP_KEY_VIOLATION.elements.to_vec()),
+    FieldKind::MapValue(_) => rule_elements.extend(MAP_VALUE_VIOLATION.elements.to_vec()),
+    FieldKind::RepeatedItem(_) => rule_elements.extend(REPEATED_ITEM_VIOLATION.elements.to_vec()),
+    _ => {}
+  };
+
+  rule_elements.extend(violation_data.elements.to_vec());
+
+  Violation {
+    rule_id: Some(
+      custom_rule_id.map_or_else(|| violation_data.name.to_string(), |id| id.to_string()),
+    ),
+    message: Some(error_message.to_string()),
+    for_key: field_context.field_kind.is_map_key().then_some(true),
+    field: Some(FieldPath {
+      elements: field_elements,
+    }),
+    rule: Some(FieldPath {
+      elements: rule_elements,
+    }),
+  }
 }
 
-pub(crate) fn get_base_violations_path(field_kind: FieldKind) -> Vec<FieldPathElement> {
-  let mut violations_path = vec![];
+pub(crate) fn create_violation(
+  field_context: &FieldContext,
+  violation_data: &ViolationData,
+  error_message: &str,
+) -> Violation {
+  create_violation_core(None, field_context, violation_data, error_message)
+}
 
-  if field_kind.is_repeated_item() {
-    violations_path.extend(REPEATED_ITEM_VIOLATION.elements.to_vec());
-  } else if field_kind.is_map_key() {
-    violations_path.extend(MAP_KEY_VIOLATION.elements.to_vec());
-  } else if field_kind.is_map_value() {
-    violations_path.extend(MAP_VALUE_VIOLATION.elements.to_vec());
-  }
-
-  violations_path
+pub(crate) fn create_violation_with_custom_id(
+  rule_id: &str,
+  field_context: &FieldContext,
+  violation_data: &ViolationData,
+  error_message: &str,
+) -> Violation {
+  create_violation_core(Some(rule_id), field_context, violation_data, error_message)
 }

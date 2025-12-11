@@ -1,57 +1,30 @@
 use bytes::Bytes;
-use paste::paste;
-use proto_types::protovalidate::{FieldPath, FieldPathElement};
 
 use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
 use crate::{
   field_data::FieldContext,
   protovalidate::{violations_data::bytes_violations::*, Violation},
-  validators::static_data::base_violations::{create_violation, get_violation_elements},
+  validators::static_data::base_violations::create_violation,
 };
-
-fn get_invalid_bytes_violation(elements: Vec<FieldPathElement>) -> Violation {
-  Violation {
-    rule_id: Some("utf8_error".to_string()),
-    message: Some("invalid utf8 bytes".to_string()),
-    field: Some(FieldPath { elements }),
-    rule: None,
-    for_key: None,
-  }
-}
-
-pub(crate) fn parse_bytes_input<'a>(
-  value: &'a Bytes,
-  field_context: &'a FieldContext<'a>,
-) -> Result<&'a str, Violation> {
-  std::str::from_utf8(value).map_err(|_| {
-    let elements = get_violation_elements(field_context);
-    get_invalid_bytes_violation(elements)
-  })
-}
-
-macro_rules! create_bytes_violation {
-  ($check:ident, $field_context:ident, $violation_name:ident, $error_message:expr) => {
-    create_violation!(
-      bytes,
-      $check,
-      $field_context,
-      $violation_name,
-      $error_message
-    )
-  };
-}
 
 macro_rules! well_known_rule {
   (
     $name:ident,
     $definition:literal
   ) => {
-    paste! {
+    paste::paste! {
       pub fn $name(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
-        let string_val = parse_bytes_input(value, field_context)?;
-        let check = [<is_valid _ $name>](string_val);
+        let is_valid = [<is_valid _ $name>](String::from_utf8_lossy(value.as_ref()).as_ref());
 
-        create_bytes_violation!(check, field_context, $name, concat!("must be a valid ", $definition))
+        if is_valid {
+          Ok(())
+        } else {
+          Err(create_violation(
+            field_context,
+            &[< BYTES _ $name:upper _ VIOLATION >],
+            concat!("must be a valid ", $definition)
+          ))
+        }
       }
     }
   };
@@ -64,26 +37,23 @@ macro_rules! bytes_validator {
     $target_type:ty,
     $validation_expression:expr
   ) => {
-    macro_rules! _generate_check {
-      (string_arg, $closure:expr, $value:expr, $target:expr, $field_context:expr) => {{
-        let string_val = parse_bytes_input($value, $field_context)?;
-        $closure($target, &string_val)
-      }};
-
-      (bytes_arg, $closure:expr, $value:expr, $target:expr, $field_context:expr) => {
-        $closure($target, $value)
-      };
-    }
-
     pub fn $name(
       field_context: &FieldContext,
       value: &Bytes,
       target: $target_type,
       error_message: &'static str,
     ) -> Result<(), Violation> {
-      let check = _generate_check!($mode, $validation_expression, value, target, field_context);
+      let is_valid = $validation_expression(target, value);
 
-      create_bytes_violation!(check, field_context, $name, error_message)
+      if is_valid {
+        Ok(())
+      } else {
+        Err(create_violation(
+          field_context,
+          paste::paste! {&[< BYTES _ $name:upper _ VIOLATION >]},
+          error_message,
+        ))
+      }
     }
   };
 }
