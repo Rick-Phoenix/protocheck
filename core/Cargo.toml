@@ -25,16 +25,14 @@ quote = { workspace = true, optional = true }
 proc-macro2 = { workspace = true, optional = true }
 
 cel = { workspace = true, optional = true }
-bytes = { workspace = true }
 regex = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 ordered-float = { workspace = true, optional = true }
 
 ipnetwork = { workspace = true }
+bytes = { workspace = true }
 fluent-uri = "0.4"
-
 paste = { workspace = true }
-
 
 [features]
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
@@ -42,4 +40,4 @@ totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
 regex = ["dep:regex"]
 ordered-float = ["dep:ordered-float"]
 
-default = ["regex", "cel", "totokens"]
+default = ["regex", "cel"]
