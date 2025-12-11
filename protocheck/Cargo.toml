@@ -35,9 +35,7 @@ ordered-float = [
 chrono = ["proto-types/chrono"]
 ## Enables validation with custom Cel expressions.
 cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
-## Enables complex validation for bytes or string fields, such as checking if an ip is a network address or not. Not necessary for simpler checks like checking if a field is a valid ip.
-ip = ["protocheck-core/ip"]
 ## Enables the validators that use the Regex crate, such as 'pattern', or the well known strings such as 'header_name', 'email' and so on.
 regex = ["protocheck-core/regex"]
 
-default = ["ip", "regex", "cel", "chrono"]
+default = ["regex", "cel", "chrono"]

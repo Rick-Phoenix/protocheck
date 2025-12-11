@@ -1,7 +1,5 @@
 use paste::paste;
 
-#[cfg(feature = "ip")]
-use super::well_known_strings::ip::*;
 use super::well_known_strings::*;
 use crate::{
   field_data::FieldContext,
@@ -110,17 +108,11 @@ well_known_rule!(address, "hostname or ip address");
 well_known_rule!(ip, "ip address");
 well_known_rule!(ipv4, "ipv4 address");
 well_known_rule!(ipv6, "ipv6 address");
-#[cfg(feature = "ip")]
 well_known_rule!(ip_prefix, "ip prefix");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv4_prefix, "ipv4 prefix");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv6_prefix, "ipv6 prefix");
-#[cfg(feature = "ip")]
 well_known_rule!(ip_with_prefixlen, "ip address with prefix length");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv4_with_prefixlen, "ipv4 address with prefix length");
-#[cfg(feature = "ip")]
 well_known_rule!(ipv6_with_prefixlen, "ipv6 address with prefix length");
 
 #[cfg(feature = "regex")]
