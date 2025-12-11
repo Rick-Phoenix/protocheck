@@ -1,16 +1,7 @@
-use std::{collections::HashSet, sync::LazyLock};
-
 use proto_types::{Any, Duration};
 
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{
-    violations_data::{in_violations::*, not_in_violations::*, ViolationData},
-    Violation,
-  },
-  validators::static_data::base_violations::create_violation,
-  wrappers::*,
-};
+use super::*;
+use crate::protovalidate::violations_data::{in_violations::*, not_in_violations::*};
 
 pub trait ListLookup<Item = Self>: Sized {
   const IN_VIOLATION: &'static LazyLock<ViolationData>;
@@ -139,12 +130,12 @@ impl_hash_lookup!(u64, UINT64);
 impl_hash_lookup!(u32, UINT32);
 impl_hash_lookup!(Duration, DURATION);
 
-impl ListLookup<&bytes::Bytes> for &bytes::Bytes {
+impl ListLookup<&::bytes::Bytes> for &::bytes::Bytes {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_NOT_IN_VIOLATION;
   type Container = HashLookup<'static, &'static [u8]>;
 
-  fn is_in(container: &Self::Container, item: &bytes::Bytes) -> bool {
+  fn is_in(container: &Self::Container, item: &::bytes::Bytes) -> bool {
     match container {
       HashLookup::Slice(slice) => slice.contains(&item.as_ref()),
       HashLookup::Set(set) => set.contains(&item.as_ref()),

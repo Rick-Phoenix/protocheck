@@ -1,9 +1,6 @@
-use proto_types::{
-  protovalidate::{violations_data::timestamp_violations::*, Violation},
-  Duration, Timestamp,
-};
+use proto_types::{protovalidate::violations_data::timestamp_violations::*, Duration, Timestamp};
 
-use crate::{field_data::FieldContext, validators::static_data::base_violations::create_violation};
+use super::*;
 
 pub fn within(
   field_context: &FieldContext,

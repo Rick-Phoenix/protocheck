@@ -1,6 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 
+use proto_types::protovalidate::{FieldPath, FieldPathElement};
 pub(crate) use proto_types::{field_descriptor_proto::Type as ProtoType, protovalidate};
 
 /// The context about the field being validated that is passed to the validators.

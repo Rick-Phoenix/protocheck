@@ -1,17 +1,8 @@
-use std::collections::HashSet;
-
 use proto_types::{Duration, Timestamp};
 
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{
-    violations_data::{
-      REPEATED_MAX_ITEMS_VIOLATION, REPEATED_MIN_ITEMS_VIOLATION, REPEATED_UNIQUE_VIOLATION,
-    },
-    Violation,
-  },
-  validators::static_data::base_violations::create_violation,
-  wrappers::*,
+use super::*;
+use crate::protovalidate::violations_data::{
+  REPEATED_MAX_ITEMS_VIOLATION, REPEATED_MIN_ITEMS_VIOLATION, REPEATED_UNIQUE_VIOLATION,
 };
 
 pub fn min_items<T>(

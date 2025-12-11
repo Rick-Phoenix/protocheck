@@ -1,6 +1,17 @@
-/// All the static data being used by validators, such as definitions for protovalidate violations.
-#[macro_use]
-pub mod static_data;
+use std::{
+  collections::{HashMap, HashSet},
+  sync::LazyLock,
+};
+
+use super::*;
+use crate::{
+  field_data::*,
+  protovalidate::{Violation, ViolationData},
+  validators::create_violation::*,
+  wrappers::*,
+};
+
+pub(crate) mod create_violation;
 
 /// Validators for bytes fields.
 pub mod bytes;

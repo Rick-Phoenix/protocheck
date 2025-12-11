@@ -1,11 +1,5 @@
-use proto_types::protovalidate::{FieldPath, Violation, ViolationData};
-
-use crate::{
-  field_data::{FieldContext, FieldKind},
-  protovalidate::{
-    FieldPathElement, MAP_KEY_VIOLATION, MAP_VALUE_VIOLATION, REPEATED_ITEM_VIOLATION,
-  },
-};
+use super::*;
+use crate::protovalidate::{MAP_KEY_VIOLATION, MAP_VALUE_VIOLATION, REPEATED_ITEM_VIOLATION};
 
 fn create_violation_core(
   custom_rule_id: Option<&str>,

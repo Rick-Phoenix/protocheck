@@ -1,9 +1,5 @@
-use super::well_known_strings::*;
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{violations_data::string_violations::*, Violation},
-  validators::static_data::base_violations::create_violation,
-};
+use super::{well_known_strings::*, *};
+use crate::protovalidate::violations_data::string_violations::*;
 
 macro_rules! well_known_rule {
   (
@@ -137,8 +133,6 @@ pub fn header_name(
   if check {
     Ok(())
   } else {
-    use crate::validators::static_data::base_violations::create_violation_with_custom_id;
-
     Err(create_violation_with_custom_id(
       "string.well_known_regex.header_name",
       field_context,
@@ -159,8 +153,6 @@ pub fn header_value(
   if check {
     Ok(())
   } else {
-    use crate::validators::static_data::base_violations::create_violation_with_custom_id;
-
     Err(create_violation_with_custom_id(
       "string.well_known_regex.header_value",
       field_context,

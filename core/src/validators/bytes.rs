@@ -1,11 +1,10 @@
-use bytes::Bytes;
+use ::bytes::Bytes;
 
-use super::well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6};
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{violations_data::bytes_violations::*, Violation},
-  validators::static_data::base_violations::create_violation,
+use super::{
+  well_known_strings::{is_valid_ip, is_valid_ipv4, is_valid_ipv6},
+  *,
 };
+use crate::protovalidate::violations_data::bytes_violations::*;
 
 macro_rules! well_known_rule {
   (

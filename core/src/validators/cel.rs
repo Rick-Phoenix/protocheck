@@ -1,12 +1,9 @@
-use cel::{Context, Program, Value as CelValue};
+use ::cel::{Context, Program, Value as CelValue};
 use chrono::Utc;
 use proto_types::cel::CelConversionError;
 
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{violations_data::CEL_VIOLATION, FieldPath, FieldPathElement, Violation},
-  validators::static_data::base_violations::create_violation_with_custom_id,
-};
+use super::*;
+use crate::protovalidate::{violations_data::CEL_VIOLATION, Violation};
 
 pub struct CelRule {
   pub id: &'static str,
@@ -75,7 +72,7 @@ pub fn validate_cel_field_try_into<T>(
 ) -> Result<(), Violation>
 where
   T: TryInto<CelValue> + Clone,
-  <T as std::convert::TryInto<cel::Value>>::Error: std::fmt::Display,
+  <T as std::convert::TryInto<::cel::Value>>::Error: std::fmt::Display,
 {
   let cel_val: CelValue = value.try_into().map_err(|e| {
     eprintln!(

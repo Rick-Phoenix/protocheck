@@ -1,13 +1,5 @@
-use std::collections::HashMap;
-
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{
-    violations_data::{MAP_MAX_PAIRS_VIOLATION, MAP_MIN_PAIRS_VIOLATION},
-    Violation,
-  },
-  validators::static_data::base_violations::create_violation,
-};
+use super::*;
+use crate::protovalidate::violations_data::{MAP_MAX_PAIRS_VIOLATION, MAP_MIN_PAIRS_VIOLATION};
 
 pub fn min_pairs<K, V>(
   field_context: &FieldContext,

@@ -1,11 +1,5 @@
-use crate::{
-  field_data::FieldContext,
-  protovalidate::{
-    violations_data::{DOUBLE_FINITE_VIOLATION, FLOAT_FINITE_VIOLATION},
-    Violation,
-  },
-  validators::static_data::base_violations::create_violation,
-};
+use super::*;
+use crate::protovalidate::violations_data::{DOUBLE_FINITE_VIOLATION, FLOAT_FINITE_VIOLATION};
 
 pub fn float_is_finite(field_context: &FieldContext, value: f32) -> Result<(), Violation> {
   let check = !value.is_nan();
