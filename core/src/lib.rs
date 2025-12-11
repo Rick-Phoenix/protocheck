@@ -12,5 +12,6 @@ pub mod validators;
 
 #[cfg(feature = "cel")]
 pub use cel;
+pub use validators::*;
 
 pub mod wrappers;

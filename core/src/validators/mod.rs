@@ -18,7 +18,7 @@ pub mod bytes;
 
 /// Cel validation for messages or message fields.
 #[cfg(feature = "cel")]
-pub mod cel;
+pub mod cel_validator;
 
 /// Validators for types that are comparable (PartialOrd, PartialEq)
 pub mod comparables;
