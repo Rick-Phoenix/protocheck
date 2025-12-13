@@ -448,6 +448,11 @@ pub struct PostalAddress {
 /// `google.protobuf.Timestamp`.
 #[cfg(feature = "date")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(
+  any(feature = "diesel-postgres", feature = "diesel-sqlite"),
+  derive(diesel::QueryId, diesel::AsExpression, diesel::FromSqlRow),
+  diesel(sql_type = diesel::sql_types::Date)
+)]
 pub struct Date {
   /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without
   /// a year.

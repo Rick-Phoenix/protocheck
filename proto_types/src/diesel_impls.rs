@@ -1,13 +1,11 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::{
   deserialize::{FromSql, Result as DeserializeResult},
   serialize::{IsNull, Output, Result as SerializeResult, ToSql},
-  sql_types::Timestamp as SqlTimestamp,
+  sql_types::{Date as SqlDate, Timestamp as SqlTimestamp},
 };
 
-use crate::{DateTime, Timestamp};
-
-const ENCODE_NAIVE_DATETIME_FORMAT: &str = "%F %T%.f";
+use crate::{Date, DateTime, Timestamp};
 
 #[cfg(feature = "diesel-postgres")]
 mod diesel_postgres {
@@ -46,6 +44,13 @@ mod diesel_postgres {
     }
   }
 
+  impl FromSql<SqlDate, Pg> for Date {
+    fn from_sql(bytes: PgValue<'_>) -> DeserializeResult<Self> {
+      let chrono_date: NaiveDate = FromSql::<SqlDate, Pg>::from_sql(bytes)?;
+      Ok(chrono_date.into())
+    }
+  }
+
   impl ToSql<SqlTimestamp, Pg> for Timestamp {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> SerializeResult {
       let chrono_datetime: NaiveDateTime = (*self).try_into()?;
@@ -73,6 +78,14 @@ mod diesel_postgres {
       ToSql::<SqlTimestamp, Pg>::to_sql(self, out)
     }
   }
+
+  impl ToSql<SqlDate, Pg> for Date {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> SerializeResult {
+      let chrono_date: NaiveDate = (*self).try_into()?;
+
+      ToSql::<SqlDate, Pg>::to_sql(&chrono_date, &mut out.reborrow())
+    }
+  }
 }
 
 #[cfg(feature = "diesel-sqlite")]
@@ -80,6 +93,9 @@ mod diesel_sqlite {
   use diesel::{backend::Backend, sql_types::TimestamptzSqlite, sqlite::Sqlite};
 
   use super::*;
+
+  const ENCODE_NAIVE_DATETIME_FORMAT: &str = "%F %T%.f";
+  const DATE_FORMAT: &str = "%F";
 
   fn format_naive_datetime(value: NaiveDateTime) -> String {
     value
@@ -115,6 +131,13 @@ mod diesel_sqlite {
     }
   }
 
+  impl FromSql<SqlDate, Sqlite> for Date {
+    fn from_sql(value: <Sqlite as Backend>::RawValue<'_>) -> DeserializeResult<Self> {
+      let chrono_date: NaiveDate = FromSql::<SqlDate, Sqlite>::from_sql(value)?;
+      Ok(chrono_date.into())
+    }
+  }
+
   impl ToSql<TimestamptzSqlite, Sqlite> for Timestamp {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> SerializeResult {
       let chrono_datetime: NaiveDateTime = (*self).try_into()?;
@@ -147,6 +170,15 @@ mod diesel_sqlite {
       let chrono_datetime: NaiveDateTime = self.clone().try_into()?;
 
       out.set_value(format_naive_datetime(chrono_datetime));
+      Ok(IsNull::No)
+    }
+  }
+
+  impl ToSql<SqlDate, Sqlite> for Date {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> SerializeResult {
+      let chrono_date: NaiveDate = (*self).try_into()?;
+
+      out.set_value(chrono_date.format(DATE_FORMAT).to_string());
       Ok(IsNull::No)
     }
   }
