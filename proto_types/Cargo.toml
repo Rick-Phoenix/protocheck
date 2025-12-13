@@ -45,7 +45,19 @@ chrono-tz = { version = "0.10.4", optional = true }
 
 palette = { version = "0.7.6", optional = true }
 
+diesel = { version = "2", optional = true }
+
 [features]
+default = ["chrono"]
+
+diesel-postgres = [
+  "chrono",
+  "dep:diesel",
+  "diesel/chrono",
+  "diesel/postgres_backend",
+]
+diesel-sqlite = ["chrono", "dep:diesel", "diesel/chrono", "diesel/sqlite"]
+
 ## Enables conversions into cel::Value.
 cel = ["dep:cel"]
 ## Enables serde implementations.
@@ -117,5 +129,3 @@ latlng = []
 expr = []
 ## Enables google.type.PhoneNumber.
 phone_number = []
-
-default = ["chrono"]
