@@ -219,6 +219,19 @@ pub struct Money {
 /// document and validate your application's limitations.
 #[cfg(feature = "datetime")]
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(
+  any(feature = "diesel-postgres", feature = "diesel-sqlite"),
+  derive(diesel::QueryId, diesel::AsExpression, diesel::FromSqlRow),
+  diesel(sql_type = diesel::sql_types::Timestamp)
+)]
+#[cfg_attr(
+  feature = "diesel-postgres",
+  diesel(sql_type = diesel::sql_types::Timestamptz)
+)]
+#[cfg_attr(
+  feature = "diesel-sqlite",
+  diesel(sql_type = diesel::sql_types::TimestamptzSqlite)
+)]
 pub struct DateTime {
   /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a
   /// datetime without a year.
