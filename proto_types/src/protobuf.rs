@@ -1779,6 +1779,11 @@ pub struct Mixin {
 /// microsecond should be expressed in JSON format as "3.000001s".
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(
+  feature = "diesel-postgres",
+  derive(diesel::QueryId, diesel::AsExpression, diesel::FromSqlRow),
+  diesel(sql_type = diesel::sql_types::Interval)
+)]
 pub struct Duration {
   /// Signed seconds of the span of time. Must be from -315,576,000,000
   /// to +315,576,000,000 inclusive. Note: these bounds are computed from:

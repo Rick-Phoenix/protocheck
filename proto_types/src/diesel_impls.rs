@@ -1,11 +1,11 @@
-use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeDelta};
 use diesel::{
   deserialize::{FromSql, Result as DeserializeResult},
   serialize::{IsNull, Output, Result as SerializeResult, ToSql},
-  sql_types::{Date as SqlDate, Time, Timestamp as SqlTimestamp},
+  sql_types::{Date as SqlDate, Interval, Time, Timestamp as SqlTimestamp},
 };
 
-use crate::{Date, DateTime, TimeOfDay, Timestamp};
+use crate::{Date, DateTime, Duration, TimeOfDay, Timestamp};
 
 #[cfg(feature = "diesel-postgres")]
 mod diesel_postgres {
@@ -15,6 +15,13 @@ mod diesel_postgres {
   };
 
   use super::*;
+
+  impl FromSql<Interval, Pg> for Duration {
+    fn from_sql(bytes: PgValue<'_>) -> DeserializeResult<Self> {
+      let chrono_duration: TimeDelta = FromSql::<Interval, Pg>::from_sql(bytes)?;
+      Ok(chrono_duration.into())
+    }
+  }
 
   impl FromSql<Time, Pg> for TimeOfDay {
     fn from_sql(bytes: PgValue<'_>) -> DeserializeResult<Self> {
@@ -55,6 +62,14 @@ mod diesel_postgres {
     fn from_sql(bytes: PgValue<'_>) -> DeserializeResult<Self> {
       let chrono_date: NaiveDate = FromSql::<SqlDate, Pg>::from_sql(bytes)?;
       Ok(chrono_date.into())
+    }
+  }
+
+  impl ToSql<Interval, Pg> for Duration {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> SerializeResult {
+      let chrono_duration: TimeDelta = (*self).try_into()?;
+
+      ToSql::<Interval, Pg>::to_sql(&chrono_duration, &mut out.reborrow())
     }
   }
 
