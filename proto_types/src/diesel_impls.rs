@@ -7,6 +7,103 @@ use diesel::{
 
 use crate::{Date, DateTime, Duration, TimeOfDay, Timestamp};
 
+#[cfg(feature = "diesel-mysql")]
+mod diesel_mysql {
+
+  use diesel::{
+    mysql::{Mysql, MysqlValue},
+    sql_types::Datetime as MysqlDateTime,
+  };
+
+  use super::*;
+
+  impl FromSql<Time, Mysql> for TimeOfDay {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_time: NaiveTime = FromSql::<Time, Mysql>::from_sql(bytes)?;
+      Ok(chrono_time.into())
+    }
+  }
+
+  impl FromSql<SqlTimestamp, Mysql> for Timestamp {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_datetime: NaiveDateTime = FromSql::<SqlTimestamp, Mysql>::from_sql(bytes)?;
+      Ok(chrono_datetime.into())
+    }
+  }
+
+  impl FromSql<MysqlDateTime, Mysql> for Timestamp {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_datetime: NaiveDateTime = FromSql::<MysqlDateTime, Mysql>::from_sql(bytes)?;
+      Ok(chrono_datetime.into())
+    }
+  }
+
+  impl FromSql<SqlTimestamp, Mysql> for DateTime {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_datetime: NaiveDateTime = FromSql::<SqlTimestamp, Mysql>::from_sql(bytes)?;
+      Ok(chrono_datetime.into())
+    }
+  }
+
+  impl FromSql<MysqlDateTime, Mysql> for DateTime {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_datetime: NaiveDateTime = FromSql::<MysqlDateTime, Mysql>::from_sql(bytes)?;
+      Ok(chrono_datetime.into())
+    }
+  }
+
+  impl FromSql<SqlDate, Mysql> for Date {
+    fn from_sql(bytes: MysqlValue<'_>) -> DeserializeResult<Self> {
+      let chrono_date: NaiveDate = FromSql::<SqlDate, Mysql>::from_sql(bytes)?;
+      Ok(chrono_date.into())
+    }
+  }
+
+  impl ToSql<Time, Mysql> for TimeOfDay {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      let chrono_time: NaiveTime = (*self).try_into()?;
+
+      ToSql::<Time, Mysql>::to_sql(&chrono_time, &mut out.reborrow())
+    }
+  }
+
+  impl ToSql<SqlTimestamp, Mysql> for Timestamp {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      let chrono_datetime: NaiveDateTime = (*self).try_into()?;
+
+      ToSql::<SqlTimestamp, Mysql>::to_sql(&chrono_datetime, &mut out.reborrow())
+    }
+  }
+
+  impl ToSql<MysqlDateTime, Mysql> for Timestamp {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      ToSql::<SqlTimestamp, Mysql>::to_sql(self, out)
+    }
+  }
+
+  impl ToSql<SqlTimestamp, Mysql> for DateTime {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      let chrono_datetime: NaiveDateTime = self.clone().try_into()?;
+
+      ToSql::<SqlTimestamp, Mysql>::to_sql(&chrono_datetime, &mut out.reborrow())
+    }
+  }
+
+  impl ToSql<MysqlDateTime, Mysql> for DateTime {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      ToSql::<SqlTimestamp, Mysql>::to_sql(self, out)
+    }
+  }
+
+  impl ToSql<SqlDate, Mysql> for Date {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Mysql>) -> SerializeResult {
+      let chrono_date: NaiveDate = (*self).try_into()?;
+
+      ToSql::<SqlDate, Mysql>::to_sql(&chrono_date, &mut out.reborrow())
+    }
+  }
+}
+
 #[cfg(feature = "diesel-postgres")]
 mod diesel_postgres {
   use diesel::{

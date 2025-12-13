@@ -2235,6 +2235,10 @@ impl NullValue {
   feature = "diesel-sqlite",
   diesel(sql_type = diesel::sql_types::TimestamptzSqlite)
 )]
+#[cfg_attr(
+  feature = "diesel-mysql",
+  diesel(sql_type = diesel::sql_types::Datetime)
+)]
 pub struct Timestamp {
   /// Represents seconds of UTC time since Unix epoch
   /// 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to

@@ -237,6 +237,10 @@ pub struct Money {
   feature = "diesel-sqlite",
   diesel(sql_type = diesel::sql_types::TimestamptzSqlite)
 )]
+#[cfg_attr(
+  feature = "diesel-mysql",
+  diesel(sql_type = diesel::sql_types::Datetime)
+)]
 pub struct DateTime {
   /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a
   /// datetime without a year.

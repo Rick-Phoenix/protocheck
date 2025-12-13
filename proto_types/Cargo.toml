@@ -50,6 +50,7 @@ diesel = { version = "2", optional = true }
 [features]
 default = ["chrono"]
 
+diesel-mysql = ["chrono", "dep:diesel", "diesel/chrono", "diesel/mysql_backend"]
 diesel-postgres = [
   "chrono",
   "dep:diesel",
