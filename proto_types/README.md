@@ -8,9 +8,13 @@ You can use feature flags to selectively include the implementations that you're
 
 Each struct/enum includes the default impls from [prost](https://crates.io/crates/prost) such as Clone, Debug and so on.
 
-The types coming from the google packages all have [`serde::Serialize`] and [`serde::Deserialize`] implementations when the `serde` feature flag is activated, and they also have From/TryFrom implementations for [`cel::Value`](https://docs.rs/cel/0.11.0/cel/objects/enum.Value.html) when the `cel` feature is enabled.
+The following features can also enable a variety of automatically derived implementations:
+- [`cel`] (`TryInto` [`cel::Value`](https://docs.rs/cel/0.11.0/cel/objects/enum.Value.html))
+- [`serde`] (`Serialize`, `Deserialize`)
+- [`diesel`] (`FromSql`, `ToSql`, `FromSqlRow`, `QueryId`, `AsExpression`)
+    - **The diesel backend must be specified in the feature (i.e. diesel-postgres, diesel-sqlite, diesel-mysql)**
 
-Each type comes with implementations listed below, plus a variety of utility methods and helpers that can be found in the documentation.
+In addition, the types from the google packages come with the implementations listed below, plus a variety of utility methods and helpers that can be found in the documentation.
 
 All of the structs that have fallible methods also come with their own custom error enum.
 
