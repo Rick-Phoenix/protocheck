@@ -1,0 +1,18 @@
+[package]
+name = "cel-derive-macro"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+description.workspace = true
+keywords.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { workspace = true, features = ["full", "extra-traits"] }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }
+convert_case = { workspace = true }
