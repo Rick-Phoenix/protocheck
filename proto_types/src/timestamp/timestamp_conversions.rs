@@ -1,16 +1,27 @@
 #[cfg(feature = "chrono")]
 mod chrono {
-  use std::convert::{From, TryFrom};
-
-  use chrono::{DateTime, FixedOffset, Utc};
+  use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 
   use crate::{timestamp::TimestampError, Timestamp};
+
   impl From<DateTime<Utc>> for Timestamp {
     fn from(datetime: DateTime<Utc>) -> Self {
       let mut ts = Timestamp {
         seconds: datetime.timestamp(),
         // Safe casting as this value is limited by chrono
         nanos: datetime.timestamp_subsec_nanos() as i32,
+      };
+      ts.normalize();
+      ts
+    }
+  }
+
+  impl From<NaiveDateTime> for Timestamp {
+    fn from(datetime: NaiveDateTime) -> Self {
+      let mut ts = Timestamp {
+        seconds: datetime.and_utc().timestamp(),
+        // Safe casting as this value is limited by chrono
+        nanos: datetime.and_utc().timestamp_subsec_nanos() as i32,
       };
       ts.normalize();
       ts
@@ -24,6 +35,18 @@ mod chrono {
       timestamp.normalize();
 
       DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+        .ok_or(TimestampError::OutOfSystemRange(timestamp))
+    }
+  }
+
+  impl TryFrom<Timestamp> for NaiveDateTime {
+    type Error = TimestampError;
+
+    fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
+      timestamp.normalize();
+
+      DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+        .map(|d| d.naive_local())
         .ok_or(TimestampError::OutOfSystemRange(timestamp))
     }
   }
