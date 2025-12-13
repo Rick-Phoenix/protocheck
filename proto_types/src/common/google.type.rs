@@ -6,6 +6,11 @@
 #[cfg(feature = "timeofday")]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[cfg_attr(
+  any(feature = "diesel-postgres", feature = "diesel-sqlite"),
+  derive(diesel::QueryId, diesel::AsExpression, diesel::FromSqlRow),
+  diesel(sql_type = diesel::sql_types::Time)
+)]
 pub struct TimeOfDay {
   /// Hours of day in 24 hour format. Should be from 0 to 23. An API may choose
   /// to allow the value "24:00:00" for scenarios like business closing time.
