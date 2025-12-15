@@ -32,7 +32,7 @@ use regex::Regex;
 use syn::{
   parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned,
   Attribute, Error, Expr, Ident, Item, ItemEnum, ItemStruct, Lit, LitByteStr, LitStr, Meta, Path,
-  Token, Type,
+  Token,
 };
 
 use crate::{

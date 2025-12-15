@@ -5,7 +5,7 @@ pub(crate) struct ValidationData<'a> {
   pub full_name: &'a str,
   pub proto_name: &'a str,
   pub ignore: Ignore,
-  pub tag: u32,
+  pub tag: i32,
   pub is_required: bool,
   pub is_optional: bool,
   pub is_in_oneof: bool,

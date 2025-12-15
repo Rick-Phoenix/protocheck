@@ -132,7 +132,7 @@ pub fn extract_message_validators(
 
       let mut validation_data = ValidationData {
         proto_name: field_proto_name,
-        tag: field_tag,
+        tag: field_tag as i32,
         ignore,
         full_name: field.full_name(),
         is_required,

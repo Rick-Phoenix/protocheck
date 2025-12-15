@@ -35,9 +35,11 @@ fluent-uri = "0.4"
 paste = { workspace = true }
 
 [features]
+default = ["regex", "validators"]
+
+## Enables the validators, which are used by the protocheck-proc-macro crate
+validators = []
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
 totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
 regex = ["dep:regex"]
 ordered-float = ["dep:ordered-float"]
-
-default = ["regex", "cel"]

@@ -41,14 +41,16 @@ pub fn extract_oneof_validators(
       ident: field_ident,
       span: field_span,
       ..
-    } = oneof_variants.remove(field.name()).ok_or(Error::new(
-      Span::call_site(),
-      format!(
-        "Could not process the data for field {} in oneof {}. Is the name set correctly?",
-        field.name(),
-        oneof_proto_name
-      ),
-    ))?;
+    } = oneof_variants
+      .remove(field.name())
+      .ok_or(Error::new(
+        Span::call_site(),
+        format!(
+          "Could not process the data for field {} in oneof {}. Is the name set correctly?",
+          field.name(),
+          oneof_proto_name
+        ),
+      ))?;
 
     let mut field_validators = TokenStream2::new();
 
@@ -88,7 +90,7 @@ pub fn extract_oneof_validators(
         is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
         field_span,
         proto_name: field_name,
-        tag: field.number(),
+        tag: field.number() as i32,
         ignore,
         map_keys_type: None,
         map_values_type: None,

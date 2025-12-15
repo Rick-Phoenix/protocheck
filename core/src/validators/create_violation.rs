@@ -14,7 +14,7 @@ fn create_violation_core(
     field_name: Some(field_context.proto_name.to_string()),
     key_type: field_context.key_type.map(|t| t as i32),
     value_type: field_context.value_type.map(|t| t as i32),
-    field_number: Some(field_context.tag as i32),
+    field_number: Some(field_context.tag),
     subscript: field_context.subscript.clone(),
   };
 
@@ -36,7 +36,10 @@ fn create_violation_core(
       custom_rule_id.map_or_else(|| violation_data.name.to_string(), |id| id.to_string()),
     ),
     message: Some(error_message.to_string()),
-    for_key: field_context.field_kind.is_map_key().then_some(true),
+    for_key: field_context
+      .field_kind
+      .is_map_key()
+      .then_some(true),
     field: Some(FieldPath {
       elements: field_elements,
     }),

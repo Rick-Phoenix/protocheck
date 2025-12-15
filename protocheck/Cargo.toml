@@ -27,6 +27,8 @@ proto-types = { version = "0.1.11", path = "../proto_types/", default-features =
 document-features = { workspace = true }
 
 [features]
+default = ["regex", "cel", "chrono"]
+
 ## Enables support for set lookups in validators involving floating point numbers
 ordered-float = [
   "protocheck-core/ordered-float",
@@ -37,5 +39,3 @@ chrono = ["proto-types/chrono"]
 cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
 ## Enables the validators that use the Regex crate, such as 'pattern', or the well known strings such as 'header_name', 'email' and so on.
 regex = ["protocheck-core/regex"]
-
-default = ["regex", "cel", "chrono"]
