@@ -26,17 +26,7 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
 
   for variant in variants {
     let variant_ident = &variant.ident;
-    let mut proto_name: String = String::new();
-
-    for attr in variant.attrs.iter() {
-      if attr.path().is_ident("protocheck") && let Ok(nv) = attr.meta.require_name_value() && nv.path.is_ident("name") {
-        proto_name = extract_string_lit(&nv.value)?;
-      }
-    }
-
-    if proto_name.is_empty() {
-      proto_name = variant_ident.to_string().to_case(Case::Snake);
-    }
+    let proto_name = variant_ident.to_string().to_case(Case::Snake);
 
     if let syn::Fields::Unnamed(fields) = &variant.fields
       && let Some(variant_type) = &fields.unnamed.get(0) {
