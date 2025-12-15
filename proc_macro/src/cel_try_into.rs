@@ -60,16 +60,30 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
       }
   }
 
+  // We cannot rely on the try_into impl as is here, because we need to know
+  // the name of the specific oneof variant being used, so we need this helper here.
+  // In the future we might skip this and just use the name of the oneof, to mirror
+  // the rust side of things more accurately
   Ok(quote! {
     impl #enum_name {
+      #[doc(hidden)]
       pub fn try_into_cel_value(&self) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
+      #[doc(hidden)]
       fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
+      }
+    }
+
+    impl TryFrom<#enum_name> for ::protocheck::cel::Value {
+      type Error = ::protocheck::types::cel::CelConversionError;
+
+      fn try_from(value: #enum_name) -> Result<Self, Self::Error> {
+        Ok(value.try_into_cel_value_recursive(0)?.1)
       }
     }
   })
@@ -175,6 +189,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
 
   Ok(quote! {
     impl #struct_name {
+      #[doc(hidden)]
       fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::protocheck::cel::Value::Null);
