@@ -17,6 +17,7 @@ pub(crate) struct ValidationData<'a> {
   pub map_keys_type: Option<ProtoType>,
   pub map_values_type: Option<ProtoType>,
 
+  pub proto_type: FieldType,
   pub map_key_ident: &'a Ident,
   pub map_value_ident: &'a Ident,
   pub index_ident: &'a Ident,
@@ -47,7 +48,7 @@ impl ValidationData<'_> {
   pub fn get_substring_validator(&self, tokens: &mut TokenStream2, rules: SubstringRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
-    let validator_type_ident = new_ident(self.field_kind.inner_type().name());
+    let validator_type_ident = new_ident(self.proto_type.name());
 
     if let Some(contains) = rules.contains {
       let SubstringRule {
@@ -169,7 +170,7 @@ impl ValidationData<'_> {
       });
     });
 
-    let validator_type_ident = format_ident!("{}", self.field_kind.inner_type().name());
+    let validator_type_ident = format_ident!("{}", self.proto_type.name());
     let error_message = format!("must match the following regex: `{}`", regex);
 
     let validator_expression_tokens = quote! {
@@ -276,6 +277,7 @@ impl ValidationData<'_> {
       parent_messages_ident,
       proto_name,
       tag,
+      proto_type,
       ..
     } = self;
 
@@ -295,10 +297,13 @@ impl ValidationData<'_> {
 
     let subscript_tokens = self.subscript_tokens(field_kind);
 
+    let field_type: ProtoType = (*proto_type).into();
+
     quote! {
       let #field_context_ident = ::protocheck::field_data::FieldContext {
         parent_elements: #parent_messages_ident.as_slice(),
         subscript: #subscript_tokens,
+        field_type: #field_type,
         key_type: #key_type_tokens,
         value_type: #value_type_tokens,
         field_kind: #field_kind,
@@ -329,33 +334,11 @@ impl ValidationData<'_> {
 
     let has_loop = has_keys_rules || has_values_rules;
 
-    let keys_context_tokens = has_keys_rules.then(|| {
-      let keys_proto_type = self.map_keys_type.unwrap_or_else(|| {
-        panic!(
-          "Could not get the map key type for field {}",
-          self.full_name
-        )
-      });
+    let keys_context_tokens = has_keys_rules
+      .then(|| self.field_context_tokens(FieldKind::MapKey, self.map_key_context_ident));
 
-      self.field_context_tokens(
-        FieldKind::MapKey(keys_proto_type.into()),
-        self.map_key_context_ident,
-      )
-    });
-
-    let values_context_tokens = has_values_rules.then(|| {
-      let values_proto_type = self.map_values_type.unwrap_or_else(|| {
-        panic!(
-          "Could not get the map value type for field {}",
-          self.full_name
-        )
-      });
-
-      self.field_context_tokens(
-        FieldKind::MapValue(values_proto_type.into()),
-        self.map_value_context_ident,
-      )
-    });
+    let values_context_tokens = has_values_rules
+      .then(|| self.field_context_tokens(FieldKind::MapValue, self.map_value_context_ident));
 
     let loop_tokens = has_loop.then(|| {
       let field_ident = &self.item_rust_ident;
@@ -386,16 +369,17 @@ impl ValidationData<'_> {
     // for the map as a whole, with separate contexts
 
     match self.field_kind {
-      FieldKind::Single(_) | FieldKind::Repeated(_) | FieldKind::Map(_) => self.field_context_ident,
-      FieldKind::RepeatedItem(_) => self.vec_item_context_ident,
-      FieldKind::MapKey(_) => self.map_key_context_ident,
-      FieldKind::MapValue(_) => self.map_value_context_ident,
+      FieldKind::Single | FieldKind::Repeated | FieldKind::Map => self.field_context_ident,
+      FieldKind::RepeatedItem => self.vec_item_context_ident,
+      FieldKind::MapKey => self.map_key_context_ident,
+      FieldKind::MapValue => self.map_value_context_ident,
     }
   }
 
   pub fn to_map_key(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut key_validation_data = self.clone();
-    key_validation_data.field_kind = FieldKind::MapKey(field_type);
+    key_validation_data.field_kind = FieldKind::MapKey;
+    key_validation_data.proto_type = field_type;
     key_validation_data.value_ident = OnceCell::new();
 
     key_validation_data
@@ -403,15 +387,16 @@ impl ValidationData<'_> {
 
   pub fn to_map_value(&'_ self, field_type: FieldType) -> ValidationData<'_> {
     let mut value_validation_data = self.clone();
-    value_validation_data.field_kind = FieldKind::MapValue(field_type);
+    value_validation_data.field_kind = FieldKind::MapValue;
+    value_validation_data.proto_type = field_type;
     value_validation_data.value_ident = OnceCell::new();
 
     value_validation_data
   }
 
-  pub fn to_repeated_item(&'_ self, field_desc: &FieldDescriptor) -> ValidationData<'_> {
+  pub fn to_repeated_item(&'_ self) -> ValidationData<'_> {
     let mut items_validation_data = self.clone();
-    items_validation_data.field_kind = FieldKind::RepeatedItem(get_field_type(field_desc));
+    items_validation_data.field_kind = FieldKind::RepeatedItem;
     items_validation_data.value_ident = OnceCell::new();
 
     items_validation_data
@@ -437,10 +422,8 @@ impl ValidationData<'_> {
       let index_ident = &self.index_ident;
       let item_ident = &self.item_ident;
 
-      let items_context_tokens = self.field_context_tokens(
-        FieldKind::RepeatedItem(self.field_kind.inner_type()),
-        self.vec_item_context_ident,
-      );
+      let items_context_tokens =
+        self.field_context_tokens(FieldKind::RepeatedItem, self.vec_item_context_ident);
 
       quote! {
         for (#index_ident, #item_ident) in self.#field_ident.iter().enumerate() {
@@ -485,14 +468,14 @@ impl ValidationData<'_> {
 
     let field_proto_name = &self.proto_name;
     let field_tag = self.tag;
-    let field_proto_type: ProtoType = self.field_kind.inner_type().into();
+    let field_proto_type: ProtoType = self.proto_type.into();
 
     // Not using self.value_ident() on purpose here
     // because we don't care about box or refs here, it's always a ref anyway
     let value_ident = match field_kind {
-      FieldKind::RepeatedItem(_) => self.item_ident,
-      FieldKind::MapKey(_) => self.map_key_ident,
-      FieldKind::MapValue(_) => self.map_value_ident,
+      FieldKind::RepeatedItem => self.item_ident,
+      FieldKind::MapKey => self.map_key_ident,
+      FieldKind::MapValue => self.map_value_ident,
       _ => &format_ident!("val"),
     };
 
@@ -586,7 +569,7 @@ impl ValidationData<'_> {
   pub fn wrap_with_default_value_check(&self, validators: TokenStream2) -> TokenStream2 {
     let value_ident = self.value_ident();
 
-    let default_check = match self.field_kind.inner_type() {
+    let default_check = match self.proto_type {
       FieldType::Bytes | FieldType::String => quote! { !#value_ident.is_empty() },
       FieldType::Bool => quote! { #value_ident },
       FieldType::Float | FieldType::Double => quote! { #value_ident != 0.0 },
@@ -621,12 +604,12 @@ impl ValidationData<'_> {
 
   pub fn subscript_tokens(&self, field_kind: FieldKind) -> TokenStream2 {
     match field_kind {
-      FieldKind::RepeatedItem(_) => {
+      FieldKind::RepeatedItem => {
         let index_ident = self.index_ident;
         quote! { Some(::protocheck::types::protovalidate::field_path_element::Subscript::Index(#index_ident as u64)) }
       }
 
-      FieldKind::MapKey(_) | FieldKind::MapValue(_) => {
+      FieldKind::MapKey | FieldKind::MapValue => {
         if let Some(key_type) = self.map_keys_type {
           let key_subscript_tokens = generate_key_subscript(&key_type, self.map_key_ident);
           quote! { Some(#key_subscript_tokens) }
@@ -663,11 +646,11 @@ impl ValidationData<'_> {
 
       let mut base_ident = match &self.field_kind {
         // No need for further processing if we get a collection, we only check .len() anyway
-        FieldKind::Map(_) | FieldKind::Repeated(_) => return quote! { self.#item_rust_ident },
-        FieldKind::MapKey(_) => quote! { #map_key_ident },
-        FieldKind::MapValue(_) => quote! { #map_value_ident },
-        FieldKind::RepeatedItem(_) => quote! { #item_ident },
-        FieldKind::Single(_) => {
+        FieldKind::Map | FieldKind::Repeated => return quote! { self.#item_rust_ident },
+        FieldKind::MapKey => quote! { #map_key_ident },
+        FieldKind::MapValue => quote! { #map_value_ident },
+        FieldKind::RepeatedItem => quote! { #item_ident },
+        FieldKind::Single => {
           if self.is_optional || self.is_in_oneof {
             quote! { val }
           } else {
@@ -677,19 +660,19 @@ impl ValidationData<'_> {
       };
 
       let ident_is_ref = match &self.field_kind {
-        FieldKind::Map(_) => false,
-        FieldKind::Repeated(_) => false,
-        FieldKind::MapKey(_) => true,
-        FieldKind::MapValue(_) => true,
-        FieldKind::RepeatedItem(_) => true,
-        FieldKind::Single(_) => self.is_optional || self.is_in_oneof,
+        FieldKind::Map => false,
+        FieldKind::Repeated => false,
+        FieldKind::MapKey => true,
+        FieldKind::MapValue => true,
+        FieldKind::RepeatedItem => true,
+        FieldKind::Single => self.is_optional || self.is_in_oneof,
       };
 
-      if ident_is_ref && self.field_kind.is_copy() {
+      if ident_is_ref && type_is_copy(&self.field_kind, &self.proto_type) {
         base_ident = quote! { (*#base_ident) }
       }
 
-      match &self.field_kind.inner_type() {
+      match &self.proto_type {
         FieldType::Double => base_ident,
         FieldType::Float => base_ident,
         FieldType::Int64 => base_ident,
@@ -736,5 +719,16 @@ fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident) -> Toke
         .into_compile_error()
         .into_token_stream()
     }
+  }
+}
+
+fn type_is_copy(field_kind: &FieldKind, field_type: &FieldType) -> bool {
+  if matches!(field_kind, FieldKind::Map | FieldKind::Repeated) {
+    false
+  } else {
+    !matches!(
+      field_type,
+      FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
+    )
   }
 }

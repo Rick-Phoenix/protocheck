@@ -10,7 +10,7 @@ fn create_violation_core(
   let mut field_elements = field_context.parent_elements.to_vec();
 
   let current_elem = FieldPathElement {
-    field_type: Some(field_context.field_kind.inner_type().into()),
+    field_type: Some(field_context.field_type as i32),
     field_name: Some(field_context.proto_name.to_string()),
     key_type: field_context.key_type.map(|t| t as i32),
     value_type: field_context.value_type.map(|t| t as i32),
@@ -23,9 +23,9 @@ fn create_violation_core(
   let mut rule_elements: Vec<FieldPathElement> = Vec::new();
 
   match &field_context.field_kind {
-    FieldKind::MapKey(_) => rule_elements.extend(MAP_KEY_VIOLATION.elements.to_vec()),
-    FieldKind::MapValue(_) => rule_elements.extend(MAP_VALUE_VIOLATION.elements.to_vec()),
-    FieldKind::RepeatedItem(_) => rule_elements.extend(REPEATED_ITEM_VIOLATION.elements.to_vec()),
+    FieldKind::MapKey => rule_elements.extend(MAP_KEY_VIOLATION.elements.to_vec()),
+    FieldKind::MapValue => rule_elements.extend(MAP_VALUE_VIOLATION.elements.to_vec()),
+    FieldKind::RepeatedItem => rule_elements.extend(REPEATED_ITEM_VIOLATION.elements.to_vec()),
     _ => {}
   };
 

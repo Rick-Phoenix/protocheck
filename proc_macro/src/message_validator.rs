@@ -151,6 +151,7 @@ pub fn extract_message_validators(
         index_ident: &index_ident,
         item_rust_ident: &item_rust_ident,
         field_kind: get_field_kind(&field),
+        proto_type: get_field_type(&field),
         map_key_context_ident: &map_key_context_ident,
         map_value_context_ident: &map_value_context_ident,
         vec_item_context_ident: &vec_item_context_ident,
@@ -193,10 +194,8 @@ pub fn extract_message_validators(
         }
 
         if field_is_message(&field.kind()) {
-          validation_data.get_message_field_validator_tokens(
-            &mut field_validators,
-            FieldKind::Single(FieldType::Message),
-          );
+          validation_data
+            .get_message_field_validator_tokens(&mut field_validators, FieldKind::Single);
         }
 
         if !field_validators.is_empty() {

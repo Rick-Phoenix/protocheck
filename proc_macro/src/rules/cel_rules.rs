@@ -93,7 +93,7 @@ mod cel_validator {
                 let field_context_ident = &validation_data.field_context_ident();
                 let value_ident = validation_data.value_ident();
 
-                let validation_expression = match validation_data.field_kind.inner_type() {
+                let validation_expression = match validation_data.proto_type {
                   FieldType::Message => {
                     quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.clone()) }
                   }

@@ -15,7 +15,7 @@ pub fn get_field_rules(
 
   rules_match_type(
     field_rules,
-    validation_data.field_kind.inner_type(),
+    validation_data.proto_type,
     field_name,
     field_span,
   )?;
@@ -120,14 +120,12 @@ pub fn get_field_rules(
 }
 
 pub fn get_field_kind(field_desc: &FieldDescriptor) -> FieldKind {
-  let field_type = get_field_type(field_desc);
-
   if field_desc.is_list() {
-    FieldKind::Repeated(field_type)
+    FieldKind::Repeated
   } else if field_desc.is_map() {
-    FieldKind::Map(field_type)
+    FieldKind::Map
   } else {
-    FieldKind::Single(field_type)
+    FieldKind::Single
   }
 }
 

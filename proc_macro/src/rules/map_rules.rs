@@ -136,10 +136,7 @@ pub fn get_map_rules(
   }
 
   if value_is_message && !ignore_values_validators {
-    map_validation_data.get_message_field_validator_tokens(
-      &mut values_rules,
-      FieldKind::MapValue(FieldType::Message),
-    );
+    map_validation_data.get_message_field_validator_tokens(&mut values_rules, FieldKind::MapValue);
   }
 
   if map_level_rules.is_empty() && keys_rules.is_empty() && values_rules.is_empty() {

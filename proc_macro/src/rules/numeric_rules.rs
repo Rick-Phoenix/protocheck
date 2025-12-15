@@ -43,10 +43,7 @@ where
   if rules.finite() {
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
-    let func_ident = format_ident!(
-      "{}_is_finite",
-      validation_data.field_kind.inner_type().name()
-    );
+    let func_ident = format_ident!("{}_is_finite", validation_data.proto_type.name());
 
     let validator_expression_tokens = quote! {
       ::protocheck::validators::floats::#func_ident(&#field_context_ident, #value_ident)

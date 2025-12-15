@@ -1,5 +1,3 @@
-use proto_types::FieldType;
-
 use crate::{
   protovalidate::{field_path_element::Subscript, FieldPathElement},
   ProtoType,
@@ -13,6 +11,7 @@ pub struct FieldContext<'a> {
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,
+  pub field_type: ProtoType,
   pub value_type: Option<ProtoType>,
   pub field_kind: FieldKind,
 }
@@ -20,44 +19,25 @@ pub struct FieldContext<'a> {
 /// The kind of field being validated. This extra context helps generating more precise violation reports.
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum FieldKind {
-  Map(FieldType),
-  MapKey(FieldType),
-  MapValue(FieldType),
-  Repeated(FieldType),
-  RepeatedItem(FieldType),
-  Single(FieldType),
+  Map,
+  MapKey,
+  MapValue,
+  Repeated,
+  RepeatedItem,
+  Single,
 }
 
 impl FieldKind {
-  pub fn inner_type(&self) -> FieldType {
-    match self {
-      FieldKind::Map(field_type) => *field_type,
-      FieldKind::MapKey(field_type) => *field_type,
-      FieldKind::MapValue(field_type) => *field_type,
-      FieldKind::Repeated(field_type) => *field_type,
-      FieldKind::RepeatedItem(field_type) => *field_type,
-      FieldKind::Single(field_type) => *field_type,
-    }
-  }
-
-  pub fn is_copy(&self) -> bool {
-    !matches!(self, Self::Map(_) | Self::Repeated(_))
-      && !matches!(
-        self.inner_type(),
-        FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
-      )
-  }
-
   pub fn is_map_key(&self) -> bool {
-    matches!(self, FieldKind::MapKey(_))
+    matches!(self, FieldKind::MapKey)
   }
 
   pub fn is_map_value(&self) -> bool {
-    matches!(self, FieldKind::MapValue(_))
+    matches!(self, FieldKind::MapValue)
   }
 
   pub fn is_repeated_item(&self) -> bool {
-    matches!(self, FieldKind::RepeatedItem(_))
+    matches!(self, FieldKind::RepeatedItem)
   }
 }
 
@@ -72,12 +52,12 @@ impl ToTokens for FieldKind {
     let field_kind_path = quote! { ::protocheck::field_data::FieldKind };
 
     let variant_tokens = match self {
-      FieldKind::Map(v) => quote! { Map(#v) },
-      FieldKind::MapKey(v) => quote! { MapKey(#v) },
-      FieldKind::MapValue(v) => quote! { MapValue(#v) },
-      FieldKind::Repeated(v) => quote! { Repeated(#v) },
-      FieldKind::RepeatedItem(v) => quote! { RepeatedItem(#v) },
-      FieldKind::Single(v) => quote! { Single(#v) },
+      FieldKind::Map => quote! { Map },
+      FieldKind::MapKey => quote! { MapKey },
+      FieldKind::MapValue => quote! { MapValue },
+      FieldKind::Repeated => quote! { Repeated },
+      FieldKind::RepeatedItem => quote! { RepeatedItem },
+      FieldKind::Single => quote! { Single },
     };
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });

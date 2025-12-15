@@ -31,7 +31,7 @@ pub fn get_repeated_rules(
 
   if let Some(RulesType::Repeated(ref repeated_rules)) = field_rules.r#type {
     if repeated_rules.unique() {
-      if !supports_unique(validation_data.field_kind.inner_type()) {
+      if !supports_unique(validation_data.proto_type) {
         return Err(get_field_error(
           field_name,
           field_span,
@@ -40,7 +40,7 @@ pub fn get_repeated_rules(
       }
 
       let items_validation_data =
-        items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item(field_desc));
+        items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item());
 
       let field_context_ident = items_validation_data.field_context_ident();
       let value_ident = items_validation_data.value_ident();
@@ -49,7 +49,7 @@ pub fn get_repeated_rules(
       let vec_ident = validation_data.value_ident();
 
       let is_float = matches!(
-        validation_data.field_kind.inner_type(),
+        validation_data.proto_type,
         FieldType::Float | FieldType::Double
       );
 
@@ -100,7 +100,7 @@ pub fn get_repeated_rules(
         ignore_items_validators = true
       } else {
         let repeated_items_validation_data =
-          items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item(field_desc));
+          items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item());
 
         if let Some(ref rules_type) = items_rules_descriptor.r#type
           && !item_is_message {
@@ -130,10 +130,7 @@ pub fn get_repeated_rules(
   }
 
   if item_is_message && !ignore_items_validators {
-    validation_data.get_message_field_validator_tokens(
-      &mut items_rules,
-      FieldKind::RepeatedItem(FieldType::Message),
-    );
+    validation_data.get_message_field_validator_tokens(&mut items_rules, FieldKind::RepeatedItem);
   }
 
   validation_data.aggregate_vec_rules(
