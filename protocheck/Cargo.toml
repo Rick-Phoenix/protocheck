@@ -20,7 +20,9 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 protocheck-proc-macro = { version = "0.1.11", path = "../proc_macro/", default-features = false }
-protocheck-core = { version = "0.1.11", path = "../core/", default-features = false }
+protocheck-core = { version = "0.1.11", path = "../core/", default-features = false, features = [
+  "validators",
+] }
 proto-types = { version = "0.1.11", path = "../proto_types/", default-features = false, features = [
   "protovalidate",
 ] }
@@ -29,11 +31,6 @@ document-features = { workspace = true }
 [features]
 default = ["regex", "cel", "chrono"]
 
-## Enables support for set lookups in validators involving floating point numbers
-ordered-float = [
-  "protocheck-core/ordered-float",
-  "protocheck-proc-macro/ordered-float",
-]
 chrono = ["proto-types/chrono"]
 ## Enables validation with custom Cel expressions.
 cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]

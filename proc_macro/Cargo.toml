@@ -43,6 +43,5 @@ bytes = "1"
 
 [features]
 cel = ["protocheck-core/cel", "proto-types/cel", "dep:cel"]
-ordered-float = []
 
 default = ["cel"]

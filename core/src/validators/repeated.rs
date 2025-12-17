@@ -1,3 +1,4 @@
+use ordered_float::OrderedFloat;
 use proto_types::{Duration, Timestamp};
 
 use super::*;
@@ -52,16 +53,26 @@ pub enum UniqueLookup<T> {
   Set(HashSet<T>),
 }
 
-pub trait UniqueItem<Item = Self> {
-  type Container;
+impl<T> UniqueLookup<T> {
+  pub fn from_len(len: usize) -> Self {
+    if len <= 16 {
+      Self::Vec(Vec::with_capacity(len))
+    } else {
+      Self::Set(HashSet::with_capacity(len))
+    }
+  }
+}
 
-  fn check_unique(container: &mut Self::Container, item: Self) -> bool;
+pub trait UniqueItem {
+  type LookupTarget;
+
+  fn check_unique(container: &mut UniqueLookup<Self::LookupTarget>, item: Self) -> bool;
 }
 
 macro_rules! impl_unique {
   ($target:ty) => {
     impl UniqueItem for $target {
-      type Container = UniqueLookup<Self>;
+      type LookupTarget = Self;
 
       fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
         match container {
@@ -80,6 +91,7 @@ macro_rules! impl_unique {
   };
 }
 
+impl_unique!(&str);
 impl_unique!(i64);
 impl_unique!(i32);
 impl_unique!(u64);
@@ -94,57 +106,11 @@ impl_unique!(Fixed32);
 impl_unique!(Timestamp);
 impl_unique!(Duration);
 
-#[cfg(not(feature = "ordered-float"))]
 impl UniqueItem for f32 {
-  type Container = UniqueLookup<Self>;
+  type LookupTarget = OrderedFloat<f32>;
 
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(_) => {
-        panic!("Cannot use set lookups for floats without the ordered-float flag")
-      }
-    }
-  }
-}
-
-#[cfg(not(feature = "ordered-float"))]
-impl UniqueItem for f64 {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(_) => {
-        panic!("Cannot use set lookups for floats without the ordered-float flag")
-      }
-    }
-  }
-}
-
-#[cfg(feature = "ordered-float")]
-impl UniqueItem<ordered_float::OrderedFloat<f32>> for f32 {
-  type Container = UniqueLookup<ordered_float::OrderedFloat<f32>>;
-
-  fn check_unique(
-    container: &mut UniqueLookup<ordered_float::OrderedFloat<f32>>,
-    item: Self,
-  ) -> bool {
-    let item = ordered_float::OrderedFloat(item);
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f32>>, item: Self) -> bool {
+    let item = OrderedFloat(item);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -160,15 +126,11 @@ impl UniqueItem<ordered_float::OrderedFloat<f32>> for f32 {
   }
 }
 
-#[cfg(feature = "ordered-float")]
-impl UniqueItem<ordered_float::OrderedFloat<f64>> for f64 {
-  type Container = UniqueLookup<ordered_float::OrderedFloat<f64>>;
+impl UniqueItem for f64 {
+  type LookupTarget = OrderedFloat<f64>;
 
-  fn check_unique(
-    container: &mut UniqueLookup<ordered_float::OrderedFloat<f64>>,
-    item: Self,
-  ) -> bool {
-    let item = ordered_float::OrderedFloat(item);
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f64>>, item: Self) -> bool {
+    let item = OrderedFloat(item);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -185,7 +147,7 @@ impl UniqueItem<ordered_float::OrderedFloat<f64>> for f64 {
 }
 
 impl UniqueItem for &::bytes::Bytes {
-  type Container = UniqueLookup<Self>;
+  type LookupTarget = Self;
 
   fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
     match container {
@@ -202,32 +164,14 @@ impl UniqueItem for &::bytes::Bytes {
   }
 }
 
-impl UniqueItem for &str {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(set) => set.insert(item),
-    }
-  }
-}
-
-pub fn unique<T, I>(
+pub fn unique<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
   value: T,
-  processed_values: &mut T::Container,
+  processed_values: &mut UniqueLookup<T::LookupTarget>,
 ) -> Result<(), Violation>
 where
-  T: UniqueItem<I>,
+  T: UniqueItem,
 {
   let is_valid = T::check_unique(processed_values, value);
 

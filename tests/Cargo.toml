@@ -8,7 +8,7 @@ prost = { workspace = true }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/", features = ["ordered-float"] }
+protocheck = { path = "../protocheck/" }
 proto-types = { path = "../proto_types/", features = [
   "serde",
   "cel",

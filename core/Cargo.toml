@@ -27,7 +27,7 @@ proc-macro2 = { workspace = true, optional = true }
 cel = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
-ordered-float = { workspace = true, optional = true }
+ordered-float = { workspace = true }
 
 ipnetwork = { workspace = true }
 bytes = { workspace = true }
@@ -42,4 +42,3 @@ validators = []
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
 totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
 regex = ["dep:regex"]
-ordered-float = ["dep:ordered-float"]

@@ -49,24 +49,8 @@ pub fn get_repeated_rules(
 
       let vec_ident = validation_data.value_ident();
 
-      let is_float = matches!(
-        validation_data.proto_type,
-        FieldType::Float | FieldType::Double
-      );
-
-      let ordered_floats_enabled = cfg!(feature = "ordered-float");
-
-      let lookup_tokens = if is_float && !ordered_floats_enabled {
-        quote! { ::protocheck::validators::repeated::UniqueLookup::Vec(vec![]) }
-      } else {
-        quote! {
-          if #vec_ident.len() < 16 {
-            ::protocheck::validators::repeated::UniqueLookup::Vec(vec![])
-          } else {
-            ::protocheck::validators::repeated::UniqueLookup::Set(::std::collections::HashSet::new())
-          }
-        }
-      };
+      let lookup_tokens =
+        quote! { ::protocheck::validators::repeated::UniqueLookup::from_len(#vec_ident.len()) };
 
       vec_level_rules.extend(quote! {
         let mut processed_values = #lookup_tokens;

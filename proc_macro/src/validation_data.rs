@@ -231,8 +231,9 @@ impl ValidationData<'_> {
     T: ToTokens + Clone,
   {
     let field_context_ident = self.field_context_ident();
-    let value_ident = self.value_ident();
     let parent_messages_ident = self.parent_messages_ident;
+
+    let value_ident = self.value_ident();
 
     if let Some(in_list_rule) = rules.in_list_rule {
       let items_tokens = in_list_rule.output_list();

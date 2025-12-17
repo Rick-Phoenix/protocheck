@@ -1,18 +1,18 @@
 use core::slice;
 use std::collections::hash_set;
 
+use ordered_float::OrderedFloat;
 use proto_types::{Any, Duration};
 
 use super::*;
 use crate::protovalidate::violations_data::{in_violations::*, not_in_violations::*};
 
-pub trait ListRules<Item = Self>: Sized {
+pub trait ListRules: Sized {
+  type LookupTarget;
   const IN_VIOLATION: &'static LazyLock<ViolationData>;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData>;
 
-  type Container;
-
-  fn is_in(container: &Self::Container, item: Item) -> bool;
+  fn is_in(container: &ItemLookup<Self::LookupTarget>, item: Self) -> bool;
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -73,13 +73,12 @@ impl<'a, T> From<&'a [T]> for ItemLookup<'a, T> {
 macro_rules! impl_hash_lookup {
   ($typ:ty, $proto_type:ident) => {
     paste::paste! {
-      impl ListRules<$typ> for $typ {
+      impl ListRules for $typ {
+        type LookupTarget = $typ;
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        type Container = ItemLookup<'static, $typ>;
-
-        fn is_in(container: &Self::Container, item: $typ) -> bool {
+        fn is_in(container: &ItemLookup<$typ>, item: $typ) -> bool {
           match container {
             ItemLookup::Slice(slice) => slice.contains(&item),
             ItemLookup::Set(set) => set.contains(&item),
@@ -91,13 +90,12 @@ macro_rules! impl_hash_lookup {
 
   ($wrapper:ty, $target:ty, $proto_type:ident) => {
     paste::paste! {
-      impl ListRules<$wrapper> for $wrapper {
+      impl ListRules for $wrapper {
+        type LookupTarget = $target;
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        type Container = ItemLookup<'static, $target>;
-
-        fn is_in(container: &Self::Container, item: $wrapper) -> bool {
+        fn is_in(container: &ItemLookup<$target>, item: $wrapper) -> bool {
           match container {
             ItemLookup::Slice(slice) => slice.contains(&item),
             ItemLookup::Set(set) => set.contains(&item),
@@ -108,62 +106,28 @@ macro_rules! impl_hash_lookup {
   };
 }
 
-#[cfg(not(feature = "ordered-float"))]
 impl ListRules for f32 {
+  type LookupTarget = OrderedFloat<f32>;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, f32>;
 
-  fn is_in(container: &Self::Container, item: Self) -> bool {
+  fn is_in(container: &ItemLookup<OrderedFloat<f32>>, item: Self) -> bool {
     match container {
-      ItemLookup::Slice(items) => items.contains(&item),
-      ItemLookup::Set(_) => {
-        panic!("Cannot use a set with floats unless the ordered-float flag is enabled")
-      }
+      ItemLookup::Slice(items) => items.contains(&OrderedFloat(item)),
+      ItemLookup::Set(set) => set.contains(&OrderedFloat(item)),
     }
   }
 }
 
-#[cfg(not(feature = "ordered-float"))]
 impl ListRules for f64 {
+  type LookupTarget = OrderedFloat<f64>;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, f64>;
 
-  fn is_in(container: &Self::Container, item: Self) -> bool {
+  fn is_in(container: &ItemLookup<OrderedFloat<f64>>, item: Self) -> bool {
     match container {
-      ItemLookup::Slice(items) => items.contains(&item),
-      ItemLookup::Set(_) => {
-        panic!("Cannot use a set with floats unless the ordered-float flag is enabled")
-      }
-    }
-  }
-}
-
-#[cfg(feature = "ordered-float")]
-impl ListRules for f32 {
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, ordered_float::OrderedFloat<f32>>;
-
-  fn is_in(container: &Self::Container, item: Self) -> bool {
-    match container {
-      ItemLookup::Slice(items) => items.contains(&ordered_float::OrderedFloat(item)),
-      ItemLookup::Set(set) => set.contains(&ordered_float::OrderedFloat(item)),
-    }
-  }
-}
-
-#[cfg(feature = "ordered-float")]
-impl ListRules for f64 {
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, ordered_float::OrderedFloat<f64>>;
-
-  fn is_in(container: &Self::Container, item: Self) -> bool {
-    match container {
-      ItemLookup::Slice(items) => items.contains(&ordered_float::OrderedFloat(item)),
-      ItemLookup::Set(set) => set.contains(&ordered_float::OrderedFloat(item)),
+      ItemLookup::Slice(items) => items.contains(&OrderedFloat(item)),
+      ItemLookup::Set(set) => set.contains(&OrderedFloat(item)),
     }
   }
 }
@@ -183,12 +147,12 @@ impl_hash_lookup!(u64, UINT64);
 impl_hash_lookup!(u32, UINT32);
 impl_hash_lookup!(Duration, DURATION);
 
-impl ListRules<&::bytes::Bytes> for &::bytes::Bytes {
+impl ListRules for &::bytes::Bytes {
+  type LookupTarget = &'static [u8];
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, &'static [u8]>;
 
-  fn is_in(container: &Self::Container, item: &::bytes::Bytes) -> bool {
+  fn is_in(container: &ItemLookup<&[u8]>, item: &::bytes::Bytes) -> bool {
     match container {
       ItemLookup::Slice(slice) => slice.contains(&item.as_ref()),
       ItemLookup::Set(set) => set.contains(&item.as_ref()),
@@ -196,12 +160,12 @@ impl ListRules<&::bytes::Bytes> for &::bytes::Bytes {
   }
 }
 
-impl ListRules<&Any> for &Any {
+impl ListRules for &Any {
+  type LookupTarget = &'static str;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, &'static str>;
 
-  fn is_in(container: &Self::Container, item: &Any) -> bool {
+  fn is_in(container: &ItemLookup<&str>, item: &Any) -> bool {
     match container {
       ItemLookup::Slice(slice) => slice.contains(&item.type_url.as_ref()),
       ItemLookup::Set(set) => set.contains(&item.type_url.as_ref()),
@@ -209,12 +173,12 @@ impl ListRules<&Any> for &Any {
   }
 }
 
-impl ListRules<&str> for &str {
+impl ListRules for &str {
+  type LookupTarget = &'static str;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_NOT_IN_VIOLATION;
-  type Container = ItemLookup<'static, &'static str>;
 
-  fn is_in(container: &Self::Container, item: &str) -> bool {
+  fn is_in(container: &ItemLookup<&str>, item: &str) -> bool {
     match container {
       ItemLookup::Slice(slice) => slice.contains(&item),
       ItemLookup::Set(set) => set.contains(&item),
@@ -226,11 +190,11 @@ pub fn in_list<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
   value: T,
-  list: &T::Container,
+  list: &ItemLookup<T::LookupTarget>,
   error_message: &str,
 ) -> Result<(), Violation>
 where
-  T: ListRules<T>,
+  T: ListRules,
 {
   let has_item = T::is_in(list, value);
 
@@ -250,11 +214,11 @@ pub fn not_in_list<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
   value: T,
-  list: &T::Container,
+  list: &ItemLookup<T::LookupTarget>,
   error_message: &str,
 ) -> Result<(), Violation>
 where
-  T: ListRules<T>,
+  T: ListRules,
 {
   let has_item = T::is_in(list, value);
 
