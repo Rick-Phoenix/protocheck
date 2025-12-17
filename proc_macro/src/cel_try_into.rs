@@ -62,7 +62,7 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
       }
 
       #[doc(hidden)]
-      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -180,7 +180,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
   Ok(quote! {
     impl #struct_name {
       #[doc(hidden)]
-      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::protocheck::cel::Value::Null);
         }
