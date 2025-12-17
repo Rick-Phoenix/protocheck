@@ -35,6 +35,34 @@ impl Extend<Violation> for Violations {
   }
 }
 
+impl IntoIterator for FieldPath {
+  type Item = FieldPathElement;
+  type IntoIter = IntoIter<FieldPathElement>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.elements.into_iter()
+  }
+}
+
+impl std::ops::Deref for FieldPath {
+  type Target = Vec<FieldPathElement>;
+  fn deref(&self) -> &Self::Target {
+    &self.elements
+  }
+}
+
+impl std::ops::DerefMut for FieldPath {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.elements
+  }
+}
+
+impl Extend<FieldPathElement> for FieldPath {
+  fn extend<T: IntoIterator<Item = FieldPathElement>>(&mut self, iter: T) {
+    self.elements.extend(iter)
+  }
+}
+
 impl FieldPath {
   /// Returns the last member in the elements list, if the list is not empty.
   pub fn last_field(&self) -> Option<&FieldPathElement> {
