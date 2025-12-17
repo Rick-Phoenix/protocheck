@@ -97,6 +97,17 @@ impl FieldPath {
 }
 
 impl Violations {
+  /// Creates a new collection of Violations with the specified initial capacity.
+  pub fn with_capacity(capacity: usize) -> Self {
+    let violations = Vec::with_capacity(capacity);
+    Self { violations }
+  }
+
+  /// Creates a new empty collection of Violations.
+  pub fn new() -> Self {
+    Self::default()
+  }
+
   /// Searches for a violation with a specific rule id.
   pub fn violation_by_rule_id(&self, rule_id: &str) -> Option<&Violation> {
     self
