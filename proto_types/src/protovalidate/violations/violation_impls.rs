@@ -17,7 +17,7 @@ impl IntoIterator for Violations {
 }
 
 impl std::ops::Deref for Violations {
-  type Target = [Violation];
+  type Target = Vec<Violation>;
   fn deref(&self) -> &Self::Target {
     &self.violations
   }
