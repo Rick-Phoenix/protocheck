@@ -1,9 +1,33 @@
+use std::vec::IntoIter;
+
 use prost::Message;
 
 use crate::{
   protovalidate::{FieldPath, FieldPathElement, Violation, Violations},
   Any, Code, Status,
 };
+
+impl IntoIterator for Violations {
+  type Item = Violation;
+  type IntoIter = IntoIter<Violation>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.violations.into_iter()
+  }
+}
+
+impl std::ops::Deref for Violations {
+  type Target = [Violation];
+  fn deref(&self) -> &Self::Target {
+    &self.violations
+  }
+}
+
+impl std::ops::DerefMut for Violations {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.violations
+  }
+}
 
 impl FieldPath {
   /// Returns the last member in the elements list, if the list is not empty.
@@ -16,7 +40,9 @@ impl FieldPath {
 
   /// Returns the second last member in the elements list, if the list is not empty.
   pub fn parent_field(&self) -> Option<&FieldPathElement> {
-    let second_last = self.elements.get(self.elements.len().wrapping_sub(2));
+    let second_last = self
+      .elements
+      .get(self.elements.len().wrapping_sub(2));
 
     match second_last {
       Some(el) => Some(el),
@@ -67,7 +93,10 @@ impl FieldPath {
 impl Violations {
   /// Searches for a violation with a specific rule id.
   pub fn violation_by_rule_id(&self, rule_id: &str) -> Option<&Violation> {
-    self.violations.iter().find(|v| v.rule_id() == rule_id)
+    self
+      .violations
+      .iter()
+      .find(|v| v.rule_id() == rule_id)
   }
 
   /// Searches for a violation with a specific `field_path` string.
