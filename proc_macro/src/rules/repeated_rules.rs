@@ -43,7 +43,7 @@ pub fn get_repeated_rules(
         items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item());
 
       let field_context_ident = items_validation_data.field_context_ident();
-      let value_ident = items_validation_data.value_ident();
+      let value_ident = items_validation_data.item_ident;
       let violations_ident = items_validation_data.violations_ident;
       let parent_messages_ident = items_validation_data.parent_messages_ident;
 

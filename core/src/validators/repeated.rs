@@ -64,34 +64,36 @@ impl<T> UniqueLookup<T> {
 }
 
 pub trait UniqueItem {
-  type LookupTarget;
+  type LookupTarget<'a>: Eq + std::hash::Hash
+  where
+    Self: 'a;
 
-  fn check_unique(container: &mut UniqueLookup<Self::LookupTarget>, item: Self) -> bool;
+  fn check_unique<'a>(container: &mut UniqueLookup<Self::LookupTarget<'a>>, item: &'a Self)
+    -> bool;
 }
 
 macro_rules! impl_unique {
   ($target:ty) => {
     impl UniqueItem for $target {
-      type LookupTarget = Self;
+      type LookupTarget<'a> = Self;
 
-      fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
+      fn check_unique(container: &mut UniqueLookup<Self>, item: &Self) -> bool {
         match container {
           UniqueLookup::Vec(vec) => {
             if vec.contains(&item) {
               false
             } else {
-              vec.push(item);
+              vec.push(*item);
               true
             }
           }
-          UniqueLookup::Set(set) => set.insert(item),
+          UniqueLookup::Set(set) => set.insert(*item),
         }
       }
     }
   };
 }
 
-impl_unique!(&str);
 impl_unique!(i64);
 impl_unique!(i32);
 impl_unique!(u64);
@@ -106,11 +108,57 @@ impl_unique!(Fixed32);
 impl_unique!(Timestamp);
 impl_unique!(Duration);
 
-impl UniqueItem for f32 {
-  type LookupTarget = OrderedFloat<f32>;
+impl UniqueItem for str {
+  type LookupTarget<'a> = &'a str
+    where
+      Self: 'a;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f32>>, item: Self) -> bool {
-    let item = OrderedFloat(item);
+  fn check_unique<'a>(
+    container: &mut UniqueLookup<Self::LookupTarget<'a>>,
+    item: &'a Self,
+  ) -> bool {
+    match container {
+      UniqueLookup::Vec(vec) => {
+        if vec.contains(&item) {
+          false
+        } else {
+          vec.push(item);
+          true
+        }
+      }
+      UniqueLookup::Set(set) => set.insert(item),
+    }
+  }
+}
+
+impl UniqueItem for String {
+  type LookupTarget<'a> = &'a str
+    where
+      Self: 'a;
+
+  fn check_unique<'a>(
+    container: &mut UniqueLookup<Self::LookupTarget<'a>>,
+    item: &'a Self,
+  ) -> bool {
+    match container {
+      UniqueLookup::Vec(vec) => {
+        if vec.contains(&item.as_str()) {
+          false
+        } else {
+          vec.push(item);
+          true
+        }
+      }
+      UniqueLookup::Set(set) => set.insert(item),
+    }
+  }
+}
+
+impl UniqueItem for f32 {
+  type LookupTarget<'a> = OrderedFloat<f32>;
+
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f32>>, item: &Self) -> bool {
+    let item = OrderedFloat(*item);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -127,10 +175,10 @@ impl UniqueItem for f32 {
 }
 
 impl UniqueItem for f64 {
-  type LookupTarget = OrderedFloat<f64>;
+  type LookupTarget<'a> = OrderedFloat<f64>;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f64>>, item: Self) -> bool {
-    let item = OrderedFloat(item);
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f64>>, item: &Self) -> bool {
+    let item = OrderedFloat(*item);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -146,10 +194,13 @@ impl UniqueItem for f64 {
   }
 }
 
-impl UniqueItem for &::bytes::Bytes {
-  type LookupTarget = Self;
+impl UniqueItem for ::bytes::Bytes {
+  type LookupTarget<'a> = &'a ::bytes::Bytes;
 
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
+  fn check_unique<'a>(
+    container: &mut UniqueLookup<&'a ::bytes::Bytes>,
+    item: &'a ::bytes::Bytes,
+  ) -> bool {
     match container {
       UniqueLookup::Vec(vec) => {
         if vec.contains(&item) {
@@ -164,11 +215,11 @@ impl UniqueItem for &::bytes::Bytes {
   }
 }
 
-pub fn unique<T>(
+pub fn unique<'a, T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
-  value: T,
-  processed_values: &mut UniqueLookup<T::LookupTarget>,
+  value: &'a T,
+  processed_values: &mut UniqueLookup<T::LookupTarget<'a>>,
 ) -> Result<(), Violation>
 where
   T: UniqueItem,
