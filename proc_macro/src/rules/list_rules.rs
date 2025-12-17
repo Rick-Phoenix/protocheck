@@ -73,12 +73,12 @@ impl<'a, T: ToTokens + Clone> List<'a, T> {
         quote! {
           {
             static ARR: &[#float_type] = &[ #floats_tokens ];
-            protocheck::validators::containing::HashLookup::<#float_type>::Slice(ARR)
+            protocheck::validators::containing::ItemLookup::<#float_type>::Slice(ARR)
           }
         }
       } else {
         quote! {
-          protocheck::validators::containing::HashLookup::<#float_type>::Set({
+          protocheck::validators::containing::ItemLookup::<#float_type>::Set({
             static SET: std::sync::LazyLock<std::collections::HashSet<#float_type>> = std::sync::LazyLock::new(|| {
               [ #floats_tokens ].into_iter().collect()
             });
@@ -91,12 +91,12 @@ impl<'a, T: ToTokens + Clone> List<'a, T> {
       quote! {
         {
           static ARR: &[#list_item_type] = &[ #(#item_tokens),* ];
-          protocheck::validators::containing::HashLookup::<#list_item_type>::Slice(ARR)
+          protocheck::validators::containing::ItemLookup::<#list_item_type>::Slice(ARR)
         }
       }
     } else {
       quote! {
-        protocheck::validators::containing::HashLookup::<#list_item_type>::Set({
+        protocheck::validators::containing::ItemLookup::<#list_item_type>::Set({
 
           static SET: std::sync::LazyLock<std::collections::HashSet<#list_item_type>> = std::sync::LazyLock::new(|| {
             [ #(#item_tokens),* ].into_iter().collect()
@@ -152,7 +152,9 @@ impl<'a, T: ToTokens + Clone + PartialEq + Eq + Hash + Display> Lists<'a, T> {
       not_in_list_set.extend(not_in_list.iter());
     }
 
-    let invalid_items: Vec<&&T> = in_list_set.intersection(&not_in_list_set).collect();
+    let invalid_items: Vec<&&T> = in_list_set
+      .intersection(&not_in_list_set)
+      .collect();
 
     if !invalid_items.is_empty() {
       return Err(format!(
