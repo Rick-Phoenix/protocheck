@@ -29,6 +29,12 @@ impl std::ops::DerefMut for Violations {
   }
 }
 
+impl Extend<Violation> for Violations {
+  fn extend<T: IntoIterator<Item = Violation>>(&mut self, iter: T) {
+    self.violations.extend(iter)
+  }
+}
+
 impl FieldPath {
   /// Returns the last member in the elements list, if the list is not empty.
   pub fn last_field(&self) -> Option<&FieldPathElement> {
