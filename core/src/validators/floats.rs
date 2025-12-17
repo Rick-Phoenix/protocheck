@@ -1,7 +1,11 @@
 use super::*;
 use crate::protovalidate::violations_data::{DOUBLE_FINITE_VIOLATION, FLOAT_FINITE_VIOLATION};
 
-pub fn float_is_finite(field_context: &FieldContext, value: f32) -> Result<(), Violation> {
+pub fn float_is_finite(
+  field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
+  value: f32,
+) -> Result<(), Violation> {
   let check = !value.is_nan();
 
   if check {
@@ -11,11 +15,16 @@ pub fn float_is_finite(field_context: &FieldContext, value: f32) -> Result<(), V
       field_context,
       &FLOAT_FINITE_VIOLATION,
       "must be a finite number",
+      parent_elements,
     ))
   }
 }
 
-pub fn double_is_finite(field_context: &FieldContext, value: f64) -> Result<(), Violation> {
+pub fn double_is_finite(
+  field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
+  value: f64,
+) -> Result<(), Violation> {
   let check = !value.is_nan();
 
   if check {
@@ -25,6 +34,7 @@ pub fn double_is_finite(field_context: &FieldContext, value: f64) -> Result<(), 
       field_context,
       &DOUBLE_FINITE_VIOLATION,
       "must be a finite number",
+      parent_elements,
     ))
   }
 }

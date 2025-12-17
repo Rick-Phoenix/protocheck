@@ -1,14 +1,10 @@
-use crate::{
-  protovalidate::{field_path_element::Subscript, FieldPathElement},
-  ProtoType,
-};
+use crate::{protovalidate::field_path_element::Subscript, ProtoType};
 
 /// The context for the field being validated.
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
   pub proto_name: &'a str,
   pub tag: i32,
-  pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,
   pub field_type: ProtoType,

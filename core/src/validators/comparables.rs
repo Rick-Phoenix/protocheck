@@ -43,6 +43,7 @@ impl_comparable!(Timestamp, TIMESTAMP);
 
 pub fn lt<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   target: T,
   error_message: &str,
@@ -59,12 +60,14 @@ where
       field_context,
       T::LT_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
 pub fn lte<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   target: T,
   error_message: &str,
@@ -81,12 +84,14 @@ where
       field_context,
       T::LTE_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
 pub fn gt<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   target: T,
   error_message: &str,
@@ -103,12 +108,14 @@ where
       field_context,
       T::GT_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
 pub fn gte<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   target: T,
   error_message: &str,
@@ -125,6 +132,7 @@ where
       field_context,
       T::GTE_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }

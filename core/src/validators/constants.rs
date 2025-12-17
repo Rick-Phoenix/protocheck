@@ -38,6 +38,7 @@ impl_const!(f32, FLOAT);
 
 pub fn constant<T, V>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: V,
   target: T,
   error_message: &str,
@@ -54,6 +55,7 @@ where
       field_context,
       V::CONST_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }

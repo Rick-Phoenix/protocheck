@@ -12,7 +12,7 @@ macro_rules! well_known_rule {
     $definition:literal
   ) => {
     paste::paste! {
-      pub fn $name(field_context: &FieldContext, value: &Bytes) -> Result<(), Violation> {
+      pub fn $name(field_context: &FieldContext, parent_elements: &[FieldPathElement], value: &Bytes) -> Result<(), Violation> {
         let is_valid = [<is_valid _ $name>](String::from_utf8_lossy(value.as_ref()).as_ref());
 
         if is_valid {
@@ -21,7 +21,8 @@ macro_rules! well_known_rule {
           Err(create_violation(
             field_context,
             &[< BYTES _ $name:upper _ VIOLATION >],
-            concat!("must be a valid ", $definition)
+            concat!("must be a valid ", $definition),
+            parent_elements
           ))
         }
       }
@@ -38,9 +39,10 @@ macro_rules! bytes_validator {
   ) => {
     pub fn $name(
       field_context: &FieldContext,
+      parent_elements: &[FieldPathElement],
       value: &Bytes,
       target: $target_type,
-      error_message: &'static str,
+      error_message: &str,
     ) -> Result<(), Violation> {
       let is_valid = $validation_expression(target, value);
 
@@ -51,6 +53,7 @@ macro_rules! bytes_validator {
           field_context,
           paste::paste! {&[< BYTES _ $name:upper _ VIOLATION >]},
           error_message,
+          parent_elements,
         ))
       }
     }
@@ -66,6 +69,7 @@ well_known_rule!(ipv6, "ipv6 address");
 #[cfg(feature = "regex")]
 pub fn pattern(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: &Bytes,
   regex: &regex::bytes::Regex,
   error_message: &str,
@@ -79,6 +83,7 @@ pub fn pattern(
       field_context,
       &BYTES_PATTERN_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }

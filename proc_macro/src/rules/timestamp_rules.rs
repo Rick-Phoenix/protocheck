@@ -10,6 +10,7 @@ pub fn get_timestamp_rules(
   let field_name = validation_data.full_name;
 
   let field_context_ident = &validation_data.field_context_ident();
+  let parent_messages_ident = validation_data.parent_messages_ident;
   let value_ident = validation_data.value_ident();
 
   if let Some(const_rule) = rules.const_rule() {
@@ -22,7 +23,7 @@ pub fn get_timestamp_rules(
     let error_message = format!("must be within {} from now", within_val);
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::timestamps::within(&#field_context_ident, #value_ident, #within_val, #error_message)
+      ::protocheck::validators::timestamps::within(&#field_context_ident, &#parent_messages_ident, #value_ident, #within_val, #error_message)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
@@ -46,7 +47,7 @@ pub fn get_timestamp_rules(
     }
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::timestamps::lt_now(&#field_context_ident, #value_ident)
+      ::protocheck::validators::timestamps::lt_now(&#field_context_ident, &#parent_messages_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
@@ -61,7 +62,7 @@ pub fn get_timestamp_rules(
     }
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::timestamps::gt_now(&#field_context_ident, #value_ident)
+      ::protocheck::validators::timestamps::gt_now(&#field_context_ident, &#parent_messages_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }

@@ -6,8 +6,9 @@ fn create_violation_core(
   field_context: &FieldContext,
   violation_data: &ViolationData,
   error_message: &str,
+  parent_elements: &[FieldPathElement],
 ) -> Violation {
-  let mut field_elements = field_context.parent_elements.to_vec();
+  let mut field_elements = parent_elements.to_vec();
 
   let current_elem = FieldPathElement {
     field_type: Some(field_context.field_type as i32),
@@ -53,8 +54,15 @@ pub(crate) fn create_violation(
   field_context: &FieldContext,
   violation_data: &ViolationData,
   error_message: &str,
+  parent_elements: &[FieldPathElement],
 ) -> Violation {
-  create_violation_core(None, field_context, violation_data, error_message)
+  create_violation_core(
+    None,
+    field_context,
+    violation_data,
+    error_message,
+    parent_elements,
+  )
 }
 
 pub(crate) fn create_violation_with_custom_id(
@@ -62,6 +70,13 @@ pub(crate) fn create_violation_with_custom_id(
   field_context: &FieldContext,
   violation_data: &ViolationData,
   error_message: &str,
+  parent_elements: &[FieldPathElement],
 ) -> Violation {
-  create_violation_core(Some(rule_id), field_context, violation_data, error_message)
+  create_violation_core(
+    Some(rule_id),
+    field_context,
+    violation_data,
+    error_message,
+    parent_elements,
+  )
 }

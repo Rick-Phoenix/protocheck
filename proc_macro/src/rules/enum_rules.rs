@@ -30,12 +30,13 @@ pub fn get_enum_rules(
     })?;
 
     let violations_ident = &validation_data.violations_ident;
+    let parent_messages_ident = validation_data.parent_messages_ident;
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
 
     let validator_tokens = quote! {
       if !#enum_path::try_from(i32::from(#value_ident)).is_ok() {
-        #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, #enum_name));
+        #violations_ident.push(::protocheck::validators::enums::defined_only(&#field_context_ident, &#parent_messages_ident, #enum_name));
       }
     };
 

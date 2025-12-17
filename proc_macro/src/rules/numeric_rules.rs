@@ -43,10 +43,11 @@ where
   if rules.finite() {
     let field_context_ident = &validation_data.field_context_ident();
     let value_ident = validation_data.value_ident();
+    let parent_messages_ident = validation_data.parent_messages_ident;
     let func_ident = format_ident!("{}_is_finite", validation_data.proto_type.name());
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::floats::#func_ident(&#field_context_ident, #value_ident)
+      ::protocheck::validators::floats::#func_ident(&#field_context_ident, &#parent_messages_ident, #value_ident)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }

@@ -4,6 +4,7 @@ use super::*;
 
 pub fn within(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: Timestamp,
   time_range: Duration,
   error_message: &str,
@@ -17,11 +18,16 @@ pub fn within(
       field_context,
       &TIMESTAMP_WITHIN_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
-pub fn lt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Violation> {
+pub fn lt_now(
+  field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
+  value: Timestamp,
+) -> Result<(), Violation> {
   let check = value.is_past();
 
   if check {
@@ -31,11 +37,16 @@ pub fn lt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Viol
       field_context,
       &TIMESTAMP_LT_NOW_VIOLATION,
       "must be in the past",
+      parent_elements,
     ))
   }
 }
 
-pub fn gt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Violation> {
+pub fn gt_now(
+  field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
+  value: Timestamp,
+) -> Result<(), Violation> {
   let check = value.is_future();
 
   if check {
@@ -45,6 +56,7 @@ pub fn gt_now(field_context: &FieldContext, value: Timestamp) -> Result<(), Viol
       field_context,
       &TIMESTAMP_GT_NOW_VIOLATION,
       "must be in the future",
+      parent_elements,
     ))
   }
 }

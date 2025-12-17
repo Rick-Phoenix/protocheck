@@ -45,6 +45,7 @@ pub fn get_repeated_rules(
       let field_context_ident = items_validation_data.field_context_ident();
       let value_ident = items_validation_data.value_ident();
       let violations_ident = items_validation_data.violations_ident;
+      let parent_messages_ident = items_validation_data.parent_messages_ident;
 
       let vec_ident = validation_data.value_ident();
 
@@ -74,7 +75,7 @@ pub fn get_repeated_rules(
 
       items_rules.extend(quote! {
         if !found_not_unique_items {
-          match ::protocheck::validators::repeated::unique(&#field_context_ident, #value_ident, &mut processed_values) {
+          match ::protocheck::validators::repeated::unique(&#field_context_ident, &#parent_messages_ident, #value_ident, &mut processed_values) {
             Ok(_) => {},
             Err(v) => {
               found_not_unique_items = true;

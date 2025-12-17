@@ -95,12 +95,13 @@ pub fn get_string_rules(
 
     if let Some(validator_func) = validator_path {
       let field_context_ident = validation_data.field_context_ident();
+      let parent_messages_ident = validation_data.parent_messages_ident;
       let value_ident = validation_data.value_ident();
 
       let strict_arg = is_strict.map(|bool| quote! { , #bool });
 
       let validator_expression_tokens = quote! {
-        ::protocheck::validators::string::#validator_func(&#field_context_ident, &#value_ident #strict_arg)
+        ::protocheck::validators::string::#validator_func(&#field_context_ident, &#parent_messages_ident, &#value_ident #strict_arg)
       };
 
       validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);

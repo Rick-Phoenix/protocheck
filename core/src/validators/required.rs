@@ -1,6 +1,11 @@
 use super::*;
 use crate::protovalidate::REQUIRED_VIOLATION;
 
-pub fn required(field_context: &FieldContext) -> Violation {
-  create_violation(field_context, &REQUIRED_VIOLATION, "is required")
+pub fn required(field_context: &FieldContext, parent_elements: &[FieldPathElement]) -> Violation {
+  create_violation(
+    field_context,
+    &REQUIRED_VIOLATION,
+    "is required",
+    parent_elements,
+  )
 }

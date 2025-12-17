@@ -7,6 +7,7 @@ use crate::protovalidate::violations_data::{
 
 pub fn min_items<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: &[T],
   min_items: u64,
   error_message: &str,
@@ -20,12 +21,14 @@ pub fn min_items<T>(
       field_context,
       &REPEATED_MIN_ITEMS_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
 pub fn max_items<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: &[T],
   max_items: u64,
   error_message: &str,
@@ -39,6 +42,7 @@ pub fn max_items<T>(
       field_context,
       &REPEATED_MAX_ITEMS_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
@@ -218,6 +222,7 @@ impl UniqueItem for &str {
 
 pub fn unique<T, I>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   processed_values: &mut T::Container,
 ) -> Result<(), Violation>
@@ -233,6 +238,7 @@ where
       field_context,
       &REPEATED_UNIQUE_VIOLATION,
       "must contain unique values",
+      parent_elements,
     ))
   }
 }

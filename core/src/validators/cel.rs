@@ -14,6 +14,7 @@ pub struct CelRule {
 
 pub fn validate_cel_field_with_val(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   rule: CelRule,
   value: CelValue,
 ) -> Result<(), Violation>
@@ -37,7 +38,12 @@ where
       field_context.proto_name
     );
 
-    create_cel_field_violation(rule_id, field_context, "internal server error")
+    create_cel_field_violation(
+      rule_id,
+      field_context,
+      parent_elements,
+      "internal server error",
+    )
   })?;
 
   if let CelValue::Bool(bool_value) = result {
@@ -47,6 +53,7 @@ where
       Err(create_cel_field_violation(
         rule_id,
         field_context,
+        parent_elements,
         error_message,
       ))
     }
@@ -60,6 +67,7 @@ where
     Err(create_cel_field_violation(
       rule_id,
       field_context,
+      parent_elements,
       "internal server error",
     ))
   }
@@ -67,6 +75,7 @@ where
 
 pub fn validate_cel_field_try_into<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   rule: CelRule,
   value: T,
 ) -> Result<(), Violation>
@@ -80,10 +89,15 @@ where
       rule.item_full_name, e
     );
 
-    create_cel_field_violation(rule.id, field_context, "internal server error")
+    create_cel_field_violation(
+      rule.id,
+      field_context,
+      parent_elements,
+      "internal server error",
+    )
   })?;
 
-  validate_cel_field_with_val(field_context, rule, cel_val)
+  validate_cel_field_with_val(field_context, parent_elements, rule, cel_val)
 }
 
 pub fn validate_cel_message<T>(
@@ -161,9 +175,16 @@ where
 fn create_cel_field_violation(
   rule_id: &str,
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   error_message: &str,
 ) -> Violation {
-  create_violation_with_custom_id(rule_id, field_context, &CEL_VIOLATION, error_message)
+  create_violation_with_custom_id(
+    rule_id,
+    field_context,
+    &CEL_VIOLATION,
+    error_message,
+    parent_elements,
+  )
 }
 
 fn create_cel_message_violation(

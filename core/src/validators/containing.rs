@@ -171,6 +171,7 @@ impl ListLookup<&str> for &str {
 
 pub fn in_list<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   list: &T::Container,
   error_message: &str,
@@ -187,12 +188,14 @@ where
       field_context,
       T::IN_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }
 
 pub fn not_in_list<T>(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: T,
   list: &T::Container,
   error_message: &str,
@@ -209,6 +212,7 @@ where
       field_context,
       T::NOT_IN_VIOLATION,
       error_message,
+      parent_elements,
     ))
   }
 }

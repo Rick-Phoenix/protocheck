@@ -48,6 +48,7 @@ impl ValidationData<'_> {
   pub fn get_substring_validator(&self, tokens: &mut TokenStream2, rules: SubstringRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
+    let parent_messages_ident = self.parent_messages_ident;
     let validator_type_ident = new_ident(self.proto_type.name());
 
     if let Some(contains) = rules.contains {
@@ -56,7 +57,7 @@ impl ValidationData<'_> {
         val_tokens,
       } = contains;
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::contains(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+        ::protocheck::validators::#validator_type_ident::contains(&#field_context_ident, &#parent_messages_ident, &#value_ident, #val_tokens, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -68,7 +69,7 @@ impl ValidationData<'_> {
         val_tokens,
       } = not_contains;
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::not_contains(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+        ::protocheck::validators::#validator_type_ident::not_contains(&#field_context_ident, &#parent_messages_ident, &#value_ident, #val_tokens, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -80,7 +81,7 @@ impl ValidationData<'_> {
         val_tokens,
       } = prefix;
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::prefix(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+        ::protocheck::validators::#validator_type_ident::prefix(&#field_context_ident, &#parent_messages_ident, &#value_ident, #val_tokens, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -92,7 +93,7 @@ impl ValidationData<'_> {
         val_tokens,
       } = suffix;
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::suffix(&#field_context_ident, &#value_ident, #val_tokens, #error_message)
+        ::protocheck::validators::#validator_type_ident::suffix(&#field_context_ident, &#parent_messages_ident, &#value_ident, #val_tokens, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -102,6 +103,7 @@ impl ValidationData<'_> {
   pub fn get_length_validator(&self, tokens: &mut TokenStream2, rules: LengthRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
+    let parent_messages_ident = self.parent_messages_ident;
     let validator_type_ident = new_ident(rules.target());
     let unit = rules.unit();
 
@@ -115,7 +117,7 @@ impl ValidationData<'_> {
       let func_name = new_ident(rules.len_name());
 
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #len, #error_message)
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#parent_messages_ident, &#value_ident, #len, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -131,7 +133,7 @@ impl ValidationData<'_> {
       let func_name = new_ident(rules.min_len_name());
 
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #min_len, #error_message)
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#parent_messages_ident, &#value_ident, #min_len, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -147,7 +149,7 @@ impl ValidationData<'_> {
       let func_name = new_ident(rules.max_len_name());
 
       let expr = quote! {
-        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#value_ident, #max_len, #error_message)
+        ::protocheck::validators::#validator_type_ident::#func_name(&#field_context_ident, &#parent_messages_ident, &#value_ident, #max_len, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -157,6 +159,7 @@ impl ValidationData<'_> {
   pub fn get_regex_validator(&self, tokens: &mut TokenStream2, regex: &str, is_bytes: bool) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
+    let parent_messages_ident = self.parent_messages_ident;
 
     let regex_type = if is_bytes {
       quote! { ::regex::bytes::Regex }
@@ -174,7 +177,7 @@ impl ValidationData<'_> {
     let error_message = format!("must match the following regex: `{}`", regex);
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, #value_ident, &REGEX, #error_message)
+      ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, &#parent_messages_ident, #value_ident, &REGEX, #error_message)
     };
     self.get_validator_tokens(tokens, &validator_expression_tokens);
   }
@@ -188,6 +191,7 @@ impl ValidationData<'_> {
   {
     let module_path = quote! { ::protocheck::validators::comparables };
     let field_context_ident = self.field_context_ident();
+    let parent_messages_ident = self.parent_messages_ident;
     let value_ident = self.value_ident();
 
     if let Some(less_than) = comparable_rules.less_than.as_ref() {
@@ -195,14 +199,12 @@ impl ValidationData<'_> {
 
       match less_than {
         ComparableLessThan::Lt(lt) => {
-          let expr =
-            quote! { #module_path::lt(&#field_context_ident, #value_ident, #lt, #error_message) };
+          let expr = quote! { #module_path::lt(&#field_context_ident, &#parent_messages_ident, #value_ident, #lt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
 
         ComparableLessThan::Lte(lte) => {
-          let expr =
-            quote! { #module_path::lte(&#field_context_ident, #value_ident, #lte, #error_message) };
+          let expr = quote! { #module_path::lte(&#field_context_ident, &#parent_messages_ident, #value_ident, #lte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
       };
@@ -213,13 +215,11 @@ impl ValidationData<'_> {
 
       match greater_than {
         ComparableGreaterThan::Gt(gt) => {
-          let expr =
-            quote! { #module_path::gt(&#field_context_ident, #value_ident, #gt, #error_message) };
+          let expr = quote! { #module_path::gt(&#field_context_ident, &#parent_messages_ident, #value_ident, #gt, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
         ComparableGreaterThan::Gte(gte) => {
-          let expr =
-            quote! { #module_path::gte(&#field_context_ident, #value_ident, #gte, #error_message) };
+          let expr = quote! { #module_path::gte(&#field_context_ident, &#parent_messages_ident, #value_ident, #gte, #error_message) };
           self.get_validator_tokens(tokens, &expr);
         }
       };
@@ -232,6 +232,7 @@ impl ValidationData<'_> {
   {
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
+    let parent_messages_ident = self.parent_messages_ident;
 
     if let Some(in_list_rule) = rules.in_list_rule {
       let items_tokens = in_list_rule.output_list();
@@ -244,7 +245,7 @@ impl ValidationData<'_> {
       tokens.extend(list_tokens);
 
       let expr = quote! {
-        ::protocheck::validators::containing::in_list(&#field_context_ident, #value_ident, &items, #error_message)
+        ::protocheck::validators::containing::in_list(&#field_context_ident, &#parent_messages_ident, #value_ident, &items, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -261,7 +262,7 @@ impl ValidationData<'_> {
       tokens.extend(list_tokens);
 
       let expr = quote! {
-        ::protocheck::validators::containing::not_in_list(&#field_context_ident, #value_ident, &items, #error_message)
+        ::protocheck::validators::containing::not_in_list(&#field_context_ident, &#parent_messages_ident, #value_ident, &items, #error_message)
       };
 
       self.get_validator_tokens(tokens, &expr);
@@ -274,7 +275,6 @@ impl ValidationData<'_> {
     field_context_ident: &Ident,
   ) -> TokenStream2 {
     let Self {
-      parent_messages_ident,
       proto_name,
       tag,
       proto_type,
@@ -301,7 +301,6 @@ impl ValidationData<'_> {
 
     quote! {
       let #field_context_ident = ::protocheck::field_data::FieldContext {
-        parent_elements: #parent_messages_ident.as_slice(),
         subscript: #subscript_tokens,
         field_type: #field_type,
         key_type: #key_type_tokens,
@@ -447,10 +446,11 @@ impl ValidationData<'_> {
   {
     let field_context_ident = self.field_context_ident();
     let value_ident = self.value_ident();
+    let parent_messages_ident = self.parent_messages_ident;
 
     let ConstRule { val, error_message } = const_rule;
 
-    let expr = quote! { ::protocheck::validators::constants::constant(&#field_context_ident, #value_ident, #val, #error_message) };
+    let expr = quote! { ::protocheck::validators::constants::constant(&#field_context_ident, &#parent_messages_ident, #value_ident, #val, #error_message) };
 
     self.get_validator_tokens(tokens, &expr);
   }
@@ -516,11 +516,12 @@ impl ValidationData<'_> {
     self.is_required.then(|| {
       let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
       let field_context_ident = self.field_context_ident();
+      let parent_messages_ident = self.parent_messages_ident;
       let violations_ident = &self.violations_ident;
 
       quote! {
         #field_context_tokens
-        let required_violation = ::protocheck::validators::required::required(&#field_context_ident);
+        let required_violation = ::protocheck::validators::required::required(&#field_context_ident, &#parent_messages_ident);
         #violations_ident.push(required_violation);
       }
     })

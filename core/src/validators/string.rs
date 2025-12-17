@@ -7,7 +7,7 @@ macro_rules! well_known_rule {
     $definition:literal
   ) => {
     paste::paste! {
-      pub fn $name(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
+      pub fn $name(field_context: &FieldContext, parent_elements: &[FieldPathElement], value: &str) -> Result<(), Violation> {
         let is_valid = [<is_valid _ $name>](value);
 
         if is_valid {
@@ -16,7 +16,8 @@ macro_rules! well_known_rule {
           Err(create_violation(
             field_context,
             &[< STRING _ $name:upper _ VIOLATION >],
-            concat!("must be a valid ", $definition)
+            concat!("must be a valid ", $definition),
+            parent_elements
           ))
         }
       }
@@ -33,6 +34,7 @@ macro_rules! string_validator {
     paste::paste! {
       pub fn $name(
         field_context: &FieldContext,
+        parent_elements: &[FieldPathElement],
         value: &str,
         target: $target_type,
         error_message: &str,
@@ -45,7 +47,8 @@ macro_rules! string_validator {
           Err(create_violation(
             field_context,
             &[< STRING _ $name:upper _ VIOLATION >],
-            error_message
+            error_message,
+            parent_elements
           ))
         }
       }
@@ -125,6 +128,7 @@ well_known_rule!(tuuid, "trimmed uuid");
 #[cfg(feature = "regex")]
 pub fn header_name(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
@@ -138,6 +142,7 @@ pub fn header_name(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header name",
+      parent_elements,
     ))
   }
 }
@@ -145,6 +150,7 @@ pub fn header_name(
 #[cfg(feature = "regex")]
 pub fn header_value(
   field_context: &FieldContext,
+  parent_elements: &[FieldPathElement],
   value: &str,
   strict: bool,
 ) -> Result<(), Violation> {
@@ -158,6 +164,7 @@ pub fn header_value(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header value",
+      parent_elements,
     ))
   }
 }
