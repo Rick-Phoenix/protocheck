@@ -1,4 +1,3 @@
-use core::slice;
 use std::collections::hash_set;
 
 use ordered_float::OrderedFloat;
@@ -15,27 +14,43 @@ pub trait ListRules: Sized {
   fn is_in(container: &ItemLookup<Self::LookupTarget>, item: Self) -> bool;
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum ItemLookup<'a, T> {
-  Slice(&'a [T]),
-  Set(&'a HashSet<T>),
+#[derive(Clone, Debug)]
+pub enum ItemLookup<T> {
+  Slice(Box<[T]>),
+  Set(HashSet<T>),
 }
 
-pub enum ItemLookupIter<'a, T> {
-  Slice(slice::Iter<'a, T>),
-  Set(hash_set::Iter<'a, T>),
+pub enum ItemLookupIter<T> {
+  Slice(std::vec::IntoIter<T>),
+  Set(hash_set::IntoIter<T>),
 }
 
-impl<'a, T> ItemLookup<'a, T> {
-  pub fn iter(&self) -> ItemLookupIter<'a, T> {
+pub enum LookupRefIter<'a, T> {
+  Slice(std::slice::Iter<'a, T>),
+  Set(std::collections::hash_set::Iter<'a, T>),
+}
+
+impl<'a, T> Iterator for LookupRefIter<'a, T> {
+  type Item = &'a T;
+
+  fn next(&mut self) -> Option<&'a T> {
     match self {
-      ItemLookup::Slice(s) => ItemLookupIter::Slice(s.iter()),
-      ItemLookup::Set(s) => ItemLookupIter::Set(s.iter()),
+      Self::Slice(iter) => iter.next(),
+      Self::Set(iter) => iter.next(),
     }
   }
 }
 
-impl<'a, T> ExactSizeIterator for ItemLookupIter<'a, T> {
+impl<T> ItemLookup<T> {
+  pub fn iter(&self) -> LookupRefIter<'_, T> {
+    match self {
+      Self::Slice(v) => LookupRefIter::Slice(v.iter()),
+      Self::Set(s) => LookupRefIter::Set(s.iter()),
+    }
+  }
+}
+
+impl<T> ExactSizeIterator for ItemLookupIter<T> {
   fn len(&self) -> usize {
     match self {
       ItemLookupIter::Slice(iter) => iter.len(),
@@ -44,8 +59,8 @@ impl<'a, T> ExactSizeIterator for ItemLookupIter<'a, T> {
   }
 }
 
-impl<'a, T> Iterator for ItemLookupIter<'a, T> {
-  type Item = &'a T;
+impl<T> Iterator for ItemLookupIter<T> {
+  type Item = T;
 
   fn next(&mut self) -> Option<Self::Item> {
     match self {
@@ -55,27 +70,15 @@ impl<'a, T> Iterator for ItemLookupIter<'a, T> {
   }
 }
 
-impl<'a, T> IntoIterator for ItemLookup<'a, T> {
-  type Item = &'a T;
-  type IntoIter = ItemLookupIter<'a, T>;
+impl<T> IntoIterator for ItemLookup<T> {
+  type Item = T;
+  type IntoIter = ItemLookupIter<T>;
 
   fn into_iter(self) -> Self::IntoIter {
     match self {
-      ItemLookup::Slice(s) => ItemLookupIter::Slice(s.iter()),
-      ItemLookup::Set(s) => ItemLookupIter::Set(s.iter()),
+      ItemLookup::Slice(s) => ItemLookupIter::Slice(s.into_iter()),
+      ItemLookup::Set(s) => ItemLookupIter::Set(s.into_iter()),
     }
-  }
-}
-
-impl<'a, T> From<&'a HashSet<T>> for ItemLookup<'a, T> {
-  fn from(value: &'a HashSet<T>) -> Self {
-    Self::Set(value)
-  }
-}
-
-impl<'a, T> From<&'a [T]> for ItemLookup<'a, T> {
-  fn from(value: &'a [T]) -> Self {
-    Self::Slice(value)
   }
 }
 

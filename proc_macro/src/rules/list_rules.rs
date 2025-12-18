@@ -31,6 +31,14 @@ impl ListKind {
       ListKind::Duration => quote! { ::proto_types::Duration },
     }
   }
+
+  /// Returns `true` if the list kind is [`Bytes`].
+  ///
+  /// [`Bytes`]: ListKind::Bytes
+  #[must_use]
+  pub fn is_bytes(&self) -> bool {
+    matches!(self, Self::Bytes)
+  }
 }
 
 impl ListKind {
@@ -50,49 +58,45 @@ impl<'a, T: ToTokens + Clone> List<'a, T> {
   pub fn output_list(&self) -> TokenStream2 {
     let items = &self.items;
 
-    let item_tokens = self.items.iter();
+    let items_tokens = if self.kind.is_float() {
+      quote! { #(::protocheck::ordered_float::OrderedFloat(#items)),* }
+    } else if self.kind.is_bytes() {
+      quote! { #(#items as &'static [u8]),* }
+    } else {
+      quote! { #(#items),* }
+    };
 
-    let list_item_type = self.kind.list_item_type();
+    let mut list_item_type = self.kind.list_item_type();
 
     if self.kind.is_float() {
-      let list_item_type = quote! { ::protocheck::ordered_float::OrderedFloat<#list_item_type> };
-      let floats_tokens = quote! { #(::protocheck::ordered_float::OrderedFloat(#item_tokens)),* };
+      list_item_type = quote! { ::protocheck::ordered_float::OrderedFloat<#list_item_type> };
+    }
 
-      if items.len() < 16 {
-        quote! {
-          {
-            static ARR: &[#list_item_type] = &[ #floats_tokens ];
-            protocheck::validators::containing::ItemLookup::<#list_item_type>::Slice(ARR)
-          }
-        }
-      } else {
-        quote! {
-          protocheck::validators::containing::ItemLookup::<#list_item_type>::Set({
-            static SET: std::sync::LazyLock<std::collections::HashSet<#list_item_type>> = std::sync::LazyLock::new(|| {
-              [ #floats_tokens ].into_iter().collect()
-            });
-
-            &SET
-          })
-        }
-      }
-    } else if items.len() < 16 {
+    if items.len() <= 16 {
       quote! {
         {
-          static ARR: &[#list_item_type] = &[ #(#item_tokens),* ];
-          protocheck::validators::containing::ItemLookup::<#list_item_type>::Slice(ARR)
+          use std::sync::LazyLock;
+          use protocheck::validators::containing::ItemLookup;
+
+          static LIST: LazyLock<ItemLookup<#list_item_type>> = LazyLock::new(|| {
+            ItemLookup::<#list_item_type>::Slice(vec![ #items_tokens ].into_boxed_slice())
+          });
+
+          &LIST
         }
       }
     } else {
       quote! {
-        protocheck::validators::containing::ItemLookup::<#list_item_type>::Set({
+        {
+          use std::sync::LazyLock;
+          use protocheck::validators::containing::ItemLookup;
 
-          static SET: std::sync::LazyLock<std::collections::HashSet<#list_item_type>> = std::sync::LazyLock::new(|| {
-            [ #(#item_tokens),* ].into_iter().collect()
+          static LIST: LazyLock<ItemLookup<#list_item_type>> = LazyLock::new(|| {
+            ItemLookup::<#list_item_type>::Set([ #items_tokens ].into_iter().collect())
           });
 
-          &SET
-        })
+          &LIST
+        }
       }
     }
   }
