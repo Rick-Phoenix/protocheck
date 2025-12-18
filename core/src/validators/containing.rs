@@ -26,6 +26,15 @@ pub enum ItemLookupIter<'a, T> {
   Set(hash_set::Iter<'a, T>),
 }
 
+impl<'a, T> ItemLookup<'a, T> {
+  pub fn iter(&self) -> ItemLookupIter<'a, T> {
+    match self {
+      ItemLookup::Slice(s) => ItemLookupIter::Slice(s.iter()),
+      ItemLookup::Set(s) => ItemLookupIter::Set(s.iter()),
+    }
+  }
+}
+
 impl<'a, T> ExactSizeIterator for ItemLookupIter<'a, T> {
   fn len(&self) -> usize {
     match self {
