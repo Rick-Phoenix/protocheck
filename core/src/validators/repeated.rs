@@ -54,19 +54,24 @@ pub enum UniqueLookup<T> {
 }
 
 impl<T> UniqueLookup<T> {
-  pub fn from_len(len: usize) -> Self {
-    if len <= 16 {
-      Self::Vec(Vec::with_capacity(len))
+  pub fn with_capacity(cap: usize) -> Self {
+    if cap <= 16 {
+      Self::Vec(Vec::with_capacity(cap))
     } else {
-      Self::Set(HashSet::with_capacity(len))
+      Self::Set(HashSet::with_capacity(cap))
     }
   }
 }
 
 pub trait UniqueItem {
-  type LookupTarget<'a>: Eq + std::hash::Hash
+  type LookupTarget<'a>
   where
     Self: 'a;
+
+  // This is for the types without Hash that can only initialize Vecs
+  fn new_container<'a>(len: usize) -> UniqueLookup<Self::LookupTarget<'a>> {
+    UniqueLookup::with_capacity(len)
+  }
 
   fn check_unique<'a>(container: &mut UniqueLookup<Self::LookupTarget<'a>>, item: &'a Self)
     -> bool;

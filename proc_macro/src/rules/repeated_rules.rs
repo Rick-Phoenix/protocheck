@@ -49,8 +49,7 @@ pub fn get_repeated_rules(
 
       let vec_ident = validation_data.value_ident();
 
-      let lookup_tokens =
-        quote! { ::protocheck::validators::repeated::UniqueLookup::from_len(#vec_ident.len()) };
+      let lookup_tokens = quote! { ::protocheck::validators::repeated::UniqueLookup::with_capacity(#vec_ident.len()) };
 
       vec_level_rules.extend(quote! {
         let mut processed_values = #lookup_tokens;
