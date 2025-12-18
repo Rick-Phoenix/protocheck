@@ -55,7 +55,7 @@ pub static REPEATED_UNIQUE_VIOLATION: LazyLock<ViolationData> = LazyLock::new(||
     FieldPathElement {
       field_name: Some("unique".to_string()),
       field_number: Some(3),
-      field_type: Some(Type::Uint64 as i32),
+      field_type: Some(Type::Bool as i32),
       ..Default::default()
     },
   ];
