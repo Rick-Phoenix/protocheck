@@ -1,15 +1,14 @@
-use std::net::{IpAddr, Ipv6Addr};
+use std::{
+  net::{IpAddr, Ipv6Addr},
+  str::FromStr,
+};
 
-pub(crate) fn is_valid_uri(s: &str) -> bool {
-  fluent_uri::Uri::parse(s).is_ok()
-}
-
-pub(crate) fn is_valid_uri_ref(s: &str) -> bool {
-  fluent_uri::UriRef::parse(s).is_ok()
-}
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+#[cfg(feature = "regex")]
+pub use regex_checks::*;
 
 #[cfg(feature = "regex")]
-mod regex {
+mod regex_checks {
   use std::sync::LazyLock;
 
   use regex::Regex;
@@ -18,7 +17,7 @@ mod regex {
     Regex::new(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$").expect("Failed to create email regex")
   });
 
-  pub(crate) fn is_valid_email(s: &str) -> bool {
+  pub fn is_valid_email(s: &str) -> bool {
     EMAIL_REGEX.is_match(s)
   }
 
@@ -34,7 +33,7 @@ mod regex {
   static HTTP_HEADER_VALUE_LOOSE_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[^\u0000\u000A\u000D]*$").unwrap());
 
-  pub(crate) fn is_valid_http_header_name(s: &str, strict: bool) -> bool {
+  pub fn is_valid_http_header_name(s: &str, strict: bool) -> bool {
     if s.is_empty() {
       return false;
     }
@@ -48,7 +47,7 @@ mod regex {
     re.is_match(s)
   }
 
-  pub(crate) fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
+  pub fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
     if s.is_empty() {
       return false;
     }
@@ -69,7 +68,7 @@ mod regex {
   static TUUID_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(?i)[0-9a-f]{32}$").unwrap());
 
-  pub(crate) fn is_valid_uuid(s: &str) -> bool {
+  pub fn is_valid_uuid(s: &str) -> bool {
     if s.is_empty() {
       return false;
     }
@@ -77,7 +76,7 @@ mod regex {
     UUID_REGEX.is_match(s)
   }
 
-  pub(crate) fn is_valid_tuuid(s: &str) -> bool {
+  pub fn is_valid_tuuid(s: &str) -> bool {
     if s.is_empty() {
       return false;
     }
@@ -86,13 +85,15 @@ mod regex {
   }
 }
 
-use std::str::FromStr;
+pub fn is_valid_uri(s: &str) -> bool {
+  fluent_uri::Uri::parse(s).is_ok()
+}
 
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-#[cfg(feature = "regex")]
-pub(crate) use regex::*;
+pub fn is_valid_uri_ref(s: &str) -> bool {
+  fluent_uri::UriRef::parse(s).is_ok()
+}
 
-pub(crate) fn is_valid_ip_prefix(s: &str) -> bool {
+pub fn is_valid_ip_prefix(s: &str) -> bool {
   match IpNetwork::from_str(s) {
     Ok(network) => {
       //    Is the given IP address the same as the calculated network address?
@@ -104,49 +105,49 @@ pub(crate) fn is_valid_ip_prefix(s: &str) -> bool {
   }
 }
 
-pub(crate) fn is_valid_ipv4_prefix(s: &str) -> bool {
+pub fn is_valid_ipv4_prefix(s: &str) -> bool {
   match Ipv4Network::from_str(s) {
     Ok(network) => network.ip() == network.network(),
     Err(_) => false,
   }
 }
 
-pub(crate) fn is_valid_ipv6_prefix(s: &str) -> bool {
+pub fn is_valid_ipv6_prefix(s: &str) -> bool {
   match Ipv6Network::from_str(s) {
     Ok(network) => network.ip() == network.network(),
     Err(_) => false,
   }
 }
 
-pub(crate) fn is_valid_ip_with_prefixlen(s: &str) -> bool {
+pub fn is_valid_ip_with_prefixlen(s: &str) -> bool {
   IpNetwork::from_str(s).is_ok()
 }
 
-pub(crate) fn is_valid_ipv4_with_prefixlen(s: &str) -> bool {
+pub fn is_valid_ipv4_with_prefixlen(s: &str) -> bool {
   Ipv4Network::from_str(s).is_ok()
 }
 
-pub(crate) fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
+pub fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
   Ipv6Network::from_str(s).is_ok()
 }
 
-pub(crate) fn is_valid_ip(s: &str) -> bool {
+pub fn is_valid_ip(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok()
 }
 
-pub(crate) fn is_valid_ipv4(s: &str) -> bool {
+pub fn is_valid_ipv4(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv4())
 }
 
-pub(crate) fn is_valid_ipv6(s: &str) -> bool {
+pub fn is_valid_ipv6(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv6())
 }
 
-pub(crate) fn is_valid_address(s: &str) -> bool {
+pub fn is_valid_address(s: &str) -> bool {
   is_valid_hostname(s) || is_valid_ip(s)
 }
 
-pub(crate) fn is_valid_hostname(hostname: &str) -> bool {
+pub fn is_valid_hostname(hostname: &str) -> bool {
   let s = hostname.strip_suffix('.').unwrap_or(hostname);
   if s.len() > 253 {
     return false;
@@ -173,7 +174,10 @@ pub(crate) fn is_valid_hostname(hostname: &str) -> bool {
     }
 
     // Rule: Each label can be alphanumeric characters or hyphens.
-    if !label.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+    if !label
+      .chars()
+      .all(|c| c.is_ascii_alphanumeric() || c == '-')
+    {
       return false;
     }
   }
@@ -186,7 +190,7 @@ pub(crate) fn is_valid_hostname(hostname: &str) -> bool {
   true
 }
 
-pub(crate) fn is_valid_port(port_str: &str) -> bool {
+pub fn is_valid_port(port_str: &str) -> bool {
   // Port must not be empty.
   if port_str.is_empty() {
     return false;
@@ -199,7 +203,7 @@ pub(crate) fn is_valid_port(port_str: &str) -> bool {
   port_str.parse::<u16>().is_ok()
 }
 
-pub(crate) fn is_valid_host_and_port(s: &str) -> bool {
+pub fn is_valid_host_and_port(s: &str) -> bool {
   if s.is_empty() {
     return false;
   }

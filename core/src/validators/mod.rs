@@ -53,4 +53,5 @@ pub mod string;
 /// Validators for timestamp fields.
 pub mod timestamps;
 
-mod well_known_strings;
+pub use well_known_strings::*;
+pub mod well_known_strings;
