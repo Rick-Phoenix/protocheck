@@ -12,14 +12,28 @@ pub struct FieldContext<'a> {
   pub field_kind: FieldKind,
 }
 
+impl<'a> FieldContext<'a> {
+  pub fn as_path_element(&self) -> FieldPathElement {
+    FieldPathElement {
+      field_number: Some(self.tag),
+      field_name: Some(self.proto_name.to_string()),
+      field_type: Some(self.field_type as i32),
+      key_type: self.key_type.map(|t| t as i32),
+      value_type: self.value_type.map(|t| t as i32),
+      subscript: self.subscript.clone(),
+    }
+  }
+}
+
 /// The kind of field being validated. This extra context helps generating more precise violation reports.
-#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Default, Debug, Copy, PartialEq, Eq)]
 pub enum FieldKind {
   Map,
   MapKey,
   MapValue,
   Repeated,
   RepeatedItem,
+  #[default]
   Single,
 }
 
@@ -39,6 +53,7 @@ impl FieldKind {
 
 #[cfg(feature = "totokens")]
 use proc_macro2::TokenStream;
+use proto_types::protovalidate::FieldPathElement;
 #[cfg(feature = "totokens")]
 use quote::{quote, ToTokens};
 
