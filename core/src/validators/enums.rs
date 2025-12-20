@@ -1,6 +1,7 @@
 use super::*;
 use crate::protovalidate::violations_data::ENUM_DEFINED_ONLY_VIOLATION;
 
+#[must_use]
 pub fn defined_only(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],

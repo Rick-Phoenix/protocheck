@@ -33,6 +33,7 @@ mod regex_checks {
   static HTTP_HEADER_VALUE_LOOSE_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[^\u0000\u000A\u000D]*$").unwrap());
 
+  #[must_use]
   pub fn is_valid_http_header_name(s: &str, strict: bool) -> bool {
     if s.is_empty() {
       return false;
@@ -47,6 +48,7 @@ mod regex_checks {
     re.is_match(s)
   }
 
+  #[must_use]
   pub fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
     if s.is_empty() {
       return false;
@@ -85,14 +87,17 @@ mod regex_checks {
   }
 }
 
+#[must_use]
 pub fn is_valid_uri(s: &str) -> bool {
   fluent_uri::Uri::parse(s).is_ok()
 }
 
+#[must_use]
 pub fn is_valid_uri_ref(s: &str) -> bool {
   fluent_uri::UriRef::parse(s).is_ok()
 }
 
+#[must_use]
 pub fn is_valid_ip_prefix(s: &str) -> bool {
   match IpNetwork::from_str(s) {
     Ok(network) => {
@@ -105,6 +110,7 @@ pub fn is_valid_ip_prefix(s: &str) -> bool {
   }
 }
 
+#[must_use]
 pub fn is_valid_ipv4_prefix(s: &str) -> bool {
   match Ipv4Network::from_str(s) {
     Ok(network) => network.ip() == network.network(),
@@ -112,6 +118,7 @@ pub fn is_valid_ipv4_prefix(s: &str) -> bool {
   }
 }
 
+#[must_use]
 pub fn is_valid_ipv6_prefix(s: &str) -> bool {
   match Ipv6Network::from_str(s) {
     Ok(network) => network.ip() == network.network(),
@@ -119,34 +126,42 @@ pub fn is_valid_ipv6_prefix(s: &str) -> bool {
   }
 }
 
+#[must_use]
 pub fn is_valid_ip_with_prefixlen(s: &str) -> bool {
   IpNetwork::from_str(s).is_ok()
 }
 
+#[must_use]
 pub fn is_valid_ipv4_with_prefixlen(s: &str) -> bool {
   Ipv4Network::from_str(s).is_ok()
 }
 
+#[must_use]
 pub fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
   Ipv6Network::from_str(s).is_ok()
 }
 
+#[must_use]
 pub fn is_valid_ip(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok()
 }
 
+#[must_use]
 pub fn is_valid_ipv4(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv4())
 }
 
+#[must_use]
 pub fn is_valid_ipv6(s: &str) -> bool {
   s.parse::<IpAddr>().is_ok_and(|ip| ip.is_ipv6())
 }
 
+#[must_use]
 pub fn is_valid_address(s: &str) -> bool {
   is_valid_hostname(s) || is_valid_ip(s)
 }
 
+#[must_use]
 pub fn is_valid_hostname(hostname: &str) -> bool {
   let s = hostname.strip_suffix('.').unwrap_or(hostname);
   if s.len() > 253 {
@@ -190,6 +205,7 @@ pub fn is_valid_hostname(hostname: &str) -> bool {
   true
 }
 
+#[must_use]
 pub fn is_valid_port(port_str: &str) -> bool {
   // Port must not be empty.
   if port_str.is_empty() {
@@ -203,6 +219,7 @@ pub fn is_valid_port(port_str: &str) -> bool {
   port_str.parse::<u16>().is_ok()
 }
 
+#[must_use]
 pub fn is_valid_host_and_port(s: &str) -> bool {
   if s.is_empty() {
     return false;

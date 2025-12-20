@@ -17,9 +17,9 @@ static PROST_KEYWORDS_RENAMED_WITH_UNDERSCORE: [&str; 4] = ["crate", "extern", "
 
 pub fn proto_name_to_rust_name(proto_name: &str) -> Cow<'_, str> {
   if PROST_KEYWORDS_RENAMED_WITH_UNDERSCORE.contains(&proto_name) {
-    Cow::Owned(format!("{}_", proto_name))
+    Cow::Owned(format!("{proto_name}_"))
   } else if PROST_KEYWORDS_RENAMED_WITH_R.contains(proto_name) {
-    Cow::Owned(format!("r#{}", proto_name))
+    Cow::Owned(format!("r#{proto_name}"))
   } else {
     Cow::Borrowed(proto_name)
   }

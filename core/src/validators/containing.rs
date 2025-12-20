@@ -42,6 +42,7 @@ impl<'a, T> Iterator for LookupRefIter<'a, T> {
 }
 
 impl<T> ItemLookup<T> {
+  #[must_use]
   pub fn iter(&self) -> LookupRefIter<'_, T> {
     match self {
       Self::Slice(v) => LookupRefIter::Slice(v.iter()),
@@ -50,11 +51,19 @@ impl<T> ItemLookup<T> {
   }
 }
 
+impl<'a, T> IntoIterator for &'a ItemLookup<T> {
+  type Item = &'a T;
+  type IntoIter = validators::containing::LookupRefIter<'a, T>;
+  fn into_iter(self) -> Self::IntoIter {
+    self.iter()
+  }
+}
+
 impl<T> ExactSizeIterator for ItemLookupIter<T> {
   fn len(&self) -> usize {
     match self {
-      ItemLookupIter::Slice(iter) => iter.len(),
-      ItemLookupIter::Set(iter) => iter.len(),
+      Self::Slice(iter) => iter.len(),
+      Self::Set(iter) => iter.len(),
     }
   }
 }
@@ -64,8 +73,8 @@ impl<T> Iterator for ItemLookupIter<T> {
 
   fn next(&mut self) -> Option<Self::Item> {
     match self {
-      ItemLookupIter::Slice(iter) => iter.next(),
-      ItemLookupIter::Set(iter) => iter.next(),
+      Self::Slice(iter) => iter.next(),
+      Self::Set(iter) => iter.next(),
     }
   }
 }
@@ -76,8 +85,8 @@ impl<T> IntoIterator for ItemLookup<T> {
 
   fn into_iter(self) -> Self::IntoIter {
     match self {
-      ItemLookup::Slice(s) => ItemLookupIter::Slice(s.into_iter()),
-      ItemLookup::Set(s) => ItemLookupIter::Set(s.into_iter()),
+      Self::Slice(s) => ItemLookupIter::Slice(s.into_iter()),
+      Self::Set(s) => ItemLookupIter::Set(s.into_iter()),
     }
   }
 }
@@ -119,11 +128,11 @@ macro_rules! impl_hash_lookup {
 }
 
 impl ListRules for f32 {
-  type LookupTarget = OrderedFloat<f32>;
+  type LookupTarget = OrderedFloat<Self>;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
 
-  fn is_in(container: &ItemLookup<OrderedFloat<f32>>, item: Self) -> bool {
+  fn is_in(container: &ItemLookup<OrderedFloat<Self>>, item: Self) -> bool {
     match container {
       ItemLookup::Slice(items) => items.contains(&OrderedFloat(item)),
       ItemLookup::Set(set) => set.contains(&OrderedFloat(item)),
@@ -132,11 +141,11 @@ impl ListRules for f32 {
 }
 
 impl ListRules for f64 {
-  type LookupTarget = OrderedFloat<f64>;
+  type LookupTarget = OrderedFloat<Self>;
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
 
-  fn is_in(container: &ItemLookup<OrderedFloat<f64>>, item: Self) -> bool {
+  fn is_in(container: &ItemLookup<OrderedFloat<Self>>, item: Self) -> bool {
     match container {
       ItemLookup::Slice(items) => items.contains(&OrderedFloat(item)),
       ItemLookup::Set(set) => set.contains(&OrderedFloat(item)),
@@ -234,14 +243,14 @@ where
 {
   let has_item = T::is_in(list, value);
 
-  if !has_item {
-    Ok(())
-  } else {
+  if has_item {
     Err(create_violation(
       field_context,
       T::NOT_IN_VIOLATION,
       error_message,
       parent_elements,
     ))
+  } else {
+    Ok(())
   }
 }

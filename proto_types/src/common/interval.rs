@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use thiserror::Error;
 
-use crate::{common::Interval, constants::NANOS_PER_SECOND, Duration, Timestamp};
+use crate::{Duration, Timestamp, common::Interval, constants::NANOS_PER_SECOND};
 
 /// Errors that can occur during the creation, conversion or validation of an [`Interval`].
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
@@ -41,7 +41,7 @@ impl Interval {
   ) -> Result<Self, IntervalError> {
     validate_interval(start_time, end_time)?;
 
-    Ok(Interval {
+    Ok(Self {
       start_time,
       end_time,
     })
@@ -49,6 +49,7 @@ impl Interval {
 
   /// Creates an [`Interval`] going from now to the `end_time` specified.
   /// The present moment is calculated using the SystemTime.
+  #[must_use]
   pub fn from_now_to(end_time: Timestamp) -> Self {
     Self {
       start_time: Some(Timestamp::now()),
@@ -58,6 +59,7 @@ impl Interval {
 
   /// Creates a new [`Interval`] going from the specified `start_time` to the present moment.
   /// The present moment is calculated using the SystemTime.
+  #[must_use]
   pub fn from_start_to_now(start_time: Timestamp) -> Self {
     Self {
       start_time: Some(start_time),
@@ -66,11 +68,13 @@ impl Interval {
   }
 
   /// Checks that `end_time` is not before `start_time`. And that start and `end_time` are both either unspecified or specified at the same time.
+  #[must_use]
   pub fn is_valid(&self) -> bool {
     validate_interval(self.start_time, self.end_time).is_ok()
   }
 
   /// Returns `true` if the `Interval` is empty (`start_time` equals `end_time`).
+  #[must_use]
   pub fn is_empty(&self) -> bool {
     self
       .start_time
@@ -80,7 +84,8 @@ impl Interval {
   }
 
   /// Returns `true` if the `Interval` is unspecified (no `start_time` and no `end_time`)
-  pub fn is_unspecified(&self) -> bool {
+  #[must_use]
+  pub const fn is_unspecified(&self) -> bool {
     self.start_time.is_none() && self.end_time.is_none()
   }
 }
@@ -88,23 +93,26 @@ impl Interval {
 impl TryFrom<Interval> for Duration {
   type Error = IntervalError;
   fn try_from(value: Interval) -> Result<Self, Self::Error> {
-    let result = value.start_time.zip(value.end_time).map(|(start, end)| {
-      let mut seconds_diff = end.seconds - start.seconds;
-      let mut nanos_diff = end.nanos - start.nanos;
+    let result = value
+      .start_time
+      .zip(value.end_time)
+      .map(|(start, end)| {
+        let mut seconds_diff = end.seconds - start.seconds;
+        let mut nanos_diff = end.nanos - start.nanos;
 
-      if nanos_diff < 0 {
-        seconds_diff -= 1;
-        nanos_diff += NANOS_PER_SECOND;
-      } else if nanos_diff >= NANOS_PER_SECOND {
-        seconds_diff += 1;
-        nanos_diff -= NANOS_PER_SECOND;
-      }
+        if nanos_diff < 0 {
+          seconds_diff -= 1;
+          nanos_diff += NANOS_PER_SECOND;
+        } else if nanos_diff >= NANOS_PER_SECOND {
+          seconds_diff += 1;
+          nanos_diff -= NANOS_PER_SECOND;
+        }
 
-      Duration {
-        seconds: seconds_diff,
-        nanos: nanos_diff,
-      }
-    });
+        Self {
+          seconds: seconds_diff,
+          nanos: nanos_diff,
+        }
+      });
 
     result.ok_or(IntervalError::ConversionError(
       "Cannot convert to Duration due to missing start or end time".to_string(),

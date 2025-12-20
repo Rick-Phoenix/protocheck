@@ -25,7 +25,7 @@
 ///        }
 ///      }
 /// ```
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ErrorInfo {
   /// The reason of the error. This is a constant value that identifies the
@@ -100,7 +100,7 @@ pub struct DebugInfo {
 ///
 /// Also see RetryInfo and Help types for other details about handling a
 /// quota failure.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct QuotaFailure {
   /// Describes all quota violations.
@@ -111,7 +111,7 @@ pub struct QuotaFailure {
 pub mod quota_failure {
   /// A message type used to describe a single quota violation.  For example, a
   /// daily quota or a custom quota that was exceeded.
-  #[derive(Clone, PartialEq, ::prost::Message)]
+  #[derive(Clone, PartialEq, Eq, ::prost::Message)]
   #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   pub struct Violation {
@@ -202,7 +202,7 @@ pub mod quota_failure {
 /// For example, if an RPC failed because it required the Terms of Service to be
 /// acknowledged, it could list the terms of service violation in the
 /// PreconditionFailure message.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PreconditionFailure {
   /// Describes all precondition violations.
@@ -235,7 +235,7 @@ pub mod precondition_failure {
 }
 /// Describes violations in a client request. This error type focuses on the
 /// syntactic aspects of the request.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct BadRequest {
@@ -354,7 +354,7 @@ pub struct ResourceInfo {
 /// For example, if a quota check failed with an error indicating the calling
 /// project hasn't enabled the accessed service, this can contain a URL pointing
 /// directly to the right place in the developer console to flip the bit.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Help {
   /// URL(s) pointing to additional information on handling the current error.
@@ -390,7 +390,7 @@ pub struct LocalizedMessage {
   pub message: ::prost::alloc::string::String,
 }
 /// Represents an HTTP request.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HttpRequest {
   /// The HTTP request method.
@@ -409,7 +409,7 @@ pub struct HttpRequest {
 }
 
 /// Represents an HTTP response.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HttpResponse {
   /// The HTTP status code, such as 200 or 404.

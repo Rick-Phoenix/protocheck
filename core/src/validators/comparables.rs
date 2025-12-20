@@ -41,6 +41,7 @@ impl_comparable!(Fixed64, FIXED64);
 impl_comparable!(Duration, DURATION);
 impl_comparable!(Timestamp, TIMESTAMP);
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn lt<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
@@ -65,6 +66,7 @@ where
   }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn lte<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
@@ -89,6 +91,7 @@ where
   }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn gt<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
@@ -113,6 +116,7 @@ where
   }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn gte<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],

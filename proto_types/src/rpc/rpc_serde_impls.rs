@@ -1,7 +1,7 @@
 use serde::{
+  Deserialize, Deserializer, Serialize,
   de::{self, Visitor},
   ser::Serializer,
-  Deserialize, Deserializer, Serialize,
 };
 
 use crate::Code;
@@ -22,7 +22,7 @@ impl<'de> Deserialize<'de> for Code {
   {
     struct CodeVisitor;
 
-    impl<'de> Visitor<'de> for CodeVisitor {
+    impl Visitor<'_> for CodeVisitor {
       type Value = Code;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -33,7 +33,7 @@ impl<'de> Deserialize<'de> for Code {
       where
         E: de::Error,
       {
-        Code::from_str_name(v).ok_or_else(|| E::custom(format!("unknown Code variant: {}", v)))
+        Code::from_str_name(v).ok_or_else(|| E::custom(format!("unknown Code variant: {v}")))
       }
     }
 

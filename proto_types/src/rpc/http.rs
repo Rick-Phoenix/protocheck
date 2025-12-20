@@ -14,7 +14,7 @@ impl HttpRequest {
 
 impl HttpResponse {
   /// Returns true if the `status` matches the argument.
-  pub fn has_status(&self, status: i32) -> bool {
+  pub const fn has_status(&self, status: i32) -> bool {
     self.status == status
   }
 
@@ -28,133 +28,147 @@ impl HttpResponse {
 
 impl Code {
   /// Checks if the code is `Ok`.
-  pub fn is_200_ok(&self) -> bool {
+  #[must_use]
+  pub const fn is_200_ok(&self) -> bool {
     matches!(self, Self::Ok)
   }
 
   /// Checks if the code is `Cancelled`.
-  pub fn is_cancelled(&self) -> bool {
+  #[must_use]
+  pub const fn is_cancelled(&self) -> bool {
     matches!(self, Self::Cancelled)
   }
 
   /// Checks if the code is `Unknown`.
-  pub fn is_unknown(&self) -> bool {
+  #[must_use]
+  pub const fn is_unknown(&self) -> bool {
     matches!(self, Self::Unknown)
   }
 
   /// Checks if the code is `InvalidArgument`.
-  pub fn is_invalid_argument(&self) -> bool {
+  #[must_use]
+  pub const fn is_invalid_argument(&self) -> bool {
     matches!(self, Self::InvalidArgument)
   }
 
   /// Checks if the code is `DeadlineExceeded`.
-  pub fn is_deadline_exceeded(&self) -> bool {
+  #[must_use]
+  pub const fn is_deadline_exceeded(&self) -> bool {
     matches!(self, Self::DeadlineExceeded)
   }
 
   /// Checks if the code is `NotFound`.
-  pub fn is_not_found(&self) -> bool {
+  #[must_use]
+  pub const fn is_not_found(&self) -> bool {
     matches!(self, Self::NotFound)
   }
 
   /// Checks if the code is `AlreadyExists`.
-  pub fn is_already_exists(&self) -> bool {
+  #[must_use]
+  pub const fn is_already_exists(&self) -> bool {
     matches!(self, Self::AlreadyExists)
   }
 
   /// Checks if the code is `PermissionDenied`.
-  pub fn is_permission_denied(&self) -> bool {
+  #[must_use]
+  pub const fn is_permission_denied(&self) -> bool {
     matches!(self, Self::PermissionDenied)
   }
 
   /// Checks if the code is `Unauthenticated`.
-  pub fn is_unauthenticated(&self) -> bool {
+  #[must_use]
+  pub const fn is_unauthenticated(&self) -> bool {
     matches!(self, Self::Unauthenticated)
   }
 
   /// Checks if the code is `ResourceExhausted`.
-  pub fn is_resource_exhausted(&self) -> bool {
+  #[must_use]
+  pub const fn is_resource_exhausted(&self) -> bool {
     matches!(self, Self::ResourceExhausted)
   }
 
   /// Checks if the code is `FailedPrecondition`.
-  pub fn is_failed_precondition(&self) -> bool {
+  #[must_use]
+  pub const fn is_failed_precondition(&self) -> bool {
     matches!(self, Self::FailedPrecondition)
   }
 
   /// Checks if the code is `Aborted`.
-  pub fn is_aborted(&self) -> bool {
+  #[must_use]
+  pub const fn is_aborted(&self) -> bool {
     matches!(self, Self::Aborted)
   }
 
   /// Checks if the code is `OutOfRange`.
-  pub fn is_out_of_range(&self) -> bool {
+  #[must_use]
+  pub const fn is_out_of_range(&self) -> bool {
     matches!(self, Self::OutOfRange)
   }
 
   /// Checks if the code is `Unimplemented`.
-  pub fn is_unimplemented(&self) -> bool {
+  #[must_use]
+  pub const fn is_unimplemented(&self) -> bool {
     matches!(self, Self::Unimplemented)
   }
 
   /// Checks if the code is `Internal`.
-  pub fn is_internal(&self) -> bool {
+  #[must_use]
+  pub const fn is_internal(&self) -> bool {
     matches!(self, Self::Internal)
   }
 
   /// Checks if the code is `Unavailable`.
-  pub fn is_unavailable(&self) -> bool {
+  #[must_use]
+  pub const fn is_unavailable(&self) -> bool {
     matches!(self, Self::Unavailable)
   }
 
   /// Checks if the code is `DataLoss`.
-  pub fn is_data_loss(&self) -> bool {
+  #[must_use]
+  pub const fn is_data_loss(&self) -> bool {
     matches!(self, Self::DataLoss)
   }
 
   /// Returns the name of the code variant in title case.
-  pub fn as_title_case(&self) -> &str {
+  #[must_use]
+  pub const fn as_title_case(&self) -> &str {
     match self {
-      Code::Ok => "Ok",
-      Code::Cancelled => "Cancelled",
-      Code::Unknown => "Unknown",
-      Code::InvalidArgument => "Invalid Argument",
-      Code::DeadlineExceeded => "Deadline Exceeded",
-      Code::NotFound => "Not Found",
-      Code::AlreadyExists => "Already Exists",
-      Code::PermissionDenied => "Permission Denied",
-      Code::Unauthenticated => "Unauthenticated",
-      Code::ResourceExhausted => "Resource Exhausted",
-      Code::FailedPrecondition => "Failed Precondition",
-      Code::Aborted => "Aborted",
-      Code::OutOfRange => "Out Of Range",
-      Code::Unimplemented => "Unimplemented",
-      Code::Internal => "Internal",
-      Code::Unavailable => "Unavailable",
-      Code::DataLoss => "Data Loss",
+      Self::Ok => "Ok",
+      Self::Cancelled => "Cancelled",
+      Self::Unknown => "Unknown",
+      Self::InvalidArgument => "Invalid Argument",
+      Self::DeadlineExceeded => "Deadline Exceeded",
+      Self::NotFound => "Not Found",
+      Self::AlreadyExists => "Already Exists",
+      Self::PermissionDenied => "Permission Denied",
+      Self::Unauthenticated => "Unauthenticated",
+      Self::ResourceExhausted => "Resource Exhausted",
+      Self::FailedPrecondition => "Failed Precondition",
+      Self::Aborted => "Aborted",
+      Self::OutOfRange => "Out Of Range",
+      Self::Unimplemented => "Unimplemented",
+      Self::Internal => "Internal",
+      Self::Unavailable => "Unavailable",
+      Self::DataLoss => "Data Loss",
     }
   }
 
   /// Returns the corresponding HTTP status code mapping.
-  pub fn to_http_status(&self) -> u16 {
+  #[must_use]
+  pub const fn to_http_status(&self) -> u16 {
     match self {
-      Code::Ok => 200,
-      Code::Cancelled => 499,
-      Code::Unknown => 500,
-      Code::InvalidArgument => 400,
-      Code::DeadlineExceeded => 504,
-      Code::NotFound => 404,
-      Code::AlreadyExists => 409,
-      Code::PermissionDenied => 403,
-      Code::Unauthenticated => 401,
-      Code::ResourceExhausted => 429,
-      Code::FailedPrecondition => 400,
-      Code::Aborted => 409,
-      Code::OutOfRange => 400,
-      Code::Unimplemented => 501,
-      Code::Internal => 500,
-      Code::Unavailable => 503,
-      Code::DataLoss => 500,
+      Self::Ok => 200,
+      Self::Cancelled => 499,
+      Self::Unknown | Self::Internal | Self::DataLoss => 500,
+      Self::InvalidArgument | Self::FailedPrecondition | Self::OutOfRange => 400,
+      Self::DeadlineExceeded => 504,
+      Self::NotFound => 404,
+      Self::AlreadyExists | Self::Aborted => 409,
+      Self::PermissionDenied => 403,
+      Self::Unauthenticated => 401,
+      Self::ResourceExhausted => 429,
+      Self::Unimplemented => 501,
+      Self::Unavailable => 503,
     }
   }
 }

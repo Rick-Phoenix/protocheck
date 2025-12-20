@@ -2,14 +2,14 @@
 mod chrono {
   use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 
-  use crate::{timestamp::TimestampError, Timestamp};
+  use crate::{Timestamp, timestamp::TimestampError};
 
   impl From<DateTime<Utc>> for Timestamp {
     fn from(datetime: DateTime<Utc>) -> Self {
-      let mut ts = Timestamp {
+      let mut ts = Self {
         seconds: datetime.timestamp(),
         // Safe casting as this value is limited by chrono
-        nanos: datetime.timestamp_subsec_nanos() as i32,
+        nanos: datetime.timestamp_subsec_nanos().cast_signed(),
       };
       ts.normalize();
       ts
@@ -18,10 +18,13 @@ mod chrono {
 
   impl From<NaiveDateTime> for Timestamp {
     fn from(datetime: NaiveDateTime) -> Self {
-      let mut ts = Timestamp {
+      let mut ts = Self {
         seconds: datetime.and_utc().timestamp(),
         // Safe casting as this value is limited by chrono
-        nanos: datetime.and_utc().timestamp_subsec_nanos() as i32,
+        nanos: datetime
+          .and_utc()
+          .timestamp_subsec_nanos()
+          .cast_signed(),
       };
       ts.normalize();
       ts
@@ -34,7 +37,9 @@ mod chrono {
     fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
       timestamp.normalize();
 
-      DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+      u32::try_from(timestamp.nanos)
+        .ok()
+        .and_then(|nanos| Self::from_timestamp(timestamp.seconds, nanos))
         .ok_or(TimestampError::OutOfSystemRange(timestamp))
     }
   }
@@ -45,7 +50,9 @@ mod chrono {
     fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
       timestamp.normalize();
 
-      DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+      u32::try_from(timestamp.nanos)
+        .ok()
+        .and_then(|nanos| DateTime::<Utc>::from_timestamp(timestamp.seconds, nanos))
         .map(|d| d.naive_local())
         .ok_or(TimestampError::OutOfSystemRange(timestamp))
     }
@@ -67,7 +74,7 @@ mod chrono {
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
-  use quote::{quote, ToTokens};
+  use quote::{ToTokens, quote};
 
   use crate::Timestamp;
 

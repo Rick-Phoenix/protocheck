@@ -23,7 +23,7 @@ pub struct LengthRules {
 }
 
 impl LengthRules {
-  pub fn target(&self) -> &'static str {
+  pub const fn target(&self) -> &'static str {
     match self.target {
       LengthRulesTarget::String => "string",
       LengthRulesTarget::Bytes => "bytes",
@@ -32,11 +32,11 @@ impl LengthRules {
     }
   }
 
-  pub fn has_rule(&self) -> bool {
+  pub const fn has_rule(&self) -> bool {
     self.len.is_some() || self.min_len.is_some() || self.max_len.is_some()
   }
 
-  pub fn unit(&self) -> &str {
+  pub const fn unit(&self) -> &str {
     match self.target {
       LengthRulesTarget::String => "character",
       LengthRulesTarget::Bytes => "byte",
@@ -45,7 +45,7 @@ impl LengthRules {
     }
   }
 
-  pub fn len_name(&self) -> &str {
+  pub const fn len_name(&self) -> &str {
     match self.kind {
       LengthRulesKind::Len => "len",
       LengthRulesKind::LenBytes => "len_bytes",
@@ -53,7 +53,7 @@ impl LengthRules {
     }
   }
 
-  pub fn min_len_name(&self) -> &str {
+  pub const fn min_len_name(&self) -> &str {
     match self.kind {
       LengthRulesKind::Len => "min_len",
       LengthRulesKind::LenBytes => "min_bytes",
@@ -62,7 +62,7 @@ impl LengthRules {
     }
   }
 
-  pub fn max_len_name(&self) -> &str {
+  pub const fn max_len_name(&self) -> &str {
     match self.kind {
       LengthRulesKind::Len => "max_len",
       LengthRulesKind::LenBytes => "max_bytes",
@@ -71,7 +71,7 @@ impl LengthRules {
     }
   }
 
-  pub fn validate(self) -> Result<LengthRules, String> {
+  pub fn validate(self) -> Result<Self, String> {
     let len = self.len;
     let min_len = self.min_len;
     let max_len = self.max_len;
@@ -87,9 +87,14 @@ impl LengthRules {
 
     if let Some(min) = min_len
       && let Some(max) = max_len
-        && min > max {
-          return Err(format!("{} cannot be larger than {}", self.min_len_name(), self.max_len_name()));
-        }
+      && min > max
+    {
+      return Err(format!(
+        "{} cannot be larger than {}",
+        self.min_len_name(),
+        self.max_len_name()
+      ));
+    }
 
     Ok(self)
   }

@@ -34,7 +34,7 @@ pub(crate) struct DateTime {
 
 impl DateTime {
   /// The minimum representable [`Timestamp`] as a `DateTime`.
-  pub(crate) const MIN: DateTime = DateTime {
+  pub(crate) const MIN: Self = Self {
     year: -292_277_022_657,
 
     month: 1,
@@ -51,7 +51,7 @@ impl DateTime {
   };
 
   /// The maximum representable [`Timestamp`] as a `DateTime`.
-  pub(crate) const MAX: DateTime = DateTime {
+  pub(crate) const MAX: Self = Self {
     year: 292_277_026_596,
 
     month: 12,
@@ -69,8 +69,8 @@ impl DateTime {
 
   /// Returns `true` if the `DateTime` is a valid calendar date.
   pub(crate) fn is_valid(&self) -> bool {
-    self >= &DateTime::MIN
-      && self <= &DateTime::MAX
+    self >= &Self::MIN
+      && self <= &Self::MAX
       && self.month > 0
       && self.month <= 12
       && self.day > 0
@@ -110,7 +110,7 @@ impl fmt::Display for DateTime {
     } else if nanos.is_multiple_of(1_000) {
       write!(f, ".{:06}Z", nanos / 1_000)
     } else {
-      write!(f, ".{:09}Z", nanos)
+      write!(f, ".{nanos:09}Z")
     }
   }
 }
@@ -123,7 +123,7 @@ impl From<Timestamp> for DateTime {
   ///
   /// [1]: http://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
   /// [2]: https://c2rust.com/
-  fn from(mut timestamp: Timestamp) -> DateTime {
+  fn from(mut timestamp: Timestamp) -> Self {
     timestamp.normalize();
 
     let t = timestamp.seconds;
@@ -207,7 +207,7 @@ impl From<Timestamp> for DateTime {
       years += 1;
     }
 
-    let date_time = DateTime {
+    let date_time = Self {
       year: years + 2000,
 
       month: (months + 3) as u8,
@@ -692,7 +692,7 @@ pub(crate) fn parse_duration(s: &str) -> Option<Duration> {
 impl TryFrom<DateTime> for Timestamp {
   type Error = TimestampError;
 
-  fn try_from(date_time: DateTime) -> Result<Timestamp, TimestampError> {
+  fn try_from(date_time: DateTime) -> Result<Self, TimestampError> {
     if !date_time.is_valid() {
       return Err(TimestampError::InvalidDateTime);
     }
@@ -701,7 +701,7 @@ impl TryFrom<DateTime> for Timestamp {
 
     let nanos = date_time.nanos;
 
-    Ok(Timestamp {
+    Ok(Self {
       seconds,
 
       nanos: nanos as i32,

@@ -41,8 +41,8 @@ pub fn get_map_rules(
     ))?,
   );
 
-  let key_proto_type = convert_kind_to_proto_type(key_desc.kind());
-  let value_proto_type = convert_kind_to_proto_type(value_desc.kind());
+  let key_proto_type = convert_kind_to_proto_type(&key_desc.kind());
+  let value_proto_type = convert_kind_to_proto_type(&value_desc.kind());
 
   map_validation_data.map_keys_type = Some(key_proto_type);
   map_validation_data.map_values_type = Some(value_proto_type);
@@ -68,7 +68,7 @@ pub fn get_map_rules(
       .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
     if length_rules.has_rule() {
-      map_validation_data.get_length_validator(&mut map_level_rules, length_rules);
+      map_validation_data.get_length_validator(&mut map_level_rules, &length_rules);
     }
 
     if let Some(keys_rules_descriptor) = map_rules.keys.as_ref() {
@@ -110,15 +110,12 @@ pub fn get_map_rules(
         let values_validation_data = map_validation_data.to_map_value(get_field_type(&value_desc));
 
         if let Some(ref rules) = values_rules_descriptor.r#type
-          && !value_is_message {
-            let value_validators_tokens = get_field_rules(
-              field_rust_enum,
-              &value_desc,
-              &values_validation_data,
-              rules,
-            )?;
-            values_rules.extend(value_validators_tokens);
-          }
+          && !value_is_message
+        {
+          let value_validators_tokens =
+            get_field_rules(field_rust_enum, &value_desc, &values_validation_data, rules)?;
+          values_rules.extend(value_validators_tokens);
+        }
 
         if !values_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules_checked(
@@ -139,9 +136,7 @@ pub fn get_map_rules(
     map_validation_data.get_message_field_validator_tokens(&mut values_rules, FieldKind::MapValue);
   }
 
-  if map_level_rules.is_empty() && keys_rules.is_empty() && values_rules.is_empty() {
-    Ok(())
-  } else {
+  if !map_level_rules.is_empty() || !keys_rules.is_empty() || !values_rules.is_empty() {
     map_validation_data.aggregate_map_rules(
       validation_tokens,
       &MapValidator {
@@ -150,6 +145,7 @@ pub fn get_map_rules(
         values_rules,
       },
     );
-    Ok(())
   }
+
+  Ok(())
 }

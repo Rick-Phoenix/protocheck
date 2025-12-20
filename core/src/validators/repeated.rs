@@ -13,9 +13,10 @@ pub fn min_items<T>(
   min_items: u64,
   error_message: &str,
 ) -> Result<(), Violation> {
-  let check = value.len() >= min_items as usize;
+  #[allow(clippy::cast_possible_truncation)]
+  let is_valid = value.len() >= min_items as usize;
 
-  if check {
+  if is_valid {
     Ok(())
   } else {
     Err(create_violation(
@@ -34,9 +35,10 @@ pub fn max_items<T>(
   max_items: u64,
   error_message: &str,
 ) -> Result<(), Violation> {
-  let check = value.len() <= max_items as usize;
+  #[allow(clippy::cast_possible_truncation)]
+  let is_valid = value.len() <= max_items as usize;
 
-  if check {
+  if is_valid {
     Ok(())
   } else {
     Err(create_violation(
@@ -54,6 +56,7 @@ pub enum UniqueLookup<T> {
 }
 
 impl<T> UniqueLookup<T> {
+  #[must_use]
   pub fn with_capacity(cap: usize) -> Self {
     if cap <= 16 {
       Self::Vec(Vec::with_capacity(cap))
@@ -69,12 +72,13 @@ pub trait UniqueItem {
     Self: 'a;
 
   // This is for the types without Hash that can only initialize Vecs
+  #[must_use]
   fn new_container<'a>(len: usize) -> UniqueLookup<Self::LookupTarget<'a>> {
     UniqueLookup::with_capacity(len)
   }
 
   fn check_unique<'a>(container: &mut UniqueLookup<Self::LookupTarget<'a>>, item: &'a Self)
-    -> bool;
+  -> bool;
 }
 
 macro_rules! impl_unique {
@@ -114,9 +118,10 @@ impl_unique!(Timestamp);
 impl_unique!(Duration);
 
 impl UniqueItem for str {
-  type LookupTarget<'a> = &'a str
-    where
-      Self: 'a;
+  type LookupTarget<'a>
+    = &'a Self
+  where
+    Self: 'a;
 
   fn check_unique<'a>(
     container: &mut UniqueLookup<Self::LookupTarget<'a>>,
@@ -137,9 +142,10 @@ impl UniqueItem for str {
 }
 
 impl UniqueItem for String {
-  type LookupTarget<'a> = &'a str
-    where
-      Self: 'a;
+  type LookupTarget<'a>
+    = &'a str
+  where
+    Self: 'a;
 
   fn check_unique<'a>(
     container: &mut UniqueLookup<Self::LookupTarget<'a>>,
@@ -160,9 +166,9 @@ impl UniqueItem for String {
 }
 
 impl UniqueItem for f32 {
-  type LookupTarget<'a> = OrderedFloat<f32>;
+  type LookupTarget<'a> = OrderedFloat<Self>;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f32>>, item: &Self) -> bool {
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<Self>>, item: &Self) -> bool {
     let item = OrderedFloat(*item);
 
     match container {
@@ -180,9 +186,9 @@ impl UniqueItem for f32 {
 }
 
 impl UniqueItem for f64 {
-  type LookupTarget<'a> = OrderedFloat<f64>;
+  type LookupTarget<'a> = OrderedFloat<Self>;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<f64>>, item: &Self) -> bool {
+  fn check_unique(container: &mut UniqueLookup<OrderedFloat<Self>>, item: &Self) -> bool {
     let item = OrderedFloat(*item);
 
     match container {
@@ -200,12 +206,9 @@ impl UniqueItem for f64 {
 }
 
 impl UniqueItem for ::bytes::Bytes {
-  type LookupTarget<'a> = &'a ::bytes::Bytes;
+  type LookupTarget<'a> = &'a Self;
 
-  fn check_unique<'a>(
-    container: &mut UniqueLookup<&'a ::bytes::Bytes>,
-    item: &'a ::bytes::Bytes,
-  ) -> bool {
+  fn check_unique<'a>(container: &mut UniqueLookup<&'a Self>, item: &'a Self) -> bool {
     match container {
       UniqueLookup::Vec(vec) => {
         if vec.contains(&item) {

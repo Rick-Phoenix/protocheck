@@ -1,12 +1,3 @@
-use std::{
-  borrow::Cow,
-  cell::OnceCell,
-  collections::{HashMap, HashSet},
-  fmt::{Debug, Display},
-  hash::Hash,
-  sync::{Arc, LazyLock},
-};
-
 #[macro_use]
 mod macros;
 mod cel_try_into;
@@ -14,12 +5,8 @@ mod cel_try_into;
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{format_ident, quote, ToTokens};
-use syn::{
-  parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned,
-  Attribute, Error, Expr, Ident, Item, ItemEnum, ItemStruct, Lit, LitByteStr, LitStr, Meta, Path,
-  Token, Type,
-};
+use quote::{ToTokens, quote};
+use syn::{Error, Ident, Item, ItemEnum, ItemStruct, Type, parse_macro_input};
 
 #[proc_macro_derive(TryIntoCelValue)]
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
@@ -34,7 +21,7 @@ pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
         "The TryIntoCelValue macro only works on enums and structs"
       )
       .into_compile_error()
-      .into()
+      .into();
     }
   };
 

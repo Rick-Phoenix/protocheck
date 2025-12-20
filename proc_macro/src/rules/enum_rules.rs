@@ -1,7 +1,7 @@
 use crate::*;
 
 pub fn get_enum_rules(
-  enum_path_str: String,
+  enum_path_str: &str,
   enum_desc: &EnumDescriptor,
   validation_data: &ValidationData,
   rules: &EnumRules,
@@ -20,7 +20,7 @@ pub fn get_enum_rules(
   }
 
   if rules.defined_only() {
-    let enum_path: Path = syn::parse_str(&enum_path_str).map_err(|e| {
+    let enum_path: Path = syn::parse_str(enum_path_str).map_err(|e| {
       error_spanned!(
         field_span,
         format!(
@@ -58,8 +58,7 @@ pub fn get_enum_rules(
         field_name,
         field_span,
         &format!(
-          "enum_rules.in contains values that are not in the {} enum: {:?}",
-          enum_name, invalid_numbers
+          "enum_rules.in contains values that are not in the {enum_name} enum: {invalid_numbers:?}"
         ),
       ));
     }

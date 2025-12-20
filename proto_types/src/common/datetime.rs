@@ -3,8 +3,8 @@ use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
 use crate::{
-  common::{date_time::TimeOffset, DateTime, TimeZone},
   Duration,
+  common::{DateTime, TimeZone, date_time::TimeOffset},
 };
 
 impl Display for TimeZone {
@@ -36,11 +36,11 @@ impl Display for DateTime {
         let minutes = (abs_total_offset_seconds % 3600) / 60;
 
         if is_negative {
-          write!(f, "-{:02}:{:02}", hours, minutes)?
+          write!(f, "-{hours:02}:{minutes:02}")?
         } else if total_offset_seconds == 0 && duration.nanos == 0 {
           write!(f, "Z")? // 'Z' for UTC
         } else {
-          write!(f, "+{:02}:{:02}", hours, minutes)?
+          write!(f, "+{hours:02}:{minutes:02}")?
         }
       }
       Some(TimeOffset::TimeZone(tz)) => {
@@ -58,9 +58,7 @@ impl Display for DateTime {
 /// Errors that can occur during the creation, conversion or validation of a [`DateTime`].
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum DateTimeError {
-  #[error(
-    "The year must be a value from 0 (to indicate a DateTime with no specific year) to 9999"
-  )]
+  #[error("The year must be a value from 0 (to indicate a DateTime with no specific year) to 9999")]
   InvalidYear,
   #[error("If the year is set to 0, month and day cannot be set to 0")]
   InvalidDate,
@@ -91,9 +89,8 @@ impl PartialOrd for TimeOffset {
     match (self, other) {
       (Self::UtcOffset(a), Self::UtcOffset(b)) => a.partial_cmp(b),
       // Can't determine order without timezone information
-      (Self::TimeZone(_), Self::TimeZone(_)) => None,
-      (Self::UtcOffset(_), Self::TimeZone(_)) => None,
-      (Self::TimeZone(_), Self::UtcOffset(_)) => None,
+      (Self::TimeZone(_) | Self::UtcOffset(_), Self::TimeZone(_))
+      | (Self::TimeZone(_), Self::UtcOffset(_)) => None,
     }
   }
 }
@@ -180,38 +177,45 @@ impl DateTime {
     )
   }
 
+  #[must_use]
   /// Checks if this [`DateTime`] instance represents a valid date and time.
   pub fn is_valid(&self) -> bool {
     self.validate().is_ok()
   }
 
+  #[must_use]
   /// Returns `true` if the [`DateTime`] has a specific year (i.e., `year` is not 0).
-  pub fn has_year(&self) -> bool {
+  pub const fn has_year(&self) -> bool {
     self.year != 0
   }
 
   /// Returns true if the [`TimeOffset`] is a UtcOffset.
-  pub fn has_utc_offset(&self) -> bool {
+  #[must_use]
+  pub const fn has_utc_offset(&self) -> bool {
     matches!(self.time_offset, Some(TimeOffset::UtcOffset(_)))
   }
 
   /// Returns true if the [`TimeOffset`] is a TimeZone.
-  pub fn has_timezone(&self) -> bool {
+  #[must_use]
+  pub const fn has_timezone(&self) -> bool {
     matches!(self.time_offset, Some(TimeOffset::TimeZone(_)))
   }
 
   /// Returns true if the [`TimeOffset`] is None.
-  pub fn is_local(&self) -> bool {
+  #[must_use]
+  pub const fn is_local(&self) -> bool {
     self.time_offset.is_none()
   }
 
   /// Sets the `time_offset` to a UTC offset [`Duration`], clearing any existing time zone.
+  #[must_use]
   pub fn with_utc_offset(mut self, offset: Duration) -> Self {
     self.time_offset = Some(TimeOffset::UtcOffset(offset));
     self
   }
 
   /// Sets the `time_offset` to a [`TimeZone`], clearing any existing UTC offset.
+  #[must_use]
   pub fn with_time_zone(mut self, time_zone: TimeZone) -> Self {
     self.time_offset = Some(TimeOffset::TimeZone(time_zone));
     self
@@ -228,10 +232,11 @@ mod chrono {
   use chrono::Utc;
 
   use super::{DateTime, DateTimeError};
-  use crate::{date_time::TimeOffset, datetime::UTC_OFFSET, Duration};
+  use crate::{Duration, date_time::TimeOffset, datetime::UTC_OFFSET};
 
   impl DateTime {
     /// Returns the current [`DateTime`] with Utc offset.
+    #[must_use]
     pub fn now_utc() -> Self {
       Utc::now().into()
     }
@@ -270,18 +275,18 @@ mod chrono {
         Some(TimeOffset::UtcOffset(proto_duration)) => {
           use crate::constants::NANOS_PER_SECOND;
 
-          let total_nanos_i128 = (proto_duration.seconds as i128)
-            .checked_mul(NANOS_PER_SECOND as i128)
+          let total_nanos_i128 = i128::from(proto_duration.seconds)
+            .checked_mul(i128::from(NANOS_PER_SECOND))
             .ok_or(DateTimeError::ConversionError(
               "UtcOffset seconds multiplied by NANOS_PER_SECOND overflowed i128".to_string(),
             ))?
-            .checked_add(proto_duration.nanos as i128)
+            .checked_add(i128::from(proto_duration.nanos))
             .ok_or(DateTimeError::ConversionError(
               "UtcOffset nanos addition overflowed i128".to_string(),
             ))?;
 
           let total_seconds_i128 = total_nanos_i128
-            .checked_div(NANOS_PER_SECOND as i128)
+            .checked_div(i128::from(NANOS_PER_SECOND))
             .ok_or(DateTimeError::ConversionError(
               "UtcOffset total nanoseconds division overflowed i128 (should not happen)"
                 .to_string(),
@@ -327,14 +332,14 @@ mod chrono {
 
       // NaiveDateTime has no offset, so DateTime will be local time
       // Casting is safe due to chrono's constructor API
-      DateTime {
+      Self {
         year: ndt.year(),
-        month: ndt.month() as i32,
-        day: ndt.day() as i32,
-        hours: ndt.hour() as i32,
-        minutes: ndt.minute() as i32,
-        seconds: ndt.second() as i32,
-        nanos: ndt.nanosecond() as i32,
+        month: ndt.month().cast_signed(),
+        day: ndt.day().cast_signed(),
+        hours: ndt.hour().cast_signed(),
+        minutes: ndt.minute().cast_signed(),
+        seconds: ndt.second().cast_signed(),
+        nanos: ndt.nanosecond().cast_signed(),
         time_offset: None,
       }
     }
@@ -359,17 +364,18 @@ mod chrono {
       dt.validate()?;
 
       // Casting is safe after validation
-      let date = chrono::NaiveDate::from_ymd_opt(dt.year, dt.month as u32, dt.day as u32)
-        .ok_or(DateTimeError::InvalidDate)?;
+      let date =
+        chrono::NaiveDate::from_ymd_opt(dt.year, dt.month.cast_unsigned(), dt.day.cast_unsigned())
+          .ok_or(DateTimeError::InvalidDate)?;
       let time = chrono::NaiveTime::from_hms_nano_opt(
-        dt.hours as u32,
-        dt.minutes as u32,
-        dt.seconds as u32,
-        dt.nanos as u32,
+        dt.hours.cast_unsigned(),
+        dt.minutes.cast_unsigned(),
+        dt.seconds.cast_unsigned(),
+        dt.nanos.cast_unsigned(),
       )
       .ok_or(DateTimeError::InvalidTime)?;
 
-      Ok(chrono::NaiveDateTime::new(date, time))
+      Ok(Self::new(date, time))
     }
   }
 
@@ -381,14 +387,14 @@ mod chrono {
 
       use crate::date_time::TimeOffset;
       // Casting is safe due to chrono's constructor API
-      DateTime {
+      Self {
         year: value.year(),
-        month: value.month() as i32,
-        day: value.day() as i32,
-        hours: value.hour() as i32,
-        minutes: value.minute() as i32,
-        seconds: value.second() as i32,
-        nanos: value.nanosecond() as i32,
+        month: value.month().cast_signed(),
+        day: value.day().cast_signed(),
+        hours: value.hour().cast_signed(),
+        minutes: value.minute().cast_signed(),
+        seconds: value.second().cast_signed(),
+        nanos: value.nanosecond().cast_signed(),
         time_offset: Some(TimeOffset::UtcOffset(Duration::new(0, 0))),
       }
     }
@@ -405,15 +411,10 @@ mod chrono {
             ));
           }
         }
-        Some(TimeOffset::TimeZone(_)) => {
+        Some(TimeOffset::TimeZone(_)) | None => {
           return Err(DateTimeError::ConversionError(
             "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
-          ))
-        }
-        None => {
-          return Err(DateTimeError::ConversionError(
-            "Cannot convert DateTime to TimeZone<Utc> when a UtcOffset is not set.".to_string(),
-          ))
+          ));
         }
       };
 
@@ -428,7 +429,7 @@ mod chrono {
     fn from(value: chrono_tz::Tz) -> Self {
       Self {
         id: value.to_string(),
-        version: "".to_string(), // Version is optional according to the spec
+        version: String::new(), // Version is optional according to the spec
       }
     }
   }
@@ -442,15 +443,15 @@ mod chrono {
 
       Self {
         year: value.year(),
-        month: value.month() as i32,
-        day: value.day() as i32,
-        hours: value.hour() as i32,
-        minutes: value.minute() as i32,
-        seconds: value.second() as i32,
-        nanos: value.nanosecond() as i32,
+        month: value.month().cast_signed(),
+        day: value.day().cast_signed(),
+        hours: value.hour().cast_signed(),
+        minutes: value.minute().cast_signed(),
+        seconds: value.second().cast_signed(),
+        nanos: value.nanosecond().cast_signed(),
         time_offset: Some(TimeOffset::TimeZone(super::TimeZone {
           id: value.timezone().to_string(),
-          version: "".to_string(), // Version is optional according to the spec
+          version: String::new(), // Version is optional according to the spec
         })),
       }
     }

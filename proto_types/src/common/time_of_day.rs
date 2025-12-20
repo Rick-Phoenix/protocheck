@@ -37,11 +37,12 @@ impl From<chrono::NaiveTime> for TimeOfDay {
   fn from(value: chrono::NaiveTime) -> Self {
     use chrono::Timelike;
 
-    TimeOfDay {
-      hours: value.hour() as i32,
-      minutes: value.minute() as i32,
-      seconds: value.second() as i32,
-      nanos: value.nanosecond() as i32,
+    // SAFETY: castings well within the safe range
+    Self {
+      hours: value.hour().cast_signed(),
+      minutes: value.minute().cast_signed(),
+      seconds: value.second().cast_signed(),
+      nanos: value.nanosecond().cast_signed(),
     }
   }
 }
@@ -111,7 +112,8 @@ fn validate_time_of_day(
 
 impl TimeOfDay {
   /// Returns the total amount of nanoseconds since midnight for this instance.
-  pub fn nanos_since_midnight(&self) -> i64 {
+  #[must_use]
+  pub const fn nanos_since_midnight(&self) -> i64 {
     self.hours as i64 * NANOS_PER_HOUR
       + self.minutes as i64 * NANOS_PER_MINUTE
       + self.seconds as i64 * NANOS_PER_SECOND as i64
@@ -122,7 +124,7 @@ impl TimeOfDay {
   pub fn new(hours: i32, minutes: i32, seconds: i32, nanos: i32) -> Result<Self, TimeOfDayError> {
     validate_time_of_day(hours, minutes, seconds, nanos)?;
 
-    Ok(TimeOfDay {
+    Ok(Self {
       hours,
       minutes,
       seconds,
@@ -131,6 +133,7 @@ impl TimeOfDay {
   }
 
   /// Checks if this [`TimeOfDay`] instance represents a valid time.
+  #[must_use]
   pub fn is_valid(&self) -> bool {
     validate_time_of_day(self.hours, self.minutes, self.seconds, self.nanos).is_ok()
   }

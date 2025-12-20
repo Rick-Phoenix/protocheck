@@ -15,7 +15,7 @@ pub fn get_conversion_tokens(type_info: &TypeInfo, val_tokens: &TokenStream2) ->
   }
 }
 
-pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
+pub fn derive_cel_value_oneof(item: &ItemEnum) -> Result<TokenStream2, Error> {
   let enum_name = &item.ident;
 
   let variants = &item.variants;
@@ -29,25 +29,26 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
     let proto_name = variant_ident.to_string().to_case(Case::Snake);
 
     if let syn::Fields::Unnamed(fields) = &variant.fields
-      && let Some(variant_type) = &fields.unnamed.get(0) {
-        let type_ident = &variant_type.ty;
-        let val_ident = new_ident("v");
+      && let Some(variant_type) = &fields.unnamed.get(0)
+    {
+      let type_ident = &variant_type.ty;
+      let val_ident = new_ident("v");
 
-        let type_info = TypeInfo::from_type(type_ident)?;
+      let type_info = TypeInfo::from_type(type_ident)?;
 
-        let into_expression = get_conversion_tokens(&type_info, &quote! { #val_ident });
+      let into_expression = get_conversion_tokens(&type_info, &quote! { #val_ident });
 
-        let arm = quote! {
-          #enum_name::#variant_ident(#val_ident) => {
-            if depth >= #max_recursion_depth {
-              Ok((#proto_name.to_string(), ::protocheck::cel::Value::Null))
-            } else {
-              Ok((#proto_name.to_string(), #into_expression))
-            }
+      let arm = quote! {
+        #enum_name::#variant_ident(#val_ident) => {
+          if depth >= #max_recursion_depth {
+            Ok((#proto_name.to_string(), ::protocheck::cel::Value::Null))
+          } else {
+            Ok((#proto_name.to_string(), #into_expression))
           }
-        };
-        match_arms.push(arm);
-      }
+        }
+      };
+      match_arms.push(arm);
+    }
   }
 
   // We cannot rely on the try_into impl as is here, because we need to know

@@ -33,7 +33,8 @@ impl syn::parse::Parse for ProstAttrData {
             let map_attr = lit_str.value();
 
             if let Some(captures) = MAP_ENUM_REGEX.captures(&map_attr)
-            && let Some(enum_name_match) = captures.get(1) {
+              && let Some(enum_name_match) = captures.get(1)
+            {
               enum_path = Some(enum_name_match.as_str().to_string());
             }
           }
@@ -42,12 +43,14 @@ impl syn::parse::Parse for ProstAttrData {
       }
     }
 
-    Ok(ProstAttrData { enum_path })
+    Ok(Self { enum_path })
   }
 }
 
 pub fn extract_string_lit(expr: &Expr) -> Result<String, Error> {
-  if let Expr::Lit(expr_lit) = expr && let Lit::Str(value) = &expr_lit.lit {
+  if let Expr::Lit(expr_lit) = expr
+    && let Lit::Str(value) = &expr_lit.lit
+  {
     Ok(value.value())
   } else {
     Err(error!(expr, "Expected a string literal"))

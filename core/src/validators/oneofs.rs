@@ -1,8 +1,9 @@
 use crate::{
-  protovalidate::{FieldPath, FieldPathElement, Violation},
   ProtoType,
+  protovalidate::{FieldPath, FieldPathElement, Violation},
 };
 
+#[must_use]
 pub fn required(name: &str, parent_elements: &[FieldPathElement]) -> Violation {
   let mut elements = parent_elements.to_vec();
 

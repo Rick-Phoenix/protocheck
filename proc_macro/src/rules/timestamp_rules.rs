@@ -20,7 +20,7 @@ pub fn get_timestamp_rules(
   }
 
   if let Some(within_val) = rules.within {
-    let error_message = format!("must be within {} from now", within_val);
+    let error_message = format!("must be within {within_val} from now");
 
     let validator_expression_tokens = quote! {
       ::protocheck::validators::timestamps::within(&#field_context_ident, &#parent_messages_ident, #value_ident, #within_val, #error_message)
@@ -37,7 +37,7 @@ pub fn get_timestamp_rules(
     validation_data.get_comparable_validator(&mut tokens, &comparable_rules);
   }
 
-  if let Some(timestamp_rules::LessThan::LtNow(true)) = rules.less_than {
+  if rules.less_than == Some(timestamp_rules::LessThan::LtNow(true)) {
     if comparable_rules.less_than.is_some() {
       return Err(get_field_error(
         field_name,
@@ -52,7 +52,7 @@ pub fn get_timestamp_rules(
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }
 
-  if let Some(timestamp_rules::GreaterThan::GtNow(true)) = rules.greater_than {
+  if rules.greater_than == Some(timestamp_rules::GreaterThan::GtNow(true)) {
     if comparable_rules.greater_than.is_some() {
       return Err(get_field_error(
         field_name,

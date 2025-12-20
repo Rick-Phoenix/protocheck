@@ -40,20 +40,15 @@ pub fn compile_protos_with_validators(
     let message_name = message_desc.full_name();
 
     if packages.contains(&message_desc.package_name()) {
-      let attribute_str = format!(
-        r#"#[::protocheck::macros::protobuf_validate("{}")]"#,
-        message_name
-      );
+      let attribute_str =
+        format!(r#"#[::protocheck::macros::protobuf_validate("{message_name}")]"#);
       config.message_attribute(message_name, &attribute_str);
 
       for oneof in message_desc.oneofs() {
         let oneof_name = oneof.full_name();
         config.type_attribute(
           oneof_name,
-          format!(
-            r#"#[::protocheck::macros::protobuf_validate_oneof("{}")]"#,
-            oneof_name
-          ),
+          format!(r#"#[::protocheck::macros::protobuf_validate_oneof("{oneof_name}")]"#),
         );
       }
     }
@@ -78,12 +73,10 @@ pub fn get_proto_files_recursive(base_dir: impl Into<PathBuf>) -> io::Result<Vec
   if !base_dir.is_dir() {
     return Err(io::Error::new(
       io::ErrorKind::InvalidInput,
-      format!("Path {:?} is not a directory.", base_dir),
+      format!("Path {} is not a directory.", base_dir.display()),
     ));
   }
 
-  // We'll use a helper function to do the actual recursive work
-  // This helps keep the public function's signature clean.
   collect_proto_files_recursive_helper(base_dir.as_path(), &mut proto_files)?;
 
   Ok(proto_files)
@@ -105,7 +98,7 @@ fn collect_proto_files_recursive_helper(
             .ok_or_else(|| {
               io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Path {:?} contains invalid Unicode.", path),
+                format!("Path {} contains invalid Unicode.", path.display()),
               )
             })?
             .to_owned(),

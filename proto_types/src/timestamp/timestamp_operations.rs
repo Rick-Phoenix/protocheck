@@ -23,16 +23,16 @@ impl<'b> Sub<&'b Duration> for &Timestamp {
 }
 
 impl Sub<Duration> for Timestamp {
-  type Output = Timestamp;
+  type Output = Self;
   fn sub(self, rhs: Duration) -> Self::Output {
-    <&Timestamp as Sub<&Duration>>::sub(&self, &rhs)
+    <&Self as Sub<&Duration>>::sub(&self, &rhs)
   }
 }
 
 impl<'b> Sub<&'b Duration> for Timestamp {
-  type Output = Timestamp;
+  type Output = Self;
   fn sub(self, rhs: &'b Duration) -> Self::Output {
-    <&Timestamp as Sub<&Duration>>::sub(&self, rhs)
+    <&Self as Sub<&Duration>>::sub(&self, rhs)
   }
 }
 
@@ -61,9 +61,9 @@ impl<'b> Add<&'b Duration> for &Timestamp {
 }
 
 impl<'b> Add<&'b Duration> for Timestamp {
-  type Output = Timestamp;
+  type Output = Self;
   fn add(self, rhs: &'b Duration) -> Self::Output {
-    <&Timestamp as Add<&Duration>>::add(&self, rhs)
+    <&Self as Add<&Duration>>::add(&self, rhs)
   }
 }
 
@@ -75,7 +75,7 @@ impl Add<Duration> for &Timestamp {
 }
 
 impl Add<Duration> for Timestamp {
-  type Output = Timestamp;
+  type Output = Self;
 
   fn add(self, rhs: Duration) -> Self::Output {
     &self + &rhs

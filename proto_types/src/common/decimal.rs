@@ -1,7 +1,8 @@
 use crate::common::Decimal;
 
 impl Decimal {
-  pub fn new(value: String) -> Self {
+  #[must_use]
+  pub const fn new(value: String) -> Self {
     Self { value }
   }
 }
@@ -27,13 +28,13 @@ pub enum DecimalError {
 impl TryFrom<Decimal> for RustDecimal {
   type Error = DecimalError;
   fn try_from(value: Decimal) -> Result<Self, Self::Error> {
-    RustDecimal::from_str(&value.value).map_err(|e| DecimalError::InvalidFormat(e.to_string()))
+    Self::from_str(&value.value).map_err(|e| DecimalError::InvalidFormat(e.to_string()))
   }
 }
 
 impl From<RustDecimal> for Decimal {
   fn from(value: RustDecimal) -> Self {
-    Decimal {
+    Self {
       value: value.to_string(),
     }
   }

@@ -12,6 +12,9 @@ license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 
+[lints]
+workspace = true
+
 [package.metadata.release]
 tag = true
 shared-version = false

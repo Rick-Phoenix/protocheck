@@ -16,6 +16,7 @@ pub struct DurationData {
 
 impl Duration {
   /// Creates a DurationData instance.
+  #[must_use] 
   pub fn get_data(&self) -> DurationData {
     let mut total_seconds = self.seconds.unsigned_abs();
     let years = Years {

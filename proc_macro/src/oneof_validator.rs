@@ -59,7 +59,7 @@ pub fn extract_oneof_validators(
 
     if let ProstValue::Message(field_rules_message) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_message.encode_to_vec().as_slice())
-        .map_err(|e| Error::new_spanned(item, format!("Could not decode field rules: {}", e)))?;
+        .map_err(|e| Error::new_spanned(item, format!("Could not decode field rules: {e}")))?;
 
       let ignore = field_rules.ignore();
       let is_required = field_rules.required() && field.supports_presence();
@@ -90,7 +90,8 @@ pub fn extract_oneof_validators(
         is_boxed: field_is_boxed(&field, oneof_desc.parent_message()),
         field_span,
         proto_name: field_name,
-        tag: field.number() as i32,
+        // SAFETY: The maximum allowed number for tags is well below the wrapping range
+        tag: field.number().cast_signed(),
         ignore,
         map_keys_type: None,
         map_values_type: None,
@@ -127,7 +128,7 @@ pub fn extract_oneof_validators(
       }
 
       if !field_validators.is_empty() {
-        field_validators = validation_data.get_aggregated_validator_tokens(field_validators);
+        field_validators = validation_data.get_aggregated_validator_tokens(&field_validators);
       }
 
       if field_is_message(&field.kind()) {

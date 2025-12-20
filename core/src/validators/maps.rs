@@ -8,9 +8,10 @@ pub fn min_pairs<K, V>(
   min_pairs: u64,
   error_message: &str,
 ) -> Result<(), Violation> {
-  let check = value.len() >= min_pairs as usize;
+  #[allow(clippy::cast_possible_truncation)]
+  let is_valid = value.len() >= min_pairs as usize;
 
-  if check {
+  if is_valid {
     Ok(())
   } else {
     Err(create_violation(
@@ -29,9 +30,10 @@ pub fn max_pairs<K, V>(
   max_pairs: u64,
   error_message: &str,
 ) -> Result<(), Violation> {
-  let check = value.len() <= max_pairs as usize;
+  #[allow(clippy::cast_possible_truncation)]
+  let is_valid = value.len() <= max_pairs as usize;
 
-  if check {
+  if is_valid {
     Ok(())
   } else {
     Err(create_violation(

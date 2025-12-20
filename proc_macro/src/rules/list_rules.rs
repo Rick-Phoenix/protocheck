@@ -19,16 +19,15 @@ pub enum ListKind {
 impl ListKind {
   pub fn list_item_type(&self) -> TokenStream2 {
     match self {
-      ListKind::Bytes => quote! { &'static [u8] },
-      ListKind::F32 => quote! { f32 },
-      ListKind::F64 => quote! { f64 },
-      ListKind::I32 => quote! { i32 },
-      ListKind::I64 => quote! { i64 },
-      ListKind::U64 => quote! { u64 },
-      ListKind::U32 => quote! { u32 },
-      ListKind::String => quote! { &'static str },
-      ListKind::Any => quote! { &'static str },
-      ListKind::Duration => quote! { ::proto_types::Duration },
+      Self::Bytes => quote! { &'static [u8] },
+      Self::F32 => quote! { f32 },
+      Self::F64 => quote! { f64 },
+      Self::I32 => quote! { i32 },
+      Self::I64 => quote! { i64 },
+      Self::U64 => quote! { u64 },
+      Self::U32 => quote! { u32 },
+      Self::String | Self::Any => quote! { &'static str },
+      Self::Duration => quote! { ::proto_types::Duration },
     }
   }
 
@@ -36,14 +35,14 @@ impl ListKind {
   ///
   /// [`Bytes`]: ListKind::Bytes
   #[must_use]
-  pub fn is_bytes(&self) -> bool {
+  pub const fn is_bytes(&self) -> bool {
     matches!(self, Self::Bytes)
   }
 }
 
 impl ListKind {
   #[must_use]
-  pub fn is_float(&self) -> bool {
+  pub const fn is_float(&self) -> bool {
     matches!(self, Self::F32 | Self::F64)
   }
 }
@@ -54,7 +53,7 @@ pub struct List<'a, T: ToTokens + Clone> {
   pub error_message: String,
 }
 
-impl<'a, T: ToTokens + Clone> List<'a, T> {
+impl<T: ToTokens + Clone> List<'_, T> {
   pub fn output_list(&self) -> TokenStream2 {
     let items = &self.items;
 
@@ -107,8 +106,8 @@ pub struct ListsRules<'a, T: ToTokens + Clone> {
   pub not_in_list_rule: Option<List<'a, T>>,
 }
 
-impl<'a, T: ToTokens + Clone> ListsRules<'a, T> {
-  pub fn is_empty(&self) -> bool {
+impl<T: ToTokens + Clone> ListsRules<'_, T> {
+  pub const fn is_empty(&self) -> bool {
     self.in_list_rule.is_none() && self.not_in_list_rule.is_none()
   }
 }
@@ -119,7 +118,7 @@ pub struct BytesWrapper {
 }
 
 impl BytesWrapper {
-  pub fn new(bytes: Bytes) -> Self {
+  pub const fn new(bytes: Bytes) -> Self {
     Self { inner: bytes }
   }
 }
@@ -129,7 +128,7 @@ pub struct Lists<'a, T: ToTokens + Clone + PartialEq + Eq + Hash + Display> {
   pub not_in_list: Option<Cow<'a, [T]>>,
 }
 
-impl<'a, T: ToTokens + Clone + PartialEq + Eq + Hash + Display> Lists<'a, T> {
+impl<T: ToTokens + Clone + PartialEq + Eq + Hash + Display> Lists<'_, T> {
   pub fn validate(self) -> Result<Self, String> {
     if self.in_list.is_none() || self.not_in_list.is_none() {
       return Ok(self);
@@ -181,7 +180,7 @@ pub trait RuleWithLists<T: ToTokens + Display + Hash + Clone + PartialEq + Eq>: 
 
   fn lists(&'_ self) -> Lists<'_, T>;
 
-  fn list_rules<'a>(&'a self) -> Result<ListsRules<'a, T>, String> {
+  fn list_rules(&self) -> Result<ListsRules<'_, T>, String> {
     let Lists {
       in_list,
       not_in_list,
@@ -265,17 +264,9 @@ impl RuleWithLists<String> for AnyRules {
   const NOT_IN_ERROR_MSG: &'static str = "cannot have one of these type URLs";
 
   fn lists<'a>(&'_ self) -> Lists<'_, String> {
-    let in_list = if !self.r#in.is_empty() {
-      Some(Cow::Borrowed(self.r#in.as_slice()))
-    } else {
-      None
-    };
+    let in_list = (!self.r#in.is_empty()).then_some(Cow::Borrowed(self.r#in.as_slice()));
 
-    let not_in_list = if !self.not_in.is_empty() {
-      Some(Cow::Borrowed(self.not_in.as_slice()))
-    } else {
-      None
-    };
+    let not_in_list = (!self.not_in.is_empty()).then_some(Cow::Borrowed(self.not_in.as_slice()));
 
     Lists {
       in_list,
@@ -288,29 +279,25 @@ impl RuleWithLists<BytesWrapper> for BytesRules {
   const LIST_KIND: ListKind = ListKind::Bytes;
 
   fn lists<'a>(&'_ self) -> Lists<'_, BytesWrapper> {
-    let in_list = if !self.r#in.is_empty() {
+    let in_list = (!self.r#in.is_empty()).then(|| {
       let list: Vec<BytesWrapper> = self
         .r#in
         .iter()
         .map(|b| BytesWrapper::new(b.clone()))
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
-    let not_in_list = if !self.not_in.is_empty() {
+    let not_in_list = (!self.not_in.is_empty()).then(|| {
       let list: Vec<BytesWrapper> = self
         .not_in
         .iter()
         .map(|b| BytesWrapper::new(b.clone()))
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
     Lists {
       in_list,
@@ -343,6 +330,7 @@ impl ToTokens for FloatWrapper {
     let f = self.float;
 
     let output = if self.is_f32 {
+      #[allow(clippy::cast_possible_truncation)]
       proc_macro2::Literal::f32_suffixed(f.into_inner() as f32).to_token_stream()
     } else {
       f.to_token_stream()
@@ -356,35 +344,31 @@ impl RuleWithLists<FloatWrapper> for FloatRules {
   const LIST_KIND: ListKind = ListKind::F32;
 
   fn lists<'a>(&'_ self) -> Lists<'_, FloatWrapper> {
-    let in_list = if !self.r#in.is_empty() {
+    let in_list = (!self.r#in.is_empty()).then(|| {
       let list: Vec<FloatWrapper> = self
         .r#in
         .iter()
         .map(|fl| FloatWrapper {
-          float: OrderedFloat(*fl as f64),
+          float: OrderedFloat(f64::from(*fl)),
           is_f32: true,
         })
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
-    let not_in_list = if !self.not_in.is_empty() {
+    let not_in_list = (!self.not_in.is_empty()).then(|| {
       let list: Vec<FloatWrapper> = self
         .not_in
         .iter()
         .map(|fl| FloatWrapper {
-          float: OrderedFloat(*fl as f64),
+          float: OrderedFloat(f64::from(*fl)),
           is_f32: true,
         })
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
     Lists {
       in_list,
@@ -397,7 +381,7 @@ impl RuleWithLists<FloatWrapper> for DoubleRules {
   const LIST_KIND: ListKind = ListKind::F64;
 
   fn lists<'a>(&'_ self) -> Lists<'_, FloatWrapper> {
-    let in_list = if !self.r#in.is_empty() {
+    let in_list = (!self.r#in.is_empty()).then(|| {
       let list: Vec<FloatWrapper> = self
         .r#in
         .iter()
@@ -407,12 +391,10 @@ impl RuleWithLists<FloatWrapper> for DoubleRules {
         })
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
-    let not_in_list = if !self.not_in.is_empty() {
+    let not_in_list = (!self.not_in.is_empty()).then(|| {
       let list: Vec<FloatWrapper> = self
         .not_in
         .iter()
@@ -422,10 +404,8 @@ impl RuleWithLists<FloatWrapper> for DoubleRules {
         })
         .collect();
 
-      Some(Cow::Owned(list))
-    } else {
-      None
-    };
+      Cow::Owned(list)
+    });
 
     Lists {
       in_list,

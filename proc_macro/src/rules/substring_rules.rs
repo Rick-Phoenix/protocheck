@@ -13,7 +13,7 @@ pub struct SubstringRules {
 }
 
 impl SubstringRules {
-  pub fn has_rule(&self) -> bool {
+  pub const fn has_rule(&self) -> bool {
     self.contains.is_some()
       || self.not_contains.is_some()
       || self.prefix.is_some()
@@ -29,20 +29,20 @@ impl RulesWithSubstring for StringRules {
   fn substring_rules(&self) -> SubstringRules {
     let contains = self.contains.as_ref().map(|v| SubstringRule {
       val_tokens: v.to_token_stream(),
-      error_message: format!("must contain the substring '{}'", v),
+      error_message: format!("must contain the substring '{v}'"),
     });
     let not_contains = self.not_contains.as_ref().map(|v| SubstringRule {
       val_tokens: v.to_token_stream(),
-      error_message: format!("must not contain the substring '{}'", v),
+      error_message: format!("must not contain the substring '{v}'"),
     });
 
     let prefix = self.prefix.as_ref().map(|v| SubstringRule {
       val_tokens: v.to_token_stream(),
-      error_message: format!("must start with '{}'", v),
+      error_message: format!("must start with '{v}'"),
     });
     let suffix = self.suffix.as_ref().map(|v| SubstringRule {
       val_tokens: v.to_token_stream(),
-      error_message: format!("must end with '{}'", v),
+      error_message: format!("must end with '{v}'"),
     });
 
     SubstringRules {

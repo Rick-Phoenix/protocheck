@@ -28,7 +28,7 @@ pub fn get_bytes_rules(
     .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if length_rules.has_rule() {
-    validation_data.get_length_validator(&mut tokens, length_rules);
+    validation_data.get_length_validator(&mut tokens, &length_rules);
   }
 
   let substring_rules = rules.substring_rules();

@@ -1,4 +1,4 @@
-use crate::{protovalidate::field_path_element::Subscript, ProtoType};
+use crate::{ProtoType, protovalidate::field_path_element::Subscript};
 
 /// The context for the field being validated.
 #[derive(Clone, Debug)]
@@ -12,7 +12,8 @@ pub struct FieldContext<'a> {
   pub field_kind: FieldKind,
 }
 
-impl<'a> FieldContext<'a> {
+impl FieldContext<'_> {
+  #[must_use]
   pub fn as_path_element(&self) -> FieldPathElement {
     FieldPathElement {
       field_number: Some(self.tag),
@@ -38,16 +39,19 @@ pub enum FieldKind {
 }
 
 impl FieldKind {
-  pub fn is_map_key(&self) -> bool {
-    matches!(self, FieldKind::MapKey)
+  #[must_use]
+  pub const fn is_map_key(&self) -> bool {
+    matches!(self, Self::MapKey)
   }
 
-  pub fn is_map_value(&self) -> bool {
-    matches!(self, FieldKind::MapValue)
+  #[must_use]
+  pub const fn is_map_value(&self) -> bool {
+    matches!(self, Self::MapValue)
   }
 
-  pub fn is_repeated_item(&self) -> bool {
-    matches!(self, FieldKind::RepeatedItem)
+  #[must_use]
+  pub const fn is_repeated_item(&self) -> bool {
+    matches!(self, Self::RepeatedItem)
   }
 }
 
@@ -55,7 +59,7 @@ impl FieldKind {
 use proc_macro2::TokenStream;
 use proto_types::protovalidate::FieldPathElement;
 #[cfg(feature = "totokens")]
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 
 #[cfg(feature = "totokens")]
 impl ToTokens for FieldKind {
@@ -63,12 +67,12 @@ impl ToTokens for FieldKind {
     let field_kind_path = quote! { ::protocheck::field_data::FieldKind };
 
     let variant_tokens = match self {
-      FieldKind::Map => quote! { Map },
-      FieldKind::MapKey => quote! { MapKey },
-      FieldKind::MapValue => quote! { MapValue },
-      FieldKind::Repeated => quote! { Repeated },
-      FieldKind::RepeatedItem => quote! { RepeatedItem },
-      FieldKind::Single => quote! { Single },
+      Self::Map => quote! { Map },
+      Self::MapKey => quote! { MapKey },
+      Self::MapValue => quote! { MapValue },
+      Self::Repeated => quote! { Repeated },
+      Self::RepeatedItem => quote! { RepeatedItem },
+      Self::Single => quote! { Single },
     };
 
     tokens.extend(quote! { #field_kind_path::#variant_tokens });

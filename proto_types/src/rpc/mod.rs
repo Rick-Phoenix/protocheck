@@ -35,13 +35,15 @@ mod http;
 mod rpc_cel_impls;
 
 /// The `Status` type defines a logical error model that is suitable for
-/// different programming environments, including REST APIs and RPC APIs. It is
+/// different programming environments, including REST APIs and RPC APIs.
+///
+/// It is
 /// used by [gRPC](<https://github.com/grpc>). Each `Status` message contains
 /// three pieces of data: error code, error message, and error details.
 ///
 /// You can find out more about this error model and how to work with it in the
 /// [API Design Guide](<https://cloud.google.com/apis/design/errors>).
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Status {
   /// The status code, which should be an enum value of
@@ -213,7 +215,8 @@ impl Code {
   ///
   /// The values are not transformed in any way and thus are considered stable
   /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-  pub fn as_str_name(&self) -> &'static str {
+  #[must_use]
+  pub const fn as_str_name(&self) -> &'static str {
     match self {
       Self::Ok => "OK",
       Self::Cancelled => "CANCELLED",
@@ -235,6 +238,7 @@ impl Code {
     }
   }
   /// Creates an enum from field names used in the ProtoBuf definition.
+  #[must_use]
   pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
     match value {
       "OK" => Some(Self::Ok),
@@ -262,14 +266,14 @@ impl Code {
 #[cfg(feature = "cel")]
 impl From<Status> for cel::Value {
   fn from(value: Status) -> Self {
-    let mut cel_map: std::collections::HashMap<cel::objects::Key, cel::Value> =
+    let mut cel_map: std::collections::HashMap<cel::objects::Key, Self> =
       std::collections::HashMap::new();
 
-    cel_map.insert("code".into(), cel::Value::Int(value.code.into()));
-    cel_map.insert("message".into(), cel::Value::String(value.message.into()));
+    cel_map.insert("code".into(), Self::Int(value.code.into()));
+    cel_map.insert("message".into(), Self::String(value.message.into()));
 
     cel_map.insert("details".into(), value.details.into());
 
-    cel::Value::Map(cel_map.into())
+    Self::Map(cel_map.into())
   }
 }

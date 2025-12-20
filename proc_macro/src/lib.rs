@@ -17,22 +17,22 @@ use pool_loader::DESCRIPTOR_POOL;
 use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use prost_reflect::{
-  prost::Message, DescriptorPool, DynamicMessage, EnumDescriptor, ExtensionDescriptor,
-  FieldDescriptor, Kind as ProstReflectKind, MessageDescriptor, OneofDescriptor, ReflectMessage,
-  Value as ProstValue,
+  DescriptorPool, DynamicMessage, EnumDescriptor, ExtensionDescriptor, FieldDescriptor,
+  Kind as ProstReflectKind, MessageDescriptor, OneofDescriptor, ReflectMessage,
+  Value as ProstValue, prost::Message,
 };
 use proto_types::{
+  Duration, Empty, FieldMask, FieldType, Timestamp,
   field_descriptor_proto::Type as ProtoType,
   protovalidate::{field_rules::Type as RulesType, *},
-  Duration, Empty, FieldMask, FieldType, Timestamp,
 };
 use protocheck_core::field_data::FieldKind;
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use regex::Regex;
 use syn::{
-  parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated, spanned::Spanned,
   Attribute, Error, Expr, Ident, Item, ItemEnum, ItemStruct, Lit, LitByteStr, LitStr, Meta, Path,
-  Token,
+  Token, parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated,
+  spanned::Spanned,
 };
 
 use crate::{
@@ -62,11 +62,11 @@ pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
 
   let result = match item {
     Item::Struct(s) => cel_try_into::derive_cel_value_struct(s),
-    Item::Enum(e) => cel_try_into::derive_cel_value_oneof(e),
+    Item::Enum(e) => cel_try_into::derive_cel_value_oneof(&e),
     _ => {
       return error!(item, "This macro only works on enums (oneofs) and structs")
         .into_compile_error()
-        .into()
+        .into();
     }
   };
 
@@ -89,13 +89,10 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
     None => {
       return Error::new_spanned(
         proto_message_name_tokens,
-        format!(
-          "Message {} not found in the descriptor pool",
-          proto_message_name
-        ),
+        format!("Message {proto_message_name} not found in the descriptor pool"),
       )
       .to_compile_error()
-      .into()
+      .into();
     }
   };
 
@@ -162,13 +159,10 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     None => {
       return Error::new_spanned(
         proto_oneof_name_tokens,
-        format!(
-          "Could not extract parent message and oneof name for {}",
-          oneof_full_name
-        ),
+        format!("Could not extract parent message and oneof name for {oneof_full_name}"),
       )
       .to_compile_error()
-      .into()
+      .into();
     }
   };
 
@@ -177,13 +171,10 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
     None => {
       return Error::new_spanned(
         item,
-        format!(
-          "Parent message {} not found for oneof {}",
-          parent_message_name, oneof_name
-        ),
+        format!("Parent message {parent_message_name} not found for oneof {oneof_name}"),
       )
       .to_compile_error()
-      .into()
+      .into();
     }
   };
 

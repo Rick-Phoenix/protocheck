@@ -1,10 +1,10 @@
 use prost::Name;
 
-use crate::{constants::PACKAGE_PREFIX, type_url_for, Empty};
+use crate::{Empty, constants::PACKAGE_PREFIX, type_url_for};
 
 impl From<()> for Empty {
-  fn from(_: ()) -> Self {
-    Empty {}
+  fn from((): ()) -> Self {
+    Self {}
   }
 }
 
@@ -22,7 +22,7 @@ impl Name for Empty {
 mod serde {
   use std::fmt;
 
-  use serde::{ser::SerializeStruct, Deserialize, Serialize};
+  use serde::{Deserialize, Serialize, ser::SerializeStruct};
 
   use crate::Empty;
   impl Serialize for Empty {
@@ -56,8 +56,7 @@ mod serde {
           // Ensure there are no unexpected fields in the map
           if let Some(key) = _map.next_key::<String>()? {
             return Err(serde::de::Error::custom(format!(
-              "Unexpected field in Empty message: {}",
-              key
+              "Unexpected field in Empty message: {key}"
             )));
           }
           Ok(Empty {})

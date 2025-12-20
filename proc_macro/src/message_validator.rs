@@ -85,9 +85,10 @@ pub fn extract_message_validators(
   // Field Rules
   for field in message_desc.fields() {
     if let Some(containing_oneof) = field.containing_oneof().as_ref()
-      && !containing_oneof.is_synthetic() {
-        continue;
-      }
+      && !containing_oneof.is_synthetic()
+    {
+      continue;
+    }
 
     let field_proto_name = field.name();
     let field_rust_name = proto_name_to_rust_name(field_proto_name);
@@ -106,7 +107,7 @@ pub fn extract_message_validators(
 
     let field_span = rust_field_spans
       .get(field_rust_name.as_ref())
-      .cloned()
+      .copied()
       .unwrap_or_else(Span::call_site);
 
     let field_rust_enum = enum_fields.get(field_rust_name.as_ref()).cloned();
@@ -121,7 +122,7 @@ pub fn extract_message_validators(
 
     if let ProstValue::Message(field_rules_msg) = field_rules_descriptor.as_ref() {
       let field_rules = FieldRules::decode(field_rules_msg.encode_to_vec().as_slice())
-        .map_err(|e| Error::new_spanned(item, format!("Could not decode field rules: {}", e)))?;
+        .map_err(|e| Error::new_spanned(item, format!("Could not decode field rules: {e}")))?;
 
       let ignore = field_rules.ignore();
       let is_required = field_rules.required() && field.supports_presence();
@@ -132,7 +133,8 @@ pub fn extract_message_validators(
 
       let mut validation_data = ValidationData {
         proto_name: field_proto_name,
-        tag: field_tag as i32,
+        // SAFETY: The maximum allowed number for tags is well below the wrapping range
+        tag: field_tag.cast_signed(),
         ignore,
         full_name: field.full_name(),
         is_required,
@@ -199,7 +201,7 @@ pub fn extract_message_validators(
         }
 
         if !field_validators.is_empty() {
-          field_validators = validation_data.get_aggregated_validator_tokens(field_validators);
+          field_validators = validation_data.get_aggregated_validator_tokens(&field_validators);
         } else if is_required {
           validation_data.get_required_only_validator(&mut field_validators);
         }
@@ -224,8 +226,8 @@ pub fn field_is_message(field_kind: &ProstReflectKind) -> bool {
     && !field_message_desc
       .full_name()
       .starts_with("google.")
-    {
-      return true;
-    }
+  {
+    return true;
+  }
   false
 }

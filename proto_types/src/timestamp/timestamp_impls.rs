@@ -34,36 +34,43 @@ mod chrono {
 
 impl Timestamp {
   /// Returns the current timestamp.
+  #[must_use] 
   pub fn now() -> Self {
     SystemTime::now().into()
   }
 
   /// Creates a new instance.
-  pub fn new(seconds: i64, nanos: i32) -> Self {
-    Timestamp { seconds, nanos }
+  #[must_use] 
+  pub const fn new(seconds: i64, nanos: i32) -> Self {
+    Self { seconds, nanos }
   }
 
   /// Checks whether the Timestamp instance is within the indicated range (positive or negative) from now.
+  #[must_use] 
   pub fn is_within_range_from_now(&self, range: Duration) -> bool {
-    (Timestamp::now() + range) >= *self && (Timestamp::now() - range) <= *self
+    (Self::now() + range) >= *self && (Self::now() - range) <= *self
   }
 
   /// Checks whether the Timestamp instance is within the indicated range in the future.
+  #[must_use] 
   pub fn is_within_future_range(&self, range: Duration) -> bool {
-    (Timestamp::now() + range) >= *self
+    (Self::now() + range) >= *self
   }
 
   /// Checks whether the Timestamp instance is within the indicated range in the past.
+  #[must_use] 
   pub fn is_within_past_range(&self, range: Duration) -> bool {
-    (Timestamp::now() - range) <= *self
+    (Self::now() - range) <= *self
   }
 
   /// Returns `true` if the timestamp is in the future.
+  #[must_use] 
   pub fn is_future(&self) -> bool {
     *self > Self::now()
   }
 
   /// Returns `true` if the timestamp is in the past.
+  #[must_use] 
   pub fn is_past(&self) -> bool {
     *self < Self::now()
   }

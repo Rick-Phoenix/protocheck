@@ -34,8 +34,7 @@ pub fn extract_oneof_variant_attrs(
                 _ => {}
               };
             }
-            Meta::Path(_) => {}
-            Meta::List(_) => {}
+            Meta::Path(_) | Meta::List(_) => {}
           };
         }
       }
@@ -54,15 +53,15 @@ pub fn extract_oneof_variant_attrs(
                   let map_attr = extract_string_lit(&nv.value)?;
 
                   if let Some(captures) = MAP_ENUM_REGEX.captures(&map_attr)
-                    && let Some(enum_name_match) = captures.get(1) {
-                      enum_path = Some(enum_name_match.as_str().to_string());
+                    && let Some(enum_name_match) = captures.get(1)
+                  {
+                    enum_path = Some(enum_name_match.as_str().to_string());
                   }
                 }
                 _ => {}
               };
             }
-            Meta::Path(_) => {}
-            Meta::List(_) => {}
+            Meta::Path(_) | Meta::List(_) => {}
           };
         }
       }

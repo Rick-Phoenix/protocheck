@@ -60,7 +60,7 @@ pub struct DescriptorProto {
   #[prost(message, repeated, tag = "6")]
   pub extension: ::prost::alloc::vec::Vec<FieldDescriptorProto>,
   #[prost(message, repeated, tag = "3")]
-  pub nested_type: ::prost::alloc::vec::Vec<DescriptorProto>,
+  pub nested_type: ::prost::alloc::vec::Vec<Self>,
   #[prost(message, repeated, tag = "4")]
   pub enum_type: ::prost::alloc::vec::Vec<EnumDescriptorProto>,
   #[prost(message, repeated, tag = "5")]
@@ -223,7 +223,8 @@ pub mod field_descriptor_proto {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::Double => "TYPE_DOUBLE",
         Self::Float => "TYPE_FLOAT",
@@ -246,6 +247,7 @@ pub mod field_descriptor_proto {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "TYPE_DOUBLE" => Some(Self::Double),
@@ -284,7 +286,8 @@ pub mod field_descriptor_proto {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::Optional => "LABEL_OPTIONAL",
         Self::Required => "LABEL_REQUIRED",
@@ -292,6 +295,7 @@ pub mod field_descriptor_proto {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "LABEL_OPTIONAL" => Some(Self::Optional),
@@ -393,7 +397,9 @@ pub struct MethodDescriptorProto {
   #[prost(bool, optional, tag = "6", default = "false")]
   pub server_streaming: ::core::option::Option<bool>,
 }
-/// Each of the definitions above may have "options" attached.  These are
+/// Each of the definitions above may have "options" attached.  
+///
+/// These are
 /// just annotations which may cause code to be generated slightly differently
 /// or may contain hints for code that manipulates protocol messages.
 ///
@@ -559,7 +565,8 @@ pub mod file_options {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::Speed => "SPEED",
         Self::CodeSize => "CODE_SIZE",
@@ -567,6 +574,7 @@ pub mod file_options {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "SPEED" => Some(Self::Speed),
@@ -735,7 +743,8 @@ pub mod field_options {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::String => "STRING",
         Self::Cord => "CORD",
@@ -743,6 +752,7 @@ pub mod field_options {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "STRING" => Some(Self::String),
@@ -768,7 +778,8 @@ pub mod field_options {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::JsNormal => "JS_NORMAL",
         Self::JsString => "JS_STRING",
@@ -776,6 +787,7 @@ pub mod field_options {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "JS_NORMAL" => Some(Self::JsNormal),
@@ -859,7 +871,9 @@ pub struct MethodOptions {
 /// Nested message and enum types in `MethodOptions`.
 pub mod method_options {
   /// Is this method side-effect-free (or safe in HTTP parlance), or idempotent,
-  /// or neither? HTTP based RPC implementation may choose GET verb for safe
+  /// or neither?
+  ///
+  /// HTTP based RPC implementation may choose GET verb for safe
   /// methods, and PUT verb for idempotent methods instead of the default POST.
 
   #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -876,7 +890,8 @@ pub mod method_options {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::IdempotencyUnknown => "IDEMPOTENCY_UNKNOWN",
         Self::NoSideEffects => "NO_SIDE_EFFECTS",
@@ -884,6 +899,7 @@ pub mod method_options {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "IDEMPOTENCY_UNKNOWN" => Some(Self::IdempotencyUnknown),
@@ -894,7 +910,9 @@ pub mod method_options {
     }
   }
 }
-/// A message representing a option the parser does not recognize. This only
+/// A message representing a option the parser does not recognize.
+///
+/// This only
 /// appears in options protos created by the compiler::Parser class.
 /// DescriptorPool resolves these when building Descriptor objects. Therefore,
 /// options protos in descriptor objects (e.g. returned by Descriptor::options(),
@@ -922,7 +940,9 @@ pub struct UninterpretedOption {
 }
 /// Nested message and enum types in `UninterpretedOption`.
 pub mod uninterpreted_option {
-  /// The name of the uninterpreted option.  Each string represents a segment in
+  /// The name of the uninterpreted option.  
+  ///
+  /// Each string represents a segment in
   /// a dot-separated name.  is_extension is true iff a segment represents an
   /// extension (denoted with parentheses in options specs in .proto files).
   /// E.g.,{ \["foo", false\], \["bar.baz", true\], \["qux", false\] } represents
@@ -939,7 +959,7 @@ pub mod uninterpreted_option {
 /// Encapsulates information about the original source file from which a
 /// FileDescriptorProto was generated.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct SourceCodeInfo {
   /// A Location identifies a piece of source code in a .proto file which
   /// corresponds to a particular definition.  This information is intended
@@ -1081,10 +1101,12 @@ pub mod source_code_info {
   }
 }
 /// Describes the relationship between generated code and its original source
-/// file. A GeneratedCodeInfo message is associated with only one generated
+/// file.
+///
+/// A GeneratedCodeInfo message is associated with only one generated
 /// source file, but may contain references to different source .proto files.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct GeneratedCodeInfo {
   /// An Annotation connects some span of text in generated code to an element
   /// of its generating .proto file.
@@ -1255,7 +1277,7 @@ pub struct SourceContext {
 }
 /// A protocol buffer message type.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct Type {
   /// The fully qualified message name.
   #[prost(string, tag = "1")]
@@ -1278,7 +1300,7 @@ pub struct Type {
 }
 /// A single field of a message type.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct Field {
   /// The field type.
   #[prost(enumeration = "field::Kind", tag = "1")]
@@ -1364,7 +1386,8 @@ pub mod field {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::TypeUnknown => "TYPE_UNKNOWN",
         Self::TypeDouble => "TYPE_DOUBLE",
@@ -1388,6 +1411,7 @@ pub mod field {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "TYPE_UNKNOWN" => Some(Self::TypeUnknown),
@@ -1432,7 +1456,8 @@ pub mod field {
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn as_str_name(&self) -> &'static str {
       match self {
         Self::Unknown => "CARDINALITY_UNKNOWN",
         Self::Optional => "CARDINALITY_OPTIONAL",
@@ -1441,6 +1466,7 @@ pub mod field {
       }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
+    #[must_use]
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
       match value {
         "CARDINALITY_UNKNOWN" => Some(Self::Unknown),
@@ -1454,7 +1480,7 @@ pub mod field {
 }
 /// Enum type definition.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct Enum {
   /// Enum type name.
   #[prost(string, tag = "1")]
@@ -1474,7 +1500,7 @@ pub struct Enum {
 }
 /// Enum value definition.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct EnumValue {
   /// Enum value name.
   #[prost(string, tag = "1")]
@@ -1519,13 +1545,15 @@ impl Syntax {
   ///
   /// The values are not transformed in any way and thus are considered stable
   /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-  pub fn as_str_name(&self) -> &'static str {
+  #[must_use]
+  pub const fn as_str_name(&self) -> &'static str {
     match self {
       Self::Proto2 => "SYNTAX_PROTO2",
       Self::Proto3 => "SYNTAX_PROTO3",
     }
   }
   /// Creates an enum from field names used in the ProtoBuf definition.
+  #[must_use]
   pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
     match value {
       "SYNTAX_PROTO2" => Some(Self::Proto2),
@@ -1544,7 +1572,7 @@ impl Syntax {
 /// this message itself. See <https://cloud.google.com/apis/design/glossary> for
 /// detailed terminology.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct Api {
   /// The fully qualified name of this interface, including package name
   /// followed by the interface's simple name.
@@ -1590,7 +1618,7 @@ pub struct Api {
 }
 /// Method represents a method of an API interface.
 
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, ::prost::Message)]
 pub struct Method {
   /// The simple name of this method.
   #[prost(string, tag = "1")]
@@ -1715,7 +1743,9 @@ pub struct Mixin {
 }
 /// A Duration represents a signed, fixed-length span of time represented
 /// as a count of seconds and fractions of seconds at nanosecond
-/// resolution. It is independent of any calendar and concepts like "day"
+/// resolution.
+///
+/// It is independent of any calendar and concepts like "day"
 /// or "month". It is related to Timestamp in that the difference between
 /// two Timestamp values is a Duration and it can be added or subtracted
 /// from a Timestamp. Range is approximately +-10,000 years.
@@ -2029,7 +2059,9 @@ pub struct FieldMask {
   pub paths: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// `Struct` represents a structured data value, consisting of fields
-/// which map to dynamically typed values. In some languages, `Struct`
+/// which map to dynamically typed values.
+///
+/// In some languages, `Struct`
 /// might be supported by a native representation. For example, in
 /// scripting languages like JS a struct is represented as an
 /// object. The details of that representation are described together
@@ -2046,7 +2078,9 @@ pub struct Struct {
 }
 /// `Value` represents a dynamically typed value which can be either
 /// null, a number, a string, a boolean, a recursive struct value, or a
-/// list of values. A producer of value is expected to set one of these
+/// list of values.
+///
+/// A producer of value is expected to set one of these
 /// variants. Absence of any variant indicates an error.
 ///
 /// The JSON representation for `Value` is JSON value.
@@ -2109,12 +2143,14 @@ impl NullValue {
   ///
   /// The values are not transformed in any way and thus are considered stable
   /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-  pub fn as_str_name(&self) -> &'static str {
+  #[must_use]
+  pub const fn as_str_name(&self) -> &'static str {
     match self {
       Self::NullValue => "NULL_VALUE",
     }
   }
   /// Creates an enum from field names used in the ProtoBuf definition.
+  #[must_use]
   pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
     match value {
       "NULL_VALUE" => Some(Self::NullValue),
@@ -2124,7 +2160,9 @@ impl NullValue {
 }
 /// A Timestamp represents a point in time independent of any time zone or local
 /// calendar, encoded as a count of seconds and fractions of seconds at
-/// nanosecond resolution. The count is relative to an epoch at UTC midnight on
+/// nanosecond resolution.
+///
+/// The count is relative to an epoch at UTC midnight on
 /// January 1, 1970, in the proleptic Gregorian calendar which extends the
 /// Gregorian calendar backwards to year one.
 ///
@@ -2254,7 +2292,9 @@ pub struct Timestamp {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated
-/// empty messages in your APIs. A typical example is to use it as the request
+/// empty messages in your APIs.
+///
+/// A typical example is to use it as the request
 /// or the response type of an API method. For instance:
 ///
 /// ```proto

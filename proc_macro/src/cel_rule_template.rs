@@ -16,14 +16,14 @@ pub enum CelRuleTemplateTarget<'a> {
 }
 
 impl CelRuleTemplateTarget<'_> {
-  pub fn span(&self) -> Span {
+  pub const fn span(&self) -> Span {
     match self {
       CelRuleTemplateTarget::Message { struct_span, .. } => *struct_span,
       CelRuleTemplateTarget::Field { field_span, .. } => *field_span,
     }
   }
 
-  pub fn get_validation_type(&self) -> &str {
+  pub const fn get_validation_type(&self) -> &str {
     match self {
       CelRuleTemplateTarget::Field { .. } => "field",
       CelRuleTemplateTarget::Message { .. } => "message",
@@ -39,7 +39,7 @@ impl CelRuleTemplateTarget<'_> {
     }
   }
 
-  pub fn get_idents(&self) -> (&Ident, &Ident) {
+  pub const fn get_idents(&self) -> (&Ident, &Ident) {
     match self {
       CelRuleTemplateTarget::Field {
         validation_data, ..

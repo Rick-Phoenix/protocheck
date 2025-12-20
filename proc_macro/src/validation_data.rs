@@ -1,5 +1,6 @@
 use crate::*;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub(crate) struct ValidationData<'a> {
   pub full_name: &'a str,
@@ -100,7 +101,7 @@ impl ValidationData<'_> {
     }
   }
 
-  pub fn get_length_validator(&self, tokens: &mut TokenStream2, rules: LengthRules) {
+  pub fn get_length_validator(&self, tokens: &mut TokenStream2, rules: &LengthRules) {
     let value_ident = self.value_ident();
     let field_context_ident = self.field_context_ident();
     let parent_messages_ident = self.parent_messages_ident;
@@ -174,7 +175,7 @@ impl ValidationData<'_> {
     });
 
     let validator_type_ident = format_ident!("{}", self.proto_type.name());
-    let error_message = format!("must match the following regex: `{}`", regex);
+    let error_message = format!("must match the following regex: `{regex}`");
 
     let validator_expression_tokens = quote! {
       ::protocheck::validators::#validator_type_ident::pattern(&#field_context_ident, &#parent_messages_ident, #value_ident, &REGEX, #error_message)
@@ -364,7 +365,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn field_context_ident(&self) -> &Ident {
+  pub const fn field_context_ident(&self) -> &Ident {
     // These must be different because a map might have validators for keys, values and
     // for the map as a whole, with separate contexts
 
@@ -539,7 +540,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn get_aggregated_validator_tokens(&self, validators: TokenStream2) -> TokenStream2 {
+  pub fn get_aggregated_validator_tokens(&self, validators: &TokenStream2) -> TokenStream2 {
     let field_context_tokens = self.field_context_tokens(self.field_kind, self.field_context_ident);
     let required_check = self.get_required_validation_tokens();
     let field_ident = self.item_rust_ident;
@@ -561,14 +562,14 @@ impl ValidationData<'_> {
       };
 
       if matches!(self.ignore, Ignore::IfZeroValue) && !self.is_in_oneof {
-        self.wrap_with_default_value_check(validation_tokens)
+        self.wrap_with_default_value_check(&validation_tokens)
       } else {
         validation_tokens
       }
     }
   }
 
-  pub fn wrap_with_default_value_check(&self, validators: TokenStream2) -> TokenStream2 {
+  pub fn wrap_with_default_value_check(&self, validators: &TokenStream2) -> TokenStream2 {
     let value_ident = self.value_ident();
 
     let default_check = match self.proto_type {
@@ -600,7 +601,7 @@ impl ValidationData<'_> {
     });
   }
 
-  pub fn is_option(&self) -> bool {
+  pub const fn is_option(&self) -> bool {
     self.is_optional && !self.is_in_oneof
   }
 
@@ -613,7 +614,7 @@ impl ValidationData<'_> {
 
       FieldKind::MapKey | FieldKind::MapValue => {
         if let Some(key_type) = self.map_keys_type {
-          let key_subscript_tokens = generate_key_subscript(&key_type, self.map_key_ident);
+          let key_subscript_tokens = generate_key_subscript(key_type, self.map_key_ident);
           quote! { Some(#key_subscript_tokens) }
         } else {
           let error = Error::new(
@@ -662,31 +663,28 @@ impl ValidationData<'_> {
       };
 
       let ident_is_ref = match &self.field_kind {
-        FieldKind::Map => false,
-        FieldKind::Repeated => false,
-        FieldKind::MapKey => true,
-        FieldKind::MapValue => true,
-        FieldKind::RepeatedItem => true,
+        FieldKind::Map | FieldKind::Repeated => false,
+        FieldKind::MapKey | FieldKind::MapValue | FieldKind::RepeatedItem => true,
         FieldKind::Single => self.is_optional || self.is_in_oneof,
       };
 
-      if ident_is_ref && type_is_copy(&self.field_kind, &self.proto_type) {
+      if ident_is_ref && type_is_copy(self.field_kind, self.proto_type) {
         base_ident = quote! { (*#base_ident) }
       }
 
       match &self.proto_type {
-        FieldType::Double => base_ident,
-        FieldType::Float => base_ident,
-        FieldType::Int64 => base_ident,
-        FieldType::Uint64 => base_ident,
-        FieldType::Int32 => base_ident,
-        FieldType::Bool => base_ident,
-        FieldType::Uint32 => base_ident,
-        FieldType::Group => base_ident,
-        FieldType::Message => base_ident,
-        FieldType::Duration => base_ident,
-        FieldType::Timestamp => base_ident,
-        FieldType::Any => base_ident,
+        FieldType::Double
+        | FieldType::Float
+        | FieldType::Int64
+        | FieldType::Uint64
+        | FieldType::Int32
+        | FieldType::Bool
+        | FieldType::Uint32
+        | FieldType::Group
+        | FieldType::Message
+        | FieldType::Duration
+        | FieldType::Timestamp
+        | FieldType::Any => base_ident,
         FieldType::Bytes => quote! { &#base_ident },
         FieldType::String => quote! { #base_ident.as_str() },
         FieldType::Fixed64 => quote! { protocheck::wrappers::Fixed64(#base_ident) },
@@ -701,7 +699,7 @@ impl ValidationData<'_> {
   }
 }
 
-fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident) -> TokenStream2 {
+fn generate_key_subscript(key_proto_type: ProtoType, key_ident: &Ident) -> TokenStream2 {
   let subscript_path = quote! { ::protocheck::types::protovalidate::field_path_element::Subscript };
 
   match key_proto_type {
@@ -724,7 +722,7 @@ fn generate_key_subscript(key_proto_type: &ProtoType, key_ident: &Ident) -> Toke
   }
 }
 
-fn type_is_copy(field_kind: &FieldKind, field_type: &FieldType) -> bool {
+const fn type_is_copy(field_kind: FieldKind, field_type: FieldType) -> bool {
   if matches!(field_kind, FieldKind::Map | FieldKind::Repeated) {
     false
   } else {

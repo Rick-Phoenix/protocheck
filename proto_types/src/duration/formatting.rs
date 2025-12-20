@@ -39,7 +39,7 @@ impl Display for Duration {
         }
       };
 
-      write!(f, "{}", formatted_string)
+      write!(f, "{formatted_string}")
     }
   }
 }

@@ -14,7 +14,7 @@ impl Any {
 
     Message::encode(msg, &mut value)?;
 
-    Ok(Any { type_url, value })
+    Ok(Self { type_url, value })
   }
 
   /// Decode the given message type `M` from [`Any`], validating that it has

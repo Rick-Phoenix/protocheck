@@ -30,14 +30,14 @@ pub fn get_string_rules(
     .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if length_rules.has_rule() {
-    validation_data.get_length_validator(&mut tokens, length_rules);
+    validation_data.get_length_validator(&mut tokens, &length_rules);
   }
 
   let bytes_length_rules =
     string_bytes_length_rules(rules).map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if bytes_length_rules.has_rule() {
-    validation_data.get_length_validator(&mut tokens, bytes_length_rules);
+    validation_data.get_length_validator(&mut tokens, &bytes_length_rules);
   }
 
   let substring_rules = rules.substring_rules();
@@ -51,7 +51,7 @@ pub fn get_string_rules(
       get_field_error(
         field_name,
         field_span,
-        &format!("invalid regex pattern: {}", e),
+        &format!("invalid regex pattern: {e}"),
       )
     })?;
 

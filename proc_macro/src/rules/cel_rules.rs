@@ -13,7 +13,7 @@ pub fn get_cel_rules_checked(
 
 #[cfg(feature = "cel")]
 mod cel_validator {
-  use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
+  use cel::{Context, Program, Value as CelValue, objects::Key as CelKey};
 
   use crate::*;
 
@@ -38,8 +38,7 @@ mod cel_validator {
     let validation_type = rule_target.get_validation_type();
     let target_name = rule_target.get_full_name();
 
-    let compilation_error_msg =
-      format!("Cel program error for {} {}", validation_type, target_name);
+    let compilation_error_msg = format!("Cel program error for {validation_type} {target_name}");
 
     let (parent_messages_ident, violations_ident) = rule_target.get_idents();
 
@@ -186,15 +185,14 @@ mod cel_validator {
   ) -> Result<CelValue, Error> {
     match prost_value {
       ProstValue::F64(v) => Ok(CelValue::Float(*v)),
-      ProstValue::F32(v) => Ok(CelValue::Float(*v as f64)),
-      ProstValue::I32(v) => Ok(CelValue::Int(*v as i64)),
+      ProstValue::F32(v) => Ok(CelValue::Float(f64::from(*v))),
+      ProstValue::I32(v) | ProstValue::EnumNumber(v) => Ok(CelValue::Int(i64::from(*v))),
       ProstValue::I64(v) => Ok(CelValue::Int(*v)),
-      ProstValue::U32(v) => Ok(CelValue::UInt(*v as u64)),
+      ProstValue::U32(v) => Ok(CelValue::UInt(u64::from(*v))),
       ProstValue::U64(v) => Ok(CelValue::UInt(*v)),
       ProstValue::Bool(v) => Ok(CelValue::Bool(*v)),
-      ProstValue::String(v) => Ok(CelValue::String(Arc::new(v.to_string()))),
+      ProstValue::String(v) => Ok(CelValue::String(Arc::new(v.clone()))),
       ProstValue::Bytes(v) => Ok(CelValue::Bytes(Arc::new(v.to_vec()))),
-      ProstValue::EnumNumber(v) => Ok(CelValue::Int(*v as i64)),
       ProstValue::List(list_values) => {
         let cel_elements: Result<Vec<CelValue>, Error> = list_values
           .iter()
@@ -209,9 +207,9 @@ mod cel_validator {
         for (key, val) in map_values.iter() {
           let cel_key = match key {
             prost_reflect::MapKey::String(s) => CelKey::String(Arc::new(s.clone())),
-            prost_reflect::MapKey::I32(v) => CelKey::Int(*v as i64),
+            prost_reflect::MapKey::I32(v) => CelKey::Int(i64::from(*v)),
             prost_reflect::MapKey::I64(v) => CelKey::Int(*v),
-            prost_reflect::MapKey::U32(v) => CelKey::Uint(*v as u64),
+            prost_reflect::MapKey::U32(v) => CelKey::Uint(u64::from(*v)),
             prost_reflect::MapKey::U64(v) => CelKey::Uint(*v),
             prost_reflect::MapKey::Bool(v) => CelKey::Bool(*v),
           };

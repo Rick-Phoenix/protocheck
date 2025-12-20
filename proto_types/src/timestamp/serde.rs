@@ -36,7 +36,7 @@ impl<'de> de::Deserialize<'de> for Timestamp {
       {
         let datetime = value
           .parse::<Timestamp>()
-          .map_err(|e| de::Error::custom(format!("Invalid timestamp string format: {}", e)))?;
+          .map_err(|e| de::Error::custom(format!("Invalid timestamp string format: {e}")))?;
 
         let prost_timestamp = Timestamp {
           seconds: datetime.seconds,

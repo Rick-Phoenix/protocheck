@@ -3,7 +3,7 @@ use crate::Duration;
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
-  use quote::{quote, ToTokens};
+  use quote::{ToTokens, quote};
 
   use crate::Duration;
 
@@ -38,7 +38,7 @@ impl std::cmp::Ord for Duration {
 mod serde {
   use core::fmt;
 
-  use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+  use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
   use crate::Duration;
   impl Serialize for Duration {
@@ -53,13 +53,13 @@ mod serde {
 
       let formatted_string = if nanos == 0 {
         // If nanos are zero, just "Xs"
-        format!("{}s", seconds)
+        format!("{seconds}s")
       } else {
-        let fractional_seconds_str = format!("{:09}", nanos);
+        let fractional_seconds_str = format!("{nanos:09}");
 
         let trimmed_fractional_seconds = fractional_seconds_str.trim_end_matches('0');
 
-        format!("{}.{}s", seconds, trimmed_fractional_seconds)
+        format!("{seconds}.{trimmed_fractional_seconds}s")
       };
 
       serializer.serialize_str(&formatted_string)
@@ -67,7 +67,7 @@ mod serde {
   }
 
   impl<'de> Deserialize<'de> for Duration {
-    fn deserialize<D>(deserializer: D) -> Result<Duration, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
       D: Deserializer<'de>,
     {
@@ -101,7 +101,7 @@ mod serde {
           let nanos: i32 = match parts.next() {
             Some(fraction) => {
               let mut fraction_str = fraction.to_string(); // Need to own it for modification
-                                                           // Pad fraction to 9 digits (nanoseconds)
+              // Pad fraction to 9 digits (nanoseconds)
               if fraction_str.len() > 9 {
                 // Handle too many fractional digits
                 return Err(de::Error::custom(format!(

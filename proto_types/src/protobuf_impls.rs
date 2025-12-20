@@ -1,14 +1,14 @@
 #[cfg(feature = "serde")]
 mod serde {
-  use base64::{prelude::BASE64_STANDARD, Engine};
+  use base64::{Engine, prelude::BASE64_STANDARD};
   use prost::bytes::Bytes;
   use serde::{
+    Deserialize, Deserializer, Serialize,
     de::{self, MapAccess, SeqAccess, Visitor},
     ser::Serializer,
-    Deserialize, Deserializer, Serialize,
   };
 
-  use crate::{value::Kind, BytesValue, ListValue, NullValue, Struct, Value};
+  use crate::{BytesValue, ListValue, NullValue, Struct, Value, value::Kind};
 
   impl Serialize for ListValue {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -25,7 +25,7 @@ mod serde {
       D: de::Deserializer<'de>,
     {
       let values = <::prost::alloc::vec::Vec<Value>>::deserialize(deserializer)?;
-      Ok(ListValue { values })
+      Ok(Self { values })
     }
   }
 
@@ -135,7 +135,7 @@ mod serde {
     {
       struct BytesValueVisitor;
 
-      impl<'de> Visitor<'de> for BytesValueVisitor {
+      impl Visitor<'_> for BytesValueVisitor {
         type Value = BytesValue;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -163,7 +163,7 @@ mod serde {
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
-  use quote::{quote, ToTokens};
+  use quote::{ToTokens, quote};
 
   use crate::field_descriptor_proto::Type as ProtoType;
 
@@ -172,24 +172,24 @@ mod totokens {
       let path = quote! { ::protocheck::types::field_descriptor_proto::Type };
 
       match self {
-        ProtoType::Double => tokens.extend(quote! { #path::Double }),
-        ProtoType::Float => tokens.extend(quote! { #path::Float }),
-        ProtoType::Int64 => tokens.extend(quote! { #path::Int64 }),
-        ProtoType::Uint64 => tokens.extend(quote! { #path::Uint64 }),
-        ProtoType::Int32 => tokens.extend(quote! { #path::Int32 }),
-        ProtoType::Fixed64 => tokens.extend(quote! { #path::Fixed64 }),
-        ProtoType::Fixed32 => tokens.extend(quote! { #path::Fixed32 }),
-        ProtoType::Bool => tokens.extend(quote! { #path::Bool }),
-        ProtoType::String => tokens.extend(quote! { #path::String }),
-        ProtoType::Group => tokens.extend(quote! { #path::Group }),
-        ProtoType::Message => tokens.extend(quote! { #path::Message }),
-        ProtoType::Bytes => tokens.extend(quote! { #path::Bytes }),
-        ProtoType::Uint32 => tokens.extend(quote! { #path::Uint32 }),
-        ProtoType::Enum => tokens.extend(quote! { #path::Enum }),
-        ProtoType::Sfixed32 => tokens.extend(quote! { #path::Sfixed32 }),
-        ProtoType::Sfixed64 => tokens.extend(quote! { #path::Sfixed64 }),
-        ProtoType::Sint32 => tokens.extend(quote! { #path::Sint32 }),
-        ProtoType::Sint64 => tokens.extend(quote! { #path::Sint64 }),
+        Self::Double => tokens.extend(quote! { #path::Double }),
+        Self::Float => tokens.extend(quote! { #path::Float }),
+        Self::Int64 => tokens.extend(quote! { #path::Int64 }),
+        Self::Uint64 => tokens.extend(quote! { #path::Uint64 }),
+        Self::Int32 => tokens.extend(quote! { #path::Int32 }),
+        Self::Fixed64 => tokens.extend(quote! { #path::Fixed64 }),
+        Self::Fixed32 => tokens.extend(quote! { #path::Fixed32 }),
+        Self::Bool => tokens.extend(quote! { #path::Bool }),
+        Self::String => tokens.extend(quote! { #path::String }),
+        Self::Group => tokens.extend(quote! { #path::Group }),
+        Self::Message => tokens.extend(quote! { #path::Message }),
+        Self::Bytes => tokens.extend(quote! { #path::Bytes }),
+        Self::Uint32 => tokens.extend(quote! { #path::Uint32 }),
+        Self::Enum => tokens.extend(quote! { #path::Enum }),
+        Self::Sfixed32 => tokens.extend(quote! { #path::Sfixed32 }),
+        Self::Sfixed64 => tokens.extend(quote! { #path::Sfixed64 }),
+        Self::Sint32 => tokens.extend(quote! { #path::Sint32 }),
+        Self::Sint64 => tokens.extend(quote! { #path::Sint64 }),
       }
     }
   }

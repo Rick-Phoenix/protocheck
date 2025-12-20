@@ -1,12 +1,12 @@
 use serde::{
+  Deserialize, Deserializer, Serialize,
   de::{self, MapAccess, Visitor},
   ser::{SerializeMap, Serializer},
-  Deserialize, Deserializer, Serialize,
 };
 
 use crate::{
-  common::{CalendarPeriod, Month},
   DayOfWeek,
+  common::{CalendarPeriod, Month},
 };
 
 impl Serialize for CalendarPeriod {
@@ -25,7 +25,7 @@ impl<'de> Deserialize<'de> for CalendarPeriod {
   {
     struct CalendarPeriodVisitor;
 
-    impl<'de> Visitor<'de> for CalendarPeriodVisitor {
+    impl Visitor<'_> for CalendarPeriodVisitor {
       type Value = CalendarPeriod;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -37,7 +37,7 @@ impl<'de> Deserialize<'de> for CalendarPeriod {
         E: de::Error,
       {
         CalendarPeriod::from_str_name(v)
-          .ok_or_else(|| E::custom(format!("unknown CalendarPeriod variant: {}", v)))
+          .ok_or_else(|| E::custom(format!("unknown CalendarPeriod variant: {v}")))
       }
     }
 
@@ -144,7 +144,7 @@ impl<'de> Deserialize<'de> for crate::DateTime {
           _ => {
             return Err(de::Error::custom(
               "found 'utcOffset' and 'timeZone', expected only one",
-            ))
+            ));
           }
         };
 
@@ -191,7 +191,7 @@ impl<'de> Deserialize<'de> for crate::Date {
   {
     struct DateVisitor;
 
-    impl<'de> Visitor<'de> for DateVisitor {
+    impl Visitor<'_> for DateVisitor {
       type Value = crate::Date;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -206,8 +206,7 @@ impl<'de> Deserialize<'de> for crate::Date {
 
         if parts.len() != 3 {
           return Err(E::custom(format!(
-            "invalid date format: {}, expected YYYY-MM-DD",
-            v
+            "invalid date format: {v}, expected YYYY-MM-DD"
           )));
         }
 
@@ -216,10 +215,10 @@ impl<'de> Deserialize<'de> for crate::Date {
         let day = parts[2].parse::<i32>().map_err(E::custom)?;
 
         if !(1..=12).contains(&month) {
-          return Err(E::custom(format!("invalid month: {}", month)));
+          return Err(E::custom(format!("invalid month: {month}")));
         }
         if !(1..=31).contains(&day) {
-          return Err(E::custom(format!("invalid day: {}", day)));
+          return Err(E::custom(format!("invalid day: {day}")));
         }
 
         Ok(crate::Date { year, month, day })
@@ -246,7 +245,7 @@ impl<'de> Deserialize<'de> for DayOfWeek {
   {
     struct DayOfWeekVisitor;
 
-    impl<'de> Visitor<'de> for DayOfWeekVisitor {
+    impl Visitor<'_> for DayOfWeekVisitor {
       type Value = DayOfWeek;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -258,7 +257,7 @@ impl<'de> Deserialize<'de> for DayOfWeek {
         E: de::Error,
       {
         DayOfWeek::from_str_name(v)
-          .ok_or_else(|| E::custom(format!("unknown DayOfWeek variant: {}", v)))
+          .ok_or_else(|| E::custom(format!("unknown DayOfWeek variant: {v}")))
       }
     }
 
@@ -282,7 +281,7 @@ impl<'de> Deserialize<'de> for Month {
   {
     struct MonthVisitor;
 
-    impl<'de> Visitor<'de> for MonthVisitor {
+    impl Visitor<'_> for MonthVisitor {
       type Value = Month;
 
       fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -293,7 +292,7 @@ impl<'de> Deserialize<'de> for Month {
       where
         E: de::Error,
       {
-        Month::from_str_name(v).ok_or_else(|| E::custom(format!("unknown Month variant: {}", v)))
+        Month::from_str_name(v).ok_or_else(|| E::custom(format!("unknown Month variant: {v}")))
       }
     }
 

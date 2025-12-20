@@ -5,7 +5,7 @@ use crate::{protobuf::Value, value, String, Vec};
 
 impl From<value::Kind> for Value {
   fn from(value: value::Kind) -> Self {
-    Value { kind: Some(value) }
+    Self { kind: Some(value) }
   }
 }
 
@@ -53,14 +53,14 @@ impl From<&str> for Value {
   }
 }
 
-impl From<Vec<Value>> for Value {
-  fn from(value: Vec<Value>) -> Self {
+impl From<Vec<Self>> for Value {
+  fn from(value: Vec<Self>) -> Self {
     value::Kind::ListValue(crate::protobuf::ListValue { values: value }).into()
   }
 }
 
-impl From<BTreeMap<String, Value>> for Value {
-  fn from(value: BTreeMap<String, Value>) -> Self {
+impl From<BTreeMap<String, Self>> for Value {
+  fn from(value: BTreeMap<String, Self>) -> Self {
     value::Kind::StructValue(crate::protobuf::Struct { fields: value }).into()
   }
 }

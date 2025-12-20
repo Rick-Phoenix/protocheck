@@ -1,14 +1,17 @@
 use crate::FieldMask;
 
 impl FieldMask {
-  pub fn new(paths: Vec<String>) -> Self {
-    FieldMask { paths }
+  #[must_use] 
+  pub const fn new(paths: Vec<String>) -> Self {
+    Self { paths }
   }
 
-  pub fn is_empty(&self) -> bool {
+  #[must_use] 
+  pub const fn is_empty(&self) -> bool {
     self.paths.is_empty()
   }
 
+  #[must_use] 
   pub fn contains(&self, path: &str) -> bool {
     self.paths.iter().any(|p| p == path)
   }

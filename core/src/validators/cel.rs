@@ -3,8 +3,9 @@ use chrono::Utc;
 use proto_types::cel::CelConversionError;
 
 use super::*;
-use crate::protovalidate::{violations_data::CEL_VIOLATION, Violation};
+use crate::protovalidate::{Violation, violations_data::CEL_VIOLATION};
 
+#[derive(Clone, Copy)]
 pub struct CelRule {
   pub id: &'static str,
   pub error_message: &'static str,

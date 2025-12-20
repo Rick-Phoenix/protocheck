@@ -9,10 +9,9 @@ impl<T> ComparableLessThan<T>
 where
   T: Copy + ComparableError,
 {
-  pub fn value(&self) -> T {
+  pub const fn value(&self) -> T {
     match self {
-      Self::Lte(val) => *val,
-      Self::Lt(val) => *val,
+      Self::Lte(val) | Self::Lt(val) => *val,
     }
   }
 
@@ -21,8 +20,8 @@ where
     let smaller_adjective = T::smaller_adjective();
 
     match self {
-      ComparableLessThan::Lt(_) => format!("must be {smaller_adjective} than {value_str}"),
-      ComparableLessThan::Lte(_) => {
+      Self::Lt(_) => format!("must be {smaller_adjective} than {value_str}"),
+      Self::Lte(_) => {
         format!("must be {smaller_adjective} than or equal to {value_str}")
       }
     }
@@ -33,10 +32,9 @@ impl<T> ComparableGreaterThan<T>
 where
   T: Copy + ComparableError,
 {
-  pub fn value(&self) -> T {
+  pub const fn value(&self) -> T {
     match self {
-      Self::Gte(val) => *val,
-      Self::Gt(val) => *val,
+      Self::Gte(val) | Self::Gt(val) => *val,
     }
   }
 
@@ -45,8 +43,8 @@ where
     let greater_adjective = T::greater_adjective();
 
     match self {
-      ComparableGreaterThan::Gt(_) => format!("must be {greater_adjective} than {value_str}"),
-      ComparableGreaterThan::Gte(_) => {
+      Self::Gt(_) => format!("must be {greater_adjective} than {value_str}"),
+      Self::Gte(_) => {
         format!("must be {greater_adjective} than or equal to {value_str}")
       }
     }
@@ -112,38 +110,39 @@ where
 {
   pub fn validate(self) -> Result<Self, &'static str> {
     if let Some(ref gt_rule) = self.greater_than
-      && let Some(ref lt_rule) = self.less_than {
-        match gt_rule {
-          ComparableGreaterThan::Gte (gte_val) => {
-            match lt_rule {
-              ComparableLessThan::Lte (lte_val) => {
-                if lte_val < gte_val {
-                  return Err("Lte cannot be smaller than Gte");
-                }
+      && let Some(ref lt_rule) = self.less_than
+    {
+      match gt_rule {
+        ComparableGreaterThan::Gte(gte_val) => {
+          match lt_rule {
+            ComparableLessThan::Lte(lte_val) => {
+              if lte_val < gte_val {
+                return Err("Lte cannot be smaller than Gte");
               }
-              ComparableLessThan::Lt (lt_val) => {
-                if lt_val <= gte_val {
-                  return Err("Lt cannot be smaller than Gte");
-                }
+            }
+            ComparableLessThan::Lt(lt_val) => {
+              if lt_val <= gte_val {
+                return Err("Lt cannot be smaller than Gte");
               }
-            };
-          }
-          ComparableGreaterThan::Gt (gt_val) => {
-            match lt_rule {
-              ComparableLessThan::Lte (lte_val) => {
-                if lte_val <= gt_val {
-                  return Err("Lte cannot be smaller than or equal to Gt");
-                }
+            }
+          };
+        }
+        ComparableGreaterThan::Gt(gt_val) => {
+          match lt_rule {
+            ComparableLessThan::Lte(lte_val) => {
+              if lte_val <= gt_val {
+                return Err("Lte cannot be smaller than or equal to Gt");
               }
-              ComparableLessThan::Lt (lt_val) => {
-                if lt_val <= gt_val {
-                  return Err("Lt cannot be smaller than or equal to Gt");
-                }
+            }
+            ComparableLessThan::Lt(lt_val) => {
+              if lt_val <= gt_val {
+                return Err("Lt cannot be smaller than or equal to Gt");
               }
-            };
-          }
-        };
-      }
+            }
+          };
+        }
+      };
+    }
     Ok(self)
   }
 }
@@ -159,10 +158,13 @@ where
 
 impl RulesWithComparables<Duration> for DurationRules {
   fn comparable_rules(&self) -> ComparableRules<Duration> {
-    let less_than = self.less_than.as_ref().map(|less_than| match less_than {
-      duration_rules::LessThan::Lt(v) => ComparableLessThan::Lt(*v),
-      duration_rules::LessThan::Lte(v) => ComparableLessThan::Lte(*v),
-    });
+    let less_than = self
+      .less_than
+      .as_ref()
+      .map(|less_than| match less_than {
+        duration_rules::LessThan::Lt(v) => ComparableLessThan::Lt(*v),
+        duration_rules::LessThan::Lte(v) => ComparableLessThan::Lte(*v),
+      });
 
     let greater_than = self
       .greater_than

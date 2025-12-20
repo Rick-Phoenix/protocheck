@@ -77,7 +77,7 @@ pub fn get_field_rules(
       if let ProstReflectKind::Enum(enum_descriptor) = &field_proto_kind {
         match field_rust_enum {
           Some(enum_ident) => {
-            let rules = get_enum_rules(enum_ident, enum_descriptor, validation_data, enum_rules)?;
+            let rules = get_enum_rules(&enum_ident, enum_descriptor, validation_data, enum_rules)?;
             rules_tokens.extend(rules);
           }
           None => error = Some("could not find enum field ident"),
@@ -156,7 +156,7 @@ pub fn get_field_type(field_desc: &FieldDescriptor) -> FieldType {
   }
 }
 
-pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
+pub const fn convert_kind_to_proto_type(kind: &ProstReflectKind) -> ProtoType {
   match kind {
     ProstReflectKind::Double => ProtoType::Double,
     ProstReflectKind::Float => ProtoType::Float,
@@ -178,19 +178,12 @@ pub fn convert_kind_to_proto_type(kind: ProstReflectKind) -> ProtoType {
   }
 }
 
-pub fn get_plural_suffix(items: u64) -> &'static str {
-  if items != 1 {
-    "s"
-  } else {
-    ""
-  }
+pub const fn get_plural_suffix(items: u64) -> &'static str {
+  if items == 1 { "" } else { "s" }
 }
 
 pub fn get_field_error(field_name: &str, field_span: Span, error: &str) -> Error {
-  Error::new(
-    field_span,
-    format!("Error for field {}: {}", field_name, error),
-  )
+  Error::new(field_span, format!("Error for field {field_name}: {error}"))
 }
 
 pub fn rules_match_type(
@@ -216,14 +209,16 @@ pub fn rules_match_type(
     RulesType::String(_) => FieldType::String,
     RulesType::Bytes(_) => FieldType::Bytes,
     RulesType::Enum(_) => FieldType::Enum,
-    RulesType::Repeated(_) => return Ok(()),
-    RulesType::Map(_) => return Ok(()),
-    RulesType::Any(_) => return Ok(()),
-    RulesType::Duration(_) => return Ok(()),
-    RulesType::Timestamp(_) => return Ok(()),
+    RulesType::Repeated(_)
+    | RulesType::Map(_)
+    | RulesType::Any(_)
+    | RulesType::Duration(_)
+    | RulesType::Timestamp(_) => return Ok(()),
   };
 
-  if matching_type != field_type {
+  if matching_type == field_type {
+    Ok(())
+  } else {
     bail_spanned!(
       field_span,
       get_field_error(
@@ -232,7 +227,5 @@ pub fn rules_match_type(
         &format!("wrong rule type. Expected {matching_type:?}, found {field_type:?}")
       )
     )
-  } else {
-    Ok(())
   }
 }

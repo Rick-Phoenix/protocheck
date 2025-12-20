@@ -12,11 +12,10 @@ pub use violations::*;
 impl Display for Subscript {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Subscript::Index(val) => write!(f, "{}", val),
-      Subscript::BoolKey(val) => write!(f, "{}", val),
-      Subscript::IntKey(val) => write!(f, "{}", val),
-      Subscript::UintKey(val) => write!(f, "{}", val),
-      Subscript::StringKey(val) => write!(f, "{}", val),
+      Self::BoolKey(val) => write!(f, "{val}"),
+      Self::IntKey(val) => write!(f, "{val}"),
+      Self::Index(val) | Self::UintKey(val) => write!(f, "{val}"),
+      Self::StringKey(val) => write!(f, "{val}"),
     }
   }
 }
@@ -24,18 +23,18 @@ impl Display for Subscript {
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
-  use quote::{quote, ToTokens};
+  use quote::{ToTokens, quote};
 
-  use crate::protovalidate::{field_path_element::Subscript, FieldPathElement, Ignore};
+  use crate::protovalidate::{FieldPathElement, Ignore, field_path_element::Subscript};
 
   impl ToTokens for Ignore {
     fn to_tokens(&self, tokens: &mut TokenStream) {
       let path = quote! { ::protocheck::types::protovalidate::Ignore };
 
       match self {
-        Ignore::Unspecified => tokens.extend(quote! { #path::Unspecified }),
-        Ignore::IfZeroValue => tokens.extend(quote! { #path::IfZeroValue }),
-        Ignore::Always => tokens.extend(quote! { #path::Always }),
+        Self::Unspecified => tokens.extend(quote! { #path::Unspecified }),
+        Self::IfZeroValue => tokens.extend(quote! { #path::IfZeroValue }),
+        Self::Always => tokens.extend(quote! { #path::Always }),
       }
     }
   }
@@ -43,27 +42,27 @@ mod totokens {
   impl ToTokens for Subscript {
     fn to_tokens(&self, tokens: &mut TokenStream) {
       match self {
-        Subscript::Index(value) => {
+        Self::Index(value) => {
           tokens.extend(quote! {
               ::protocheck::types::protovalidate::Subscript::Index(#value)
           });
         }
-        Subscript::BoolKey(value) => {
+        Self::BoolKey(value) => {
           tokens.extend(quote! {
               ::protocheck::types::protovalidate::Subscript::BoolKey(#value)
           });
         }
-        Subscript::IntKey(value) => {
+        Self::IntKey(value) => {
           tokens.extend(quote! {
               ::protocheck::types::protovalidate::Subscript::IntKey(#value)
           });
         }
-        Subscript::UintKey(value) => {
+        Self::UintKey(value) => {
           tokens.extend(quote! {
               ::protocheck::types::protovalidate::Subscript::UintKey(#value)
           });
         }
-        Subscript::StringKey(value) => {
+        Self::StringKey(value) => {
           tokens.extend(quote! {
               ::protocheck::types::protovalidate::Subscript::StringKey(#value)
           });

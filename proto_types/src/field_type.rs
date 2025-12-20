@@ -27,7 +27,8 @@ pub enum FieldType {
 }
 
 impl FieldType {
-  pub fn is_scalar(&self) -> bool {
+  #[must_use]
+  pub const fn is_scalar(&self) -> bool {
     !matches!(
       self,
       Self::Message | Self::Duration | Self::Timestamp | Self::Any
@@ -35,40 +36,42 @@ impl FieldType {
   }
 
   /// Returns the short, lowercase name for the field type.
-  pub fn name(&self) -> &'static str {
+  #[must_use]
+  pub const fn name(&self) -> &'static str {
     match self {
-      FieldType::Double => "double",
-      FieldType::Float => "float",
-      FieldType::Int64 => "int64",
-      FieldType::Uint64 => "uint64",
-      FieldType::Int32 => "int32",
-      FieldType::Fixed64 => "fixed64",
-      FieldType::Fixed32 => "fixed32",
-      FieldType::Bool => "bool",
-      FieldType::String => "string",
-      FieldType::Bytes => "bytes",
-      FieldType::Uint32 => "uint32",
-      FieldType::Enum => "enum",
-      FieldType::Sfixed32 => "sfixed32",
-      FieldType::Sfixed64 => "sfixed64",
-      FieldType::Sint32 => "sint32",
-      FieldType::Sint64 => "sint64",
-      FieldType::Group => "group",
-      FieldType::Message => "message",
-      FieldType::Duration => "duration",
-      FieldType::Timestamp => "timestamp",
-      FieldType::Any => "any",
+      Self::Double => "double",
+      Self::Float => "float",
+      Self::Int64 => "int64",
+      Self::Uint64 => "uint64",
+      Self::Int32 => "int32",
+      Self::Fixed64 => "fixed64",
+      Self::Fixed32 => "fixed32",
+      Self::Bool => "bool",
+      Self::String => "string",
+      Self::Bytes => "bytes",
+      Self::Uint32 => "uint32",
+      Self::Enum => "enum",
+      Self::Sfixed32 => "sfixed32",
+      Self::Sfixed64 => "sfixed64",
+      Self::Sint32 => "sint32",
+      Self::Sint64 => "sint64",
+      Self::Group => "group",
+      Self::Message => "message",
+      Self::Duration => "duration",
+      Self::Timestamp => "timestamp",
+      Self::Any => "any",
     }
   }
 
   /// Returns the full name for the field type, using the
   /// fully-qualified name for Google's well-known types.
-  pub fn full_name(&self) -> &'static str {
+  #[must_use]
+  pub const fn full_name(&self) -> &'static str {
     match self {
       // Special cases for well-known types
-      FieldType::Duration => "google.protobuf.Duration",
-      FieldType::Timestamp => "google.protobuf.Timestamp",
-      FieldType::Any => "google.protobuf.Any",
+      Self::Duration => "google.protobuf.Duration",
+      Self::Timestamp => "google.protobuf.Timestamp",
+      Self::Any => "google.protobuf.Any",
 
       // For all other types, it falls back to the short name.
       // The `_` arm catches all variants not matched above.
@@ -80,27 +83,26 @@ impl FieldType {
 impl From<FieldType> for ProtoType {
   fn from(value: FieldType) -> Self {
     match value {
-      FieldType::Double => ProtoType::Double,
-      FieldType::Float => ProtoType::Float,
-      FieldType::Int32 => ProtoType::Int32,
-      FieldType::Int64 => ProtoType::Int64,
-      FieldType::Uint32 => ProtoType::Uint32,
-      FieldType::Uint64 => ProtoType::Uint64,
-      FieldType::Sint32 => ProtoType::Sint32,
-      FieldType::Sint64 => ProtoType::Sint64,
-      FieldType::Fixed32 => ProtoType::Fixed32,
-      FieldType::Fixed64 => ProtoType::Fixed64,
-      FieldType::Sfixed32 => ProtoType::Sfixed32,
-      FieldType::Sfixed64 => ProtoType::Sfixed64,
-      FieldType::Bool => ProtoType::Bool,
-      FieldType::String => ProtoType::String,
-      FieldType::Bytes => ProtoType::Bytes,
-      FieldType::Message => ProtoType::Message,
-      FieldType::Enum => ProtoType::Enum,
-      FieldType::Group => ProtoType::Group,
-      FieldType::Duration => ProtoType::Message,
-      FieldType::Timestamp => ProtoType::Message,
-      FieldType::Any => ProtoType::Message,
+      FieldType::Double => Self::Double,
+      FieldType::Float => Self::Float,
+      FieldType::Int32 => Self::Int32,
+      FieldType::Int64 => Self::Int64,
+      FieldType::Uint32 => Self::Uint32,
+      FieldType::Uint64 => Self::Uint64,
+      FieldType::Sint32 => Self::Sint32,
+      FieldType::Sint64 => Self::Sint64,
+      FieldType::Fixed32 => Self::Fixed32,
+      FieldType::Fixed64 => Self::Fixed64,
+      FieldType::Sfixed32 => Self::Sfixed32,
+      FieldType::Sfixed64 => Self::Sfixed64,
+      FieldType::Bool => Self::Bool,
+      FieldType::String => Self::String,
+      FieldType::Bytes => Self::Bytes,
+      FieldType::Message | FieldType::Duration | FieldType::Timestamp | FieldType::Any => {
+        Self::Message
+      }
+      FieldType::Enum => Self::Enum,
+      FieldType::Group => Self::Group,
     }
   }
 }
@@ -108,24 +110,24 @@ impl From<FieldType> for ProtoType {
 impl From<ProtoType> for FieldType {
   fn from(value: ProtoType) -> Self {
     match value {
-      ProtoType::Double => FieldType::Double,
-      ProtoType::Float => FieldType::Float,
-      ProtoType::Int32 => FieldType::Int32,
-      ProtoType::Int64 => FieldType::Int64,
-      ProtoType::Uint32 => FieldType::Uint32,
-      ProtoType::Uint64 => FieldType::Uint64,
-      ProtoType::Sint32 => FieldType::Sint32,
-      ProtoType::Sint64 => FieldType::Sint64,
-      ProtoType::Fixed32 => FieldType::Fixed32,
-      ProtoType::Fixed64 => FieldType::Fixed64,
-      ProtoType::Sfixed32 => FieldType::Sfixed32,
-      ProtoType::Sfixed64 => FieldType::Sfixed64,
-      ProtoType::Bool => FieldType::Bool,
-      ProtoType::String => FieldType::String,
-      ProtoType::Bytes => FieldType::Bytes,
-      ProtoType::Message => FieldType::Message,
-      ProtoType::Enum => FieldType::Enum,
-      ProtoType::Group => FieldType::Group,
+      ProtoType::Double => Self::Double,
+      ProtoType::Float => Self::Float,
+      ProtoType::Int32 => Self::Int32,
+      ProtoType::Int64 => Self::Int64,
+      ProtoType::Uint32 => Self::Uint32,
+      ProtoType::Uint64 => Self::Uint64,
+      ProtoType::Sint32 => Self::Sint32,
+      ProtoType::Sint64 => Self::Sint64,
+      ProtoType::Fixed32 => Self::Fixed32,
+      ProtoType::Fixed64 => Self::Fixed64,
+      ProtoType::Sfixed32 => Self::Sfixed32,
+      ProtoType::Sfixed64 => Self::Sfixed64,
+      ProtoType::Bool => Self::Bool,
+      ProtoType::String => Self::String,
+      ProtoType::Bytes => Self::Bytes,
+      ProtoType::Message => Self::Message,
+      ProtoType::Enum => Self::Enum,
+      ProtoType::Group => Self::Group,
     }
   }
 }
@@ -148,12 +150,11 @@ impl From<FieldType> for i32 {
       FieldType::Bool => ProtoType::Bool.into(),
       FieldType::String => ProtoType::String.into(),
       FieldType::Bytes => ProtoType::Bytes.into(),
-      FieldType::Message => ProtoType::Message.into(),
+      FieldType::Message | FieldType::Duration | FieldType::Timestamp | FieldType::Any => {
+        ProtoType::Message.into()
+      }
       FieldType::Enum => ProtoType::Enum.into(),
       FieldType::Group => ProtoType::Group.into(),
-      FieldType::Duration => ProtoType::Message.into(),
-      FieldType::Timestamp => ProtoType::Message.into(),
-      FieldType::Any => ProtoType::Message.into(),
     }
   }
 }
@@ -161,7 +162,7 @@ impl From<FieldType> for i32 {
 #[cfg(feature = "totokens")]
 mod totokens {
   use proc_macro2::TokenStream;
-  use quote::{quote, ToTokens};
+  use quote::{ToTokens, quote};
 
   use crate::FieldType;
 
@@ -170,27 +171,27 @@ mod totokens {
       let field_kind_path = quote! { ::protocheck::types::FieldType };
 
       let variant_tokens = match self {
-        FieldType::Double => quote! { Double },
-        FieldType::Float => quote! { Float },
-        FieldType::Int64 => quote! { Int64 },
-        FieldType::Uint64 => quote! { Uint64 },
-        FieldType::Int32 => quote! { Int32 },
-        FieldType::Fixed64 => quote! { Fixed64 },
-        FieldType::Fixed32 => quote! { Fixed32 },
-        FieldType::Bool => quote! { Bool },
-        FieldType::String => quote! { String },
-        FieldType::Group => quote! { Group },
-        FieldType::Message => quote! { Message },
-        FieldType::Duration => quote! { Duration },
-        FieldType::Timestamp => quote! { Timestamp },
-        FieldType::Any => quote! { Any },
-        FieldType::Bytes => quote! { Bytes },
-        FieldType::Uint32 => quote! { Uint32 },
-        FieldType::Enum => quote! { Enum },
-        FieldType::Sfixed32 => quote! { Sfixed32 },
-        FieldType::Sfixed64 => quote! { Sfixed64 },
-        FieldType::Sint32 => quote! { Sint32 },
-        FieldType::Sint64 => quote! { Sint64 },
+        Self::Double => quote! { Double },
+        Self::Float => quote! { Float },
+        Self::Int64 => quote! { Int64 },
+        Self::Uint64 => quote! { Uint64 },
+        Self::Int32 => quote! { Int32 },
+        Self::Fixed64 => quote! { Fixed64 },
+        Self::Fixed32 => quote! { Fixed32 },
+        Self::Bool => quote! { Bool },
+        Self::String => quote! { String },
+        Self::Group => quote! { Group },
+        Self::Message => quote! { Message },
+        Self::Duration => quote! { Duration },
+        Self::Timestamp => quote! { Timestamp },
+        Self::Any => quote! { Any },
+        Self::Bytes => quote! { Bytes },
+        Self::Uint32 => quote! { Uint32 },
+        Self::Enum => quote! { Enum },
+        Self::Sfixed32 => quote! { Sfixed32 },
+        Self::Sfixed64 => quote! { Sfixed64 },
+        Self::Sint32 => quote! { Sint32 },
+        Self::Sint64 => quote! { Sint64 },
       };
 
       tokens.extend(quote! { #field_kind_path::#variant_tokens });

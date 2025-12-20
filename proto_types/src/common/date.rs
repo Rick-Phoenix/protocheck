@@ -93,11 +93,12 @@ impl Date {
   pub fn new(year: i32, month: i32, day: i32) -> Result<Self, DateError> {
     validate_date(year, month, day)?;
 
-    Ok(Date { year, month, day })
+    Ok(Self { year, month, day })
   }
 
   /// Returns the kind of values combination for this [`Date`]
-  pub fn kind(&self) -> DateKind {
+  #[must_use]
+  pub const fn kind(&self) -> DateKind {
     if self.year != 0 && self.month == 0 && self.day == 0 {
       DateKind::YearOnly
     } else if self.year != 0 && self.month != 0 && self.day == 0 {
@@ -110,26 +111,31 @@ impl Date {
   }
 
   /// Checks if this [`Date`] instance represents a valid date according to its constraints.
+  #[must_use]
   pub fn is_valid(&self) -> bool {
     validate_date(self.year, self.month, self.day).is_ok()
   }
 
-  pub fn has_year(&self) -> bool {
+  #[must_use]
+  pub const fn has_year(&self) -> bool {
     self.year != 0
   }
 
   /// Returns `true` if this [`Date`] only indicates a year.
-  pub fn is_year_only(&self) -> bool {
+  #[must_use]
+  pub const fn is_year_only(&self) -> bool {
     self.year != 0 && (self.month == 0 && self.day == 0)
   }
 
   /// Returns `true` if this [`Date`] only indicates a year and a month (i.e. for a credit card expiration date).
-  pub fn is_year_and_month(&self) -> bool {
+  #[must_use]
+  pub const fn is_year_and_month(&self) -> bool {
     self.year != 0 && self.month != 0 && self.day == 0
   }
 
   /// Returns `true` if this [`Date`] only indicates a month and a day, with no specific year.
-  pub fn is_month_and_day(&self) -> bool {
+  #[must_use]
+  pub const fn is_month_and_day(&self) -> bool {
     self.year == 0 && self.month != 0 && self.day != 0
   }
 }
@@ -162,7 +168,7 @@ mod chrono {
   use chrono::Utc;
 
   use super::validate_date;
-  use crate::{date::DateError, Date};
+  use crate::{Date, date::DateError};
 
   impl Date {
     /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.
@@ -171,6 +177,7 @@ mod chrono {
     }
 
     /// Returns the current date.
+    #[must_use]
     pub fn today() -> Self {
       Utc::now().naive_utc().date().into()
     }
@@ -189,14 +196,17 @@ mod chrono {
       validate_date(date.year, date.month, date.day)?;
 
       // Safe castings after validation
-      chrono::NaiveDate::from_ymd_opt(date.year, date.month as u32, date.day as u32).ok_or_else(
-        || {
-          DateError::ConversionError(format!(
-            "Invalid date components for NaiveDate: Y:{}, M:{}, D:{}",
-            date.year, date.month, date.day
-          ))
-        },
+      Self::from_ymd_opt(
+        date.year,
+        date.month.cast_unsigned(),
+        date.day.cast_unsigned(),
       )
+      .ok_or_else(|| {
+        DateError::ConversionError(format!(
+          "Invalid date components for NaiveDate: Y:{}, M:{}, D:{}",
+          date.year, date.month, date.day
+        ))
+      })
     }
   }
 
@@ -204,10 +214,10 @@ mod chrono {
     fn from(naive_date: chrono::NaiveDate) -> Self {
       use chrono::Datelike;
       // Casting is safe due to chrono's costructor API
-      Date {
+      Self {
         year: naive_date.year(),
-        month: naive_date.month() as i32,
-        day: naive_date.day() as i32,
+        month: naive_date.month().cast_signed(),
+        day: naive_date.day().cast_signed(),
       }
     }
   }

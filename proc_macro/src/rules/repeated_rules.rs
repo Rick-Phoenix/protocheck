@@ -74,7 +74,7 @@ pub fn get_repeated_rules(
       .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
     if length_rules.has_rule() {
-      validation_data.get_length_validator(&mut vec_level_rules, length_rules);
+      validation_data.get_length_validator(&mut vec_level_rules, &length_rules);
     }
 
     if let Some(items_rules_descriptor) = repeated_rules.items.as_ref() {
@@ -87,16 +87,17 @@ pub fn get_repeated_rules(
           items_validation_data.get_or_insert_with(|| validation_data.to_repeated_item());
 
         if let Some(ref rules_type) = items_rules_descriptor.r#type
-          && !item_is_message {
-            let items_rules_tokens = get_field_rules(
-              field_rust_enum,
-              field_desc,
-              repeated_items_validation_data,
-              rules_type,
-            )?;
+          && !item_is_message
+        {
+          let items_rules_tokens = get_field_rules(
+            field_rust_enum,
+            field_desc,
+            repeated_items_validation_data,
+            rules_type,
+          )?;
 
-            items_rules.extend(items_rules_tokens);
-          }
+          items_rules.extend(items_rules_tokens);
+        }
 
         if !items_rules_descriptor.cel.is_empty() {
           let cel_rules = get_cel_rules_checked(
@@ -128,6 +129,6 @@ pub fn get_repeated_rules(
   Ok(())
 }
 
-fn supports_unique(field_type: FieldType) -> bool {
+const fn supports_unique(field_type: FieldType) -> bool {
   !matches!(field_type, FieldType::Message | FieldType::Any)
 }

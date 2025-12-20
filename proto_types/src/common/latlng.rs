@@ -38,6 +38,7 @@ impl LatLng {
   }
 
   /// Checks if the [`LatLng`] instance contains valid values.
+  #[must_use]
   pub fn is_valid(&self) -> bool {
     self.validate().is_ok()
   }

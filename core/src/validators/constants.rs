@@ -36,6 +36,7 @@ impl_const!(Fixed32, FIXED32);
 impl_const!(f64, DOUBLE);
 impl_const!(f32, FLOAT);
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn constant<T, V>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],

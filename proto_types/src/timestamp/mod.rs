@@ -8,8 +8,8 @@ mod timestamp_operations;
 // Partially taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
 use super::*;
 use crate::{
-  constants::{NANOS_PER_SECOND, PACKAGE_PREFIX},
   Timestamp,
+  constants::{NANOS_PER_SECOND, PACKAGE_PREFIX},
 };
 
 impl Timestamp {
@@ -23,7 +23,7 @@ impl Timestamp {
     if self.nanos <= -NANOS_PER_SECOND || self.nanos >= NANOS_PER_SECOND {
       if let Some(seconds) = self
         .seconds
-        .checked_add((self.nanos / NANOS_PER_SECOND) as i64)
+        .checked_add(i64::from(self.nanos / NANOS_PER_SECOND))
       {
         self.seconds = seconds;
 
@@ -72,7 +72,7 @@ impl Timestamp {
   /// Normalization is based on [`google::protobuf::util::CreateNormalized`][1].
   ///
   /// [1]: https://github.com/google/protobuf/blob/v3.3.2/src/google/protobuf/util/time_util.cc#L59-L77
-  pub fn try_normalize(mut self) -> Result<Timestamp, Timestamp> {
+  pub fn try_normalize(mut self) -> Result<Self, Self> {
     let before = self;
 
     self.normalize();
@@ -93,6 +93,7 @@ impl Timestamp {
   /// Based on [`google::protobuf::util::CreateNormalized`][1].
   ///
   /// [1]: https://github.com/google/protobuf/blob/v3.3.2/src/google/protobuf/util/time_util.cc#L59-L77
+  #[must_use]
   pub fn normalized(&self) -> Self {
     let mut result = *self;
 
@@ -102,8 +103,8 @@ impl Timestamp {
   }
 
   /// Creates a new `Timestamp` at the start of the provided UTC date.
-  pub fn date(year: i64, month: u8, day: u8) -> Result<Timestamp, TimestampError> {
-    Timestamp::date_time_nanos(year, month, day, 0, 0, 0, 0)
+  pub fn date(year: i64, month: u8, day: u8) -> Result<Self, TimestampError> {
+    Self::date_time_nanos(year, month, day, 0, 0, 0, 0)
   }
 
   /// Creates a new `Timestamp` instance with the provided UTC date and time.
@@ -119,8 +120,8 @@ impl Timestamp {
     minute: u8,
 
     second: u8,
-  ) -> Result<Timestamp, TimestampError> {
-    Timestamp::date_time_nanos(year, month, day, hour, minute, second, 0)
+  ) -> Result<Self, TimestampError> {
+    Self::date_time_nanos(year, month, day, hour, minute, second, 0)
   }
 
   /// Creates a new `Timestamp` instance with the provided UTC date and time.
@@ -138,7 +139,7 @@ impl Timestamp {
     second: u8,
 
     nanos: u32,
-  ) -> Result<Timestamp, TimestampError> {
+  ) -> Result<Self, TimestampError> {
     let date_time = datetime_internal::DateTime {
       year,
 
@@ -155,7 +156,7 @@ impl Timestamp {
       nanos,
     };
 
-    Timestamp::try_from(date_time)
+    Self::try_from(date_time)
   }
 }
 
@@ -170,12 +171,13 @@ impl Name for Timestamp {
 }
 
 impl From<std::time::SystemTime> for Timestamp {
-  fn from(system_time: std::time::SystemTime) -> Timestamp {
+  fn from(system_time: std::time::SystemTime) -> Self {
     let (seconds, nanos) = match system_time.duration_since(std::time::UNIX_EPOCH) {
       Ok(duration) => {
         let seconds = i64::try_from(duration.as_secs()).unwrap_or_default();
 
-        (seconds, duration.subsec_nanos() as i32)
+        // SAFETY: Safe due to the standard library's implementation
+        (seconds, duration.subsec_nanos().cast_signed())
       }
 
       Err(error) => {
@@ -183,7 +185,8 @@ impl From<std::time::SystemTime> for Timestamp {
 
         let seconds = i64::try_from(duration.as_secs()).unwrap_or_default();
 
-        let nanos = duration.subsec_nanos() as i32;
+        // SAFETY: Safe due to the standard library's implementation
+        let nanos = duration.subsec_nanos().cast_signed();
 
         if nanos == 0 {
           (-seconds, 0)
@@ -193,7 +196,7 @@ impl From<std::time::SystemTime> for Timestamp {
       }
     };
 
-    Timestamp { seconds, nanos }
+    Self { seconds, nanos }
   }
 }
 
@@ -218,19 +221,18 @@ pub enum TimestampError {
 impl fmt::Display for TimestampError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      TimestampError::OutOfSystemRange(timestamp) => {
+      Self::OutOfSystemRange(timestamp) => {
         write!(
           f,
-          "{} is not representable as a `SystemTime` because it is out of range",
-          timestamp
+          "{timestamp} is not representable as a `SystemTime` because it is out of range"
         )
       }
 
-      TimestampError::ParseFailure => {
+      Self::ParseFailure => {
         write!(f, "failed to parse RFC-3339 formatted timestamp")
       }
 
-      TimestampError::InvalidDateTime => {
+      Self::InvalidDateTime => {
         write!(f, "invalid date or time")
       }
     }
@@ -242,25 +244,38 @@ impl std::error::Error for TimestampError {}
 impl TryFrom<Timestamp> for std::time::SystemTime {
   type Error = TimestampError;
 
-  fn try_from(mut timestamp: Timestamp) -> Result<std::time::SystemTime, Self::Error> {
+  fn try_from(mut timestamp: Timestamp) -> Result<Self, Self::Error> {
     let orig_timestamp = timestamp;
 
     timestamp.normalize();
 
     let system_time = if timestamp.seconds >= 0 {
-      std::time::UNIX_EPOCH.checked_add(time::Duration::from_secs(timestamp.seconds as u64))
+      std::time::UNIX_EPOCH.checked_add(time::Duration::from_secs(
+        timestamp
+          .seconds
+          .try_into()
+          .map_err(|_| TimestampError::OutOfSystemRange(timestamp))?,
+      ))
     } else {
       std::time::UNIX_EPOCH.checked_sub(time::Duration::from_secs(
         timestamp
           .seconds
           .checked_neg()
-          .ok_or(TimestampError::OutOfSystemRange(timestamp))? as u64,
+          .and_then(|s| s.try_into().ok())
+          .ok_or(TimestampError::OutOfSystemRange(timestamp))?,
       ))
     };
 
-    let system_time = system_time.and_then(|system_time| {
-      system_time.checked_add(time::Duration::from_nanos(timestamp.nanos as u64))
-    });
+    let system_time = system_time
+      .map(|time| {
+        let nanos = u64::try_from(timestamp.nanos)
+          .map_err(|_| TimestampError::OutOfSystemRange(timestamp))?;
+
+        time
+          .checked_add(std::time::Duration::from_nanos(nanos))
+          .ok_or(TimestampError::OutOfSystemRange(timestamp))
+      })
+      .transpose()?;
 
     system_time.ok_or(TimestampError::OutOfSystemRange(orig_timestamp))
   }
@@ -269,7 +284,7 @@ impl TryFrom<Timestamp> for std::time::SystemTime {
 impl FromStr for Timestamp {
   type Err = TimestampError;
 
-  fn from_str(s: &str) -> Result<Timestamp, TimestampError> {
+  fn from_str(s: &str) -> Result<Self, TimestampError> {
     datetime_internal::parse_timestamp(s).ok_or(TimestampError::ParseFailure)
   }
 }

@@ -18,12 +18,14 @@ mod duration_units;
 
 impl Duration {
   /// Whether the duration is negative or not.
+  #[must_use] 
   pub fn is_negative(&self) -> bool {
     self.normalized().seconds < 0
   }
 
+  #[must_use] 
   pub fn new(seconds: i64, nanos: i32) -> Self {
-    let mut instance = Duration { seconds, nanos };
+    let mut instance = Self { seconds, nanos };
     instance.normalize();
     instance
   }

@@ -1,7 +1,10 @@
 //! Implementations for the google.type.Money message.
+//!
+//!
 //! DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
 
 use std::cmp::Ordering;
+use std::fmt::Write;
 
 use thiserror::Error;
 
@@ -29,14 +32,20 @@ fn normalize_money_fields_checked(
   mut nanos: i32,
 ) -> Result<(i64, i32), MoneyError> {
   if nanos.abs() >= NANO_FACTOR {
-    let units_carry = (nanos / (NANO_FACTOR)) as i64;
-    units = units.checked_add(units_carry).ok_or(MoneyError::Overflow)?;
+    let units_carry = i64::from(nanos / (NANO_FACTOR));
+    units = units
+      .checked_add(units_carry)
+      .ok_or(MoneyError::Overflow)?;
     nanos %= NANO_FACTOR;
   }
 
   if units > 0 && nanos < 0 {
-    units = units.checked_sub(1).ok_or(MoneyError::Underflow)?;
-    nanos = nanos.checked_add(NANO_FACTOR).ok_or(MoneyError::Overflow)?;
+    units = units
+      .checked_sub(1)
+      .ok_or(MoneyError::Underflow)?;
+    nanos = nanos
+      .checked_add(NANO_FACTOR)
+      .ok_or(MoneyError::Overflow)?;
   } else if units < 0 && nanos > 0 {
     units = units.checked_add(1).ok_or(MoneyError::Overflow)?;
     nanos = nanos
@@ -54,8 +63,8 @@ impl PartialOrd for Money {
     }
 
     // To compare accurately, convert the amount to a single i128 value in nanos.
-    let self_total_nanos = self.units as i128 * 1_000_000_000i128 + self.nanos as i128;
-    let other_total_nanos = other.units as i128 * 1_000_000_000i128 + other.nanos as i128;
+    let self_total_nanos = i128::from(self.units) * 1_000_000_000i128 + i128::from(self.nanos);
+    let other_total_nanos = i128::from(other.units) * 1_000_000_000i128 + i128::from(other.nanos);
 
     self_total_nanos.partial_cmp(&other_total_nanos)
   }
@@ -63,13 +72,14 @@ impl PartialOrd for Money {
 
 impl Money {
   /// Normalizes the [`Money`] amount and returns a string containing the currency symbol and the monetary amount rounded by the specified decimal places.
+  #[must_use]
   pub fn to_formatted_string(&self, symbol: &str, decimal_places: u32) -> String {
     let decimal_places = u32::min(9, decimal_places);
 
-    let mut current_units: i128 = self.units as i128;
-    let mut current_nanos: i128 = self.nanos as i128;
+    let mut current_units: i128 = i128::from(self.units);
+    let mut current_nanos: i128 = i128::from(self.nanos);
 
-    let ten_pow_9 = NANO_FACTOR as i128;
+    let ten_pow_9 = i128::from(NANO_FACTOR);
     if current_nanos >= ten_pow_9 || current_nanos <= -ten_pow_9 {
       current_units += current_nanos / ten_pow_9;
       current_nanos %= ten_pow_9;
@@ -121,11 +131,12 @@ impl Money {
     if decimal_places > 0 {
       formatted_string.push('.');
       // Format rounded_nanos to the specified number of decimal places, zero-padded
-      formatted_string.push_str(&format!(
+      let _ = write!(
+        formatted_string,
         "{:0width$}",
         rounded_nanos,
         width = decimal_places as usize
-      ));
+      );
     }
 
     formatted_string
@@ -144,7 +155,7 @@ impl Money {
   /// Creates a new instance, if the normalization does not return errors like Overflow or Underflow.
   pub fn new(currency_code: String, units: i64, nanos: i32) -> Result<Self, MoneyError> {
     let (normalized_units, normalized_nanos) = normalize_money_fields_checked(units, nanos)?;
-    Ok(Money {
+    Ok(Self {
       currency_code,
       units: normalized_units,
       nanos: normalized_nanos,
@@ -166,7 +177,9 @@ impl Money {
 
     let full_amount = self.as_imprecise_f64();
 
-    let factor_exponent = decimal_places as i32;
+    let factor_exponent: i32 = decimal_places
+      .try_into()
+      .map_err(|_| MoneyError::Overflow)?;
     let factor = 10.0f64.powi(factor_exponent);
 
     if !factor.is_finite() {
@@ -185,8 +198,9 @@ impl Money {
   /// Converts the `Money` amount into a decimal (f64) representation.
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
+  #[must_use]
   pub fn as_imprecise_f64(&self) -> f64 {
-    self.units as f64 + (self.nanos as f64 / 1_000_000_000.0)
+    self.units as f64 + (f64::from(self.nanos) / 1_000_000_000.0)
   }
 
   /// Creates a new `Money` instance with the given currency code and decimal amount.
@@ -208,9 +222,13 @@ impl Money {
       return Err(MoneyError::Underflow);
     }
 
-    let units = truncated_amount as i64; // Now this cast is safe because we checked the range
+    // SAFETY: We already truncateda, and this cast is safe because we checked the range
+    #[allow(clippy::cast_possible_truncation)]
+    let units = truncated_amount as i64;
 
-    let raw_nanos_f64 = amount.fract().abs() * NANO_FACTOR as f64;
+    let raw_nanos_f64 = amount.fract().abs() * f64::from(NANO_FACTOR);
+    // SAFETY: The range is guaranteed to be 0..1,000,000,000 by logic.
+    #[allow(clippy::cast_possible_truncation)]
     let nanos: i32 = raw_nanos_f64.round() as i32;
 
     let final_nanos = if units < 0 && nanos > 0 {
@@ -222,7 +240,7 @@ impl Money {
       nanos
     };
 
-    Money::new(currency_code, units, final_nanos)
+    Self::new(currency_code, units, final_nanos)
   }
 
   /// Attempts to add another [`Money`] amount to this one, returning a new [`Money`] instance.
@@ -244,7 +262,7 @@ impl Money {
       .checked_add(other.nanos)
       .ok_or(MoneyError::Overflow)?;
 
-    Money::new(self.currency_code.clone(), sum_units, sum_nanos)
+    Self::new(self.currency_code.clone(), sum_units, sum_nanos)
   }
 
   /// Attempts to add another [`Money`] amount to this one in place.
@@ -291,7 +309,7 @@ impl Money {
       .checked_sub(other.nanos)
       .ok_or(MoneyError::Underflow)?;
 
-    Money::new(self.currency_code.clone(), diff_units, diff_nanos)
+    Self::new(self.currency_code.clone(), diff_units, diff_nanos)
   }
 
   /// Attempts to subtract another [`Money`] amount from this one in place.
@@ -322,14 +340,19 @@ impl Money {
   /// Attempts to multiply this [`Money`] amount by an integer scalar, returning a new [`Money`] instance.
   /// Returns an error if multiplication causes an overflow/underflow.
   pub fn try_mul_i64(&self, rhs: i64) -> Result<Self, MoneyError> {
-    let mul_units = self.units.checked_mul(rhs).ok_or(MoneyError::Overflow)?;
-    let mul_nanos_i64 = (self.nanos as i64)
+    let mul_units = self
+      .units
+      .checked_mul(rhs)
+      .ok_or(MoneyError::Overflow)?;
+    let mul_nanos_i64 = i64::from(self.nanos)
       .checked_mul(rhs)
       .ok_or(MoneyError::Overflow)?;
 
-    let final_nanos_for_new: i32 = mul_nanos_i64.try_into().map_err(|_| MoneyError::Overflow)?;
+    let final_nanos_for_new: i32 = mul_nanos_i64
+      .try_into()
+      .map_err(|_| MoneyError::Overflow)?;
 
-    Money::new(self.currency_code.clone(), mul_units, final_nanos_for_new)
+    Self::new(self.currency_code.clone(), mul_units, final_nanos_for_new)
   }
 
   /// Attempts to multiply this [`Money`] amount by a float scalar, returning a new [`Money`] instance.
@@ -348,7 +371,7 @@ impl Money {
     }
 
     // Pass the result to from_decimal_f64, which will normalize and validate.
-    Money::from_imprecise_f64(self.currency_code.clone(), result_decimal)
+    Self::from_imprecise_f64(self.currency_code.clone(), result_decimal)
   }
 
   /// Attempts to divide this [`Money`] amount by an integer scalar, returning a new [`Money`] instance.
@@ -358,23 +381,25 @@ impl Money {
       return Err(MoneyError::InvalidAmount); // Division by zero
     }
 
-    let total_nanos_i128 = self.units as i128 * NANO_FACTOR as i128 + self.nanos as i128;
+    let total_nanos_i128 =
+      i128::from(self.units) * i128::from(NANO_FACTOR) + i128::from(self.nanos);
 
     let result_total_nanos = total_nanos_i128
-      .checked_div(rhs as i128)
+      .checked_div(i128::from(rhs))
       .ok_or(MoneyError::Overflow)?;
 
     // Safely convert the `new_units` from i128 to i64
-    let new_units_i128 = result_total_nanos / NANO_FACTOR as i128;
+    let new_units_i128 = result_total_nanos / i128::from(NANO_FACTOR);
     let new_units = new_units_i128
       .try_into()
       .map_err(|_| MoneyError::Overflow)?;
 
     // This cast is safe because (result % NANO_FACTOR) is always < NANO_FACTOR,
     // and NANO_FACTOR itself fits in i32.
-    let new_nanos = (result_total_nanos % NANO_FACTOR as i128) as i32;
+    #[allow(clippy::cast_possible_truncation)]
+    let new_nanos = (result_total_nanos % i128::from(NANO_FACTOR)) as i32;
 
-    Money::new(self.currency_code.clone(), new_units, new_nanos)
+    Self::new(self.currency_code.clone(), new_units, new_nanos)
   }
 
   /// Attempts to divide this [`Money`] amount by a float scalar, returning a new [`Money`] instance.
@@ -395,66 +420,82 @@ impl Money {
       return Err(MoneyError::NonFiniteResult);
     }
 
-    Money::from_imprecise_f64(self.currency_code.clone(), result_decimal)
+    Self::from_imprecise_f64(self.currency_code.clone(), result_decimal)
   }
 
   /// Attempts to negate this [`Money`] amount, returning a new [`Money`] instance.
   /// Returns an error if negation causes an overflow/underflow.
   pub fn try_neg(&self) -> Result<Self, MoneyError> {
-    let neg_units = self.units.checked_neg().ok_or(MoneyError::Overflow)?;
-    let neg_nanos = self.nanos.checked_neg().ok_or(MoneyError::Overflow)?;
+    let neg_units = self
+      .units
+      .checked_neg()
+      .ok_or(MoneyError::Overflow)?;
+    let neg_nanos = self
+      .nanos
+      .checked_neg()
+      .ok_or(MoneyError::Overflow)?;
 
-    Money::new(self.currency_code.clone(), neg_units, neg_nanos)
+    Self::new(self.currency_code.clone(), neg_units, neg_nanos)
   }
 
   /// Checks if the money's currency code matches the given `code`.
   /// The `code` should be a three-letter ISO 4217 currency code (e.g., "USD", "EUR").
+  #[must_use]
   pub fn is_currency(&self, code: &str) -> bool {
     self.currency_code == code
   }
 
   /// Checks if the money's currency is United States Dollar (USD).
+  #[must_use]
   pub fn is_usd(&self) -> bool {
     self.is_currency("USD")
   }
 
   /// Checks if the money's currency is Euro (EUR).
+  #[must_use]
   pub fn is_eur(&self) -> bool {
     self.is_currency("EUR")
   }
 
   /// Checks if the money's currency is British Pound Sterling (GBP).
+  #[must_use]
   pub fn is_gbp(&self) -> bool {
     self.is_currency("GBP")
   }
 
   /// Checks if the money's currency is Japanese Yen (JPY).
+  #[must_use]
   pub fn is_jpy(&self) -> bool {
     self.is_currency("JPY")
   }
 
   /// Checks if the money's currency is Canadian Dollar (CAD).
+  #[must_use]
   pub fn is_cad(&self) -> bool {
     self.is_currency("CAD")
   }
 
   /// Checks if the money's currency is Australian Dollar (AUD).
+  #[must_use]
   pub fn is_aud(&self) -> bool {
     self.is_currency("AUD")
   }
 
   /// Checks if the money amount is strictly positive (greater than zero).
-  pub fn is_positive(&self) -> bool {
+  #[must_use]
+  pub const fn is_positive(&self) -> bool {
     self.units > 0 || (self.units == 0 && self.nanos > 0)
   }
 
   /// Checks if the money amount is strictly negative (less than zero).
-  pub fn is_negative(&self) -> bool {
+  #[must_use]
+  pub const fn is_negative(&self) -> bool {
     self.units < 0 || (self.units == 0 && self.nanos < 0)
   }
 
   /// Checks if the money amount is exactly zero.
-  pub fn is_zero(&self) -> bool {
+  #[must_use]
+  pub const fn is_zero(&self) -> bool {
     self.units == 0 && self.nanos == 0
   }
 }

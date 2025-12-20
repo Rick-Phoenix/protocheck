@@ -293,8 +293,6 @@ dependencies = [
 [[package]]
 name = "cel"
 version = "0.11.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8edeb3d082fb4f559d994ed50338e924b0b0bc74f855d7fcf49c980cb4c2d95f"
 dependencies = [
  "antlr4rust",
  "chrono",
@@ -1486,7 +1484,7 @@ dependencies = [
 
 [[package]]
 name = "syn-utils"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
