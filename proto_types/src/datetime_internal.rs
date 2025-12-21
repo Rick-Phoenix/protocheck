@@ -1,11 +1,12 @@
+// Most of the content of this file is taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/datetime.rs], licensed under the Apache-2.0 license.
+// Modifications have been applied to make casting operations more explicit.
+
 //! A date/time type which exists primarily to convert [`Timestamp`]s into an RFC 3339 formatted
 //! string.
 
-// From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/datetime.rs]
-
 use core::fmt;
 
-use crate::{constants::NANOS_PER_SECOND, timestamp::TimestampError, Duration, Timestamp};
+use crate::{Duration, Timestamp, constants::NANOS_PER_SECOND, timestamp::TimestampError};
 
 /// A point in time, represented as a date and time in the UTC timezone.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -154,8 +155,12 @@ impl From<Timestamp> for DateTime {
       days -= 1
     }
 
+    // SAFETY: Safe casting
+    #[allow(clippy::cast_possible_truncation)]
     let mut qc_cycles: i32 = (days / i64::from(DAYS_PER_400Y)) as i32;
 
+    // SAFETY: Safe casting
+    #[allow(clippy::cast_possible_truncation)]
     let mut remdays: i32 = (days % i64::from(DAYS_PER_400Y)) as i32;
 
     if remdays < 0 {
@@ -195,6 +200,8 @@ impl From<Timestamp> for DateTime {
 
     let mut months: i32 = 0;
 
+    // SAFETY: Safe casting
+    #[allow(clippy::cast_sign_loss)]
     while i32::from(DAYS_IN_MONTH[months as usize]) <= remdays {
       remdays -= i32::from(DAYS_IN_MONTH[months as usize]);
 
@@ -207,6 +214,8 @@ impl From<Timestamp> for DateTime {
       years += 1;
     }
 
+    // SAFETY: Safe casting. Nanos are normalized at the beginning of the function
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     let date_time = Self {
       year: years + 2000,
 
@@ -337,6 +346,8 @@ fn parse_nanos(s: &str) -> Option<(u32, &str)> {
       digits = digits.split_at(9).0;
     }
 
+    // SAFETY: Safe casting
+    #[allow(clippy::cast_possible_truncation)]
     let nanos = 10u32.pow(9 - digits.len() as u32) * digits.parse::<u32>().ok()?;
 
     (nanos, s)
@@ -387,9 +398,10 @@ fn parse_offset(s: &str) -> Option<(i8, i8, &str)> {
 
     ensure!(hour < 24 && minute < 60);
 
-    let hour = hour as i8;
+    // SAFETY: Safe castings due to the assertion above
+    let hour = hour.cast_signed();
 
-    let minute = minute as i8;
+    let minute = minute.cast_signed();
 
     if is_positive {
       Some((hour, minute, s))
@@ -457,7 +469,7 @@ fn parse_char_ignore_case(s: &str, c: u8) -> Option<&str> {
 ///
 /// [1]: https://git.musl-libc.org/cgit/musl/tree/src/time/__tm_to_secs.c
 /// [2]: https://c2rust.com/
-fn date_time_to_seconds(tm: &DateTime) -> i64 {
+fn date_time_to_seconds(tm: &DateTime) -> i128 {
   let (start_of_year, is_leap) = year_to_seconds(tm.year);
 
   let seconds_within_year = month_to_seconds(tm.month, is_leap)
@@ -466,7 +478,7 @@ fn date_time_to_seconds(tm: &DateTime) -> i64 {
     + 60 * u32::from(tm.minute)
     + u32::from(tm.second);
 
-  (start_of_year + i128::from(seconds_within_year)) as i64
+  start_of_year + i128::from(seconds_within_year)
 }
 
 /// Returns the number of seconds in the year prior to the start of the provided month.
@@ -492,11 +504,7 @@ fn month_to_seconds(month: u8, is_leap: bool) -> u32 {
 
   let t = SECS_THROUGH_MONTH[usize::from(month - 1)];
 
-  if is_leap && month > 2 {
-    t + 86400
-  } else {
-    t
-  }
+  if is_leap && month > 2 { t + 86400 } else { t }
 }
 
 /// Returns the offset in seconds from the Unix epoch of the start of a year.
@@ -680,10 +688,11 @@ pub(crate) fn parse_duration(s: &str) -> Option<Duration> {
   ensure!(nanos < NANOS_PER_SECOND as u32);
 
   // If the duration is negative, also flip the nanos sign.
+  // SAFETY: Castings are safe due to the assertion above
   let (seconds, nanos) = if is_negative {
-    (-seconds, -(nanos as i32))
+    (-seconds, -nanos.cast_signed())
   } else {
-    (seconds, nanos as i32)
+    (seconds, nanos.cast_signed())
   };
 
   Some(Duration { seconds, nanos })
@@ -702,9 +711,12 @@ impl TryFrom<DateTime> for Timestamp {
     let nanos = date_time.nanos;
 
     Ok(Self {
-      seconds,
+      // SAFETY: Safe casting due to the is_valid call
+      #[allow(clippy::cast_possible_truncation)]
+      seconds: seconds as i64,
 
-      nanos: nanos as i32,
+      // SAFETY: Safe casting due to the is_valid call
+      nanos: nanos.cast_signed(),
     })
   }
 }

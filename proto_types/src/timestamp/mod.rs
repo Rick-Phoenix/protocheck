@@ -1,3 +1,6 @@
+// Most of the content of this file is taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src], licensed under the Apache-2.0 license.
+// Modifications have been applied to make casting operations more explicit.
+
 #[cfg(feature = "serde")]
 mod serde;
 
@@ -5,7 +8,6 @@ mod timestamp_conversions;
 mod timestamp_impls;
 mod timestamp_operations;
 
-// Partially taken from (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/timestamp.rs]
 use super::*;
 use crate::{
   Timestamp,
