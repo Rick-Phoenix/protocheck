@@ -58,7 +58,7 @@ pub enum UniqueLookup<T> {
 impl<T> UniqueLookup<T> {
   #[must_use]
   pub fn with_capacity(cap: usize) -> Self {
-    if cap <= 16 {
+    if cap <= 24 {
       Self::Vec(Vec::with_capacity(cap))
     } else {
       Self::Set(HashSet::with_capacity(cap))
@@ -77,8 +77,7 @@ pub trait UniqueItem {
     UniqueLookup::with_capacity(len)
   }
 
-  fn check_unique<'a>(container: &mut UniqueLookup<Self::LookupTarget<'a>>, item: &'a Self)
-  -> bool;
+  fn check_unique<'a>(&'a self, container: &mut UniqueLookup<Self::LookupTarget<'a>>) -> bool;
 }
 
 macro_rules! impl_unique {
@@ -86,17 +85,17 @@ macro_rules! impl_unique {
     impl UniqueItem for $target {
       type LookupTarget<'a> = Self;
 
-      fn check_unique(container: &mut UniqueLookup<Self>, item: &Self) -> bool {
+      fn check_unique(&self, container: &mut UniqueLookup<Self>) -> bool {
         match container {
           UniqueLookup::Vec(vec) => {
-            if vec.contains(&item) {
+            if vec.contains(self) {
               false
             } else {
-              vec.push(*item);
+              vec.push(*self);
               true
             }
           }
-          UniqueLookup::Set(set) => set.insert(*item),
+          UniqueLookup::Set(set) => set.insert(*self),
         }
       }
     }
@@ -123,20 +122,17 @@ impl UniqueItem for str {
   where
     Self: 'a;
 
-  fn check_unique<'a>(
-    container: &mut UniqueLookup<Self::LookupTarget<'a>>,
-    item: &'a Self,
-  ) -> bool {
+  fn check_unique<'a>(&'a self, container: &mut UniqueLookup<Self::LookupTarget<'a>>) -> bool {
     match container {
       UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
+        if vec.contains(&self) {
           false
         } else {
-          vec.push(item);
+          vec.push(self);
           true
         }
       }
-      UniqueLookup::Set(set) => set.insert(item),
+      UniqueLookup::Set(set) => set.insert(self),
     }
   }
 }
@@ -147,20 +143,17 @@ impl UniqueItem for String {
   where
     Self: 'a;
 
-  fn check_unique<'a>(
-    container: &mut UniqueLookup<Self::LookupTarget<'a>>,
-    item: &'a Self,
-  ) -> bool {
+  fn check_unique<'a>(&'a self, container: &mut UniqueLookup<Self::LookupTarget<'a>>) -> bool {
     match container {
       UniqueLookup::Vec(vec) => {
-        if vec.contains(&item.as_str()) {
+        if vec.contains(&self.as_str()) {
           false
         } else {
-          vec.push(item);
+          vec.push(self);
           true
         }
       }
-      UniqueLookup::Set(set) => set.insert(item),
+      UniqueLookup::Set(set) => set.insert(self),
     }
   }
 }
@@ -168,8 +161,8 @@ impl UniqueItem for String {
 impl UniqueItem for f32 {
   type LookupTarget<'a> = OrderedFloat<Self>;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<Self>>, item: &Self) -> bool {
-    let item = OrderedFloat(*item);
+  fn check_unique(&self, container: &mut UniqueLookup<OrderedFloat<Self>>) -> bool {
+    let item = OrderedFloat(*self);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -188,8 +181,8 @@ impl UniqueItem for f32 {
 impl UniqueItem for f64 {
   type LookupTarget<'a> = OrderedFloat<Self>;
 
-  fn check_unique(container: &mut UniqueLookup<OrderedFloat<Self>>, item: &Self) -> bool {
-    let item = OrderedFloat(*item);
+  fn check_unique(&self, container: &mut UniqueLookup<OrderedFloat<Self>>) -> bool {
+    let item = OrderedFloat(*self);
 
     match container {
       UniqueLookup::Vec(vec) => {
@@ -208,17 +201,17 @@ impl UniqueItem for f64 {
 impl UniqueItem for ::bytes::Bytes {
   type LookupTarget<'a> = &'a Self;
 
-  fn check_unique<'a>(container: &mut UniqueLookup<&'a Self>, item: &'a Self) -> bool {
+  fn check_unique<'a>(&'a self, container: &mut UniqueLookup<&'a Self>) -> bool {
     match container {
       UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
+        if vec.contains(&self) {
           false
         } else {
-          vec.push(item);
+          vec.push(self);
           true
         }
       }
-      UniqueLookup::Set(set) => set.insert(item),
+      UniqueLookup::Set(set) => set.insert(self),
     }
   }
 }
@@ -232,7 +225,7 @@ pub fn unique<'a, T>(
 where
   T: UniqueItem,
 {
-  let is_valid = T::check_unique(processed_values, value);
+  let is_valid = value.check_unique(processed_values);
 
   if is_valid {
     Ok(())

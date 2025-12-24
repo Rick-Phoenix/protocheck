@@ -71,31 +71,18 @@ impl<T: ToTokens + Clone> List<'_, T> {
       list_item_type = quote! { ::protocheck::ordered_float::OrderedFloat<#list_item_type> };
     }
 
-    if items.len() <= 16 {
-      quote! {
-        {
-          use std::sync::LazyLock;
-          use protocheck::validators::containing::ItemLookup;
+    quote! {
+      {
+        use std::sync::LazyLock;
 
-          static LIST: LazyLock<ItemLookup<#list_item_type>> = LazyLock::new(|| {
-            ItemLookup::<#list_item_type>::Slice(vec![ #items_tokens ].into_boxed_slice())
-          });
+        static LIST: LazyLock<Vec<#list_item_type>> = LazyLock::new(|| {
+          let mut items: Vec<#list_item_type> = [ #items_tokens ].into_iter().collect();
+          items.sort();
 
-          &LIST
-        }
-      }
-    } else {
-      quote! {
-        {
-          use std::sync::LazyLock;
-          use protocheck::validators::containing::ItemLookup;
+          items
+        });
 
-          static LIST: LazyLock<ItemLookup<#list_item_type>> = LazyLock::new(|| {
-            ItemLookup::<#list_item_type>::Set([ #items_tokens ].into_iter().collect())
-          });
-
-          &LIST
-        }
+        &*LIST
       }
     }
   }
