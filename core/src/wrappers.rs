@@ -1,6 +1,6 @@
 macro_rules! impl_wrapper {
   ($name:ident, $target:ty) => {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
     pub struct $name(pub $target);
 
     impl std::ops::Deref for $name {
