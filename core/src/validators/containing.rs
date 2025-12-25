@@ -1,3 +1,6 @@
+use core::slice;
+use std::vec;
+
 use ordered_float::OrderedFloat;
 use proto_types::{Any, Duration};
 
@@ -12,6 +15,7 @@ pub trait ListRules: Sized {
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool;
 }
 
+#[derive(Debug)]
 pub struct SortedList<T: Ord> {
   items: Box<[T]>,
 }
@@ -32,6 +36,28 @@ where
 
   pub fn contains(&self, item: &T) -> bool {
     self.items.binary_search(item).is_ok()
+  }
+
+  pub fn iter(&self) -> slice::Iter<'_, T> {
+    self.into_iter()
+  }
+}
+
+impl<T: Ord> IntoIterator for SortedList<T> {
+  type Item = T;
+  type IntoIter = vec::IntoIter<T>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.items.into_vec().into_iter()
+  }
+}
+
+impl<'a, T: Ord> IntoIterator for &'a SortedList<T> {
+  type Item = &'a T;
+  type IntoIter = slice::Iter<'a, T>;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.items.iter()
   }
 }
 
