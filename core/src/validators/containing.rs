@@ -9,7 +9,30 @@ pub trait ListRules: Sized {
   const IN_VIOLATION: &'static LazyLock<ViolationData>;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData>;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool;
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool;
+}
+
+pub struct SortedList<T: Ord> {
+  items: Box<[T]>,
+}
+
+impl<T> SortedList<T>
+where
+  T: Ord,
+{
+  pub fn new<I: IntoIterator<Item = T>>(iter: I) -> Self {
+    let mut items: Vec<T> = iter.into_iter().collect();
+
+    items.sort();
+
+    Self {
+      items: items.into_boxed_slice(),
+    }
+  }
+
+  pub fn contains(&self, item: &T) -> bool {
+    self.items.binary_search(item).is_ok()
+  }
 }
 
 macro_rules! impl_lookup {
@@ -20,8 +43,8 @@ macro_rules! impl_lookup {
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-          list.binary_search(self).is_ok()
+        fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+          list.contains(self)
         }
       }
     }
@@ -35,8 +58,8 @@ macro_rules! impl_lookup {
         const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
         const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
 
-        fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-          list.binary_search(&*self).is_ok()
+        fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+          list.contains(self)
         }
       }
     }
@@ -48,8 +71,8 @@ impl ListRules for f32 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-    list.binary_search(&((*self).into())).is_ok()
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    list.contains(&((*self).into()))
   }
 }
 
@@ -58,8 +81,8 @@ impl ListRules for f64 {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-    list.binary_search(&((*self).into())).is_ok()
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    list.contains(&((*self).into()))
   }
 }
 
@@ -83,8 +106,8 @@ impl ListRules for &::bytes::Bytes {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_NOT_IN_VIOLATION;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-    list.binary_search(&self.as_ref()).is_ok()
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    list.contains(&self.as_ref())
   }
 }
 
@@ -93,10 +116,8 @@ impl ListRules for &Any {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_NOT_IN_VIOLATION;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-    list
-      .binary_search(&self.type_url.as_str())
-      .is_ok()
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    list.contains(&self.type_url.as_str())
   }
 }
 
@@ -105,17 +126,18 @@ impl ListRules for &str {
   const IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_IN_VIOLATION;
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_NOT_IN_VIOLATION;
 
-  fn is_in(&self, list: &[Self::LookupTarget]) -> bool {
-    list.binary_search(self).is_ok()
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    list.contains(self)
   }
 }
 
+// We always receive refs or Copy types here anyway
 #[allow(clippy::needless_pass_by_value)]
 pub fn in_list<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
   value: T,
-  list: &[T::LookupTarget],
+  list: &SortedList<T::LookupTarget>,
   error_message: &str,
 ) -> Result<(), Violation>
 where
@@ -140,7 +162,7 @@ pub fn not_in_list<T>(
   field_context: &FieldContext,
   parent_elements: &[FieldPathElement],
   value: T,
-  list: &[T::LookupTarget],
+  list: &SortedList<T::LookupTarget>,
   error_message: &str,
 ) -> Result<(), Violation>
 where

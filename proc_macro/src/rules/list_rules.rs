@@ -74,12 +74,10 @@ impl<T: ToTokens + Clone> List<'_, T> {
     quote! {
       {
         use std::sync::LazyLock;
+        use protocheck::validators::containing::SortedList;
 
-        static LIST: LazyLock<Vec<#list_item_type>> = LazyLock::new(|| {
-          let mut items: Vec<#list_item_type> = [ #items_tokens ].into_iter().collect();
-          items.sort();
-
-          items
+        static LIST: LazyLock<SortedList<#list_item_type>> = LazyLock::new(|| {
+          SortedList::new([ #items_tokens ])
         });
 
         &*LIST
