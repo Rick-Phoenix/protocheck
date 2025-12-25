@@ -1,5 +1,5 @@
 use core::slice;
-use std::vec;
+use std::{ops::Deref, vec};
 
 use ordered_float::OrderedFloat;
 use proto_types::{Any, Duration};
@@ -34,12 +34,37 @@ where
     }
   }
 
+  #[must_use]
+  pub fn as_slice(&self) -> &[T] {
+    &self.items
+  }
+
   pub fn contains(&self, item: &T) -> bool {
     self.items.binary_search(item).is_ok()
   }
 
   pub fn iter(&self) -> slice::Iter<'_, T> {
     self.into_iter()
+  }
+
+  #[allow(clippy::len_without_is_empty)]
+  #[must_use]
+  pub fn len(&self) -> usize {
+    self.items.len()
+  }
+}
+
+impl<T: Ord> Deref for SortedList<T> {
+  type Target = [T];
+
+  fn deref(&self) -> &Self::Target {
+    &self.items
+  }
+}
+
+impl<T: Ord> AsRef<[T]> for SortedList<T> {
+  fn as_ref(&self) -> &[T] {
+    &self.items
   }
 }
 
