@@ -83,3 +83,88 @@ impl Timestamp {
     *self < Self::now()
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn offset_seconds(base: &Timestamp, s: i64) -> Timestamp {
+    Timestamp {
+      seconds: base.seconds + s,
+      nanos: base.nanos,
+    }
+  }
+
+  #[test]
+  fn test_is_future() {
+    let now = Timestamp::now();
+
+    let future_point = offset_seconds(&now, 5);
+    let past_point = offset_seconds(&now, -5);
+
+    assert!(future_point.is_future(), "T + 5s should be in the future");
+    assert!(
+      !past_point.is_future(),
+      "T - 5s should NOT be in the future"
+    );
+  }
+
+  #[test]
+  fn test_is_past() {
+    let now = Timestamp::now();
+
+    let future_point = offset_seconds(&now, 5);
+    let past_point = offset_seconds(&now, -5);
+
+    assert!(past_point.is_past(), "T - 5s should be in the past");
+    assert!(!future_point.is_past(), "T + 5s should NOT be in the past");
+  }
+
+  #[test]
+  fn test_is_within_future_range() {
+    let now = Timestamp::now();
+    let range = Duration::new(10, 0);
+
+    let inside = offset_seconds(&now, 5);
+    assert!(
+      inside.is_within_future_range(range),
+      "5s is within 10s range"
+    );
+
+    let outside_far = offset_seconds(&now, 15);
+    assert!(
+      !outside_far.is_within_future_range(range),
+      "15s is outside 10s range"
+    );
+
+    let outside_past = offset_seconds(&now, -1);
+    assert!(
+      !outside_past.is_within_future_range(range),
+      "Past value is not in future range"
+    );
+  }
+
+  #[test]
+  fn test_is_within_past_range() {
+    let now = Timestamp::now();
+    let range = Duration::new(10, 0);
+
+    let inside = offset_seconds(&now, -5);
+    assert!(
+      inside.is_within_past_range(range),
+      "-5s is within 10s past range"
+    );
+
+    let outside_old = offset_seconds(&now, -15);
+    assert!(
+      !outside_old.is_within_past_range(range),
+      "-15s is too old for 10s range"
+    );
+
+    let outside_future = offset_seconds(&now, 1);
+    assert!(
+      !outside_future.is_within_past_range(range),
+      "Future value is not in past range"
+    );
+  }
+}
