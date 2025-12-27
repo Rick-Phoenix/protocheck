@@ -56,13 +56,19 @@ impl Timestamp {
   /// Checks whether the Timestamp instance is within the indicated range in the future.
   #[must_use]
   pub fn is_within_future_range(&self, range: Duration) -> bool {
-    (Self::now() + range) >= *self
+    let now = Self::now();
+    let max = now + range;
+
+    *self <= max && *self >= now
   }
 
   /// Checks whether the Timestamp instance is within the indicated range in the past.
   #[must_use]
   pub fn is_within_past_range(&self, range: Duration) -> bool {
-    (Self::now() - range) <= *self
+    let now = Self::now();
+    let min = now - range;
+
+    *self >= min && *self <= now
   }
 
   /// Returns `true` if the timestamp is in the future.
