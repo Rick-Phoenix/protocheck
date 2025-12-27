@@ -373,3 +373,25 @@ pub static DURATION_IN_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
     elements: Box::leak(elements.into_boxed_slice()),
   }
 });
+
+pub static FIELD_MASK_IN_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
+  let elements = vec![
+    FieldPathElement {
+      field_name: Some("field_mask".to_string()),
+      field_number: Some(28),
+      field_type: Some(Type::Message as i32),
+      ..Default::default()
+    },
+    FieldPathElement {
+      field_name: Some("in".to_string()),
+      field_number: Some(2),
+      field_type: Some(Type::String as i32),
+      ..Default::default()
+    },
+  ];
+
+  ViolationData {
+    name: "field_mask.in",
+    elements: Box::leak(elements.into_boxed_slice()),
+  }
+});

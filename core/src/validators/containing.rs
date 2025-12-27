@@ -2,7 +2,7 @@ use core::slice;
 use std::{ops::Deref, vec};
 
 use ordered_float::OrderedFloat;
-use proto_types::{Any, Duration};
+use proto_types::{Any, Duration, FieldMask};
 
 use super::*;
 use crate::protovalidate::violations_data::{in_violations::*, not_in_violations::*};
@@ -179,6 +179,22 @@ impl ListRules for &str {
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(self)
+  }
+}
+
+impl ListRules for FieldMask {
+  type LookupTarget = &'static str;
+  const IN_VIOLATION: &'static LazyLock<ViolationData> = &FIELD_MASK_IN_VIOLATION;
+  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FIELD_MASK_NOT_IN_VIOLATION;
+
+  fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    for path in &self.paths {
+      if list.contains(&path.as_str()) {
+        return true;
+      }
+    }
+
+    false
   }
 }
 

@@ -1,4 +1,4 @@
-use proto_types::{Duration, Timestamp};
+use proto_types::{Duration, FieldMask, Timestamp};
 
 use super::*;
 use crate::protovalidate::violations_data::const_violations::*;
@@ -35,6 +35,7 @@ impl_const!(Fixed64, FIXED64);
 impl_const!(Fixed32, FIXED32);
 impl_const!(f64, DOUBLE);
 impl_const!(f32, FLOAT);
+impl_const!(&FieldMask, FIELD_MASK);
 
 #[allow(clippy::needless_pass_by_value)]
 pub fn constant<T, V>(

@@ -395,3 +395,25 @@ pub static TIMESTAMP_CONST_VIOLATION: LazyLock<ViolationData> = LazyLock::new(||
     name: "timestamp.const",
   }
 });
+
+pub static FIELD_MASK_CONST_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
+  let elements = vec![
+    FieldPathElement {
+      field_name: Some("field_mask".to_string()),
+      field_number: Some(28),
+      field_type: Some(Type::Message as i32),
+      ..Default::default()
+    },
+    FieldPathElement {
+      field_name: Some("const".to_string()),
+      field_number: Some(1),
+      field_type: Some(Type::Bool as i32),
+      ..Default::default()
+    },
+  ];
+
+  ViolationData {
+    name: "field_mask.const",
+    elements: Box::leak(elements.into_boxed_slice()),
+  }
+});
