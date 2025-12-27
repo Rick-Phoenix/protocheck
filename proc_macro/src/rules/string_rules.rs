@@ -61,6 +61,7 @@ pub fn get_string_rules(
   if let Some(well_known_kind) = rules.well_known {
     let mut is_strict: Option<bool> = None;
     let validator_path = match well_known_kind {
+      WellKnown::Ulid(enabled) => enabled.then(|| quote! { ulid }),
       WellKnown::Email(enabled) => enabled.then(|| quote! { email }),
       WellKnown::Hostname(enabled) => enabled.then(|| quote! { hostname }),
       WellKnown::Ip(enabled) => enabled.then(|| quote! { ip }),

@@ -63,14 +63,23 @@ mod regex_checks {
     re.is_match(s)
   }
 
-  static UUID_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").unwrap()
-  });
+  pub fn is_valid_ulid(val: &str) -> bool {
+    if val.is_empty() {
+      return false;
+    }
 
-  static TUUID_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?i)[0-9a-f]{32}$").unwrap());
+    static ULID_REGEX: LazyLock<Regex> =
+      // Case insensitive (?i), strict first char check
+      LazyLock::new(|| Regex::new(r"(?i)^[0-7][0-9A-HJKMNP-TV-Z]{25}$").unwrap());
+
+    ULID_REGEX.is_match(val)
+  }
 
   pub fn is_valid_uuid(s: &str) -> bool {
+    static UUID_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(r"^(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").unwrap()
+    });
+
     if s.is_empty() {
       return false;
     }
@@ -79,6 +88,9 @@ mod regex_checks {
   }
 
   pub fn is_valid_tuuid(s: &str) -> bool {
+    static TUUID_REGEX: LazyLock<Regex> =
+      LazyLock::new(|| Regex::new(r"^(?i)[0-9a-f]{32}$").unwrap());
+
     if s.is_empty() {
       return false;
     }
@@ -245,15 +257,10 @@ pub fn is_valid_host_and_port(s: &str) -> bool {
 
 #[cfg(test)]
 mod test {
-  use crate::validators::well_known_strings::{
-    is_valid_address, is_valid_host_and_port, is_valid_hostname, is_valid_ip, is_valid_ipv4,
-    is_valid_ipv6,
-  };
+  use super::*;
 
   #[test]
   fn uris() {
-    use crate::validators::well_known_strings::is_valid_uri;
-
     assert!(is_valid_uri(
       "https://middleeathtracker.com/hobbits?location=isengard"
     ));
@@ -265,11 +272,6 @@ mod test {
 
   #[test]
   fn name() {
-    use crate::validators::well_known_strings::{
-      is_valid_ip_prefix, is_valid_ip_with_prefixlen, is_valid_ipv4_prefix,
-      is_valid_ipv4_with_prefixlen, is_valid_ipv6_prefix, is_valid_ipv6_with_prefixlen,
-    };
-
     let ipv4_prefix = "192.168.0.0/16";
     let ipv4_with_prefixlen = "192.168.1.1/16";
     let ipv6_prefix = "2a01:c00::/24";
@@ -323,70 +325,147 @@ mod test {
   }
 
   #[cfg(feature = "regex")]
-  #[test]
-  fn identifiers() {
-    use crate::validators::well_known_strings::{is_valid_email, is_valid_tuuid, is_valid_uuid};
+  mod regex_tests {
+    use super::*;
 
-    assert!(is_valid_email("obiwan@force.com"));
-    assert!(!is_valid_email("anakin@dark@force.com"));
+    #[test]
+    fn identifiers() {
+      use crate::validators::well_known_strings::{is_valid_email, is_valid_tuuid, is_valid_uuid};
 
-    assert!(is_valid_uuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"));
-    assert!(!is_valid_uuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
+      assert!(is_valid_email("obiwan@force.com"));
+      assert!(!is_valid_email("anakin@dark@force.com"));
 
-    assert!(is_valid_tuuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
-    assert!(!is_valid_tuuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"))
-  }
+      assert!(is_valid_uuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"));
+      assert!(!is_valid_uuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
 
-  #[cfg(feature = "regex")]
-  #[test]
-  fn headers() {
-    use crate::validators::well_known_strings::{
-      is_valid_http_header_name, is_valid_http_header_value,
-    };
+      assert!(is_valid_tuuid("d3b8f2d57e104c6e8a1a3b9c7d4f6e2c"));
+      assert!(!is_valid_tuuid("d3b8f2d5-7e10-4c6e-8a1a-3b9c7d4f6e2c"))
+    }
 
-    assert!(is_valid_http_header_name("content-type", true));
-    assert!(is_valid_http_header_name(":authority", true));
+    #[test]
+    fn headers() {
+      use crate::validators::well_known_strings::{
+        is_valid_http_header_name, is_valid_http_header_value,
+      };
 
-    assert!(!is_valid_http_header_name("content type", true));
-    assert!(!is_valid_http_header_name("X-My@Header", true));
-    assert!(!is_valid_http_header_name("X-Héader", true));
-    assert!(!is_valid_http_header_name("", true));
+      assert!(is_valid_http_header_name("content-type", true));
+      assert!(is_valid_http_header_name(":authority", true));
 
-    assert!(is_valid_http_header_name("X-My@Header", false));
-    assert!(is_valid_http_header_name("X-Héader", false));
+      assert!(!is_valid_http_header_name("content type", true));
+      assert!(!is_valid_http_header_name("X-My@Header", true));
+      assert!(!is_valid_http_header_name("X-Héader", true));
+      assert!(!is_valid_http_header_name("", true));
 
-    assert!(!is_valid_http_header_name("Header\u{0000}WithNul", false));
-    assert!(!is_valid_http_header_name("Header\nWithNewline", false));
-    assert!(!is_valid_http_header_name("header\rwithcr", false));
-    assert!(!is_valid_http_header_name("", false));
+      assert!(is_valid_http_header_name("X-My@Header", false));
+      assert!(is_valid_http_header_name("X-Héader", false));
 
-    assert!(is_valid_http_header_value(
-      "application/json; charset=uft-8",
-      true
-    ));
+      assert!(!is_valid_http_header_name("Header\u{0000}WithNul", false));
+      assert!(!is_valid_http_header_name("Header\nWithNewline", false));
+      assert!(!is_valid_http_header_name("header\rwithcr", false));
+      assert!(!is_valid_http_header_name("", false));
 
-    assert!(!is_valid_http_header_value(
-      "value\u{0000}with\u{0000}nul",
-      true
-    ));
-    assert!(!is_valid_http_header_value(
-      "value\u{0007}with\u{0007}bell",
-      true
-    ));
-    assert!(!is_valid_http_header_value(
-      "value\u{000B}with\u{000B}vt",
-      true
-    ));
-    assert!(!is_valid_http_header_value(
-      "value\u{007F}with\u{007F}del",
-      true
-    ));
+      assert!(is_valid_http_header_value(
+        "application/json; charset=uft-8",
+        true
+      ));
 
-    assert!(!is_valid_http_header_value(
-      "value\u{0000}with\u{0000}nul",
-      false
-    ));
-    assert!(!is_valid_http_header_value("value\nwith\nnewline", false));
-    assert!(!is_valid_http_header_value("value\rwith\rcr", false));
+      assert!(!is_valid_http_header_value(
+        "value\u{0000}with\u{0000}nul",
+        true
+      ));
+      assert!(!is_valid_http_header_value(
+        "value\u{0007}with\u{0007}bell",
+        true
+      ));
+      assert!(!is_valid_http_header_value(
+        "value\u{000B}with\u{000B}vt",
+        true
+      ));
+      assert!(!is_valid_http_header_value(
+        "value\u{007F}with\u{007F}del",
+        true
+      ));
+
+      assert!(!is_valid_http_header_value(
+        "value\u{0000}with\u{0000}nul",
+        false
+      ));
+      assert!(!is_valid_http_header_value("value\nwith\nnewline", false));
+      assert!(!is_valid_http_header_value("value\rwith\rcr", false));
+    }
+
+    #[test]
+    fn test_valid_ulids() {
+      // A standard generated ULID
+      assert!(is_valid_ulid("01AN4Z07BY79KA1307SR9X4MV3"));
+
+      // The absolute minimum ULID (Time 0, Random 0)
+      assert!(is_valid_ulid("00000000000000000000000000"));
+
+      // The absolute maximum ULID (Time limit, Random max)
+      // Note: Must start with 7, not Z
+      assert!(is_valid_ulid("7ZZZZZZZZZZZZZZZZZZZZZZZZZ"));
+    }
+
+    #[test]
+    fn test_case_insensitivity() {
+      // Lowercase should work
+      assert!(is_valid_ulid("01an4z07by79ka1307sr9x4mv3"));
+      // Mixed case should work
+      assert!(is_valid_ulid("01An4z07bY79kA1307sR9x4mV3"));
+    }
+
+    #[test]
+    fn test_invalid_length() {
+      // Empty
+      assert!(!is_valid_ulid(""));
+
+      // Too short (25 chars)
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MV"));
+
+      // Too long (27 chars)
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MV33"));
+    }
+
+    #[test]
+    fn test_excluded_characters() {
+      // Crockford Base32 excludes I, L, O, U to avoid confusion
+
+      // Contains I
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MVI"));
+      // Contains L
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MVL"));
+      // Contains O
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MVO"));
+      // Contains U
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MVU"));
+    }
+
+    #[test]
+    fn test_invalid_symbols() {
+      // Hyphens are not allowed in canonical ULIDs
+      assert!(!is_valid_ulid("01AN4Z07-Y79KA1307SR9X4MV3"));
+      // Other symbols
+      assert!(!is_valid_ulid("01AN4Z07BY79KA1307SR9X4MV@"));
+    }
+
+    #[test]
+    fn test_timestamp_overflow() {
+      // The first character maps to the top bits of the 48-bit timestamp.
+      // It can only be 0-7.
+      // 8 would imply a timestamp larger than 48 bits allow.
+
+      // Starts with 8 (Invalid)
+      assert!(!is_valid_ulid("80000000000000000000000000"));
+
+      // Starts with 9 (Invalid)
+      assert!(!is_valid_ulid("90000000000000000000000000"));
+
+      // Starts with A (Invalid)
+      assert!(!is_valid_ulid("A0000000000000000000000000"));
+
+      // Starts with Z (Invalid)
+      assert!(!is_valid_ulid("Z0000000000000000000000000"));
+    }
   }
 }

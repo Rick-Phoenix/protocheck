@@ -219,3 +219,25 @@ pub static BYTES_IPV6_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
     name: "bytes.ipv6",
   }
 });
+
+pub static BYTES_UUID_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
+  let elements = vec![
+    FieldPathElement {
+      field_name: Some("bytes".to_string()),
+      field_number: Some(15),
+      field_type: Some(Type::Message as i32),
+      ..Default::default()
+    },
+    FieldPathElement {
+      field_name: Some("uuid".to_string()),
+      field_number: Some(15),
+      field_type: Some(Type::Bool as i32),
+      ..Default::default()
+    },
+  ];
+
+  ViolationData {
+    elements: Box::leak(elements.into_boxed_slice()),
+    name: "bytes.uuid",
+  }
+});

@@ -616,6 +616,28 @@ pub static STRING_HOST_AND_PORT_VIOLATION: LazyLock<ViolationData> = LazyLock::n
   }
 });
 
+pub static STRING_ULID_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
+  let elements = vec![
+    FieldPathElement {
+      field_name: Some("string".to_string()),
+      field_number: Some(14),
+      field_type: Some(Type::Message as i32),
+      ..Default::default()
+    },
+    FieldPathElement {
+      field_name: Some("ulid".to_string()),
+      field_number: Some(35),
+      field_type: Some(Type::Bool as i32),
+      ..Default::default()
+    },
+  ];
+
+  ViolationData {
+    elements: Box::leak(elements.into_boxed_slice()),
+    name: "string.ulid",
+  }
+});
+
 pub static STRING_WELL_KNOWN_REGEX_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
   let elements = vec![
     FieldPathElement {

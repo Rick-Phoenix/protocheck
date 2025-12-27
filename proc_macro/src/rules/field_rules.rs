@@ -214,6 +214,9 @@ pub fn rules_match_type(
     | RulesType::Any(_)
     | RulesType::Duration(_)
     | RulesType::Timestamp(_) => return Ok(()),
+    RulesType::FieldMask(_field_mask_rules) => {
+      unimplemented!("FieldMask rules are not yet implemented")
+    }
   };
 
   if matching_type == field_type {

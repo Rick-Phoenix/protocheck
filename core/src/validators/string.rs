@@ -121,9 +121,11 @@ well_known_rule!(ipv6_with_prefixlen, "ipv6 address with prefix length");
 #[cfg(feature = "regex")]
 well_known_rule!(email, "email address");
 #[cfg(feature = "regex")]
-well_known_rule!(uuid, "uuid");
+well_known_rule!(uuid, "UUID");
 #[cfg(feature = "regex")]
-well_known_rule!(tuuid, "trimmed uuid");
+well_known_rule!(tuuid, "trimmed UUID");
+#[cfg(feature = "regex")]
+well_known_rule!(ulid, "ULID");
 
 #[cfg(feature = "regex")]
 pub fn header_name(

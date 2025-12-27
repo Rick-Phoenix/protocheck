@@ -61,10 +61,10 @@ macro_rules! bytes_validator {
 }
 
 well_known_rule!(ip, "ip address");
-
 well_known_rule!(ipv4, "ipv4 address");
-
 well_known_rule!(ipv6, "ipv6 address");
+#[cfg(feature = "regex")]
+well_known_rule!(uuid, "UUID");
 
 #[cfg(feature = "regex")]
 pub fn pattern(

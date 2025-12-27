@@ -51,6 +51,9 @@ pub fn get_bytes_rules(
 
   if let Some(well_known) = rules.well_known {
     let validator_path = match well_known {
+      WellKnown::Uuid(enabled) => enabled.then_some(quote! {
+        uuid
+      }),
       WellKnown::Ip(enabled) => enabled.then_some(quote! {
         ip
       }),
