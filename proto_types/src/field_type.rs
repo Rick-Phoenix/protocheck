@@ -25,6 +25,7 @@ pub enum FieldType {
   Duration,
   Timestamp,
   Any,
+  FieldMask,
 }
 
 impl FieldType {
@@ -36,7 +37,7 @@ impl FieldType {
     )
   }
 
-  /// Returns the short, lowercase name for the field type.
+  /// Returns the short name for the field type. For message types such as `Timestamp`, it returns just the short name without the package path.
   #[must_use]
   pub const fn name(&self) -> &'static str {
     match self {
@@ -58,9 +59,10 @@ impl FieldType {
       Self::Sint64 => "sint64",
       Self::Group => "group",
       Self::Message => "message",
-      Self::Duration => "duration",
-      Self::Timestamp => "timestamp",
-      Self::Any => "any",
+      Self::Duration => "Duration",
+      Self::Timestamp => "Timestamp",
+      Self::Any => "Any",
+      Self::FieldMask => "FieldMask",
     }
   }
 
@@ -73,6 +75,7 @@ impl FieldType {
       Self::Duration => "google.protobuf.Duration",
       Self::Timestamp => "google.protobuf.Timestamp",
       Self::Any => "google.protobuf.Any",
+      Self::FieldMask => "google.protobuf.FieldMask",
 
       // For all other types, it falls back to the short name.
       // The `_` arm catches all variants not matched above.
@@ -99,9 +102,11 @@ impl From<FieldType> for ProtoType {
       FieldType::Bool => Self::Bool,
       FieldType::String => Self::String,
       FieldType::Bytes => Self::Bytes,
-      FieldType::Message | FieldType::Duration | FieldType::Timestamp | FieldType::Any => {
-        Self::Message
-      }
+      FieldType::Message
+      | FieldType::Duration
+      | FieldType::Timestamp
+      | FieldType::Any
+      | FieldType::FieldMask => Self::Message,
       FieldType::Enum => Self::Enum,
       FieldType::Group => Self::Group,
     }
@@ -151,9 +156,11 @@ impl From<FieldType> for i32 {
       FieldType::Bool => ProtoType::Bool.into(),
       FieldType::String => ProtoType::String.into(),
       FieldType::Bytes => ProtoType::Bytes.into(),
-      FieldType::Message | FieldType::Duration | FieldType::Timestamp | FieldType::Any => {
-        ProtoType::Message.into()
-      }
+      FieldType::Message
+      | FieldType::Duration
+      | FieldType::Timestamp
+      | FieldType::Any
+      | FieldType::FieldMask => ProtoType::Message.into(),
       FieldType::Enum => ProtoType::Enum.into(),
       FieldType::Group => ProtoType::Group.into(),
     }
@@ -193,6 +200,7 @@ mod totokens {
         Self::Sfixed64 => quote! { Sfixed64 },
         Self::Sint32 => quote! { Sint32 },
         Self::Sint64 => quote! { Sint64 },
+        Self::FieldMask => quote! { FieldMask },
       };
 
       tokens.extend(quote! { #field_kind_path::#variant_tokens });

@@ -673,18 +673,6 @@ impl ValidationData<'_> {
       }
 
       match &self.proto_type {
-        FieldType::Double
-        | FieldType::Float
-        | FieldType::Int64
-        | FieldType::Uint64
-        | FieldType::Int32
-        | FieldType::Bool
-        | FieldType::Uint32
-        | FieldType::Group
-        | FieldType::Message
-        | FieldType::Duration
-        | FieldType::Timestamp
-        | FieldType::Any => base_ident,
         FieldType::Bytes => quote! { &#base_ident },
         FieldType::String => quote! { #base_ident.as_str() },
         FieldType::Fixed64 => quote! { protocheck::wrappers::Fixed64(#base_ident) },
@@ -694,6 +682,7 @@ impl ValidationData<'_> {
         FieldType::Sfixed64 => quote! { protocheck::wrappers::Sfixed64(#base_ident) },
         FieldType::Sint32 => quote! { protocheck::wrappers::Sint32(#base_ident) },
         FieldType::Sint64 => quote! { protocheck::wrappers::Sint64(#base_ident) },
+        _ => base_ident,
       }
     })
   }
