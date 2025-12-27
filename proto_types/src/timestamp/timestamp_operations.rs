@@ -12,7 +12,7 @@ impl<'b> Sub<&'b Duration> for &Timestamp {
     let duration = rhs.normalized();
 
     let mut new = Timestamp {
-      seconds: self.seconds - duration.seconds,
+      seconds: self.seconds.saturating_sub(duration.seconds),
       nanos: self.nanos - duration.nanos,
     };
 
@@ -50,7 +50,7 @@ impl<'b> Add<&'b Duration> for &Timestamp {
     let duration = rhs.normalized();
 
     let mut new = Timestamp {
-      seconds: self.seconds + duration.seconds,
+      seconds: self.seconds.saturating_add(duration.seconds),
       nanos: self.nanos + duration.nanos,
     };
 
