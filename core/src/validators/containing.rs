@@ -13,6 +13,12 @@ pub trait ListRules: Sized {
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData>;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool;
+
+  // Default impl works for any scalar value, FieldMask needs a separate impl
+  // as shown below
+  fn is_not_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    !self.is_in(list)
+  }
 }
 
 #[derive(Debug)]
@@ -188,13 +194,17 @@ impl ListRules for FieldMask {
   const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FIELD_MASK_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
-    for path in &self.paths {
-      if list.contains(&path.as_str()) {
-        return true;
-      }
-    }
+    self
+      .paths
+      .iter()
+      .all(|p| list.contains(&p.as_str()))
+  }
 
-    false
+  fn is_not_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
+    self
+      .paths
+      .iter()
+      .all(|p| !list.contains(&p.as_str()))
   }
 }
 
@@ -210,9 +220,9 @@ pub fn in_list<T>(
 where
   T: ListRules,
 {
-  let has_item = value.is_in(list);
+  let is_valid = value.is_in(list);
 
-  if has_item {
+  if is_valid {
     Ok(())
   } else {
     Err(create_violation(
@@ -235,16 +245,16 @@ pub fn not_in_list<T>(
 where
   T: ListRules,
 {
-  let has_item = value.is_in(list);
+  let is_valid = value.is_not_in(list);
 
-  if has_item {
+  if is_valid {
+    Ok(())
+  } else {
     Err(create_violation(
       field_context,
       T::NOT_IN_VIOLATION,
       error_message,
       parent_elements,
     ))
-  } else {
-    Ok(())
   }
 }
