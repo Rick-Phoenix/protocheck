@@ -21,7 +21,7 @@ pub trait ListRules: Sized {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SortedList<T: Ord> {
   items: Box<[T]>,
 }
