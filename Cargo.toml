@@ -30,7 +30,7 @@ edition = "2024"
 [workspace.dependencies]
 syn-utils = { path = "../syn-utils/" }
 ordered-float = { version = "5" }
-cel = { version = "0", path = "../cel-rust/cel", features = ["bytes"] }
+cel = { version = "0.12", features = ["bytes"] }
 prost = "0.14.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
