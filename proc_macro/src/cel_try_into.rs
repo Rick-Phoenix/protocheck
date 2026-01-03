@@ -6,7 +6,7 @@ pub fn get_conversion_tokens(
   proto_types_path: &TokensOr<TokenStream2>,
 ) -> TokenStream2 {
   match type_info.type_.as_ref() {
-    RustType::Box(_) => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
+    RustType::Box(_) => quote! { (*#val_tokens).try_into_cel_recursive(depth + 1)? },
     RustType::Bytes => quote! { #val_tokens.to_vec().into() },
     RustType::Float(_) | RustType::Uint(_) | RustType::Int(_) | RustType::Bool => {
       quote! { (*#val_tokens).into() }
@@ -60,12 +60,12 @@ pub fn derive_cel_value_oneof(
   Ok(quote! {
     impl #enum_name {
       #[doc(hidden)]
-      pub fn try_into_cel_value(&self) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
-        self.try_into_cel_value_recursive(0)
+      pub fn try_into_cel(&self) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
+        self.try_into_cel_recursive(0)
       }
 
       #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
+      pub fn try_into_cel_recursive(&self, depth: usize) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
@@ -76,7 +76,7 @@ pub fn derive_cel_value_oneof(
       type Error = #proto_types_path::cel::CelConversionError;
 
       fn try_from(value: #enum_name) -> Result<Self, Self::Error> {
-        Ok(value.try_into_cel_value_recursive(0)?.1)
+        Ok(value.try_into_cel_recursive(0)?.1)
       }
     }
   })
@@ -120,7 +120,7 @@ pub(crate) fn derive_cel_value_struct(
     if is_oneof {
       tokens.extend(quote! {
         if let Some(oneof) = &value.#field_ident {
-          let (oneof_field_name, cel_val) = oneof.try_into_cel_value_recursive(depth + 1)?;
+          let (oneof_field_name, cel_val) = oneof.try_into_cel_recursive(depth + 1)?;
           fields.insert(oneof_field_name.into(), cel_val);
         }
       });
@@ -182,7 +182,7 @@ pub(crate) fn derive_cel_value_struct(
   Ok(quote! {
     impl #struct_name {
       #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<#cel_crate_path::Value, #proto_types_path::cel::CelConversionError> {
+      pub fn try_into_cel_recursive(&self, depth: usize) -> Result<#cel_crate_path::Value, #proto_types_path::cel::CelConversionError> {
         if depth >= 10 {
           return Ok(#cel_crate_path::Value::Null);
         }
@@ -200,7 +200,7 @@ pub(crate) fn derive_cel_value_struct(
       type Error = #proto_types_path::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
-        value.try_into_cel_value_recursive(0)
+        value.try_into_cel_recursive(0)
       }
     }
   })
