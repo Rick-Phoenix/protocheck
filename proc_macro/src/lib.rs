@@ -26,7 +26,6 @@ use proto_types::{
   field_descriptor_proto::Type as ProtoType,
   protovalidate::{field_rules::Type as RulesType, *},
 };
-use protocheck_core::field_data::FieldKind;
 use quote::{ToTokens, format_ident, quote};
 use regex::Regex;
 use syn::{

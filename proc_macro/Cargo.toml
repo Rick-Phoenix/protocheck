@@ -28,9 +28,6 @@ proto-types = { version = "0.1.11", path = "../proto_types/", features = [
   "protocheck",
   "totokens",
 ] }
-protocheck-core = { version = "0.1.11", path = "../core/", features = [
-  "totokens",
-] }
 
 prost-reflect = { workspace = true }
 cel = { workspace = true, optional = true }
@@ -45,6 +42,6 @@ itertools = "0.14"
 bytes = "1"
 
 [features]
-cel = ["protocheck-core/cel", "proto-types/cel", "dep:cel"]
+cel = ["proto-types/cel", "dep:cel"]
 
 default = ["cel"]

@@ -34,6 +34,41 @@ pub(crate) struct ValidationData<'a> {
   pub value_ident: OnceCell<TokenStream2>,
 }
 
+#[derive(Clone, Default, Debug, Copy, PartialEq, Eq)]
+pub enum FieldKind {
+  Map,
+  MapKey,
+  MapValue,
+  Repeated,
+  RepeatedItem,
+  #[default]
+  Single,
+}
+
+impl FieldKind {
+  #[must_use]
+  pub const fn is_repeated_item(self) -> bool {
+    matches!(self, Self::RepeatedItem)
+  }
+}
+
+impl ToTokens for FieldKind {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let field_kind_path = quote! { ::protocheck::field_data::FieldKind };
+
+    let variant_tokens = match self {
+      Self::Map => quote! { Map },
+      Self::MapKey => quote! { MapKey },
+      Self::MapValue => quote! { MapValue },
+      Self::Repeated => quote! { Repeated },
+      Self::RepeatedItem => quote! { RepeatedItem },
+      Self::Single => quote! { Single },
+    };
+
+    tokens.extend(quote! { #field_kind_path::#variant_tokens });
+  }
+}
+
 pub struct RepeatedValidator {
   pub vec_level_rules: TokenStream2,
   pub items_rules: TokenStream2,

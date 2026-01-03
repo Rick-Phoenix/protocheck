@@ -1097,7 +1097,6 @@ dependencies = [
  "proc-macro2",
  "prost-reflect",
  "proto-types",
- "protocheck-core",
  "quote",
  "regex",
  "syn 2.0.104",
