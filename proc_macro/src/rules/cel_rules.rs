@@ -99,15 +99,6 @@ mod cel_validator {
                   FieldType::Bytes => {
                     quote! { validate_cel_field_try_into(&#field_context_ident, &#parent_messages_ident, rule, #value_ident.to_vec()) }
                   }
-                  FieldType::Float => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, &#parent_messages_ident, rule, (#value_ident as f64)) }
-                  }
-                  FieldType::Int32 | FieldType::Sint32 | FieldType::Sfixed32 => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, &#parent_messages_ident, rule, (#value_ident as i64)) }
-                  }
-                  FieldType::Uint32 | FieldType::Fixed32 => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, &#parent_messages_ident, rule, (#value_ident as u64)) }
-                  }
                   _ => {
                     quote! { validate_cel_field_try_into(&#field_context_ident, &#parent_messages_ident, rule, #value_ident) }
                   }
