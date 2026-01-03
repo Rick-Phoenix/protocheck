@@ -56,7 +56,7 @@ mod validation_data;
 
 /// Adds conversion functions into [`cel::Value`] for messages.
 #[cfg(feature = "cel")]
-#[proc_macro_derive(TryIntoCelValue)]
+#[proc_macro_derive(TryIntoCel)]
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   let item = parse_macro_input!(input as Item);
 
@@ -104,7 +104,7 @@ pub fn protobuf_validate(attrs: TokenStream, input: TokenStream) -> TokenStream 
   let struct_ident = &item.ident;
 
   if cfg!(feature = "cel") {
-    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCelValue)]);
+    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCel)]);
 
     item.attrs.push(cel_attr);
   }
@@ -207,7 +207,7 @@ pub fn protobuf_validate_oneof(attrs: TokenStream, input: TokenStream) -> TokenS
   let oneof_rust_ident = &item.ident;
 
   if cfg!(feature = "cel") {
-    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCelValue)]);
+    let cel_attr: Attribute = parse_quote!(#[derive(::protocheck::macros::TryIntoCel)]);
 
     item.attrs.push(cel_attr);
   }

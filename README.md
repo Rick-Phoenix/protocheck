@@ -18,7 +18,7 @@ First, it removes the need to include a reflection library in the consuming app'
 
 And, most importantly, it avoids the overhead that is introduced by using reflection to determine the structure of a message when validating it.
 
-Rather than using reflection, this crate leverages the [`TryIntoCelValue`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/derive.TryIntoCelValue.html) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate cel [`Value`](protocheck_core::cel::Value) (only failing in case of a [`Duration`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Duration.html) or [`Timestamp`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Timestamp.html) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
+Rather than using reflection, this crate leverages the [`TryIntoCel`](https://docs.rs/protocheck-proc-macro/0.1.0/protocheck_proc_macro/derive.TryIntoCelValue.html) derive macro to generate a method called `try_into_cel_value` which will directly convert any given struct (or field) into the appropriate cel [`Value`](protocheck_core::cel::Value) (only failing in case of a [`Duration`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Duration.html) or [`Timestamp`](https://docs.rs/proto-types/0.1.0/proto_types/struct.Timestamp.html) field being out of the allowed range for [`chrono`](https://docs.rs/chrono/latest/chrono/index.html) types).
 
 #### 2. It uses native rust code for validation except for custom Cel rules. 
 

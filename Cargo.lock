@@ -308,25 +308,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cel-derive"
-version = "0.1.11"
-dependencies = [
- "cel",
- "cel-derive-macro",
- "proto-types",
-]
-
-[[package]]
-name = "cel-derive-macro"
-version = "0.1.11"
-dependencies = [
- "convert_case",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

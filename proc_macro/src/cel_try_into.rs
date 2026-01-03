@@ -110,7 +110,7 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
     if is_oneof {
       tokens.extend(quote! {
         if let Some(oneof) = &value.#field_ident {
-          let (oneof_field_name, cel_val) = oneof.try_into_cel_value()?;
+          let (oneof_field_name, cel_val) = oneof.try_into_cel_value_recursive(depth + 1)?;
           fields.insert(oneof_field_name.into(), cel_val);
         }
       });
