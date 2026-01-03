@@ -21,11 +21,9 @@ pub fn get_enum_rules(
 
   if rules.defined_only() {
     let enum_path: Path = syn::parse_str(enum_path_str).map_err(|e| {
-      error_spanned!(
+      error_with_span!(
         field_span,
-        format!(
-          "Failed to parse enum path `{enum_path_str}` into rust Path for proto enum `{enum_name}` in field `{field_name}`: {e}",
-        )
+        "Failed to parse enum path `{enum_path_str}` into rust Path for proto enum `{enum_name}` in field `{field_name}`: {e}",
       )
     })?;
 

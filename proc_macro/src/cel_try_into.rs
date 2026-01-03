@@ -1,8 +1,10 @@
-use syn_utils::{RustType, TypeInfo};
-
 use crate::*;
 
-pub fn get_conversion_tokens(type_info: &TypeInfo, val_tokens: &TokenStream2) -> TokenStream2 {
+pub fn get_conversion_tokens(
+  type_info: &TypeInfo,
+  val_tokens: &TokenStream2,
+  proto_types_path: &TokensOr<TokenStream2>,
+) -> TokenStream2 {
   match type_info.type_.as_ref() {
     RustType::Box(_) => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
     RustType::Bytes => quote! { #val_tokens.to_vec().into() },
@@ -10,12 +12,16 @@ pub fn get_conversion_tokens(type_info: &TypeInfo, val_tokens: &TokenStream2) ->
       quote! { (*#val_tokens).into() }
     }
     _ => {
-      quote! { #val_tokens.clone().try_into().map_err(::protocheck::types::cel::CelConversionError::from)? }
+      quote! { #val_tokens.clone().try_into().map_err(#proto_types_path::cel::CelConversionError::from)? }
     }
   }
 }
 
-pub fn derive_cel_value_oneof(item: &ItemEnum) -> Result<TokenStream2, Error> {
+pub fn derive_cel_value_oneof(
+  item: &ItemEnum,
+  cel_crate_path: &TokensOr<TokenStream2>,
+  proto_types_path: &TokensOr<TokenStream2>,
+) -> Result<TokenStream2, Error> {
   let enum_name = &item.ident;
 
   let variants = &item.variants;
@@ -33,12 +39,12 @@ pub fn derive_cel_value_oneof(item: &ItemEnum) -> Result<TokenStream2, Error> {
 
       let type_info = TypeInfo::from_type(type_ident)?;
 
-      let into_expression = get_conversion_tokens(&type_info, &quote! { val });
+      let into_expression = get_conversion_tokens(&type_info, &quote! { val }, proto_types_path);
 
       match_arms.push(quote! {
         #enum_name::#variant_ident(val) => {
           if depth >= 10 {
-            Ok((#proto_name.to_string(), ::protocheck::cel::Value::Null))
+            Ok((#proto_name.to_string(), #cel_crate_path::Value::Null))
           } else {
             Ok((#proto_name.to_string(), #into_expression))
           }
@@ -54,20 +60,20 @@ pub fn derive_cel_value_oneof(item: &ItemEnum) -> Result<TokenStream2, Error> {
   Ok(quote! {
     impl #enum_name {
       #[doc(hidden)]
-      pub fn try_into_cel_value(&self) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value(&self) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
       #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, #cel_crate_path::Value), #proto_types_path::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
       }
     }
 
-    impl TryFrom<#enum_name> for ::protocheck::cel::Value {
-      type Error = ::protocheck::types::cel::CelConversionError;
+    impl TryFrom<#enum_name> for #cel_crate_path::Value {
+      type Error = #proto_types_path::cel::CelConversionError;
 
       fn try_from(value: #enum_name) -> Result<Self, Self::Error> {
         Ok(value.try_into_cel_value_recursive(0)?.1)
@@ -76,7 +82,11 @@ pub fn derive_cel_value_oneof(item: &ItemEnum) -> Result<TokenStream2, Error> {
   })
 }
 
-pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, Error> {
+pub(crate) fn derive_cel_value_struct(
+  item: &ItemStruct,
+  cel_crate_path: &TokensOr<TokenStream2>,
+  proto_types_path: &TokensOr<TokenStream2>,
+) -> Result<TokenStream2, Error> {
   let struct_name = &item.ident;
 
   let fields = if let syn::Fields::Named(fields) = &item.fields {
@@ -121,45 +131,45 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
 
       match outer_type.type_.as_ref() {
         RustType::Option(inner) => {
-          let conversion_tokens = get_conversion_tokens(inner, &val_tokens);
+          let conversion_tokens = get_conversion_tokens(inner, &val_tokens, proto_types_path);
 
           tokens.extend(quote! {
             if let Some(val) = &value.#field_ident {
               fields.insert(#field_name.into(), #conversion_tokens);
             } else {
-              fields.insert(#field_name.into(), ::protocheck::cel::Value::Null);
+              fields.insert(#field_name.into(), #cel_crate_path::Value::Null);
             }
           });
         }
         RustType::Vec(inner) => {
-          let conversion_tokens = get_conversion_tokens(inner, &val_tokens);
+          let conversion_tokens = get_conversion_tokens(inner, &val_tokens, proto_types_path);
 
           tokens.extend(quote! {
-            let mut converted: Vec<::protocheck::cel::Value> = Vec::new();
+            let mut converted: Vec<#cel_crate_path::Value> = Vec::new();
             for val in &value.#field_ident {
               converted.push(#conversion_tokens);
             }
 
-            fields.insert(#field_name.into(), ::protocheck::cel::Value::List(converted.into()));
+            fields.insert(#field_name.into(), #cel_crate_path::Value::List(converted.into()));
           });
         }
 
         RustType::HashMap((k, v)) => {
-          let keys_conversion_tokens = get_conversion_tokens(k, &quote! { key });
-          let values_conversion_tokens = get_conversion_tokens(v, &val_tokens);
+          let keys_conversion_tokens = get_conversion_tokens(k, &quote! { key }, proto_types_path);
+          let values_conversion_tokens = get_conversion_tokens(v, &val_tokens, proto_types_path);
           tokens.extend(quote! {
-            let mut field_map: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = ::std::collections::HashMap::new();
+            let mut field_map: ::std::collections::HashMap<#cel_crate_path::objects::Key, #cel_crate_path::Value> = ::std::collections::HashMap::new();
 
             for (key, val) in &value.#field_ident {
               field_map.insert(#keys_conversion_tokens, #values_conversion_tokens);
             }
 
-            fields.insert(#field_name.into(), ::protocheck::cel::Value::Map(field_map.into()));
+            fields.insert(#field_name.into(), #cel_crate_path::Value::Map(field_map.into()));
           });
         }
         _ => {
           let val_tokens = quote! { (&value.#field_ident) };
-          let conversion_tokens = get_conversion_tokens(&outer_type, &val_tokens);
+          let conversion_tokens = get_conversion_tokens(&outer_type, &val_tokens, proto_types_path);
 
           tokens.extend(quote! {
             fields.insert(#field_name.into(), #conversion_tokens);
@@ -172,22 +182,22 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
   Ok(quote! {
     impl #struct_name {
       #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
+      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<#cel_crate_path::Value, #proto_types_path::cel::CelConversionError> {
         if depth >= 10 {
-          return Ok(::protocheck::cel::Value::Null);
+          return Ok(#cel_crate_path::Value::Null);
         }
 
-        let mut fields: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = std::collections::HashMap::new();
+        let mut fields: ::std::collections::HashMap<#cel_crate_path::objects::Key, #cel_crate_path::Value> = std::collections::HashMap::new();
         let value = self;
 
         #tokens
 
-        Ok(::protocheck::cel::Value::Map(fields.into()))
+        Ok(#cel_crate_path::Value::Map(fields.into()))
       }
     }
 
-    impl TryFrom<#struct_name> for ::protocheck::cel::Value {
-      type Error = ::protocheck::types::cel::CelConversionError;
+    impl TryFrom<#struct_name> for #cel_crate_path::Value {
+      type Error = #proto_types_path::cel::CelConversionError;
 
       fn try_from(value: #struct_name) -> Result<Self, Self::Error> {
         value.try_into_cel_value_recursive(0)

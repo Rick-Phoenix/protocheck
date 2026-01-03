@@ -34,14 +34,13 @@ use syn::{
   Token, parse::ParseStream, parse_macro_input, parse_quote, punctuated::Punctuated,
   spanned::Spanned,
 };
+use syn_utils::*;
 
 use crate::{
   attributes::*, cel_rule_template::*, message_validator::*, oneof_validator::*, pool_loader::*,
-  rules::*, special_field_names::*, utils::*, validation_data::*,
+  rules::*, special_field_names::*, validation_data::*,
 };
 
-#[macro_use]
-mod macros;
 mod attributes;
 mod cel_rule_template;
 #[cfg(feature = "cel")]
@@ -51,18 +50,44 @@ mod oneof_validator;
 mod pool_loader;
 mod rules;
 mod special_field_names;
-mod utils;
 mod validation_data;
 
 /// Adds conversion functions into [`cel::Value`] for messages.
 #[cfg(feature = "cel")]
-#[proc_macro_derive(TryIntoCel)]
+#[proc_macro_derive(TryIntoCel, attributes(cel))]
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   let item = parse_macro_input!(input as Item);
 
+  let mut cel_crate_path = TokensOr::<TokenStream2>::new(|| quote! { ::protocheck::cel });
+  let mut proto_types_path = TokensOr::<TokenStream2>::new(|| quote! { ::protocheck::types });
+
+  for attr in item.attrs() {
+    if attr.path().is_ident("cel") {
+      if let Err(e) = attr.parse_nested_meta(|meta| {
+        let ident_str = meta.ident_str()?;
+
+        match ident_str.as_str() {
+          "cel_crate" => {
+            cel_crate_path.set(meta.parse_value::<Path>()?.into_token_stream());
+          }
+          "proto_types_crate" => {
+            proto_types_path.set(meta.parse_value::<Path>()?.into_token_stream());
+          }
+          _ => return Err(meta.error("Unknown attribute")),
+        };
+
+        Ok(())
+      }) {
+        return e.into_compile_error().into();
+      }
+    }
+  }
+
   let result = match item {
-    Item::Struct(s) => cel_try_into::derive_cel_value_struct(s),
-    Item::Enum(e) => cel_try_into::derive_cel_value_oneof(&e),
+    Item::Struct(s) => {
+      cel_try_into::derive_cel_value_struct(&s, &cel_crate_path, &proto_types_path)
+    }
+    Item::Enum(e) => cel_try_into::derive_cel_value_oneof(&e, &cel_crate_path, &proto_types_path),
     _ => {
       return error!(item, "This macro only works on enums (oneofs) and structs")
         .into_compile_error()

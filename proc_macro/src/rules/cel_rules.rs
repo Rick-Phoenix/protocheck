@@ -46,9 +46,9 @@ mod cel_validator {
       let program = match Program::compile(rule.expression()) {
         Ok(prog) => prog,
         Err(e) => {
-          bail_spanned!(
+          bail_with_span!(
             rule_target.span(),
-            format!("{compilation_error_msg}: failed to compile: {e}")
+            "{compilation_error_msg}: failed to compile: {e}"
           );
         }
       };
@@ -130,19 +130,17 @@ mod cel_validator {
               }
             };
           } else {
-            bail_spanned!(
+            bail_with_span!(
               rule_target.span(),
-              format!(
-                "{compilation_error_msg}: expected boolean, got {}",
-                result.type_of()
-              )
+              "{compilation_error_msg}: expected boolean, got {}",
+              result.type_of()
             );
           }
         }
         Err(e) => {
-          bail_spanned!(
+          bail_with_span!(
             rule_target.span(),
-            format!("{compilation_error_msg}: failed execution: {e}"),
+            "{compilation_error_msg}: failed execution: {e}",
           );
         }
       };

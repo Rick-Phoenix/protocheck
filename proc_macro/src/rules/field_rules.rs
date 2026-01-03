@@ -222,8 +222,9 @@ pub fn rules_match_type(
   if matching_type == field_type {
     Ok(())
   } else {
-    bail_spanned!(
+    bail_with_span!(
       field_span,
+      "{}",
       get_field_error(
         field_name,
         field_span,

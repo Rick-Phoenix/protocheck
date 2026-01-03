@@ -37,7 +37,7 @@ pub fn extract_message_validators(
   // Message Rules
   if let ProstValue::Message(message_rules_msg) = message_rules_descriptor.as_ref() {
     let message_rules = MessageRules::decode(message_rules_msg.encode_to_vec().as_slice())
-      .map_err(|e| error!(item, format!("Could not decode message rules: {e}")))?;
+      .map_err(|e| error!(item, "Could not decode message rules: {e}"))?;
 
     if !message_rules.cel.is_empty() {
       validators.extend(get_cel_rules_checked(
@@ -64,7 +64,7 @@ pub fn extract_message_validators(
       .as_ref()
     {
       let oneof_rules = OneofRules::decode(oneof_rules_msg.encode_to_vec().as_slice())
-        .map_err(|e| error!(item, format!("Could not decode oneof rules: {}", e)))?;
+        .map_err(|e| error!(item, "Could not decode oneof rules: {}", e))?;
 
       let oneof_proto_name = oneof.name();
       let oneof_rust_ident = proto_name_to_rust_ident(oneof_proto_name);
