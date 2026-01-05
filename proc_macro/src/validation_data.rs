@@ -710,13 +710,13 @@ impl ValidationData<'_> {
       match &self.proto_type {
         FieldType::Bytes => quote! { &#base_ident },
         FieldType::String => quote! { #base_ident.as_str() },
-        FieldType::Fixed64 => quote! { protocheck::wrappers::Fixed64(#base_ident) },
-        FieldType::Fixed32 => quote! { protocheck::wrappers::Fixed32(#base_ident) },
-        FieldType::Enum => quote! { protocheck::wrappers::EnumVariant(#base_ident) },
-        FieldType::Sfixed32 => quote! { protocheck::wrappers::Sfixed32(#base_ident) },
-        FieldType::Sfixed64 => quote! { protocheck::wrappers::Sfixed64(#base_ident) },
-        FieldType::Sint32 => quote! { protocheck::wrappers::Sint32(#base_ident) },
-        FieldType::Sint64 => quote! { protocheck::wrappers::Sint64(#base_ident) },
+        FieldType::Fixed64 => quote! { protocheck::types::num_wrappers::Fixed64(#base_ident) },
+        FieldType::Fixed32 => quote! { protocheck::types::num_wrappers::Fixed32(#base_ident) },
+        FieldType::Enum => quote! { protocheck::types::num_wrappers::EnumVariant(#base_ident) },
+        FieldType::Sfixed32 => quote! { protocheck::types::num_wrappers::Sfixed32(#base_ident) },
+        FieldType::Sfixed64 => quote! { protocheck::types::num_wrappers::Sfixed64(#base_ident) },
+        FieldType::Sint32 => quote! { protocheck::types::num_wrappers::Sint32(#base_ident) },
+        FieldType::Sint64 => quote! { protocheck::types::num_wrappers::Sint64(#base_ident) },
         _ => base_ident,
       }
     })

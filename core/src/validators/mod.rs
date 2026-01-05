@@ -8,8 +8,8 @@ use crate::{
   field_data::*,
   protovalidate::{Violation, ViolationData},
   validators::create_violation::*,
-  wrappers::*,
 };
+use proto_types::num_wrappers::*;
 
 pub(crate) mod create_violation;
 

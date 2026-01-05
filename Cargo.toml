@@ -26,6 +26,7 @@ repository = "https://github.com/Rick-Phoenix/protocheck"
 edition = "2024"
 
 [workspace.dependencies]
+num-traits = "0.2"
 syn-utils = { path = "../syn-utils/" }
 ordered-float = { version = "5" }
 cel = { version = "0.12", features = ["bytes"] }
@@ -56,7 +57,7 @@ manual_let_else = "allow"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 
-missing_inline_in_public_items = "warn"
+# missing_inline_in_public_items = "warn"
 float_cmp = "warn"
 branches_sharing_code = "warn"
 clear_with_drain = "warn"

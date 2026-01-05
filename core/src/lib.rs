@@ -14,6 +14,4 @@ pub mod validators;
 #[cfg(feature = "cel")]
 pub use cel;
 
-pub mod wrappers;
-
 pub use ordered_float;
