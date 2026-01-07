@@ -321,6 +321,8 @@ impl ValidationData<'_> {
     let key_type_tokens = self.map_keys_type.map_or_else(
       || quote! { None },
       |key_type| {
+        let key_type = type_tokens(key_type);
+
         quote! { Some(#key_type) }
       },
     );
@@ -328,13 +330,15 @@ impl ValidationData<'_> {
     let value_type_tokens = self.map_values_type.map_or_else(
       || quote! { None },
       |value_type| {
+        let value_type = type_tokens(value_type);
+
         quote! { Some(#value_type) }
       },
     );
 
     let subscript_tokens = self.subscript_tokens(field_kind);
 
-    let field_type: ProtoType = (*proto_type).into();
+    let field_type = type_tokens((*proto_type).into());
 
     quote! {
       let #field_context_ident = ::protocheck::field_data::FieldContext {
@@ -505,7 +509,7 @@ impl ValidationData<'_> {
 
     let field_proto_name = &self.proto_name;
     let field_tag = self.tag;
-    let field_proto_type: ProtoType = self.proto_type.into();
+    let field_proto_type = type_tokens(self.proto_type.into());
 
     // Not using self.value_ident() on purpose here
     // because we don't care about box or refs here, it's always a ref anyway
@@ -518,13 +522,17 @@ impl ValidationData<'_> {
 
     // These are not part of the FieldContext but of FieldPathElement
     // so they need to be cast as integers
-    let field_key_type = self
-      .map_keys_type
-      .map_or(quote! { None }, |k| quote! { Some(#k as i32) });
+    let field_key_type = self.map_keys_type.map_or(quote! { None }, |k| {
+      let k = type_tokens(k);
 
-    let field_value_type = self
-      .map_values_type
-      .map_or(quote! { None }, |v| quote! { Some(#v as i32) });
+      quote! { Some(#k as i32) }
+    });
+
+    let field_value_type = self.map_values_type.map_or(quote! { None }, |v| {
+      let v = type_tokens(v);
+
+      quote! { Some(#v as i32) }
+    });
 
     let subscript_tokens = self.subscript_tokens(field_kind);
 
@@ -712,7 +720,7 @@ impl ValidationData<'_> {
         FieldType::String => quote! { #base_ident.as_str() },
         FieldType::Fixed64 => quote! { protocheck::types::num_wrappers::Fixed64(#base_ident) },
         FieldType::Fixed32 => quote! { protocheck::types::num_wrappers::Fixed32(#base_ident) },
-        FieldType::Enum => quote! { protocheck::types::num_wrappers::EnumVariant(#base_ident) },
+        FieldType::Enum => quote! { protocheck::EnumVariant(#base_ident) },
         FieldType::Sfixed32 => quote! { protocheck::types::num_wrappers::Sfixed32(#base_ident) },
         FieldType::Sfixed64 => quote! { protocheck::types::num_wrappers::Sfixed64(#base_ident) },
         FieldType::Sint32 => quote! { protocheck::types::num_wrappers::Sint32(#base_ident) },
@@ -754,5 +762,30 @@ const fn type_is_copy(field_kind: FieldKind, field_type: FieldType) -> bool {
       field_type,
       FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
     )
+  }
+}
+
+fn type_tokens(field_type: ProtoType) -> TokenStream2 {
+  let path = quote! { ::protocheck::types::field_descriptor_proto::Type };
+
+  match field_type {
+    ProtoType::Double => quote! { #path::Double },
+    ProtoType::Float => quote! { #path::Float },
+    ProtoType::Int64 => quote! { #path::Int64 },
+    ProtoType::Uint64 => quote! { #path::Uint64 },
+    ProtoType::Int32 => quote! { #path::Int32 },
+    ProtoType::Fixed64 => quote! { #path::Fixed64 },
+    ProtoType::Fixed32 => quote! { #path::Fixed32 },
+    ProtoType::Bool => quote! { #path::Bool },
+    ProtoType::String => quote! { #path::String },
+    ProtoType::Group => quote! { #path::Group },
+    ProtoType::Message => quote! { #path::Message },
+    ProtoType::Bytes => quote! { #path::Bytes },
+    ProtoType::Uint32 => quote! { #path::Uint32 },
+    ProtoType::Enum => quote! { #path::Enum },
+    ProtoType::Sfixed32 => quote! { #path::Sfixed32 },
+    ProtoType::Sfixed64 => quote! { #path::Sfixed64 },
+    ProtoType::Sint32 => quote! { #path::Sint32 },
+    ProtoType::Sint64 => quote! { #path::Sint64 },
   }
 }

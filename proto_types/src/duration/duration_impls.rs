@@ -1,27 +1,5 @@
 use crate::Duration;
 
-#[cfg(feature = "totokens")]
-mod totokens {
-  use proc_macro2::TokenStream;
-  use quote::{ToTokens, quote};
-
-  use crate::Duration;
-
-  impl ToTokens for Duration {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-      let seconds = self.seconds;
-      let nanos = self.nanos;
-
-      tokens.extend(quote! {
-        ::protocheck::types::Duration {
-          seconds: #seconds,
-          nanos: #nanos,
-        }
-      });
-    }
-  }
-}
-
 impl std::cmp::PartialOrd for Duration {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
     Some(self.cmp(other))

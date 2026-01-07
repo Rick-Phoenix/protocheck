@@ -1,6 +1,6 @@
 use crate::field_descriptor_proto::Type as ProtoType;
 
-/// This is an enhanced enum for protobuf types, allowing you to identify well known types such as Any, Timestamp or Duration more precisely. It is non-exhaustive because other well known types can be added in the future, but it is safe to assume that any non matching variant can will be of the `Message` type.
+/// This is an enhanced enum for protobuf types, which allows precise identification for well known types such as Any, Timestamp or Duration. It is non-exhaustive because other well known types can be added in the future, but it is safe to assume that any non matching variant can will be of the `Message` type.
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 #[non_exhaustive]
 pub enum FieldType {
@@ -163,47 +163,6 @@ impl From<FieldType> for i32 {
       | FieldType::FieldMask => ProtoType::Message.into(),
       FieldType::Enum => ProtoType::Enum.into(),
       FieldType::Group => ProtoType::Group.into(),
-    }
-  }
-}
-
-#[cfg(feature = "totokens")]
-mod totokens {
-  use proc_macro2::TokenStream;
-  use quote::{ToTokens, quote};
-
-  use crate::FieldType;
-
-  impl ToTokens for FieldType {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-      let field_kind_path = quote! { ::protocheck::types::FieldType };
-
-      let variant_tokens = match self {
-        Self::Double => quote! { Double },
-        Self::Float => quote! { Float },
-        Self::Int64 => quote! { Int64 },
-        Self::Uint64 => quote! { Uint64 },
-        Self::Int32 => quote! { Int32 },
-        Self::Fixed64 => quote! { Fixed64 },
-        Self::Fixed32 => quote! { Fixed32 },
-        Self::Bool => quote! { Bool },
-        Self::String => quote! { String },
-        Self::Group => quote! { Group },
-        Self::Message => quote! { Message },
-        Self::Duration => quote! { Duration },
-        Self::Timestamp => quote! { Timestamp },
-        Self::Any => quote! { Any },
-        Self::Bytes => quote! { Bytes },
-        Self::Uint32 => quote! { Uint32 },
-        Self::Enum => quote! { Enum },
-        Self::Sfixed32 => quote! { Sfixed32 },
-        Self::Sfixed64 => quote! { Sfixed64 },
-        Self::Sint32 => quote! { Sint32 },
-        Self::Sint64 => quote! { Sint64 },
-        Self::FieldMask => quote! { FieldMask },
-      };
-
-      tokens.extend(quote! { #field_kind_path::#variant_tokens });
     }
   }
 }

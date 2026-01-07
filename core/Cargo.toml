@@ -33,8 +33,8 @@ chrono = { workspace = true, optional = true }
 ordered-float = { workspace = true }
 
 ipnetwork = { workspace = true }
-bytes = { workspace = true }
 fluent-uri = "0.4"
+bytes = { workspace = true }
 paste = { workspace = true }
 
 [features]
@@ -43,5 +43,5 @@ default = ["regex", "validators"]
 ## Enables the validators, which are used by the protocheck-proc-macro crate
 validators = []
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
-totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
+totokens = ["dep:proc-macro2", "dep:quote"]
 regex = ["dep:regex"]

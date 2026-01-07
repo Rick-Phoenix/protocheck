@@ -70,25 +70,3 @@ mod chrono {
     }
   }
 }
-
-#[cfg(feature = "totokens")]
-mod totokens {
-  use proc_macro2::TokenStream;
-  use quote::{ToTokens, quote};
-
-  use crate::Timestamp;
-
-  impl ToTokens for Timestamp {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-      let seconds = self.seconds;
-      let nanos = self.nanos;
-
-      tokens.extend(quote! {
-        ::protocheck::types::Timestamp {
-          seconds: #seconds,
-          nanos: #nanos,
-        }
-      });
-    }
-  }
-}

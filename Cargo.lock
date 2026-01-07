@@ -1039,13 +1039,10 @@ dependencies = [
  "num-traits",
  "palette",
  "paste",
- "proc-macro2",
  "prost",
- "quote",
  "rust_decimal",
  "serde",
  "serde_json",
- "syn 2.0.104",
  "thiserror 2.0.16",
 ]
 

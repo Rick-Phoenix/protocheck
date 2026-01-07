@@ -56,7 +56,7 @@ pub enum ComparableGreaterThan<T: ComparableError> {
   Gte(T),
 }
 
-impl ComparableError for Timestamp {
+impl ComparableError for TimestampTokens {
   fn greater_adjective() -> &'static str {
     "later"
   }
@@ -67,12 +67,13 @@ impl ComparableError for Timestamp {
 
   fn string_representation(&self) -> String {
     self
+      .0
       .format("%d %b %Y %R %Z")
       .unwrap_or_else(|_| self.to_string())
   }
 }
 
-impl ComparableError for Duration {
+impl ComparableError for DurationTokens {
   fn greater_adjective() -> &'static str {
     "longer"
   }
@@ -156,22 +157,22 @@ where
   fn comparable_rules(&self) -> ComparableRules<T>;
 }
 
-impl RulesWithComparables<Duration> for DurationRules {
-  fn comparable_rules(&self) -> ComparableRules<Duration> {
+impl RulesWithComparables<DurationTokens> for DurationRules {
+  fn comparable_rules(&self) -> ComparableRules<DurationTokens> {
     let less_than = self
       .less_than
       .as_ref()
       .map(|less_than| match less_than {
-        duration_rules::LessThan::Lt(v) => ComparableLessThan::Lt(*v),
-        duration_rules::LessThan::Lte(v) => ComparableLessThan::Lte(*v),
+        duration_rules::LessThan::Lt(v) => ComparableLessThan::Lt(DurationTokens(*v)),
+        duration_rules::LessThan::Lte(v) => ComparableLessThan::Lte(DurationTokens(*v)),
       });
 
     let greater_than = self
       .greater_than
       .as_ref()
       .map(|greater_than| match greater_than {
-        duration_rules::GreaterThan::Gt(v) => ComparableGreaterThan::Gt(*v),
-        duration_rules::GreaterThan::Gte(v) => ComparableGreaterThan::Gte(*v),
+        duration_rules::GreaterThan::Gt(v) => ComparableGreaterThan::Gt(DurationTokens(*v)),
+        duration_rules::GreaterThan::Gte(v) => ComparableGreaterThan::Gte(DurationTokens(*v)),
       });
 
     ComparableRules {
@@ -181,26 +182,26 @@ impl RulesWithComparables<Duration> for DurationRules {
   }
 }
 
-impl RulesWithComparables<Timestamp> for TimestampRules {
-  fn comparable_rules(&self) -> ComparableRules<Timestamp> {
-    let mut greater_than: Option<ComparableGreaterThan<Timestamp>> = None;
+impl RulesWithComparables<TimestampTokens> for TimestampRules {
+  fn comparable_rules(&self) -> ComparableRules<TimestampTokens> {
+    let mut greater_than: Option<ComparableGreaterThan<TimestampTokens>> = None;
 
     if let Some(gt_rule) = self.greater_than {
       greater_than = match gt_rule {
-        TimestampGreaterThan::Gt(v) => Some(ComparableGreaterThan::Gt(v)),
+        TimestampGreaterThan::Gt(v) => Some(ComparableGreaterThan::Gt(TimestampTokens(v))),
 
-        TimestampGreaterThan::Gte(v) => Some(ComparableGreaterThan::Gte(v)),
+        TimestampGreaterThan::Gte(v) => Some(ComparableGreaterThan::Gte(TimestampTokens(v))),
         _ => None,
       }
     }
 
-    let mut less_than: Option<ComparableLessThan<Timestamp>> = None;
+    let mut less_than: Option<ComparableLessThan<TimestampTokens>> = None;
 
     if let Some(gt_rule) = self.less_than {
       less_than = match gt_rule {
-        TimestampLessThan::Lt(v) => Some(ComparableLessThan::Lt(v)),
+        TimestampLessThan::Lt(v) => Some(ComparableLessThan::Lt(TimestampTokens(v))),
 
-        TimestampLessThan::Lte(v) => Some(ComparableLessThan::Lte(v)),
+        TimestampLessThan::Lte(v) => Some(ComparableLessThan::Lte(TimestampTokens(v))),
         _ => None,
       }
     }

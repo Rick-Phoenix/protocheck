@@ -159,38 +159,3 @@ mod serde {
     }
   }
 }
-
-#[cfg(feature = "totokens")]
-mod totokens {
-  use proc_macro2::TokenStream;
-  use quote::{ToTokens, quote};
-
-  use crate::field_descriptor_proto::Type as ProtoType;
-
-  impl ToTokens for ProtoType {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-      let path = quote! { ::protocheck::types::field_descriptor_proto::Type };
-
-      match self {
-        Self::Double => tokens.extend(quote! { #path::Double }),
-        Self::Float => tokens.extend(quote! { #path::Float }),
-        Self::Int64 => tokens.extend(quote! { #path::Int64 }),
-        Self::Uint64 => tokens.extend(quote! { #path::Uint64 }),
-        Self::Int32 => tokens.extend(quote! { #path::Int32 }),
-        Self::Fixed64 => tokens.extend(quote! { #path::Fixed64 }),
-        Self::Fixed32 => tokens.extend(quote! { #path::Fixed32 }),
-        Self::Bool => tokens.extend(quote! { #path::Bool }),
-        Self::String => tokens.extend(quote! { #path::String }),
-        Self::Group => tokens.extend(quote! { #path::Group }),
-        Self::Message => tokens.extend(quote! { #path::Message }),
-        Self::Bytes => tokens.extend(quote! { #path::Bytes }),
-        Self::Uint32 => tokens.extend(quote! { #path::Uint32 }),
-        Self::Enum => tokens.extend(quote! { #path::Enum }),
-        Self::Sfixed32 => tokens.extend(quote! { #path::Sfixed32 }),
-        Self::Sfixed64 => tokens.extend(quote! { #path::Sfixed64 }),
-        Self::Sint32 => tokens.extend(quote! { #path::Sint32 }),
-        Self::Sint64 => tokens.extend(quote! { #path::Sint64 }),
-      }
-    }
-  }
-}

@@ -27,7 +27,6 @@ All of the structs that have fallible methods also come with their own custom er
     - Mul, Div (with integers)
     - Conversions from [`Interval`] and to/from [`chrono::TimeDelta`] 
     - Helpers for the extraction of units (seconds, minutes, etc) and formatting
-    - ToTokens (optional)
 - [`Timestamp`]
     - Ord, PartialOrd
     - Display

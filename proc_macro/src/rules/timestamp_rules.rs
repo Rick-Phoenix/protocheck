@@ -21,9 +21,10 @@ pub fn get_timestamp_rules(
 
   if let Some(within_val) = rules.within {
     let error_message = format!("must be within {within_val} from now");
+    let duration_tokens = DurationTokens(within_val);
 
     let validator_expression_tokens = quote! {
-      ::protocheck::validators::timestamps::within(&#field_context_ident, &#parent_messages_ident, #value_ident, #within_val, #error_message)
+      ::protocheck::validators::timestamps::within(&#field_context_ident, &#parent_messages_ident, #value_ident, #duration_tokens, #error_message)
     };
     validation_data.get_validator_tokens(&mut tokens, &validator_expression_tokens);
   }

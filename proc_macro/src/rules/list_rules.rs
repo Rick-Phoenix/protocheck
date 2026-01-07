@@ -231,7 +231,35 @@ macro_rules! impl_lists {
 
 impl_lists!(StringRules, String, String);
 impl_lists!(EnumRules, i32, I32);
-impl_lists!(DurationRules, Duration, Duration);
+impl RuleWithLists<DurationTokens> for DurationRules {
+  const LIST_KIND: ListKind = ListKind::Duration;
+  fn lists<'a>(&'_ self) -> Lists<'_, DurationTokens> {
+    let in_list = (!self.r#in.is_empty()).then(|| {
+      Cow::Owned(
+        self
+          .r#in
+          .clone()
+          .into_iter()
+          .map(DurationTokens)
+          .collect(),
+      )
+    });
+    let not_in_list = (!self.not_in.is_empty()).then(|| {
+      Cow::Owned(
+        self
+          .not_in
+          .clone()
+          .into_iter()
+          .map(DurationTokens)
+          .collect(),
+      )
+    });
+    Lists {
+      in_list,
+      not_in_list,
+    }
+  }
+}
 impl_lists!(Int64Rules, i64, I64);
 impl_lists!(SInt64Rules, i64, I64);
 impl_lists!(SFixed64Rules, i64, I64);

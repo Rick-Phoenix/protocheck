@@ -40,8 +40,66 @@ impl RuleWithConst<TokenStream2> for BytesRules {
   }
 }
 
-const_rule!(DurationRules, Duration);
-const_rule!(TimestampRules, Timestamp);
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Copy)]
+pub struct DurationTokens(pub Duration);
+
+impl Display for DurationTokens {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}
+
+impl ToTokens for DurationTokens {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let Duration { nanos, seconds } = self.0;
+    tokens.extend(quote! {
+      ::protocheck::types::Duration {
+        seconds: #seconds,
+        nanos: #nanos
+      }
+    });
+  }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Copy)]
+pub struct TimestampTokens(pub Timestamp);
+
+impl Display for TimestampTokens {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}
+
+impl ToTokens for TimestampTokens {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let Timestamp { nanos, seconds } = self.0;
+    tokens.extend(quote! {
+      ::protocheck::types::Timestamp {
+        seconds: #seconds,
+        nanos: #nanos
+      }
+    });
+  }
+}
+
+impl RuleWithConst<DurationTokens> for DurationRules {
+  fn const_rule(&self) -> Option<ConstRule<DurationTokens>> {
+    self.r#const.as_ref().map(|v| ConstRule {
+      val: DurationTokens(*v),
+      error_message: format!("must be equal to {v}"),
+    })
+  }
+}
+
+impl RuleWithConst<TimestampTokens> for TimestampRules {
+  fn const_rule(&self) -> Option<ConstRule<TimestampTokens>> {
+    self.r#const.as_ref().map(|v| ConstRule {
+      val: TimestampTokens(*v),
+      error_message: format!("must be equal to {v}"),
+    })
+  }
+}
+
 const_rule!(StringRules, String);
 const_rule!(BoolRules, bool);
 const_rule!(EnumRules, i32);

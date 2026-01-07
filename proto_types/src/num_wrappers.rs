@@ -5,7 +5,9 @@ use std::{
 
 use num_traits::{Num, One, Zero};
 
-pub trait ProtoInt: Num + Clone + Copy + Display + Debug + Eq + Ord + Hash + Default {
+pub trait ProtoIntWrapper:
+  Num + Clone + Copy + Display + Debug + Eq + Ord + Hash + Default
+{
   type Target: Num + Clone + Copy + Display + Debug + Eq + Ord + Hash + Default;
 }
 
@@ -14,7 +16,7 @@ macro_rules! impl_wrapper {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
     pub struct $name(pub $target);
 
-    impl ProtoInt for $name {
+    impl ProtoIntWrapper for $name {
       type Target = $target;
     }
 
@@ -121,4 +123,3 @@ impl_wrapper!(Sfixed64, i64);
 impl_wrapper!(Sfixed32, i32);
 impl_wrapper!(Fixed64, u64);
 impl_wrapper!(Fixed32, u32);
-impl_wrapper!(EnumVariant, i32);
