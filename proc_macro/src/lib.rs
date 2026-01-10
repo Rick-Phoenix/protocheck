@@ -57,8 +57,8 @@ mod validation_data;
 pub fn try_into_cel_value_derive(input: TokenStream) -> TokenStream {
   let item = parse_macro_input!(input as Item);
 
-  let mut cel_crate_path = TokensOr::<TokenStream2>::new(|| quote! { ::protocheck::cel });
-  let mut proto_types_path = TokensOr::<TokenStream2>::new(|| quote! { ::protocheck::types });
+  let mut cel_crate_path = TokensOr::<TokenStream2>::new(|_| quote! { ::protocheck::cel });
+  let mut proto_types_path = TokensOr::<TokenStream2>::new(|_| quote! { ::protocheck::types });
 
   for attr in item.attrs() {
     if attr.path().is_ident("cel") {
