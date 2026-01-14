@@ -53,6 +53,7 @@ diesel = { version = "2", optional = true }
 [features]
 default = ["std", "chrono"]
 
+## Enables the standard library features
 std = ["serde?/std", "serde_json?/std", "chrono?/std"]
 
 diesel-mysql = [
