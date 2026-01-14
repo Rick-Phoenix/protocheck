@@ -4,7 +4,7 @@ publish = false
 edition = { workspace = true }
 
 [dependencies]
-prost = { workspace = true }
+prost = { workspace = true, features = ["derive", "std"] }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }

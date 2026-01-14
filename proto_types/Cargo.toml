@@ -24,29 +24,33 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-num-traits = { workspace = true }
-bytes = { version = "1" }
+num-traits = { version = "0.2", default-features = false }
+bytes = { version = "1", default-features = false }
 
 paste = { workspace = true }
 
 document-features = { workspace = true }
 
-prost = { workspace = true }
+prost = { workspace = true, features = ["derive"] }
 chrono = { version = "0.4", optional = true, default-features = false, features = [
   "alloc",
 ] }
 
 serde = { version = "1", optional = true, default-features = false }
 serde_json = { version = "1", optional = true, default-features = false }
-base64 = { workspace = true, optional = true }
+base64 = { version = "0.22", optional = true, default-features = false, features = [
+  "alloc",
+] }
 
 cel = { workspace = true, optional = true }
-thiserror = { workspace = true }
+thiserror = { version = "2", default-features = false }
 
-rust_decimal = { workspace = true, optional = true }
-chrono-tz = { version = "0.10.4", optional = true }
+rust_decimal = { version = "1.40", optional = true, default-features = false }
+chrono-tz = { version = "0.10.4", optional = true, default-features = false }
 
-palette = { version = "0.7.6", optional = true }
+palette = { version = "0.7.6", optional = true, default-features = false, features = [
+  "alloc",
+] }
 
 diesel = { version = "2", optional = true }
 
@@ -54,7 +58,19 @@ diesel = { version = "2", optional = true }
 default = ["std", "chrono"]
 
 ## Enables the standard library features
-std = ["serde?/std", "serde_json?/std", "chrono?/std"]
+std = [
+  "serde?/std",
+  "serde_json?/std",
+  "chrono?/std",
+  "num-traits/std",
+  "bytes/std",
+  "prost/std",
+  "base64?/std",
+  "thiserror/std",
+  "rust_decimal?/std",
+  "chrono-tz?/std",
+  "palette?/std",
+]
 
 diesel-mysql = [
   "std",
