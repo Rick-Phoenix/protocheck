@@ -182,7 +182,7 @@ fn create_cel_field_violation(
   create_violation_with_custom_id(
     rule_id,
     field_context,
-    &CEL_VIOLATION,
+    CEL_VIOLATION,
     error_message,
     parent_elements,
   )
@@ -202,7 +202,7 @@ fn create_cel_message_violation(
     message: Some(error_message.to_string()),
     rule_id: Some(rule_id.to_string()),
     rule: Some(FieldPath {
-      elements: CEL_VIOLATION.elements.to_vec(),
+      elements: CEL_VIOLATION.elements_iter().collect(),
     }),
     field: field_path,
     for_key: None,

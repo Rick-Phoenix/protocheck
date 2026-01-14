@@ -9,7 +9,7 @@ pub fn defined_only(
 ) -> Violation {
   create_violation(
     field_context,
-    &ENUM_DEFINED_ONLY_VIOLATION,
+    ENUM_DEFINED_ONLY_VIOLATION,
     &format!("must be a defined value of `{enum_name}`",),
     parent_elements,
   )

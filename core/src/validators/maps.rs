@@ -16,7 +16,7 @@ pub fn min_pairs<K, V>(
   } else {
     Err(create_violation(
       field_context,
-      &MAP_MIN_PAIRS_VIOLATION,
+      MAP_MIN_PAIRS_VIOLATION,
       error_message,
       parent_elements,
     ))
@@ -38,7 +38,7 @@ pub fn max_pairs<K, V>(
   } else {
     Err(create_violation(
       field_context,
-      &MAP_MAX_PAIRS_VIOLATION,
+      MAP_MAX_PAIRS_VIOLATION,
       error_message,
       parent_elements,
     ))

@@ -1,5 +1,3 @@
-use std::sync::LazyLock;
-
 use crate::protobuf::field_descriptor_proto::Type;
 
 mod violation_impls;

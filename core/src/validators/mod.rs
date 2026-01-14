@@ -1,7 +1,4 @@
-use std::{
-  collections::{HashMap, HashSet},
-  sync::LazyLock,
-};
+use std::collections::{HashMap, HashSet};
 
 use super::*;
 use crate::{

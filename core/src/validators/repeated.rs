@@ -21,7 +21,7 @@ pub fn min_items<T>(
   } else {
     Err(create_violation(
       field_context,
-      &REPEATED_MIN_ITEMS_VIOLATION,
+      REPEATED_MIN_ITEMS_VIOLATION,
       error_message,
       parent_elements,
     ))
@@ -43,7 +43,7 @@ pub fn max_items<T>(
   } else {
     Err(create_violation(
       field_context,
-      &REPEATED_MAX_ITEMS_VIOLATION,
+      REPEATED_MAX_ITEMS_VIOLATION,
       error_message,
       parent_elements,
     ))
@@ -232,7 +232,7 @@ where
   } else {
     Err(create_violation(
       field_context,
-      &REPEATED_UNIQUE_VIOLATION,
+      REPEATED_UNIQUE_VIOLATION,
       "must contain unique values",
       parent_elements,
     ))

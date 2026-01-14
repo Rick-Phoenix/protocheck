@@ -1,4 +1,4 @@
-use proto_types::{protovalidate::violations_data::timestamp_violations::*, Duration, Timestamp};
+use proto_types::{Duration, Timestamp, protovalidate::violations_data::timestamp_violations::*};
 
 use super::*;
 
@@ -16,7 +16,7 @@ pub fn within(
   } else {
     Err(create_violation(
       field_context,
-      &TIMESTAMP_WITHIN_VIOLATION,
+      TIMESTAMP_WITHIN_VIOLATION,
       error_message,
       parent_elements,
     ))
@@ -35,7 +35,7 @@ pub fn lt_now(
   } else {
     Err(create_violation(
       field_context,
-      &TIMESTAMP_LT_NOW_VIOLATION,
+      TIMESTAMP_LT_NOW_VIOLATION,
       "must be in the past",
       parent_elements,
     ))
@@ -54,7 +54,7 @@ pub fn gt_now(
   } else {
     Err(create_violation(
       field_context,
-      &TIMESTAMP_GT_NOW_VIOLATION,
+      TIMESTAMP_GT_NOW_VIOLATION,
       "must be in the future",
       parent_elements,
     ))

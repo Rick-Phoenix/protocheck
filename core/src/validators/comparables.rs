@@ -1,25 +1,23 @@
 use proto_types::{Duration, Timestamp};
 
 use super::*;
-use crate::protovalidate::violations_data::{
-  gt_violations::*, gte_violations::*, lt_violations::*, lte_violations::*,
-};
+use crate::protovalidate::violations_data::*;
 
 pub trait Comparable: PartialOrd {
-  const LT_VIOLATION: &'static LazyLock<ViolationData>;
-  const LTE_VIOLATION: &'static LazyLock<ViolationData>;
-  const GT_VIOLATION: &'static LazyLock<ViolationData>;
-  const GTE_VIOLATION: &'static LazyLock<ViolationData>;
+  const LT_VIOLATION: ViolationData;
+  const LTE_VIOLATION: ViolationData;
+  const GT_VIOLATION: ViolationData;
+  const GTE_VIOLATION: ViolationData;
 }
 
 macro_rules! impl_comparable {
   ($target:ty, $proto_ty:ident) => {
     paste::paste! {
       impl Comparable for $target {
-        const LT_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _LT_VIOLATION >];
-        const LTE_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _LTE_VIOLATION >];
-        const GT_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _GT_VIOLATION >];
-        const GTE_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _GTE_VIOLATION >];
+        const LT_VIOLATION: ViolationData = [< $proto_ty _LT_VIOLATION >];
+        const LTE_VIOLATION: ViolationData = [< $proto_ty _LTE_VIOLATION >];
+        const GT_VIOLATION: ViolationData = [< $proto_ty _GT_VIOLATION >];
+        const GTE_VIOLATION: ViolationData = [< $proto_ty _GTE_VIOLATION >];
       }
     }
   };

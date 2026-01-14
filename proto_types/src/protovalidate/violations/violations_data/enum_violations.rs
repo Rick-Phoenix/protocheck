@@ -1,23 +1,12 @@
 use super::*;
 
-pub static ENUM_DEFINED_ONLY_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
-  let elements = vec![
-    FieldPathElement {
-      field_name: Some("enum".to_string()),
-      field_number: Some(16),
-      field_type: Some(Type::Message as i32),
-      ..Default::default()
-    },
-    FieldPathElement {
-      field_name: Some("defined_only".to_string()),
-      field_number: Some(2),
-      field_type: Some(Type::Bool as i32),
-      ..Default::default()
-    },
-  ];
+macro_rules! enum_violation {
+  ($name:ident, $num:literal, $typ:ident) => {
+    violation_data!(enum, 16, $name, $num, $typ);
+  };
+}
 
-  ViolationData {
-    name: "enum.defined_only",
-    elements: Box::leak(elements.into_boxed_slice()),
-  }
-});
+enum_violation!(const, 1, Int32);
+enum_violation!(defined_only, 2, Bool);
+enum_violation!(in, 3, Int32);
+enum_violation!(not_in, 4, Int32);

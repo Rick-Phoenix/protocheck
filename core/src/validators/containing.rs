@@ -5,12 +5,12 @@ use ordered_float::OrderedFloat;
 use proto_types::{Any, Duration, FieldMask};
 
 use super::*;
-use crate::protovalidate::violations_data::{in_violations::*, not_in_violations::*};
+use crate::protovalidate::violations_data::*;
 
 pub trait ListRules: Sized {
   type LookupTarget: PartialEq + PartialOrd + Ord;
-  const IN_VIOLATION: &'static LazyLock<ViolationData>;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData>;
+  const IN_VIOLATION: ViolationData;
+  const NOT_IN_VIOLATION: ViolationData;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool;
 
@@ -97,8 +97,8 @@ macro_rules! impl_lookup {
     paste::paste! {
       impl ListRules for $typ {
         type LookupTarget = Self;
-        const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
-        const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
+        const IN_VIOLATION: ViolationData = [< $proto_type _IN_VIOLATION >];
+        const NOT_IN_VIOLATION: ViolationData = [< $proto_type _NOT_IN_VIOLATION >];
 
         fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
           list.contains(self)
@@ -112,8 +112,8 @@ macro_rules! impl_lookup {
     paste::paste! {
       impl ListRules for $wrapper {
         type LookupTarget = $target;
-        const IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _IN_VIOLATION >];
-        const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_type _NOT_IN_VIOLATION >];
+        const IN_VIOLATION: ViolationData = [< $proto_type _IN_VIOLATION >];
+        const NOT_IN_VIOLATION: ViolationData = [< $proto_type _NOT_IN_VIOLATION >];
 
         fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
           list.contains(self)
@@ -125,8 +125,8 @@ macro_rules! impl_lookup {
 
 impl ListRules for f32 {
   type LookupTarget = OrderedFloat<Self>;
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FLOAT_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = FLOAT_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = FLOAT_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(&((*self).into()))
@@ -135,8 +135,8 @@ impl ListRules for f32 {
 
 impl ListRules for f64 {
   type LookupTarget = OrderedFloat<Self>;
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &DOUBLE_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = DOUBLE_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = DOUBLE_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(&((*self).into()))
@@ -160,8 +160,8 @@ impl_lookup!(Duration, DURATION);
 
 impl ListRules for &::bytes::Bytes {
   type LookupTarget = &'static [u8];
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &BYTES_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = BYTES_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = BYTES_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(&self.as_ref())
@@ -170,8 +170,8 @@ impl ListRules for &::bytes::Bytes {
 
 impl ListRules for &Any {
   type LookupTarget = &'static str;
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &ANY_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = ANY_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = ANY_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(&self.type_url.as_str())
@@ -180,8 +180,8 @@ impl ListRules for &Any {
 
 impl ListRules for &str {
   type LookupTarget = &'static str;
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &STRING_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = STRING_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = STRING_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     list.contains(self)
@@ -190,8 +190,8 @@ impl ListRules for &str {
 
 impl ListRules for FieldMask {
   type LookupTarget = &'static str;
-  const IN_VIOLATION: &'static LazyLock<ViolationData> = &FIELD_MASK_IN_VIOLATION;
-  const NOT_IN_VIOLATION: &'static LazyLock<ViolationData> = &FIELD_MASK_NOT_IN_VIOLATION;
+  const IN_VIOLATION: ViolationData = FIELD_MASK_IN_VIOLATION;
+  const NOT_IN_VIOLATION: ViolationData = FIELD_MASK_NOT_IN_VIOLATION;
 
   fn is_in(&self, list: &SortedList<Self::LookupTarget>) -> bool {
     self

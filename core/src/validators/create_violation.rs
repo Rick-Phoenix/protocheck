@@ -1,11 +1,14 @@
+use proto_types::protovalidate::{
+  MAP_KEYS_VIOLATION, MAP_VALUES_VIOLATION, REPEATED_ITEMS_VIOLATION,
+};
+
 use super::*;
-use crate::protovalidate::{MAP_KEY_VIOLATION, MAP_VALUE_VIOLATION, REPEATED_ITEM_VIOLATION};
 
 pub(crate) fn create_violation_core(
   custom_rule_id: Option<&str>,
   field_context: Option<&FieldContext>,
   parent_elements: &[FieldPathElement],
-  violation_data: &ViolationData,
+  violation_data: ViolationData,
   error_message: &str,
 ) -> Violation {
   let mut field_elements: Option<Vec<FieldPathElement>> = None;
@@ -33,15 +36,15 @@ pub(crate) fn create_violation_core(
     match &field_context.field_kind {
       FieldKind::MapKey => {
         is_for_key = true;
-        rule_elements.extend(MAP_KEY_VIOLATION.elements.to_vec());
+        rule_elements.extend(MAP_KEYS_VIOLATION.elements_iter());
       }
-      FieldKind::MapValue => rule_elements.extend(MAP_VALUE_VIOLATION.elements.to_vec()),
-      FieldKind::RepeatedItem => rule_elements.extend(REPEATED_ITEM_VIOLATION.elements.to_vec()),
+      FieldKind::MapValue => rule_elements.extend(MAP_VALUES_VIOLATION.elements_iter()),
+      FieldKind::RepeatedItem => rule_elements.extend(REPEATED_ITEMS_VIOLATION.elements_iter()),
       _ => {}
     };
   }
 
-  rule_elements.extend(violation_data.elements.to_vec());
+  rule_elements.extend(violation_data.elements_iter());
 
   Violation {
     rule_id: Some(
@@ -58,7 +61,7 @@ pub(crate) fn create_violation_core(
 
 pub(crate) fn create_violation(
   field_context: &FieldContext,
-  violation_data: &ViolationData,
+  violation_data: ViolationData,
   error_message: &str,
   parent_elements: &[FieldPathElement],
 ) -> Violation {
@@ -74,7 +77,7 @@ pub(crate) fn create_violation(
 pub(crate) fn create_violation_with_custom_id(
   rule_id: &str,
   field_context: &FieldContext,
-  violation_data: &ViolationData,
+  violation_data: ViolationData,
   error_message: &str,
   parent_elements: &[FieldPathElement],
 ) -> Violation {

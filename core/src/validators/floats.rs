@@ -13,7 +13,7 @@ pub fn float_is_finite(
   } else {
     Err(create_violation(
       field_context,
-      &FLOAT_FINITE_VIOLATION,
+      FLOAT_FINITE_VIOLATION,
       "must be a finite number",
       parent_elements,
     ))
@@ -32,7 +32,7 @@ pub fn double_is_finite(
   } else {
     Err(create_violation(
       field_context,
-      &DOUBLE_FINITE_VIOLATION,
+      DOUBLE_FINITE_VIOLATION,
       "must be a finite number",
       parent_elements,
     ))

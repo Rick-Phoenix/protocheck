@@ -1,67 +1,16 @@
 use super::*;
 
-pub static TIMESTAMP_WITHIN_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
-  let elements = vec![
-    FieldPathElement {
-      field_name: Some("timestamp".to_string()),
-      field_number: Some(22),
-      field_type: Some(Type::Message as i32),
-      ..Default::default()
-    },
-    FieldPathElement {
-      field_name: Some("within".to_string()),
-      field_number: Some(9),
-      field_type: Some(Type::Message as i32),
-      ..Default::default()
-    },
-  ];
+macro_rules! timestamp_violation {
+  ($name:ident, $num:literal, $typ:ident) => {
+    violation_data!(timestamp, 22, $name, $num, $typ);
+  };
+}
 
-  ViolationData {
-    elements: Box::leak(elements.into_boxed_slice()),
-    name: "timestamp.within",
-  }
-});
-
-pub static TIMESTAMP_GT_NOW_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
-  let elements = vec![
-    FieldPathElement {
-      field_name: Some("timestamp".to_string()),
-      field_number: Some(22),
-      field_type: Some(Type::Message as i32),
-      ..Default::default()
-    },
-    FieldPathElement {
-      field_name: Some("gt_now".to_string()),
-      field_number: Some(8),
-      field_type: Some(Type::Bool as i32),
-      ..Default::default()
-    },
-  ];
-
-  ViolationData {
-    elements: Box::leak(elements.into_boxed_slice()),
-    name: "timestamp.gt_now",
-  }
-});
-
-pub static TIMESTAMP_LT_NOW_VIOLATION: LazyLock<ViolationData> = LazyLock::new(|| {
-  let elements = vec![
-    FieldPathElement {
-      field_name: Some("timestamp".to_string()),
-      field_number: Some(22),
-      field_type: Some(Type::Message as i32),
-      ..Default::default()
-    },
-    FieldPathElement {
-      field_name: Some("lt_now".to_string()),
-      field_number: Some(7),
-      field_type: Some(Type::Bool as i32),
-      ..Default::default()
-    },
-  ];
-
-  ViolationData {
-    elements: Box::leak(elements.into_boxed_slice()),
-    name: "timestamp.lt_now",
-  }
-});
+timestamp_violation!(const, 2, Message);
+timestamp_violation!(lt, 3, Message);
+timestamp_violation!(lte, 4, Message);
+timestamp_violation!(lt_now, 7, Bool);
+timestamp_violation!(gt, 5, Message);
+timestamp_violation!(gte, 6, Message);
+timestamp_violation!(gt_now, 8, Bool);
+timestamp_violation!(within, 9, Message);

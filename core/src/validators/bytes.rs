@@ -20,7 +20,7 @@ macro_rules! well_known_rule {
         } else {
           Err(create_violation(
             field_context,
-            &[< BYTES _ $name:upper _ VIOLATION >],
+            [< BYTES _ $name:upper _ VIOLATION >],
             concat!("must be a valid ", $definition),
             parent_elements
           ))
@@ -51,7 +51,7 @@ macro_rules! bytes_validator {
       } else {
         Err(create_violation(
           field_context,
-          paste::paste! {&[< BYTES _ $name:upper _ VIOLATION >]},
+          paste::paste! {[< BYTES _ $name:upper _ VIOLATION >]},
           error_message,
           parent_elements,
         ))
@@ -81,7 +81,7 @@ pub fn pattern(
   } else {
     Err(create_violation(
       field_context,
-      &BYTES_PATTERN_VIOLATION,
+      BYTES_PATTERN_VIOLATION,
       error_message,
       parent_elements,
     ))

@@ -15,7 +15,7 @@ macro_rules! well_known_rule {
         } else {
           Err(create_violation(
             field_context,
-            &[< STRING _ $name:upper _ VIOLATION >],
+            [< STRING _ $name:upper _ VIOLATION >],
             concat!("must be a valid ", $definition),
             parent_elements
           ))
@@ -46,7 +46,7 @@ macro_rules! string_validator {
         } else {
           Err(create_violation(
             field_context,
-            &[< STRING _ $name:upper _ VIOLATION >],
+            [< STRING _ $name:upper _ VIOLATION >],
             error_message,
             parent_elements
           ))
@@ -142,7 +142,7 @@ pub fn header_name(
     Err(create_violation_with_custom_id(
       "string.well_known_regex.header_name",
       field_context,
-      &STRING_WELL_KNOWN_REGEX_VIOLATION,
+      STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header name",
       parent_elements,
     ))
@@ -164,7 +164,7 @@ pub fn header_value(
     Err(create_violation_with_custom_id(
       "string.well_known_regex.header_value",
       field_context,
-      &STRING_WELL_KNOWN_REGEX_VIOLATION,
+      STRING_WELL_KNOWN_REGEX_VIOLATION,
       "must be a valid HTTP header value",
       parent_elements,
     ))

@@ -1,17 +1,17 @@
 use proto_types::{Duration, FieldMask, Timestamp};
 
 use super::*;
-use crate::protovalidate::violations_data::const_violations::*;
+use crate::protovalidate::violations_data::*;
 
 pub trait ConstRule {
-  const CONST_VIOLATION: &'static LazyLock<ViolationData>;
+  const CONST_VIOLATION: ViolationData;
 }
 
 macro_rules! impl_const {
   ($target:ty, $proto_ty:ident) => {
     paste::paste! {
       impl ConstRule for $target {
-        const CONST_VIOLATION: &'static LazyLock<ViolationData> = &[< $proto_ty _CONST_VIOLATION >];
+        const CONST_VIOLATION: ViolationData = [< $proto_ty _CONST_VIOLATION >];
       }
     }
   };
