@@ -1,8 +1,8 @@
-use std::fmt;
+use core::fmt;
 
 use serde::{de, ser};
 
-use crate::Timestamp;
+use crate::{Timestamp, ToString, format};
 
 impl ser::Serialize for Timestamp {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

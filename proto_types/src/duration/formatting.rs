@@ -1,12 +1,12 @@
 #![allow(clippy::option_map_unit_fn)]
-use std::fmt::Display;
+use core::fmt::Display;
 
 use super::data::DurationData;
-use crate::Duration;
+use crate::{Duration, Vec, format};
 
 /// Formats a duration in human readable form. (e.g. "2 days 15 hours 12 minutes and 15 seconds")
 impl Display for Duration {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let DurationData {
       months,
       days,

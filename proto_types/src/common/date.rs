@@ -1,12 +1,11 @@
-use std::{
+use core::{
   cmp::{Ord, Ordering, PartialOrd},
   fmt::Display,
 };
 
-use ::prost::alloc::string::String;
 use thiserror::Error;
 
-use crate::common::Date;
+use crate::{String, ToString, common::Date};
 
 /// Errors that can occur during the creation, conversion or validation of a [`Date`].
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
@@ -22,7 +21,7 @@ pub enum DateError {
 }
 
 impl Display for Date {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     match self.kind() {
       DateKind::Full => write!(f, "{:04}-{:02}-{:02}", self.year, self.month, self.day),
       DateKind::YearAndMonth => write!(f, "{:04}-{:02}", self.year, self.month),
@@ -168,7 +167,7 @@ mod chrono {
   use chrono::Utc;
 
   use super::validate_date;
-  use crate::{Date, date::DateError};
+  use crate::{Date, ToString, date::DateError, format};
 
   impl Date {
     /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.

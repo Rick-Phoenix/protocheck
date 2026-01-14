@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::Display;
 
 use crate::rpc::{Code, HttpHeader, HttpRequest, HttpResponse};
 
@@ -174,7 +174,7 @@ impl Code {
 }
 
 impl Display for Code {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}", self.as_title_case())
   }
 }

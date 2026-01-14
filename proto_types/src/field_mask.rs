@@ -1,17 +1,17 @@
-use crate::FieldMask;
+use crate::*;
 
 impl FieldMask {
-  #[must_use] 
+  #[must_use]
   pub const fn new(paths: Vec<String>) -> Self {
     Self { paths }
   }
 
-  #[must_use] 
+  #[must_use]
   pub const fn is_empty(&self) -> bool {
     self.paths.is_empty()
   }
 
-  #[must_use] 
+  #[must_use]
   pub fn contains(&self, path: &str) -> bool {
     self.paths.iter().any(|p| p == path)
   }
@@ -22,8 +22,10 @@ impl FieldMask {
 }
 
 #[cfg(feature = "serde")]
-mod serde {
-  use std::fmt;
+mod serde_impls {
+  use super::*;
+
+  use core::fmt;
 
   use serde::{Deserialize, Serialize};
 
@@ -60,7 +62,10 @@ mod serde {
             return Ok(FieldMask { paths: Vec::new() });
           }
 
-          let paths: Vec<String> = value.split(",").map(|s| s.trim().to_string()).collect();
+          let paths: Vec<String> = value
+            .split(",")
+            .map(|s| s.trim().to_string())
+            .collect();
 
           Ok(FieldMask { paths })
         }

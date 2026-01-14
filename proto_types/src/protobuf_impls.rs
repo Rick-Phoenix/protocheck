@@ -1,5 +1,8 @@
 #[cfg(feature = "serde")]
 mod serde {
+  use crate::*;
+
+  use alloc::borrow::ToOwned;
   use base64::{Engine, prelude::BASE64_STANDARD};
   use prost::bytes::Bytes;
   use serde::{
@@ -60,7 +63,7 @@ mod serde {
   impl<'de> Visitor<'de> for ValueVisitor {
     type Value = Value;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
       formatter.write_str("a JSON value (null, number, string, boolean, object, or array)")
     }
 
@@ -138,7 +141,7 @@ mod serde {
       impl Visitor<'_> for BytesValueVisitor {
         type Value = BytesValue;
 
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
           formatter.write_str("a base64 encoded string")
         }
 

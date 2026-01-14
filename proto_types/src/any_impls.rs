@@ -1,11 +1,11 @@
 #[cfg(feature = "serde")]
 mod serde {
-  use std::fmt;
+  use core::fmt;
 
-  use base64::{prelude::BASE64_STANDARD, Engine};
-  use serde::{de, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+  use base64::{Engine, prelude::BASE64_STANDARD};
+  use serde::{Deserialize, Deserializer, Serialize, Serializer, de, ser::SerializeStruct};
 
-  use crate::Any;
+  use crate::{Any, String};
 
   impl Serialize for Any {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

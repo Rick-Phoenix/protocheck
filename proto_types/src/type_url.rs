@@ -1,3 +1,5 @@
+use crate::*;
+
 // From (prost-types)[https://github.com/tokio-rs/prost/blob/master/prost-types/src/type_url.rs]
 use prost::Name;
 

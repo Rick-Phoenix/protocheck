@@ -1,7 +1,4 @@
-use std::{
-  fmt::{Debug, Display},
-  hash::Hash,
-};
+use crate::*;
 
 use num_traits::{Num, One, Zero};
 
@@ -21,19 +18,19 @@ macro_rules! impl_wrapper {
     }
 
     impl Display for $name {
-      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
       }
     }
 
-    impl std::ops::Deref for $name {
+    impl core::ops::Deref for $name {
       type Target = $target;
       fn deref(&self) -> &Self::Target {
         &self.0
       }
     }
 
-    impl std::cmp::PartialEq<$target> for $name {
+    impl core::cmp::PartialEq<$target> for $name {
       fn eq(&self, other: &$target) -> bool {
         self.0 == *other
       }

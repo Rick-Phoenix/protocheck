@@ -1,9 +1,10 @@
+#![allow(clippy::std_instead_of_core)]
 use std::{collections::HashMap, convert::Infallible};
 
-use cel::{objects::Key as CelKey, Value as CelValue};
+use cel::{Value as CelValue, objects::Key as CelKey};
 use thiserror::Error;
 
-use crate::{duration::DurationError, timestamp::TimestampError, Any, Empty, FieldMask};
+use crate::{Any, Empty, FieldMask, Vec, duration::DurationError, timestamp::TimestampError};
 
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
 pub enum CelConversionError {
@@ -35,13 +36,15 @@ mod chrono {
   use cel::Value as CelValue;
   use chrono::{DateTime, FixedOffset};
 
-  use crate::{cel::CelConversionError, Duration, Timestamp};
+  use crate::{Duration, Timestamp, cel::CelConversionError};
 
   impl TryFrom<Duration> for CelValue {
     type Error = CelConversionError;
 
     fn try_from(value: Duration) -> Result<Self, Self::Error> {
-      let chrono_dur: chrono::Duration = value.try_into().map_err(CelConversionError::from)?;
+      let chrono_dur: chrono::Duration = value
+        .try_into()
+        .map_err(CelConversionError::from)?;
 
       Ok(Self::Duration(chrono_dur))
     }
@@ -51,8 +54,9 @@ mod chrono {
     type Error = CelConversionError;
 
     fn try_from(value: Timestamp) -> Result<Self, Self::Error> {
-      let chrono_timestamp: DateTime<FixedOffset> =
-        value.try_into().map_err(CelConversionError::from)?;
+      let chrono_timestamp: DateTime<FixedOffset> = value
+        .try_into()
+        .map_err(CelConversionError::from)?;
       Ok(Self::Timestamp(chrono_timestamp))
     }
   }

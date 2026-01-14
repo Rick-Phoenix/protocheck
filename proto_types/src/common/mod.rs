@@ -1,7 +1,7 @@
 #![allow(clippy::doc_overindented_list_items)]
 #![allow(clippy::doc_lazy_continuation)]
 
-use std::fmt::Display;
+use core::fmt::Display;
 
 include!("./google.type.rs");
 
@@ -56,7 +56,7 @@ pub mod time_of_day;
 impl PhoneNumber {
   /// Returns a new [`PhoneNumber`] instance. Ensures that `kind` is always set, as required by the spec.
   #[must_use]
-  pub const fn new(extension: String, kind: phone_number::Kind) -> Self {
+  pub const fn new(extension: crate::String, kind: phone_number::Kind) -> Self {
     Self {
       extension,
       kind: Some(kind),
@@ -286,13 +286,13 @@ impl Month {
 }
 
 impl Display for DayOfWeek {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}", self.as_title_case())
   }
 }
 
 impl Display for Month {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}", self.as_title_case())
   }
 }

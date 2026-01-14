@@ -1,8 +1,8 @@
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 use thiserror::Error;
 
-use crate::{Duration, Timestamp, common::Interval, constants::NANOS_PER_SECOND};
+use crate::{Duration, String, Timestamp, ToString, common::Interval, constants::NANOS_PER_SECOND};
 
 /// Errors that can occur during the creation, conversion or validation of an [`Interval`].
 #[derive(Debug, Error, PartialEq, Eq, Clone)]

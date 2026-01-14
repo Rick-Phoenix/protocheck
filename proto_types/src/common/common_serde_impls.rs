@@ -5,8 +5,9 @@ use serde::{
 };
 
 use crate::{
-  DayOfWeek,
+  DayOfWeek, String, Vec,
   common::{CalendarPeriod, Month},
+  format,
 };
 
 impl Serialize for CalendarPeriod {
@@ -28,7 +29,7 @@ impl<'de> Deserialize<'de> for CalendarPeriod {
     impl Visitor<'_> for CalendarPeriodVisitor {
       type Value = CalendarPeriod;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a string representing a CalendarPeriod enum variant")
       }
 
@@ -88,7 +89,7 @@ impl<'de> Deserialize<'de> for crate::DateTime {
     impl<'de> Visitor<'de> for DateTimeVisitor {
       type Value = crate::DateTime;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a JSON object representing a DateTime")
       }
 
@@ -194,7 +195,7 @@ impl<'de> Deserialize<'de> for crate::Date {
     impl Visitor<'_> for DateVisitor {
       type Value = crate::Date;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a date string in YYYY-MM-DD format")
       }
 
@@ -248,7 +249,7 @@ impl<'de> Deserialize<'de> for DayOfWeek {
     impl Visitor<'_> for DayOfWeekVisitor {
       type Value = DayOfWeek;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a string representing a DayOfWeek enum variant (e.g., \"MONDAY\")")
       }
 
@@ -284,7 +285,7 @@ impl<'de> Deserialize<'de> for Month {
     impl Visitor<'_> for MonthVisitor {
       type Value = Month;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a string representing a Month enum variant (e.g., \"JANUARY\")")
       }
 

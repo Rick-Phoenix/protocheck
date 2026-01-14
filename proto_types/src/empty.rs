@@ -1,6 +1,6 @@
 use prost::Name;
 
-use crate::{Empty, constants::PACKAGE_PREFIX, type_url_for};
+use crate::{Empty, String, constants::PACKAGE_PREFIX, type_url_for};
 
 impl From<()> for Empty {
   fn from((): ()) -> Self {
@@ -19,8 +19,10 @@ impl Name for Empty {
 }
 
 #[cfg(feature = "serde")]
-mod serde {
-  use std::fmt;
+mod serde_impls {
+  use super::*;
+  use crate::format;
+  use core::fmt;
 
   use serde::{Deserialize, Serialize, ser::SerializeStruct};
 

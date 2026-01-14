@@ -1,13 +1,13 @@
 use crate::Duration;
 
-impl std::cmp::PartialOrd for Duration {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl core::cmp::PartialOrd for Duration {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     Some(self.cmp(other))
   }
 }
 
-impl std::cmp::Ord for Duration {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+impl core::cmp::Ord for Duration {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
     (self.seconds, self.nanos).cmp(&(other.seconds, other.nanos))
   }
 }
@@ -18,7 +18,8 @@ mod serde {
 
   use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-  use crate::Duration;
+  use crate::{Duration, ToString, format};
+
   impl Serialize for Duration {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

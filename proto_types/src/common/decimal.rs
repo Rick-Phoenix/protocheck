@@ -1,4 +1,4 @@
-use crate::common::Decimal;
+use crate::{String, ToString, common::Decimal};
 
 impl Decimal {
   #[must_use]
@@ -8,12 +8,12 @@ impl Decimal {
 }
 
 impl Display for Decimal {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}", self.value)
   }
 }
 
-use std::{fmt::Display, str::FromStr};
+use core::{fmt::Display, str::FromStr};
 
 use rust_decimal::Decimal as RustDecimal;
 use thiserror::Error;

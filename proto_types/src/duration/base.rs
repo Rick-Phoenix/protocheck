@@ -181,7 +181,7 @@ impl fmt::Display for DurationError {
   }
 }
 
-impl std::error::Error for DurationError {}
+impl core::error::Error for DurationError {}
 
 impl FromStr for Duration {
   type Err = DurationError;

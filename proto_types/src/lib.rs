@@ -1,8 +1,18 @@
+// no_std support is planned at a certain point, but not yet implemented
+#![no_std]
+#![deny(clippy::alloc_instead_of_core)]
+#![deny(clippy::std_instead_of_alloc)]
+#![deny(clippy::std_instead_of_core)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 
 //! # Feature flags
 #![doc = document_features::document_features!()]
+
+#[cfg(any(test, feature = "std"))]
+extern crate std;
+
+extern crate alloc;
 
 /// Generated rust code from buf.validate protobuf package, with some added methods and structs.
 #[cfg(feature = "protovalidate")]
@@ -50,11 +60,13 @@ mod conversions;
 mod datetime_internal;
 mod type_url;
 
+use alloc::{format, string::String, string::ToString, vec::Vec};
+use core::str::FromStr;
 use core::{convert::TryFrom, fmt, time};
-use std::str::FromStr;
-
-use prost::{
-  DecodeError, EncodeError, Message, Name,
-  alloc::{format, string::String, vec::Vec},
+use core::{
+  fmt::{Debug, Display},
+  hash::Hash,
 };
+
+use prost::{DecodeError, EncodeError, Message, Name};
 pub(crate) use type_url::{TypeUrl, type_url_for};

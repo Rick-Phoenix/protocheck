@@ -1,11 +1,11 @@
-use std::{cmp::Ordering, fmt::Display};
+use core::{cmp::Ordering, fmt::Display};
 
 use thiserror::Error;
 
 use crate::common::Fraction;
 
 impl Display for Fraction {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}/{}", self.numerator, self.denominator)
   }
 }

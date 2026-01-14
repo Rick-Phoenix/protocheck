@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cel::{Value as CelValue, objects::Key as CelKey};
 
 use crate::{
-  BadRequest,
+  BadRequest, Vec,
   cel::CelConversionError,
   rpc::{
     DebugInfo, ErrorInfo, Help, HttpHeader, HttpRequest, HttpResponse, LocalizedMessage,

@@ -217,6 +217,7 @@ mod diesel_postgres {
 
 #[cfg(feature = "diesel-sqlite")]
 mod diesel_sqlite {
+  use crate::{String, ToString};
   use diesel::{backend::Backend, sql_types::TimestamptzSqlite, sqlite::Sqlite};
 
   use super::*;

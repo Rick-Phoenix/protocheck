@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use cel::{Value as CelValue, objects::Key as CelKey};
 
+use crate::Vec;
 use crate::cel::CelConversionError;
 
 #[cfg(feature = "timeofday")]

@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 use crate::common::Color;
+use crate::{String, ToString};
 
 /// Errors that can occur during the creation, conversion or validation of a [`Color`].
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
@@ -101,8 +102,8 @@ impl Color {
   }
 }
 
-impl std::fmt::Display for Color {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for Color {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(
       f,
       "rgba({}, {}, {}, {:.1})",

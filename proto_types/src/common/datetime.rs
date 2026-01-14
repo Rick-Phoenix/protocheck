@@ -1,20 +1,20 @@
-use std::fmt::{Display, Formatter};
+use core::fmt::{Display, Formatter};
 
 use thiserror::Error;
 
 use crate::{
-  Duration,
+  Duration, String,
   common::{DateTime, TimeZone, date_time::TimeOffset},
 };
 
 impl Display for TimeZone {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
     write!(f, "{}", self.id)
   }
 }
 
 impl Display for DateTime {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
     if self.year != 0 {
       write!(f, "{:04}-", self.year)?;
     }
@@ -85,7 +85,7 @@ pub enum DateTimeError {
 }
 
 impl PartialOrd for TimeOffset {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     match (self, other) {
       (Self::UtcOffset(a), Self::UtcOffset(b)) => a.partial_cmp(b),
       // Can't determine order without timezone information
@@ -96,7 +96,7 @@ impl PartialOrd for TimeOffset {
 }
 
 impl PartialOrd for DateTime {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     if !(self.is_valid() && other.is_valid()) {
       return None;
     }
@@ -115,7 +115,7 @@ impl PartialOrd for DateTime {
       .then_with(|| self.seconds.cmp(&other.seconds))
       .then_with(|| self.nanos.cmp(&other.nanos));
 
-    if ord != std::cmp::Ordering::Equal {
+    if ord != core::cmp::Ordering::Equal {
       return Some(ord);
     }
 
@@ -232,7 +232,7 @@ mod chrono {
   use chrono::Utc;
 
   use super::{DateTime, DateTimeError};
-  use crate::{Duration, date_time::TimeOffset, datetime::UTC_OFFSET};
+  use crate::{Duration, String, ToString, date_time::TimeOffset, datetime::UTC_OFFSET, format};
 
   impl DateTime {
     /// Returns the current [`DateTime`] with Utc offset.
@@ -462,7 +462,7 @@ mod chrono {
     type Error = DateTimeError;
 
     fn try_from(value: crate::DateTime) -> Result<Self, Self::Error> {
-      use std::str::FromStr;
+      use core::str::FromStr;
 
       use chrono::{NaiveDateTime, TimeZone};
       use chrono_tz::Tz;

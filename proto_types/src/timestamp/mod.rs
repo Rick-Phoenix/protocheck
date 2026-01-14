@@ -12,6 +12,7 @@ use super::*;
 use crate::{
   Timestamp,
   constants::{NANOS_PER_SECOND, PACKAGE_PREFIX},
+  datetime_internal::DateTime,
 };
 
 impl Timestamp {
@@ -142,7 +143,7 @@ impl Timestamp {
 
     nanos: u32,
   ) -> Result<Self, TimestampError> {
-    let date_time = datetime_internal::DateTime {
+    let date_time = DateTime {
       year,
 
       month,
@@ -172,6 +173,7 @@ impl Name for Timestamp {
   }
 }
 
+#[cfg(feature = "std")]
 impl From<std::time::SystemTime> for Timestamp {
   fn from(system_time: std::time::SystemTime) -> Self {
     let (seconds, nanos) = match system_time.duration_since(std::time::UNIX_EPOCH) {
@@ -241,8 +243,9 @@ impl fmt::Display for TimestampError {
   }
 }
 
-impl std::error::Error for TimestampError {}
+impl core::error::Error for TimestampError {}
 
+#[cfg(feature = "std")]
 impl TryFrom<Timestamp> for std::time::SystemTime {
   type Error = TimestampError;
 
@@ -274,7 +277,7 @@ impl TryFrom<Timestamp> for std::time::SystemTime {
           .map_err(|_| TimestampError::OutOfSystemRange(timestamp))?;
 
         time
-          .checked_add(std::time::Duration::from_nanos(nanos))
+          .checked_add(core::time::Duration::from_nanos(nanos))
           .ok_or(TimestampError::OutOfSystemRange(timestamp))
       })
       .transpose()?;
@@ -292,7 +295,7 @@ impl FromStr for Timestamp {
 }
 
 impl fmt::Display for Timestamp {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    datetime_internal::DateTime::from(*self).fmt(f)
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    core::fmt::Display::fmt(&DateTime::from(*self), f)
   }
 }

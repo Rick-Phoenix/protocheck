@@ -3,12 +3,12 @@
 //!
 //! DISCLAIMER: all of the methods implemented for Money are just implemented for convenience, and they are provided as is, without warranties of any kind. By using this module, the user is relieving the authors of this library from any responsibility for any damage that may be caused by its usage.
 
-use std::cmp::Ordering;
-use std::fmt::Write;
+use core::cmp::Ordering;
+use core::fmt::Write;
 
 use thiserror::Error;
 
-use crate::common::Money;
+use crate::{String, ToString, common::Money};
 
 const NANO_FACTOR: i32 = 1_000_000_000;
 

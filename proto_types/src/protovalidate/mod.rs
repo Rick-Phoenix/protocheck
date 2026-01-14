@@ -5,7 +5,7 @@ use crate::protovalidate::field_path_element::Subscript;
 
 mod violations;
 
-use std::fmt::{self, Display};
+use crate::{Display, String, ToString, fmt};
 
 pub use violations::*;
 

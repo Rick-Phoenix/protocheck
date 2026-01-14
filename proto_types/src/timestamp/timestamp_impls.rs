@@ -1,12 +1,12 @@
-use std::time::SystemTime;
-
 use crate::{Duration, Timestamp};
 
 #[cfg(not(feature = "chrono"))]
 impl crate::Timestamp {
   /// Returns the timestamp in YYYY-MM-DD format.
   /// The same method, with the `chrono` feature, allows for custom formatting.
-  pub fn format(&self) -> String {
+  pub fn format(&self) -> crate::String {
+    use crate::ToString;
+
     self.to_string()
   }
 }
@@ -15,7 +15,7 @@ impl crate::Timestamp {
 mod chrono {
   use chrono::Utc;
 
-  use crate::{Timestamp, timestamp::TimestampError};
+  use crate::{String, Timestamp, ToString, timestamp::TimestampError};
 
   impl Timestamp {
     /// Converts this timestamp into a [`chrono::DateTime<Utc>`] struct and calls .format on it with the string argument being given.
@@ -33,16 +33,19 @@ mod chrono {
 }
 
 impl Timestamp {
-  /// Returns the current timestamp.
-  #[must_use]
-  pub fn now() -> Self {
-    SystemTime::now().into()
-  }
-
   /// Creates a new instance.
   #[must_use]
   pub const fn new(seconds: i64, nanos: i32) -> Self {
     Self { seconds, nanos }
+  }
+}
+
+#[cfg(feature = "std")]
+impl Timestamp {
+  /// Returns the current timestamp.
+  #[must_use]
+  pub fn now() -> Self {
+    std::time::SystemTime::now().into()
   }
 
   /// Checks whether the Timestamp instance is within the indicated range (positive or negative) from now.

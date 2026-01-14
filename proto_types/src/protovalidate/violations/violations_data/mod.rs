@@ -1,4 +1,4 @@
-use crate::protovalidate::*;
+use crate::{Vec, protovalidate::*};
 
 macro_rules! violation_data {
   ( $typ:ident, $num:literal, $name:ident, $viol_num:literal, $field_type:ident ) => {

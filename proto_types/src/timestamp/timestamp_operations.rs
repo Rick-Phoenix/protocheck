@@ -1,4 +1,4 @@
-use std::{
+use core::{
   cmp::Ordering,
   ops::{Add, Sub},
 };

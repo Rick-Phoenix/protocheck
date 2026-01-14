@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt::Display};
+use core::{cmp::Ordering, fmt::Display};
 
 use thiserror::Error;
 
@@ -8,7 +8,7 @@ const NANOS_PER_MINUTE: i64 = NANOS_PER_SECOND as i64 * 60;
 const NANOS_PER_HOUR: i64 = NANOS_PER_MINUTE * 60;
 
 impl Display for TimeOfDay {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     write!(
       f,
       "{:02}:{:02}:{:02}",

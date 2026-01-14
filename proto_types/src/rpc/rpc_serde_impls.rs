@@ -4,7 +4,7 @@ use serde::{
   ser::Serializer,
 };
 
-use crate::Code;
+use crate::{Code, format};
 
 impl Serialize for Code {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -25,7 +25,7 @@ impl<'de> Deserialize<'de> for Code {
     impl Visitor<'_> for CodeVisitor {
       type Value = Code;
 
-      fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("a string representing a Code enum variant (e.g., \"OK\", \"UNKNOWN\")")
       }
 

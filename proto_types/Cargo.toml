@@ -32,10 +32,12 @@ paste = { workspace = true }
 document-features = { workspace = true }
 
 prost = { workspace = true }
-chrono = { workspace = true, optional = true }
+chrono = { version = "0.4", optional = true, default-features = false, features = [
+  "alloc",
+] }
 
-serde = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true }
+serde = { version = "1", optional = true, default-features = false }
+serde_json = { version = "1", optional = true, default-features = false }
 base64 = { workspace = true, optional = true }
 
 cel = { workspace = true, optional = true }
@@ -49,19 +51,34 @@ palette = { version = "0.7.6", optional = true }
 diesel = { version = "2", optional = true }
 
 [features]
-default = ["chrono"]
+default = ["std", "chrono"]
 
-diesel-mysql = ["chrono", "dep:diesel", "diesel/chrono", "diesel/mysql_backend"]
+std = ["serde?/std", "serde_json?/std", "chrono?/std"]
+
+diesel-mysql = [
+  "std",
+  "chrono",
+  "dep:diesel",
+  "diesel/chrono",
+  "diesel/mysql_backend",
+]
 diesel-postgres = [
+  "std",
   "chrono",
   "dep:diesel",
   "diesel/chrono",
   "diesel/postgres_backend",
 ]
-diesel-sqlite = ["chrono", "dep:diesel", "diesel/chrono", "diesel/sqlite"]
+diesel-sqlite = [
+  "std",
+  "chrono",
+  "dep:diesel",
+  "diesel/chrono",
+  "diesel/sqlite",
+]
 
 ## Enables conversions into cel::Value.
-cel = ["dep:cel"]
+cel = ["std", "dep:cel"]
 ## Enables serde implementations.
 serde = [
   "dep:serde",
