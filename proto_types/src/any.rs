@@ -28,11 +28,12 @@ impl Any {
     if let (Some(expected), Some(actual)) = (
       TypeUrl::new(&expected_type_url),
       TypeUrl::new(&self.type_url),
-    )
-      && expected == actual {
-        return M::decode(self.value.as_slice());
-      }
+    ) && expected == actual
+    {
+      return M::decode(self.value.as_slice());
+    }
 
+    #[allow(deprecated)]
     let mut err = DecodeError::new(format!(
       "expected type URL: \"{}\" (got: \"{}\")",
       expected_type_url, &self.type_url
