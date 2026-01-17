@@ -45,10 +45,10 @@ base64 = { version = "0.22", optional = true, default-features = false, features
 cel = { workspace = true, optional = true }
 thiserror = { version = "2", default-features = false }
 
-rust_decimal = { version = "1.40", optional = true, default-features = false }
-chrono-tz = { version = "0.10.4", optional = true, default-features = false }
+rust_decimal = { version = "1", optional = true, default-features = false }
+chrono-tz = { version = "0.10", optional = true, default-features = false }
 
-palette = { version = "0.7.6", optional = true, default-features = false, features = [
+palette = { version = "0.7", optional = true, default-features = false, features = [
   "alloc",
 ] }
 
@@ -57,11 +57,15 @@ diesel = { version = "2", optional = true }
 [features]
 default = ["std", "chrono"]
 
+## Enables the now() methods for chrono in a wasm environment
+chrono-wasm = ["chrono", "chrono/wasmbind"]
+
 ## Enables the standard library features
 std = [
   "serde?/std",
   "serde_json?/std",
   "chrono?/std",
+  "chrono?/now",
   "num-traits/std",
   "bytes/std",
   "prost/std",
