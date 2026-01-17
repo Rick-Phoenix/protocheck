@@ -111,6 +111,24 @@ macro_rules! impl_wrapper {
         value.0
       }
     }
+
+    impl AsRef<$target> for $name {
+      fn as_ref(&self) -> &$target {
+        self
+      }
+    }
+
+    impl core::borrow::Borrow<$target> for $name {
+      fn borrow(&self) -> &$target {
+        self
+      }
+    }
+
+    impl core::borrow::BorrowMut<$target> for $name {
+      fn borrow_mut(&mut self) -> &mut $target {
+        self
+      }
+    }
   };
 }
 
