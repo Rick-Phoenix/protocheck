@@ -40,6 +40,15 @@ impl Timestamp {
   }
 }
 
+#[cfg(all(not(feature = "std"), feature = "chrono-wasm"))]
+impl Timestamp {
+  /// Returns the current timestamp.
+  #[must_use]
+  pub fn now() -> Self {
+    ::chrono::Utc::now().into()
+  }
+}
+
 #[cfg(feature = "std")]
 impl Timestamp {
   /// Returns the current timestamp.
@@ -47,7 +56,10 @@ impl Timestamp {
   pub fn now() -> Self {
     std::time::SystemTime::now().into()
   }
+}
 
+#[cfg(any(feature = "std", feature = "chrono-wasm"))]
+impl Timestamp {
   /// Checks whether the Timestamp instance is within the indicated range (positive or negative) from now.
   #[must_use]
   pub fn is_within_range_from_now(&self, range: Duration) -> bool {
