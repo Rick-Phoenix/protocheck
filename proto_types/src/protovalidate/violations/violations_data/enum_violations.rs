@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(Enum, const, defined_only, in, not_in);
+
 macro_rules! enum_violation {
   ($name:ident, $num:literal, $typ:ident) => {
     violation_data!(enum, 16, $name, $num, $typ);

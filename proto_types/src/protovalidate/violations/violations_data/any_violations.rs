@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(Any, in, not_in);
+
 macro_rules! any_violation {
   ($name:ident, $num:literal) => {
     violation_data!(any, 20, $name, $num, String);

@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(FieldMask, const, in, not_in);
+
 macro_rules! field_mask_violation {
   ($name:ident, $num:literal, $typ:ident) => {
     violation_data!(field_mask, 28, $name, $num, String);

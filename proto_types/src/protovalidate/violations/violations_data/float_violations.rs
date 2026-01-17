@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(Float, const, lt, lte, gt, gte, in, not_in, finite);
+
 macro_rules! float_violation {
   ($name:ident, $num:literal, $typ:ident) => {
     violation_data!(float, 1, $name, $num, $typ);
@@ -14,6 +16,8 @@ float_violation!(gte, 5, Float);
 float_violation!(in, 6, Float);
 float_violation!(not_in, 7, Float);
 float_violation!(finite, 8, Bool);
+
+violations_enum!(Double, const, lt, lte, gt, gte, in, not_in, finite);
 
 macro_rules! double_violation {
   ($name:ident, $num:literal, $typ:ident) => {

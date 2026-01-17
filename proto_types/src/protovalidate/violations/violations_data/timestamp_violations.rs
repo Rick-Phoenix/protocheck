@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(Timestamp, const, lt, lte, lt_now, gt, gte, gt_now);
+
 macro_rules! timestamp_violation {
   ($name:ident, $num:literal, $typ:ident) => {
     violation_data!(timestamp, 22, $name, $num, $typ);

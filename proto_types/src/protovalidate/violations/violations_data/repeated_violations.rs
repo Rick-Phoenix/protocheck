@@ -1,5 +1,7 @@
 use super::*;
 
+violations_enum!(Repeated, min_items, max_items, unique, items);
+
 macro_rules! repeated_violation {
   ($name:ident, $num:literal, $typ:ident) => {
     violation_data!(repeated, 18, $name, $num, $typ);
