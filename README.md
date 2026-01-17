@@ -2,7 +2,7 @@
 
 Protocheck is a crate that allows you to leverage [`protovalidate`](https://github.com/bufbuild/protovalidate) annotations to automatically generate validation logic for the structs generated from your protobuf messages. 
 
-This allows you to define your validation schemas only once, directly in your protobuf files (or in rust code, using [protoschema](https://github.com/Rick-Phoenix/protoschema)), and then use libraries such as this one or others like [`protovalidate-es`](github.com/bufbuild/protovalidate-es) in the Typescript ecosystem to execute the validation logic.
+This allows you to define your validation schemas only once, directly in your protobuf files (or in rust code, using [protoschema](https://github.com/Rick-Phoenix/protoschema)), and then use libraries such as this one or others like [`protovalidate-es`](https://github.com/bufbuild/protovalidate-es) in the Typescript ecosystem to execute the validation logic.
 
 ## ➡️ Getting started 
 
