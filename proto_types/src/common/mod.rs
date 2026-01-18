@@ -56,6 +56,7 @@ pub mod time_of_day;
 impl PhoneNumber {
   /// Returns a new [`PhoneNumber`] instance. Ensures that `kind` is always set, as required by the spec.
   #[must_use]
+  #[inline]
   pub const fn new(extension: crate::String, kind: phone_number::Kind) -> Self {
     Self {
       extension,
@@ -65,6 +66,7 @@ impl PhoneNumber {
 
   /// Returns false if the field `kind` is missing, which means that the instance is invalid.
   #[must_use]
+  #[inline]
   pub const fn has_kind(&self) -> bool {
     self.kind.is_some()
   }
@@ -73,29 +75,34 @@ impl PhoneNumber {
 impl CalendarPeriod {
   /// Checks if the value is of the `unspecified` variant.
   #[must_use]
+  #[inline]
   pub const fn is_unspecified(&self) -> bool {
     matches!(self, Self::Unspecified)
   }
 
   /// Checks if the calendar period is a day.
   #[must_use]
+  #[inline]
   pub const fn is_day(&self) -> bool {
     matches!(self, Self::Day)
   }
 
   /// Checks if the calendar period is a week.
   #[must_use]
+  #[inline]
   pub const fn is_week(&self) -> bool {
     matches!(self, Self::Week)
   }
 
   /// Checks if the calendar period is a fortnight.
   #[must_use]
+  #[inline]
   pub const fn is_fortnight(&self) -> bool {
     matches!(self, Self::Fortnight)
   }
 
   /// Checks if the calendar period is a month.
+  #[inline]
   #[must_use]
   pub const fn is_month(&self) -> bool {
     matches!(self, Self::Month)
@@ -103,18 +110,21 @@ impl CalendarPeriod {
 
   /// Checks if the calendar period is a quarter.
   #[must_use]
+  #[inline]
   pub const fn is_quarter(&self) -> bool {
     matches!(self, Self::Quarter)
   }
 
   /// Checks if the calendar period is a half-year.
   #[must_use]
+  #[inline]
   pub const fn is_half(&self) -> bool {
     matches!(self, Self::Half)
   }
 
   /// Checks if the calendar period is a year.
   #[must_use]
+  #[inline]
   pub const fn is_year(&self) -> bool {
     matches!(self, Self::Year)
   }
@@ -123,54 +133,63 @@ impl CalendarPeriod {
 impl DayOfWeek {
   /// Checks if the value is of the `unspecified` variant.
   #[must_use]
+  #[inline]
   pub const fn is_unspecified(&self) -> bool {
     matches!(self, Self::Unspecified)
   }
 
   /// Returns true if the day of the variant is Monday.
   #[must_use]
+  #[inline]
   pub const fn is_monday(&self) -> bool {
     matches!(self, Self::Monday)
   }
 
   /// Returns true if the day of the variant is Tuesday.
   #[must_use]
+  #[inline]
   pub const fn is_tuesday(&self) -> bool {
     matches!(self, Self::Tuesday)
   }
 
   /// Returns true if the day of the variant is Wednesday.
   #[must_use]
+  #[inline]
   pub const fn is_wednesday(&self) -> bool {
     matches!(self, Self::Wednesday)
   }
 
   /// Returns true if the day of the variant is Thursday.
   #[must_use]
+  #[inline]
   pub const fn is_thursday(&self) -> bool {
     matches!(self, Self::Thursday)
   }
 
   /// Returns true if the day of the variant is Friday.
   #[must_use]
+  #[inline]
   pub const fn is_friday(&self) -> bool {
     matches!(self, Self::Friday)
   }
 
   /// Returns true if the day of the variant is Saturday.
   #[must_use]
+  #[inline]
   pub const fn is_saturday(&self) -> bool {
     matches!(self, Self::Saturday)
   }
 
   /// Returns true if the day of the variant is Sunday.
   #[must_use]
+  #[inline]
   pub const fn is_sunday(&self) -> bool {
     matches!(self, Self::Sunday)
   }
 
   /// Returns the name of the day in title case.
   #[must_use]
+  #[inline]
   pub const fn as_title_case(&self) -> &'static str {
     match self {
       Self::Unspecified => "Unspecified",
@@ -188,84 +207,98 @@ impl DayOfWeek {
 impl Month {
   /// Checks if the value is of the `Unspecified` variant.
   #[must_use]
+  #[inline]
   pub const fn is_unspecified(&self) -> bool {
     matches!(self, Self::Unspecified)
   }
 
   /// Returns true if the month variant is January.
   #[must_use]
+  #[inline]
   pub const fn is_january(&self) -> bool {
     matches!(self, Self::January)
   }
 
   /// Returns true if the month variant is February.
   #[must_use]
+  #[inline]
   pub const fn is_february(&self) -> bool {
     matches!(self, Self::February)
   }
 
   /// Returns true if the month variant is March.
   #[must_use]
+  #[inline]
   pub const fn is_march(&self) -> bool {
     matches!(self, Self::March)
   }
 
   /// Returns true if the month variant is April.
   #[must_use]
+  #[inline]
   pub const fn is_april(&self) -> bool {
     matches!(self, Self::April)
   }
 
   /// Returns true if the month variant is May.
   #[must_use]
+  #[inline]
   pub const fn is_may(&self) -> bool {
     matches!(self, Self::May)
   }
 
   /// Returns true if the month variant is June.
   #[must_use]
+  #[inline]
   pub const fn is_june(&self) -> bool {
     matches!(self, Self::June)
   }
 
   /// Returns true if the month variant is July.
   #[must_use]
+  #[inline]
   pub const fn is_july(&self) -> bool {
     matches!(self, Self::July)
   }
 
   /// Returns true if the month variant is August.
   #[must_use]
+  #[inline]
   pub const fn is_august(&self) -> bool {
     matches!(self, Self::August)
   }
 
   /// Returns true if the month variant is September.
   #[must_use]
+  #[inline]
   pub const fn is_september(&self) -> bool {
     matches!(self, Self::September)
   }
 
   /// Returns true if the month variant is October.
   #[must_use]
+  #[inline]
   pub const fn is_october(&self) -> bool {
     matches!(self, Self::October)
   }
 
   /// Returns true if the month variant is November.
   #[must_use]
+  #[inline]
   pub const fn is_november(&self) -> bool {
     matches!(self, Self::November)
   }
 
   /// Returns true if the month variant is December.
   #[must_use]
+  #[inline]
   pub const fn is_december(&self) -> bool {
     matches!(self, Self::December)
   }
 
   /// Returns the name of the month in title case.
   #[must_use]
+  #[inline]
   pub const fn as_title_case(&self) -> &'static str {
     match self {
       Self::Unspecified => "Unspecified",

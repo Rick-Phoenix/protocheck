@@ -57,6 +57,7 @@ fn normalize_money_fields_checked(
 }
 
 impl PartialOrd for Money {
+  #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     if self.currency_code != other.currency_code {
       return None; // Indicate incomparability
@@ -143,6 +144,7 @@ impl Money {
   }
 
   /// Normalizes units and nanos. Fails in case of overflow.
+  #[inline]
   pub fn normalize(mut self) -> Result<Self, MoneyError> {
     let (normalized_units, normalized_nanos) =
       normalize_money_fields_checked(self.units, self.nanos)?;
@@ -153,6 +155,7 @@ impl Money {
   }
 
   /// Creates a new instance, if the normalization does not return errors like Overflow or Underflow.
+  #[inline]
   pub fn new(currency_code: String, units: i64, nanos: i32) -> Result<Self, MoneyError> {
     let (normalized_units, normalized_nanos) = normalize_money_fields_checked(units, nanos)?;
     Ok(Self {
@@ -170,6 +173,7 @@ impl Money {
   /// - `2` rounds to two decimal places (e.g., for cents).
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
+  #[inline]
   pub fn to_rounded_imprecise_f64(&self, decimal_places: u32) -> Result<f64, MoneyError> {
     if decimal_places > i32::MAX as u32 {
       return Err(MoneyError::Overflow);
@@ -199,6 +203,7 @@ impl Money {
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
   #[must_use]
+  #[inline]
   pub fn as_imprecise_f64(&self) -> f64 {
     self.units as f64 + (f64::from(self.nanos) / 1_000_000_000.0)
   }
@@ -209,6 +214,7 @@ impl Money {
   /// into units and nanos.
   ///
   /// WARNING: The usage of `f64` introduces floating-point precision issues. Do not use it for critical financial calculations.
+  #[inline]
   pub fn from_imprecise_f64(currency_code: String, amount: f64) -> Result<Self, MoneyError> {
     if !amount.is_finite() {
       return Err(MoneyError::NonFiniteResult);
@@ -441,60 +447,70 @@ impl Money {
   /// Checks if the money's currency code matches the given `code`.
   /// The `code` should be a three-letter ISO 4217 currency code (e.g., "USD", "EUR").
   #[must_use]
+  #[inline]
   pub fn is_currency(&self, code: &str) -> bool {
     self.currency_code == code
   }
 
   /// Checks if the money's currency is United States Dollar (USD).
   #[must_use]
+  #[inline]
   pub fn is_usd(&self) -> bool {
     self.is_currency("USD")
   }
 
   /// Checks if the money's currency is Euro (EUR).
   #[must_use]
+  #[inline]
   pub fn is_eur(&self) -> bool {
     self.is_currency("EUR")
   }
 
   /// Checks if the money's currency is British Pound Sterling (GBP).
   #[must_use]
+  #[inline]
   pub fn is_gbp(&self) -> bool {
     self.is_currency("GBP")
   }
 
   /// Checks if the money's currency is Japanese Yen (JPY).
   #[must_use]
+  #[inline]
   pub fn is_jpy(&self) -> bool {
     self.is_currency("JPY")
   }
 
   /// Checks if the money's currency is Canadian Dollar (CAD).
   #[must_use]
+  #[inline]
   pub fn is_cad(&self) -> bool {
     self.is_currency("CAD")
   }
 
   /// Checks if the money's currency is Australian Dollar (AUD).
   #[must_use]
+  #[inline]
   pub fn is_aud(&self) -> bool {
     self.is_currency("AUD")
   }
 
   /// Checks if the money amount is strictly positive (greater than zero).
   #[must_use]
+  #[inline]
   pub const fn is_positive(&self) -> bool {
     self.units > 0 || (self.units == 0 && self.nanos > 0)
   }
 
   /// Checks if the money amount is strictly negative (less than zero).
   #[must_use]
+  #[inline]
   pub const fn is_negative(&self) -> bool {
     self.units < 0 || (self.units == 0 && self.nanos < 0)
   }
 
   /// Checks if the money amount is exactly zero.
   #[must_use]
+  #[inline]
   pub const fn is_zero(&self) -> bool {
     self.units == 0 && self.nanos == 0
   }

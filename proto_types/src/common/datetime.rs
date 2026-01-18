@@ -85,6 +85,7 @@ pub enum DateTimeError {
 }
 
 impl PartialOrd for TimeOffset {
+  #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     match (self, other) {
       (Self::UtcOffset(a), Self::UtcOffset(b)) => a.partial_cmp(b),
@@ -96,6 +97,7 @@ impl PartialOrd for TimeOffset {
 }
 
 impl PartialOrd for DateTime {
+  #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
     if !(self.is_valid() && other.is_valid()) {
       return None;
@@ -164,6 +166,7 @@ fn datetime_is_valid(
 }
 
 impl DateTime {
+  #[inline]
   /// Checks if this [`DateTime`] instance represents a valid date and time, and returns the related error if it does not.
   pub fn validate(&self) -> Result<(), DateTimeError> {
     datetime_is_valid(
@@ -178,12 +181,14 @@ impl DateTime {
   }
 
   #[must_use]
+  #[inline]
   /// Checks if this [`DateTime`] instance represents a valid date and time.
   pub fn is_valid(&self) -> bool {
     self.validate().is_ok()
   }
 
   #[must_use]
+  #[inline]
   /// Returns `true` if the [`DateTime`] has a specific year (i.e., `year` is not 0).
   pub const fn has_year(&self) -> bool {
     self.year != 0
@@ -191,24 +196,28 @@ impl DateTime {
 
   /// Returns true if the [`TimeOffset`] is a UtcOffset.
   #[must_use]
+  #[inline]
   pub const fn has_utc_offset(&self) -> bool {
     matches!(self.time_offset, Some(TimeOffset::UtcOffset(_)))
   }
 
   /// Returns true if the [`TimeOffset`] is a TimeZone.
   #[must_use]
+  #[inline]
   pub const fn has_timezone(&self) -> bool {
     matches!(self.time_offset, Some(TimeOffset::TimeZone(_)))
   }
 
   /// Returns true if the [`TimeOffset`] is None.
   #[must_use]
+  #[inline]
   pub const fn is_local(&self) -> bool {
     self.time_offset.is_none()
   }
 
   /// Sets the `time_offset` to a UTC offset [`Duration`], clearing any existing time zone.
   #[must_use]
+  #[inline]
   pub fn with_utc_offset(mut self, offset: Duration) -> Self {
     self.time_offset = Some(TimeOffset::UtcOffset(offset));
     self
@@ -216,6 +225,7 @@ impl DateTime {
 
   /// Sets the `time_offset` to a [`TimeZone`], clearing any existing UTC offset.
   #[must_use]
+  #[inline]
   pub fn with_time_zone(mut self, time_zone: TimeZone) -> Self {
     self.time_offset = Some(TimeOffset::TimeZone(time_zone));
     self
@@ -237,16 +247,19 @@ mod chrono {
   impl DateTime {
     /// Returns the current [`DateTime`] with Utc offset.
     #[must_use]
+    #[inline]
     pub fn now_utc() -> Self {
       Utc::now().into()
     }
 
+    #[inline]
     /// Converts this [`DateTime`] to [`chrono::DateTime`] Utc.
     /// It succeeds if the [`TimeOffset`] is a UtcOffset with 0 seconds and nanos.
     pub fn to_datetime_utc(self) -> Result<chrono::DateTime<chrono::Utc>, DateTimeError> {
       self.try_into()
     }
 
+    #[inline]
     /// Converts this [`DateTime`] to [`chrono::DateTime`]<[`FixedOffset`](chrono::FixedOffset)>.
     /// It succeeds if the [`TimeOffset`] is a UtcOffset that results in an unambiguous [`FixedOffset`](chrono::FixedOffset).
     pub fn to_fixed_offset_datetime(
@@ -255,6 +268,7 @@ mod chrono {
       self.try_into()
     }
 
+    #[inline]
     #[cfg(feature = "chrono-tz")]
     /// Converts this [`DateTime`] to [`chrono::DateTime`]<[`Tz`](chrono_tz::Tz)>.
     /// It succeeds if the [`TimeOffset`] is a [`TimeZone`] that maps to a valid [`Tz`](chrono_tz::Tz) or if the [`TimeOffset`] is a UtcOffset with 0 seconds and nanos.
@@ -327,6 +341,7 @@ mod chrono {
   // NaiveDateTime conversions
 
   impl From<chrono::NaiveDateTime> for DateTime {
+    #[inline]
     fn from(ndt: chrono::NaiveDateTime) -> Self {
       use chrono::{Datelike, Timelike};
 
@@ -382,6 +397,7 @@ mod chrono {
   // UTC Conversions
 
   impl From<chrono::DateTime<chrono::Utc>> for DateTime {
+    #[inline]
     fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
       use chrono::{Datelike, Timelike};
 

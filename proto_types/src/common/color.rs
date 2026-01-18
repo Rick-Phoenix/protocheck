@@ -36,6 +36,7 @@ fn validate_color(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Result
 
 impl Color {
   /// Creates a new [`Color`] instance. Returns a [`ColorError`] if one of the values is invalid.
+  #[inline]
   pub fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Result<Self, ColorError> {
     validate_color(red, green, blue, alpha)?;
 
@@ -48,6 +49,7 @@ impl Color {
   }
 
   /// Validates the [`Color`] instance.
+  #[inline]
   pub fn validate(&self) -> Result<(), ColorError> {
     validate_color(
       self.red,
@@ -58,6 +60,7 @@ impl Color {
   }
 
   #[must_use]
+  #[inline]
   /// Checks if the values are valid (i.e. they all range from 0 to 1.0).
   /// Redundant in case the constructor was used.
   pub fn is_valid(&self) -> bool {
@@ -65,12 +68,14 @@ impl Color {
   }
 
   #[must_use]
+  #[inline]
   /// Returns the alpha or falls back to 1.0 as a default, as per the proto spec.
   pub fn effective_alpha(&self) -> f32 {
     self.alpha.as_ref().map_or(1.0, |fv| fv.value)
   }
 
   #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+  #[inline]
   /// Converts the value to rgba8, if it's valid.
   pub fn to_rgba8(&self) -> Result<(u8, u8, u8, u8), ColorError> {
     self.validate()?;
@@ -83,6 +88,7 @@ impl Color {
   }
 
   #[must_use]
+  #[inline]
   /// Converts an rgba8 color to a [`Color`].
   pub fn from_rgba8(r: u8, g: u8, b: u8, a: Option<u8>) -> Self {
     Self {
@@ -122,12 +128,14 @@ mod palette {
   use crate::Color;
 
   impl From<Color> for Srgba {
+    #[inline]
     fn from(value: Color) -> Self {
       Self::new(value.red, value.green, value.blue, value.effective_alpha())
     }
   }
 
   impl From<Srgba> for Color {
+    #[inline]
     fn from(value: Srgba) -> Self {
       Self {
         red: value.red,
@@ -140,6 +148,7 @@ mod palette {
 
   impl Color {
     #[must_use]
+    #[inline]
     /// Convers this [`Color`] to [`palette::Hsla`]
     pub fn to_hsla(&self) -> Hsla {
       let srgba: Srgba = (*self).into();
@@ -147,6 +156,7 @@ mod palette {
     }
 
     #[must_use]
+    #[inline]
     /// Convers this [`Color`] to [`palette::Oklch`]
     pub fn to_oklch(&self) -> Oklch {
       let srgba: Srgba = (*self).into();

@@ -97,6 +97,7 @@ impl Date {
 
   /// Returns the kind of values combination for this [`Date`]
   #[must_use]
+  #[inline]
   pub const fn kind(&self) -> DateKind {
     if self.year != 0 && self.month == 0 && self.day == 0 {
       DateKind::YearOnly
@@ -116,24 +117,28 @@ impl Date {
   }
 
   #[must_use]
+  #[inline]
   pub const fn has_year(&self) -> bool {
     self.year != 0
   }
 
   /// Returns `true` if this [`Date`] only indicates a year.
   #[must_use]
+  #[inline]
   pub const fn is_year_only(&self) -> bool {
     self.year != 0 && (self.month == 0 && self.day == 0)
   }
 
   /// Returns `true` if this [`Date`] only indicates a year and a month (i.e. for a credit card expiration date).
   #[must_use]
+  #[inline]
   pub const fn is_year_and_month(&self) -> bool {
     self.year != 0 && self.month != 0 && self.day == 0
   }
 
   /// Returns `true` if this [`Date`] only indicates a month and a day, with no specific year.
   #[must_use]
+  #[inline]
   pub const fn is_month_and_day(&self) -> bool {
     self.year == 0 && self.month != 0 && self.day != 0
   }
@@ -170,6 +175,7 @@ mod chrono {
   use crate::{Date, ToString, date::DateError, format};
 
   impl Date {
+    #[inline]
     /// Converts this [`Date`] to [`chrono::NaiveDate`]. It fails if the year, month or day are set to zero.
     pub fn to_naive_date(self) -> Result<::chrono::NaiveDate, DateError> {
       self.try_into()
@@ -177,6 +183,7 @@ mod chrono {
 
     /// Returns the current date.
     #[must_use]
+    #[inline]
     pub fn today() -> Self {
       Utc::now().naive_utc().date().into()
     }
@@ -210,6 +217,7 @@ mod chrono {
   }
 
   impl From<chrono::NaiveDate> for Date {
+    #[inline]
     fn from(naive_date: chrono::NaiveDate) -> Self {
       use chrono::Datelike;
       // Casting is safe due to chrono's costructor API

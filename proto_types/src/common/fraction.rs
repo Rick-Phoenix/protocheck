@@ -24,6 +24,7 @@ pub enum FractionError {
 impl Fraction {
   /// Helper to calculate Greatest Common Divisor (GCD)
   #[must_use]
+  #[inline]
   pub const fn gcd(mut a: i64, mut b: i64) -> i64 {
     while b != 0 {
       let temp = b;
@@ -34,6 +35,7 @@ impl Fraction {
   }
 
   /// Helper to calculate Least Common Multiple (LCM)
+  #[inline]
   pub fn lcm(a: i64, b: i64) -> Result<i128, FractionError> {
     if a == 0 || b == 0 {
       return Err(FractionError::ZeroDenominator);
@@ -52,6 +54,7 @@ impl Fraction {
 
   /// Creates a new Fraction, ensuring the denominator is positive
   /// and the fraction is reduced to its simplest form.
+  #[inline]
   pub const fn new(numerator: i64, denominator: i64) -> Result<Self, FractionError> {
     if denominator == 0 {
       return Err(FractionError::ZeroDenominator);
@@ -74,6 +77,7 @@ impl Fraction {
 
   /// Reduces the fraction to its simplest form by dividing
   /// numerator and denominator by their greatest common divisor.
+  #[inline]
   pub const fn reduce(&mut self) {
     if self.denominator == 0 {
       return;
@@ -92,12 +96,14 @@ impl Fraction {
 
   /// Returns a new, reduced Fraction.
   #[must_use]
+  #[inline]
   pub const fn reduced(mut self) -> Self {
     self.reduce();
     self
   }
 
   /// Checked addition for [`Fraction`]s.
+  #[inline]
   pub fn checked_add(self, other: Self) -> Result<Self, FractionError> {
     let common_denominator_i128 = Self::lcm(self.denominator, other.denominator)?;
 
@@ -128,6 +134,7 @@ impl Fraction {
   }
 
   /// Checked subtraction for [`Fraction`]s.
+  #[inline]
   pub fn checked_sub(self, other: Self) -> Result<Self, FractionError> {
     let common_denominator_i128 = Self::lcm(self.denominator, other.denominator)?;
 
@@ -158,6 +165,7 @@ impl Fraction {
   }
 
   /// Checked multiplication for [`Fraction`]s.
+  #[inline]
   pub fn checked_mul(self, other: Self) -> Result<Self, FractionError> {
     let new_numerator = i128::from(self.numerator)
       .checked_mul(i128::from(other.numerator))
@@ -174,6 +182,7 @@ impl Fraction {
   }
 
   /// Checked division for [`Fraction`]s.
+  #[inline]
   pub fn checked_div(self, other: Self) -> Result<Self, FractionError> {
     if other.numerator == 0 {
       return Err(FractionError::Undefined);
@@ -202,12 +211,14 @@ impl Fraction {
   ///
   /// For a fallible conversion that returns a `Result`, use `TryFrom<Fraction> for f64`.
   #[must_use]
+  #[inline]
   pub fn to_f64_unchecked(self) -> f64 {
     self.try_into().unwrap()
   }
 }
 
 impl PartialOrd for Fraction {
+  #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     if self.denominator <= 0 || other.denominator <= 0 {
       return None;
@@ -221,6 +232,7 @@ impl PartialOrd for Fraction {
 
 impl TryFrom<Fraction> for f64 {
   type Error = FractionError;
+  #[inline]
   fn try_from(fraction: Fraction) -> Result<Self, Self::Error> {
     if fraction.denominator == 0 {
       return Err(FractionError::ZeroDenominator);

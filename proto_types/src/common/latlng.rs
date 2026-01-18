@@ -22,6 +22,7 @@ fn validate_latlng(latitude: f64, longitude: f64) -> Result<(), LatLngError> {
 }
 
 impl LatLng {
+  #[inline]
   /// Creates a new instance. It fails if the latitude or longitude are not within the allowed ranges.
   pub fn new(latitude: f64, longitude: f64) -> Result<Self, LatLngError> {
     validate_latlng(latitude, longitude)?;
@@ -32,6 +33,7 @@ impl LatLng {
     })
   }
 
+  #[inline]
   /// Validates the [`LatLng`] instance by checking if the values are within the allowed range.
   pub fn validate(&self) -> Result<(), LatLngError> {
     validate_latlng(self.latitude, self.longitude)
@@ -39,6 +41,7 @@ impl LatLng {
 
   /// Checks if the [`LatLng`] instance contains valid values.
   #[must_use]
+  #[inline]
   pub fn is_valid(&self) -> bool {
     self.validate().is_ok()
   }

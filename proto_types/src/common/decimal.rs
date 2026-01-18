@@ -2,6 +2,7 @@ use crate::{String, ToString, common::Decimal};
 
 impl Decimal {
   #[must_use]
+  #[inline]
   pub const fn new(value: String) -> Self {
     Self { value }
   }

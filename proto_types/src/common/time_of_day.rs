@@ -34,6 +34,7 @@ pub enum TimeOfDayError {
 
 #[cfg(feature = "chrono")]
 impl From<chrono::NaiveTime> for TimeOfDay {
+  #[inline]
   fn from(value: chrono::NaiveTime) -> Self {
     use chrono::Timelike;
 
@@ -50,6 +51,7 @@ impl From<chrono::NaiveTime> for TimeOfDay {
 #[cfg(feature = "chrono")]
 impl TryFrom<TimeOfDay> for chrono::NaiveTime {
   type Error = TimeOfDayError;
+  #[inline]
   fn try_from(value: TimeOfDay) -> Result<Self, Self::Error> {
     let hours_u32: u32 = value
       .hours
@@ -74,12 +76,14 @@ impl TryFrom<TimeOfDay> for chrono::NaiveTime {
 }
 
 impl PartialOrd for TimeOfDay {
+  #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     Some(self.cmp(other))
   }
 }
 
 impl Ord for TimeOfDay {
+  #[inline]
   fn cmp(&self, other: &Self) -> Ordering {
     // Directly use the i64 comparison.
     self
@@ -113,6 +117,7 @@ fn validate_time_of_day(
 impl TimeOfDay {
   /// Returns the total amount of nanoseconds since midnight for this instance.
   #[must_use]
+  #[inline]
   pub const fn nanos_since_midnight(&self) -> i64 {
     self.hours as i64 * NANOS_PER_HOUR
       + self.minutes as i64 * NANOS_PER_MINUTE
@@ -120,6 +125,7 @@ impl TimeOfDay {
       + self.nanos as i64
   }
 
+  #[inline]
   /// Creates a new [`TimeOfDay`] instance with validation.
   pub fn new(hours: i32, minutes: i32, seconds: i32, nanos: i32) -> Result<Self, TimeOfDayError> {
     validate_time_of_day(hours, minutes, seconds, nanos)?;
@@ -134,6 +140,7 @@ impl TimeOfDay {
 
   /// Checks if this [`TimeOfDay`] instance represents a valid time.
   #[must_use]
+  #[inline]
   pub fn is_valid(&self) -> bool {
     validate_time_of_day(self.hours, self.minutes, self.seconds, self.nanos).is_ok()
   }

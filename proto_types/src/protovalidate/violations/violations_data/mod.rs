@@ -155,7 +155,6 @@ pub struct ConstPathElement {
 
 impl ConstPathElement {
   #[must_use]
-  #[inline]
   pub fn as_path_element(&self) -> FieldPathElement {
     FieldPathElement {
       field_name: Some(self.name.to_string()),
@@ -174,7 +173,6 @@ pub struct ViolationData {
 
 impl ViolationData {
   #[must_use]
-  #[inline]
   pub fn elements_iter(&self) -> impl ExactSizeIterator<Item = FieldPathElement> {
     self.elements.iter().map(|e| e.as_path_element())
   }

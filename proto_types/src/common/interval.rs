@@ -50,6 +50,7 @@ impl Interval {
   /// Creates an [`Interval`] going from now to the `end_time` specified.
   /// The present moment is calculated using the SystemTime.
   #[must_use]
+  #[inline]
   pub fn from_now_to(end_time: Timestamp) -> Self {
     Self {
       start_time: Some(Timestamp::now()),
@@ -60,6 +61,7 @@ impl Interval {
   /// Creates a new [`Interval`] going from the specified `start_time` to the present moment.
   /// The present moment is calculated using the SystemTime.
   #[must_use]
+  #[inline]
   pub fn from_start_to_now(start_time: Timestamp) -> Self {
     Self {
       start_time: Some(start_time),
@@ -75,6 +77,7 @@ impl Interval {
 
   /// Returns `true` if the `Interval` is empty (`start_time` equals `end_time`).
   #[must_use]
+  #[inline]
   pub fn is_empty(&self) -> bool {
     self
       .start_time
@@ -85,6 +88,7 @@ impl Interval {
 
   /// Returns `true` if the `Interval` is unspecified (no `start_time` and no `end_time`)
   #[must_use]
+  #[inline]
   pub const fn is_unspecified(&self) -> bool {
     self.start_time.is_none() && self.end_time.is_none()
   }
