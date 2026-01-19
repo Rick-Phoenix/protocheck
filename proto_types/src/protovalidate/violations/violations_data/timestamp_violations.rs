@@ -1,6 +1,6 @@
 use super::*;
 
-violations_enum!(Timestamp, const, lt, lte, lt_now, gt, gte, gt_now);
+violations_enum!(Timestamp, const, lt, lte, lt_now, gt, gte, gt_now, within);
 
 macro_rules! timestamp_violation {
   ($name:ident, $num:literal, $typ:ident) => {

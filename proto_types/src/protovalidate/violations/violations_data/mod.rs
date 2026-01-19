@@ -1,10 +1,11 @@
 use crate::{Vec, protovalidate::*};
 
 #[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ViolationType {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum ViolationKind {
   Required,
   RequiredOneof,
+  Cel,
   Float(FloatViolation),
   Double(DoubleViolation),
   Int32(Int32Violation),
@@ -29,10 +30,11 @@ pub enum ViolationType {
   Timestamp(TimestampViolation),
 }
 
-impl ViolationType {
+impl ViolationKind {
   #[must_use]
   pub const fn data(&self) -> ViolationData {
     match self {
+      Self::Cel => CEL_VIOLATION,
       Self::Required => REQUIRED_VIOLATION,
       Self::RequiredOneof => ONEOF_REQUIRED_VIOLATION,
       Self::Float(v) => v.data(),
@@ -65,7 +67,7 @@ macro_rules! violations_enum {
   ($target:ident, $($names:ident),*) => {
     paste::paste! {
       #[non_exhaustive]
-      #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+      #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
       pub enum [< $target Violation >] {
         $(
           [< $names:camel >]
@@ -73,6 +75,7 @@ macro_rules! violations_enum {
       }
 
       impl [< $target Violation >] {
+        #[must_use]
         pub const fn data(&self) -> ViolationData {
           match self {
             $(
@@ -82,7 +85,7 @@ macro_rules! violations_enum {
         }
       }
 
-      impl From<[< $target Violation >]> for ViolationType {
+      impl From<[< $target Violation >]> for ViolationKind {
         fn from(value: [< $target Violation >]) -> Self {
           Self::$target(value)
         }
