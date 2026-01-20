@@ -1,1 +1,1 @@
-/home/rick/protocheck/README.md
+../README.md
