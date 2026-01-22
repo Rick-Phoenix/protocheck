@@ -1,6 +1,17 @@
 use super::*;
 
-violations_enum!(Float, const, lt, lte, gt, gte, in, not_in, finite);
+violations_enum!(
+  with_required,
+  Float,
+  const,
+  lt,
+  lte,
+  gt,
+  gte,
+  in,
+  not_in,
+  finite
+);
 
 macro_rules! float_violation {
   ($name:ident, $num:literal, $typ:ident) => {
@@ -17,7 +28,18 @@ float_violation!(in, 6, Float);
 float_violation!(not_in, 7, Float);
 float_violation!(finite, 8, Bool);
 
-violations_enum!(Double, const, lt, lte, gt, gte, in, not_in, finite);
+violations_enum!(
+  with_required,
+  Double,
+  const,
+  lt,
+  lte,
+  gt,
+  gte,
+  in,
+  not_in,
+  finite
+);
 
 macro_rules! double_violation {
   ($name:ident, $num:literal, $typ:ident) => {

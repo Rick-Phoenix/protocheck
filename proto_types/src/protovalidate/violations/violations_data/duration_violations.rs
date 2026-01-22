@@ -1,6 +1,6 @@
 use super::*;
 
-violations_enum!(Duration, const, lt, lte, gt, gte, in, not_in);
+violations_enum!(with_required, Duration, const, lt, lte, gt, gte, in, not_in);
 
 macro_rules! duration_violation {
   ($name:ident, $num:literal) => {

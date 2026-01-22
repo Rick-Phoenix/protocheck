@@ -1,4 +1,5 @@
 use crate::{Vec, protovalidate::*};
+use paste::paste;
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -63,17 +64,25 @@ impl ViolationKind {
   }
 }
 
-macro_rules! violations_enum {
-  ($target:ident, $($names:ident),*) => {
-    paste::paste! {
-      #[non_exhaustive]
-      #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-      pub enum [< $target Violation >] {
-        $(
-          [< $names:camel >]
-        ),*
+macro_rules! violation_data_method {
+  (with_required, $target:ident, $($names:ident),*) => {
+    paste! {
+      impl [< $target Violation >] {
+        #[must_use]
+        pub const fn data(&self) -> ViolationData {
+          match self {
+            Self::Required => REQUIRED_VIOLATION,
+            $(
+              Self::[< $names:camel >] => [< $target:snake:upper _ $names:snake:upper _VIOLATION  >]
+            ),*
+          }
+        }
       }
+    }
+  };
 
+  ($target:ident, $($names:ident),*) => {
+    paste! {
       impl [< $target Violation >] {
         #[must_use]
         pub const fn data(&self) -> ViolationData {
@@ -84,6 +93,43 @@ macro_rules! violations_enum {
           }
         }
       }
+    }
+  };
+}
+
+macro_rules! violations_enum {
+  (with_required, $target:ident, $($names:ident),*) => {
+    paste::paste! {
+      #[non_exhaustive]
+      #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+      pub enum [< $target Violation >] {
+        Required,
+        $(
+          [< $names:camel >]
+        ),*
+      }
+
+      violation_data_method!(with_required, $target, $($names),*);
+
+      impl From<[< $target Violation >]> for ViolationKind {
+        fn from(value: [< $target Violation >]) -> Self {
+          Self::$target(value)
+        }
+      }
+    }
+  };
+
+  ($target:ident, $($names:ident),*) => {
+    paste::paste! {
+      #[non_exhaustive]
+      #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+      pub enum [< $target Violation >] {
+        $(
+          [< $names:camel >]
+        ),*
+      }
+
+      violation_data_method!($target, $($names),*);
 
       impl From<[< $target Violation >]> for ViolationKind {
         fn from(value: [< $target Violation >]) -> Self {
@@ -117,7 +163,7 @@ macro_rules! violation_data {
 }
 
 violation_data!(bool, 13, const, 1, Bool);
-violations_enum!(Bool, const);
+violations_enum!(with_required, Bool, const);
 
 pub mod base_violations;
 

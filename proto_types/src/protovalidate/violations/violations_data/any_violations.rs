@@ -1,6 +1,6 @@
 use super::*;
 
-violations_enum!(Any, in, not_in);
+violations_enum!(with_required, Any, in, not_in);
 
 macro_rules! any_violation {
   ($name:ident, $num:literal) => {

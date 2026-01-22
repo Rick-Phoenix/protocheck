@@ -3,7 +3,7 @@ use super::*;
 macro_rules! int_violations {
   ($name:ident, $num:literal) => {
     paste::paste! {
-      violations_enum!([< $name:camel >], const, lt, lte, gt, gte, in, not_in);
+      violations_enum!(with_required, [< $name:camel >], const, lt, lte, gt, gte, in, not_in);
 
       violation_data!($name, $num, const, 1, [< $name:camel >]);
       violation_data!($name, $num, lt, 2, [< $name:camel >]);

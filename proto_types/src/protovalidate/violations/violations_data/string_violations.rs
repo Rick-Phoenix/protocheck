@@ -1,6 +1,7 @@
 use super::*;
 
 violations_enum!(
+  with_required,
   String,
   const,
   len,
