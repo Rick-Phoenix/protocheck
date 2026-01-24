@@ -3,6 +3,7 @@ use paste::paste;
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ViolationKind {
   Required,
   RequiredOneof,
@@ -102,6 +103,7 @@ macro_rules! violations_enum {
     paste::paste! {
       #[non_exhaustive]
       #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+      #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
       pub enum [< $target Violation >] {
         Required,
         $(
@@ -123,6 +125,7 @@ macro_rules! violations_enum {
     paste::paste! {
       #[non_exhaustive]
       #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+      #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
       pub enum [< $target Violation >] {
         $(
           [< $names:camel >]

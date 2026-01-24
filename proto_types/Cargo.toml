@@ -6,7 +6,7 @@ readme = true
 
 description = "⚙️ Implementations for various common protobuf types."
 
-keywords = ["protobuf", "types", "common", "wkt"]
+keywords = ["protobuf", "types", "common", "wkt", "no_std"]
 edition = { workspace = true }
 license = { workspace = true }
 authors = { workspace = true }
