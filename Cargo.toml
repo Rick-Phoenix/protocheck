@@ -2,7 +2,6 @@
 members = [
   "proc_macro",
   "tests",
-  "proto_types",
   "core",
   "protocheck",
   "protocheck-build",
@@ -26,6 +25,7 @@ repository = "https://github.com/Rick-Phoenix/protocheck"
 edition = "2024"
 
 [workspace.dependencies]
+proto-types = { path = "../proto-types/proto-types", default-features = false, version = "0.1.11" }
 num-traits = "0.2"
 syn-utils = { path = "../syn-utils/" }
 ordered-float = { version = "5" }
