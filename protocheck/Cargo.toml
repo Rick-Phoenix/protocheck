@@ -23,9 +23,7 @@ protocheck-proc-macro = { version = "0.1.11", path = "../proc_macro/", default-f
 protocheck-core = { version = "0.1.11", path = "../core/", default-features = false, features = [
   "validators",
 ] }
-proto-types = { version = "0.1.11", path = "../proto_types/", default-features = false, features = [
-  "protovalidate",
-] }
+proto-types = { workspace = true, features = ["default", "protovalidate"] }
 document-features = { workspace = true }
 
 [features]

@@ -24,9 +24,7 @@ proc-macro = true
 
 [dependencies]
 syn-utils = { workspace = true }
-proto-types = { version = "0.1.11", path = "../proto_types/", features = [
-  "protovalidate",
-] }
+proto-types = { workspace = true, features = ["default", "protovalidate"] }
 
 prost-reflect = { workspace = true }
 cel = { workspace = true, optional = true }

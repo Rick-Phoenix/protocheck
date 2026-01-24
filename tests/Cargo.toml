@@ -9,7 +9,8 @@ serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
 protocheck = { path = "../protocheck/" }
-proto-types = { path = "../proto_types/", features = [
+proto-types = { workspace = true, features = [
+  "default",
   "serde",
   "cel",
   "all_common",
