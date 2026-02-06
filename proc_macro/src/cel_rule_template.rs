@@ -1,4 +1,7 @@
-use crate::*;
+use proc_macro2::Ident;
+use prost_reflect::{FieldDescriptor, MessageDescriptor};
+
+use crate::validation_data::ValidationData;
 
 #[derive(Debug, Clone)]
 pub enum CelRuleTemplateTarget<'a> {
@@ -6,23 +9,14 @@ pub enum CelRuleTemplateTarget<'a> {
     message_desc: &'a MessageDescriptor,
     parent_messages_ident: Ident,
     violations_ident: Ident,
-    struct_span: Span,
   },
   Field {
     field_desc: &'a FieldDescriptor,
     validation_data: &'a ValidationData<'a>,
-    field_span: Span,
   },
 }
 
 impl CelRuleTemplateTarget<'_> {
-  pub fn span(&self) -> Span {
-    match self {
-      CelRuleTemplateTarget::Message { struct_span, .. } => *struct_span,
-      CelRuleTemplateTarget::Field { field_span, .. } => *field_span,
-    }
-  }
-
   pub fn get_validation_type(&self) -> &str {
     match self {
       CelRuleTemplateTarget::Field { .. } => "field",

@@ -1,24 +1,126 @@
-use syn_utils::{Float, Int, RustType, TypeInfo, Uint};
+use proc_macro::TokenStream;
+use quote::{format_ident, quote, ToTokens};
+use syn::{parse_macro_input, DeriveInput, Error, Type};
 
-use crate::*;
+use crate::{attribute_extractors::extract_proto_name_attribute, Ident2, Span2, TokenStream2};
 
-pub fn get_conversion_tokens(type_info: &TypeInfo, val_tokens: &TokenStream2) -> TokenStream2 {
-  match type_info.type_.as_ref() {
-    RustType::Box(_) => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
-    RustType::Bytes => quote! { #val_tokens.to_vec().into() },
-    RustType::Float(Float::F32) => quote! { (*#val_tokens as f64).into() },
-    RustType::Uint(Uint::U32) => quote! { (*#val_tokens as u64).into() },
-    RustType::Int(Int::I32) => quote! { (*#val_tokens as i64).into() },
-    _ => {
-      quote! { #val_tokens.clone().try_into().map_err(::protocheck::types::cel::CelConversionError::from)? }
+enum OuterType {
+  Option(InnerType),
+  Vec(InnerType),
+  HashMap(InnerType, InnerType),
+  Normal(InnerType),
+}
+
+enum InnerType {
+  Box,
+  TryInto,
+  Bytes,
+  F32,
+  U32,
+  I32,
+}
+
+impl InnerType {
+  pub fn conversion_tokens(&self, val_tokens: &TokenStream2) -> TokenStream2 {
+    match self {
+      Self::Box => quote! { (*#val_tokens).try_into_cel_value_recursive(depth + 1)? },
+      Self::TryInto => {
+        quote! { #val_tokens.clone().try_into().map_err(::protocheck::types::cel::CelConversionError::from)? }
+      }
+      Self::Bytes => quote! { #val_tokens.to_vec().into() },
+      Self::F32 => quote! { (*#val_tokens as f64).into() },
+      Self::U32 => quote! { (*#val_tokens as u64).into() },
+      Self::I32 => quote! { (*#val_tokens as i64).into() },
+    }
+  }
+
+  pub fn from_type(ty: &Type) -> Self {
+    if is_box(ty) {
+      Self::Box
+    } else if is_bytes(ty) {
+      Self::Bytes
+    } else if is_f32(ty) {
+      Self::F32
+    } else if is_u32(ty) {
+      Self::U32
+    } else if is_i32(ty) {
+      Self::I32
+    } else {
+      Self::TryInto
     }
   }
 }
 
-pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
-  let enum_name = &item.ident;
+impl TryFrom<&Type> for OuterType {
+  type Error = ();
 
-  let variants = &item.variants;
+  fn try_from(ty: &Type) -> Result<Self, Self::Error> {
+    if is_option(ty) {
+      let inner = get_type_argument(ty)?;
+      Ok(Self::Option(InnerType::from_type(inner)))
+    } else if is_vec(ty) {
+      let inner = get_type_argument(ty)?;
+      Ok(Self::Vec(InnerType::from_type(inner)))
+    } else if is_hashmap(ty) {
+      let (keys_type, values_type) = get_hashmap_types(ty)?;
+      Ok(Self::HashMap(
+        InnerType::from_type(keys_type),
+        InnerType::from_type(values_type),
+      ))
+    } else {
+      Ok(Self::Normal(InnerType::from_type(ty)))
+    }
+  }
+}
+
+fn get_type_argument(ty: &Type) -> Result<&Type, ()> {
+  let mut output: Option<&Type> = None;
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last()
+      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
+          output = Some(inner_type);
+        }
+
+  if let Some(output_type) = output {
+    Ok(output_type)
+  } else {
+    Err(())
+  }
+}
+
+fn get_hashmap_types(ty: &Type) -> Result<(&Type, &Type), ()> {
+  let mut hashmap_values_type: Option<&Type> = None;
+  let mut hashmap_keys_type: Option<&Type> = None;
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last()
+      && let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+        if let Some(syn::GenericArgument::Type(keys_type)) = args.args.get(0) {
+          hashmap_keys_type = Some(keys_type);
+        }
+        if let Some(syn::GenericArgument::Type(value_type)) = args.args.get(1) {
+          hashmap_values_type = Some(value_type);
+        }
+  }
+
+  if let Some(keys_type) = hashmap_keys_type && let Some(values_type) = hashmap_values_type {
+    Ok((keys_type, values_type))
+  } else {
+    Err(())
+  }
+}
+
+pub fn derive_cel_value_oneof(input: TokenStream) -> TokenStream {
+  let ast = parse_macro_input!(input as DeriveInput);
+  let enum_name = &ast.ident;
+
+  let variants = if let syn::Data::Enum(data_enum) = &ast.data {
+    &data_enum.variants
+  } else {
+    return syn::Error::new_spanned(ast, "OneofTryIntoCelValue can only be used on enums")
+      .to_compile_error()
+      .into();
+  };
 
   let max_recursion_depth = quote! { 10 };
 
@@ -26,16 +128,29 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
 
   for variant in variants {
     let variant_ident = &variant.ident;
-    let proto_name = variant_ident.to_string().to_case(Case::Snake);
+    let mut proto_name: String = String::new();
+
+    for attr in variant.attrs.iter() {
+      if attr.path().is_ident("protocheck") {
+        match attr.parse_nested_meta(|meta| {
+          proto_name =
+            extract_proto_name_attribute(&enum_name.to_string(), attr, variant_ident, meta)?;
+          Ok(())
+        }) {
+          Ok(_) => {}
+          Err(e) => return e.to_compile_error().into(),
+        };
+
+        break;
+      }
+    }
 
     if let syn::Fields::Unnamed(fields) = &variant.fields
       && let Some(variant_type) = &fields.unnamed.get(0) {
         let type_ident = &variant_type.ty;
-        let val_ident = new_ident("v");
+        let val_ident = format_ident!("v");
 
-        let type_info = TypeInfo::from_type(type_ident)?;
-
-        let into_expression = get_conversion_tokens(&type_info, &quote! { #val_ident });
+        let into_expression = InnerType::from_type(type_ident).conversion_tokens(&quote! { #val_ident });
 
         let arm = quote! {
           #enum_name::#variant_ident(#val_ident) => {
@@ -50,48 +165,39 @@ pub fn derive_cel_value_oneof(item: ItemEnum) -> Result<TokenStream2, Error> {
       }
   }
 
-  // We cannot rely on the try_into impl as is here, because we need to know
-  // the name of the specific oneof variant being used, so we need this helper here.
-  // In the future we might skip this and just use the name of the oneof, to mirror
-  // the rust side of things more accurately
-  Ok(quote! {
+  let expanded = quote! {
     impl #enum_name {
-      #[doc(hidden)]
       pub fn try_into_cel_value(&self) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
         self.try_into_cel_value_recursive(0)
       }
 
-      #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<(String, ::protocheck::cel::Value), ::protocheck::types::cel::CelConversionError> {
          match self {
           #(#match_arms),*
         }
       }
     }
-
-    impl TryFrom<#enum_name> for ::protocheck::cel::Value {
-      type Error = ::protocheck::types::cel::CelConversionError;
-
-      fn try_from(value: #enum_name) -> Result<Self, Self::Error> {
-        Ok(value.try_into_cel_value_recursive(0)?.1)
-      }
-    }
-  })
-}
-
-pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, Error> {
-  let struct_name = &item.ident;
-
-  let fields = if let syn::Fields::Named(fields) = &item.fields {
-    &fields.named
-  } else {
-    bail!(
-      item,
-      "This derive macro only works on structs with named fields"
-    );
   };
 
-  let fields_map_ident = Ident::new("fields", Span::call_site());
+  expanded.into()
+}
+
+pub(crate) fn derive_cel_value_struct(input: TokenStream) -> TokenStream {
+  let ast = parse_macro_input!(input as DeriveInput);
+
+  let struct_name = &ast.ident;
+
+  let fields = if let syn::Data::Struct(syn::DataStruct {
+    fields: syn::Fields::Named(fields),
+    ..
+  }) = &ast.data
+  {
+    &fields.named
+  } else {
+    panic!("This derive macro only works on structs with named fields");
+  };
+
+  let fields_map_ident = Ident2::new("fields", Span2::call_site());
   let mut tokens = TokenStream2::new();
 
   let max_recursion_depth = quote! { 10 };
@@ -121,15 +227,27 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
         }
       });
     } else {
-      let outer_type = TypeInfo::from_type(field_type)?;
+      let outer_type = match OuterType::try_from(field_type) {
+        Ok(ty) => ty,
+        Err(_) => {
+          return Error::new_spanned(
+            field,
+            format!(
+              "Could not parse the outer type for field {} in struct {}",
+              field_name, struct_name
+            ),
+          )
+          .to_compile_error()
+          .into()
+        }
+      };
 
-      let val_ident = new_ident("v");
+      let val_ident = format_ident!("v");
       let val_tokens = quote! { #val_ident };
 
-      match outer_type.type_.as_ref() {
-        RustType::Option(inner) => {
-          let conversion_tokens = get_conversion_tokens(inner, &val_tokens);
-
+      match outer_type {
+        OuterType::Option(inner) => {
+          let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             if let Some(#val_ident) = &value.#field_ident {
               #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
@@ -138,9 +256,8 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
             }
           });
         }
-        RustType::Vec(inner) => {
-          let conversion_tokens = get_conversion_tokens(inner, &val_tokens);
-
+        OuterType::Vec(inner) => {
+          let conversion_tokens = inner.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut converted: Vec<::protocheck::cel::Value> = Vec::new();
             for #val_ident in &value.#field_ident {
@@ -151,10 +268,10 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
           });
         }
 
-        RustType::HashMap((k, v)) => {
-          let keys_ident = new_ident("key");
-          let keys_conversion_tokens = get_conversion_tokens(k, &quote! { #keys_ident });
-          let values_conversion_tokens = get_conversion_tokens(v, &val_tokens);
+        OuterType::HashMap(keys_type, values_type) => {
+          let keys_ident = Ident2::new("key", Span2::call_site());
+          let keys_conversion_tokens = keys_type.conversion_tokens(&quote! { #keys_ident });
+          let values_conversion_tokens = values_type.conversion_tokens(&val_tokens);
           tokens.extend(quote! {
             let mut field_map: ::std::collections::HashMap<::protocheck::cel::objects::Key, ::protocheck::cel::Value> = ::std::collections::HashMap::new();
 
@@ -165,9 +282,9 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
             #fields_map_ident.insert(#field_name.into(), ::protocheck::cel::Value::Map(field_map.into()));
           });
         }
-        _ => {
+        OuterType::Normal(ty) => {
           let val_tokens = quote! { (&value.#field_ident) };
-          let conversion_tokens = get_conversion_tokens(&outer_type, &val_tokens);
+          let conversion_tokens = ty.conversion_tokens(&val_tokens);
 
           tokens.extend(quote! {
             #fields_map_ident.insert(#field_name.into(), #conversion_tokens);
@@ -177,10 +294,9 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
     }
   }
 
-  Ok(quote! {
+  let expanded = quote! {
     impl #struct_name {
-      #[doc(hidden)]
-      pub fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
+      fn try_into_cel_value_recursive(&self, depth: usize) -> Result<::protocheck::cel::Value, ::protocheck::types::cel::CelConversionError> {
         if depth >= #max_recursion_depth {
           return Ok(::protocheck::cel::Value::Null);
         }
@@ -201,5 +317,74 @@ pub(crate) fn derive_cel_value_struct(item: ItemStruct) -> Result<TokenStream2, 
         value.try_into_cel_value_recursive(0)
       }
     }
-  })
+  };
+
+  expanded.into()
+}
+
+fn type_matches_path(ty: &Type, target_path: &str) -> bool {
+  if let Ok(path) = syn::parse_str::<syn::Path>(target_path) {
+    return ty.to_token_stream().to_string() == path.to_token_stream().to_string();
+  }
+  false
+}
+
+fn is_bytes(ty: &Type) -> bool {
+  type_matches_path(ty, "::prost::bytes::Bytes")
+}
+
+fn is_option(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "Option";
+    }
+  false
+}
+
+fn is_box(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "Box";
+    }
+  false
+}
+
+fn is_vec(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "Vec";
+    }
+  false
+}
+
+fn is_hashmap(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "HashMap";
+    }
+  false
+}
+
+fn is_f32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "f32";
+    }
+  false
+}
+
+fn is_u32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "u32";
+    }
+  false
+}
+
+fn is_i32(ty: &Type) -> bool {
+  if let syn::Type::Path(type_path) = ty
+    && let Some(segment) = type_path.path.segments.last() {
+      return segment.ident == "i32";
+    }
+  false
 }

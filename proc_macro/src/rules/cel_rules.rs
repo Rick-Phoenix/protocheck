@@ -1,45 +1,56 @@
-use crate::*;
-
 pub fn get_cel_rules_checked(
   rule_target: &CelRuleTemplateTarget,
   rules: &[Rule],
-) -> Result<TokenStream2, Error> {
+  static_defs: &mut TokenStream,
+) -> Result<TokenStream, Error> {
   if cfg!(feature = "cel") {
-    cel_validator::get_cel_rules(rule_target, rules)
+    get_cel_rules(rule_target, rules, static_defs)
   } else {
     unimplemented!("Cannot use Cel validators without the 'cel' feature")
   }
 }
 
 #[cfg(feature = "cel")]
-mod cel_validator {
-  use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
+mod cel {
+  use std::{collections::HashMap, sync::Arc};
 
-  use crate::*;
+  use cel::{objects::Key as CelKey, Context, Program, Value as CelValue};
+  use convert_case::{Case, Casing};
+  use proc_macro2::TokenStream;
+  use prost_reflect::{DynamicMessage, FieldDescriptor, ReflectMessage, Value as ProstValue};
+  use proto_types::{Duration, Empty, FieldMask, FieldType, Timestamp};
+  use quote::quote;
+  use syn::Error;
+
+  use super::super::Rule;
+  use crate::{
+    cel_rule_template::CelRuleTemplateTarget, special_field_names::proto_name_to_rust_name,
+    validation_data::ValidationData, Ident2, Span2,
+  };
 
   pub fn get_cel_rules(
     rule_target: &CelRuleTemplateTarget,
     rules: &[Rule],
-  ) -> Result<TokenStream2, Error> {
-    let mut tokens = TokenStream2::new();
+    static_defs: &mut TokenStream,
+  ) -> Result<TokenStream, Error> {
+    let mut tokens = TokenStream::new();
 
     let cel_value: CelValue = match rule_target {
       CelRuleTemplateTarget::Message { message_desc, .. } => {
         let dyn_message = DynamicMessage::new((*message_desc).clone());
-        convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message))?
+        convert_prost_value_to_cel_value(&ProstValue::Message(dyn_message)).unwrap()
       }
       CelRuleTemplateTarget::Field {
         field_desc,
         validation_data,
         ..
-      } => get_default_field_prost_value(validation_data, field_desc)?,
+      } => get_default_field_prost_value(validation_data, field_desc).unwrap(),
     };
 
     let validation_type = rule_target.get_validation_type();
     let target_name = rule_target.get_full_name();
 
-    let compilation_error_msg =
-      format!("Cel program error for {} {}", validation_type, target_name);
+    let error_prefix = format!("Cel program error for {} {}:", validation_type, target_name);
 
     let (parent_messages_ident, violations_ident) = rule_target.get_idents();
 
@@ -47,10 +58,10 @@ mod cel_validator {
       let program = match Program::compile(rule.expression()) {
         Ok(prog) => prog,
         Err(e) => {
-          bail_spanned!(
-            rule_target.span(),
-            format!("{compilation_error_msg}: failed to compile: {e}")
-          );
+          return Err(syn::Error::new(
+            Span2::call_site(),
+            format!("{} failed to compile: {}", error_prefix, e),
+          ))
         }
       };
 
@@ -65,17 +76,25 @@ mod cel_validator {
             let error_message = rule.message().to_string();
             let rule_id = rule.id().to_string();
 
-            let static_program_ident = new_ident(&format!(
-              "CEL_PROGRAM_{}_{}",
-              target_name.to_case(Case::UpperSnake),
-              index
-            ));
+            let static_program_ident = Ident2::new(
+              &format!(
+                "__CEL_PROGRAM_{}_{}",
+                target_name.to_case(Case::UpperSnake),
+                index
+              ),
+              Span2::call_site(),
+            );
 
-            tokens.extend(quote! {
-              static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
-                protocheck::cel::Program::compile(#expression).expect(#compilation_error_msg)
-              });
+            let compilation_error = format!(
+              "Cel program failed to compile for {} {}",
+              validation_type, target_name,
+            );
+
+            static_defs.extend(quote! {
+            static #static_program_ident: std::sync::LazyLock<protocheck::cel::Program> = std::sync::LazyLock::new(|| {
+              protocheck::cel::Program::compile(#expression).expect(#compilation_error)
             });
+          });
 
             let rule_tokens = quote! {
               ::protocheck::validators::cel::CelRule {
@@ -94,23 +113,23 @@ mod cel_validator {
                 let value_ident = validation_data.value_ident();
 
                 let validation_expression = match validation_data.field_kind.inner_type() {
-                  FieldType::Message => {
+                  FieldType::Message | FieldType::Timestamp | FieldType::Duration => {
                     quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.clone()) }
                   }
                   FieldType::Bytes => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident.to_vec()) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, #value_ident.to_vec().into()) }
                   }
                   FieldType::Float => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as f64)) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as f64).into()) }
                   }
                   FieldType::Int32 | FieldType::Sint32 | FieldType::Sfixed32 => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as i64)) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as i64).into()) }
                   }
                   FieldType::Uint32 | FieldType::Fixed32 => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, (#value_ident as u64)) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident as u64).into()) }
                   }
                   _ => {
-                    quote! { validate_cel_field_try_into(&#field_context_ident, rule, #value_ident) }
+                    quote! { validate_cel_field_with_val(&#field_context_ident, rule, (#value_ident).clone().into()) }
                   }
                 };
 
@@ -125,7 +144,6 @@ mod cel_validator {
 
                 tokens.extend(validator_tokens);
               }
-
               CelRuleTemplateTarget::Message { .. } => {
                 let validator_tokens = quote! {
                   let rule = #rule_tokens;
@@ -140,20 +158,21 @@ mod cel_validator {
               }
             };
           } else {
-            bail_spanned!(
-              rule_target.span(),
+            return Err(Error::new(
+              Span2::call_site(),
               format!(
-                "{compilation_error_msg}: expected boolean, got {}",
+                "{} expected boolean, got {}",
+                error_prefix,
                 result.type_of()
-              )
-            );
+              ),
+            ));
           }
         }
         Err(e) => {
-          bail_spanned!(
-            rule_target.span(),
-            format!("{compilation_error_msg}: failed execution: {e}"),
-          );
+          return Err(syn::Error::new(
+            Span2::call_site(),
+            format!("{} failed execution: {}", error_prefix, e),
+          ))
         }
       };
     }
@@ -200,12 +219,10 @@ mod cel_validator {
           .iter()
           .map(convert_prost_value_to_cel_value)
           .collect();
-
         Ok(CelValue::List(Arc::new(cel_elements?)))
       }
       ProstValue::Map(map_values) => {
         let mut cel_map = HashMap::new();
-
         for (key, val) in map_values.iter() {
           let cel_key = match key {
             prost_reflect::MapKey::String(s) => CelKey::String(Arc::new(s.clone())),
@@ -216,10 +233,8 @@ mod cel_validator {
             prost_reflect::MapKey::Bool(v) => CelKey::Bool(*v),
           };
           let cel_val = convert_prost_value_to_cel_value_recursive(val, depth + 1)?;
-
           cel_map.insert(cel_key, cel_val);
         }
-
         Ok(CelValue::Map(cel_map.into()))
       }
       ProstValue::Message(dynamic_msg) => {
@@ -239,9 +254,7 @@ mod cel_validator {
             if depth >= MAX_RECURSION_DEPTH {
               return Ok(CelValue::Map(HashMap::<CelKey, CelValue>::new().into()));
             }
-
             let mut cel_map = HashMap::new();
-
             for field in msg_desc.fields() {
               if field.containing_oneof().is_some() {
                 continue;
@@ -249,18 +262,14 @@ mod cel_validator {
 
               let actual_field_name_with_potential_escaping =
                 proto_name_to_rust_name(field.name()).to_string();
-
               let cel_field_name =
                 CelKey::String(Arc::new(actual_field_name_with_potential_escaping));
-
               let cel_field_value = convert_prost_value_to_cel_value_recursive(
                 &ProstValue::default_value(&field.kind()),
                 depth + 1,
               )?;
-
               cel_map.insert(cel_field_name, cel_field_value);
             }
-
             Ok(CelValue::Map(cel_map.into()))
           }
         }
@@ -268,3 +277,11 @@ mod cel_validator {
     }
   }
 }
+
+#[cfg(feature = "cel")]
+pub use cel::*;
+use proc_macro2::TokenStream;
+use proto_types::protovalidate::Rule;
+use syn::Error;
+
+use crate::cel_rule_template::CelRuleTemplateTarget;

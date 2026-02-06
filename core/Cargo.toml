@@ -17,29 +17,27 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-proto-types = { path = "../proto_types/", version = "0.1.11", features = [
-  "protovalidate",
-] }
+proto-types = { version = "0.1.11", features = ["protovalidate"] }
 
 quote = { workspace = true, optional = true }
 proc-macro2 = { workspace = true, optional = true }
 
 cel = { workspace = true, optional = true }
+bytes = { workspace = true, optional = true }
 regex = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
-ordered-float = { workspace = true, optional = true }
 
-ipnetwork = { workspace = true }
-bytes = { workspace = true }
-fluent-uri = "0.4"
+ipnetwork = { workspace = true, optional = true }
+iri-string = { workspace = true, optional = true }
+
 paste = { workspace = true }
 
 [features]
-default = ["regex", "validators"]
-
-## Enables the validators, which are used by the protocheck-proc-macro crate
-validators = []
 cel = ["proto-types/cel", "dep:cel", "dep:chrono"]
 totokens = ["dep:proc-macro2", "dep:quote", "proto-types/totokens"]
+ip = ["dep:ipnetwork"]
+uri = ["dep:iri-string"]
+bytes = ["dep:bytes"]
 regex = ["dep:regex"]
-ordered-float = ["dep:ordered-float"]
+
+default = ["ip", "uri", "bytes", "regex", "cel", "totokens"]

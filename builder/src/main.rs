@@ -11,9 +11,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .bytes(["."])
     .extern_path(".google.protobuf", "crate::protobuf")
     .compile_well_known_types()
-    .out_dir(PathBuf::from("../proto_types/src/rpc"));
+    .out_dir(PathBuf::from("../proto_types/src/protovalidate"));
 
-  let root = PathBuf::from("proto/google/rpc");
+  let root = PathBuf::from("proto/buf/validate");
 
   let files = get_proto_files_in_dir(&root)?;
 

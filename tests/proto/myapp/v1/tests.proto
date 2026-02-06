@@ -721,6 +721,7 @@ message RepeatedTests {
     (buf.validate.field).repeated.max_items = 1
   ];
   repeated string unique_strings = 4 [(buf.validate.field).repeated.unique = true];
+  repeated test_enum unique_enums = 5 [(buf.validate.field).repeated.unique = true];
 
   repeated Person people = 1 [(buf.validate.field).repeated.items.cel = {
     id: "repeated_item.person_name"

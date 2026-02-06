@@ -1,12 +1,21 @@
-use proto_types::protovalidate::string_rules::WellKnown;
+use proc_macro2::TokenStream;
+use proto_types::protovalidate::{string_rules::WellKnown, ContainingRules};
+use quote::quote;
+use regex::Regex;
+use syn::Error;
 
-use crate::*;
+use super::protovalidate::StringRules;
+use crate::{
+  rules::core::{get_field_error, invalid_lists_error},
+  validation_data::{ListRule, ValidationData},
+};
 
 pub fn get_string_rules(
+  static_defs: &mut TokenStream,
   validation_data: &ValidationData,
   rules: &StringRules,
-) -> Result<TokenStream2, Error> {
-  let mut tokens = TokenStream2::new();
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;
@@ -17,13 +26,12 @@ pub fn get_string_rules(
     return Ok(tokens);
   }
 
-  let lists_rules = rules
-    .list_rules()
-    .map_err(|e| get_field_error(field_name, field_span, &e))?;
-
-  if !lists_rules.is_empty() {
-    validation_data.get_list_validators(lists_rules, &mut tokens);
-  }
+  let ContainingRules {
+    in_list_rule,
+    not_in_list_rule,
+  } = rules
+    .containing_rules(&validation_data.static_full_name())
+    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   let length_rules = rules
     .length_rules()
@@ -33,8 +41,9 @@ pub fn get_string_rules(
     validation_data.get_length_validator(&mut tokens, length_rules);
   }
 
-  let bytes_length_rules =
-    string_bytes_length_rules(rules).map_err(|e| get_field_error(field_name, field_span, &e))?;
+  let bytes_length_rules = rules
+    .bytes_length_rules()
+    .map_err(|e| get_field_error(field_name, field_span, &e))?;
 
   if bytes_length_rules.has_rule() {
     validation_data.get_length_validator(&mut tokens, bytes_length_rules);
@@ -55,29 +64,37 @@ pub fn get_string_rules(
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, pattern, false);
+    validation_data.get_regex_validator(&mut tokens, static_defs, pattern);
+  }
+
+  if let Some(in_list) = in_list_rule {
+    validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
+  }
+
+  if let Some(not_in_list) = not_in_list_rule {
+    validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
   }
 
   if let Some(well_known_kind) = rules.well_known {
     let mut is_strict: Option<bool> = None;
     let validator_path = match well_known_kind {
-      WellKnown::Email(enabled) => enabled.then(|| quote! { email }),
-      WellKnown::Hostname(enabled) => enabled.then(|| quote! { hostname }),
-      WellKnown::Ip(enabled) => enabled.then(|| quote! { ip }),
-      WellKnown::Ipv4(enabled) => enabled.then(|| quote! { ipv4 }),
-      WellKnown::Ipv6(enabled) => enabled.then(|| quote! { ipv6 }),
-      WellKnown::Uri(enabled) => enabled.then(|| quote! { uri }),
-      WellKnown::UriRef(enabled) => enabled.then(|| quote! { uri_ref }),
-      WellKnown::Address(enabled) => enabled.then(|| quote! { address }),
-      WellKnown::Uuid(enabled) => enabled.then(|| quote! { uuid }),
-      WellKnown::Tuuid(enabled) => enabled.then(|| quote! { tuuid }),
-      WellKnown::IpWithPrefixlen(enabled) => enabled.then(|| quote! { ip_with_prefixlen }),
-      WellKnown::Ipv4WithPrefixlen(enabled) => enabled.then(|| quote! { ipv4_with_prefixlen }),
-      WellKnown::Ipv6WithPrefixlen(enabled) => enabled.then(|| quote! { ipv6_with_prefixlen }),
-      WellKnown::IpPrefix(enabled) => enabled.then(|| quote! { ip_prefix }),
-      WellKnown::Ipv4Prefix(enabled) => enabled.then(|| quote! { ipv4_prefix }),
-      WellKnown::Ipv6Prefix(enabled) => enabled.then(|| quote! { ipv6_prefix }),
-      WellKnown::HostAndPort(enabled) => enabled.then(|| quote! { host_and_port }),
+      WellKnown::Email(enabled) => enabled.then_some(quote! { email }),
+      WellKnown::Hostname(enabled) => enabled.then_some(quote! { hostname }),
+      WellKnown::Ip(enabled) => enabled.then_some(quote! { ip }),
+      WellKnown::Ipv4(enabled) => enabled.then_some(quote! { ipv4 }),
+      WellKnown::Ipv6(enabled) => enabled.then_some(quote! { ipv6 }),
+      WellKnown::Uri(enabled) => enabled.then_some(quote! { uri }),
+      WellKnown::UriRef(enabled) => enabled.then_some(quote! { uri_ref }),
+      WellKnown::Address(enabled) => enabled.then_some(quote! { address }),
+      WellKnown::Uuid(enabled) => enabled.then_some(quote! { uuid }),
+      WellKnown::Tuuid(enabled) => enabled.then_some(quote! { tuuid }),
+      WellKnown::IpWithPrefixlen(enabled) => enabled.then_some(quote! { ip_with_prefixlen }),
+      WellKnown::Ipv4WithPrefixlen(enabled) => enabled.then_some(quote! { ipv4_with_prefixlen }),
+      WellKnown::Ipv6WithPrefixlen(enabled) => enabled.then_some(quote! { ipv6_with_prefixlen }),
+      WellKnown::IpPrefix(enabled) => enabled.then_some(quote! { ip_prefix }),
+      WellKnown::Ipv4Prefix(enabled) => enabled.then_some(quote! { ipv4_prefix }),
+      WellKnown::Ipv6Prefix(enabled) => enabled.then_some(quote! { ipv6_prefix }),
+      WellKnown::HostAndPort(enabled) => enabled.then_some(quote! { host_and_port }),
       WellKnown::WellKnownRegex(well_known_regex) => {
         if let Some(val) = rules.strict {
           is_strict = Some(val)

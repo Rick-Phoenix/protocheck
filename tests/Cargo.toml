@@ -4,12 +4,13 @@ publish = false
 edition = { workspace = true }
 
 [dependencies]
-prost = { workspace = true }
+prost = { workspace = true, features = ["derive", "std"] }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/", features = ["ordered-float"] }
-proto-types = { path = "../proto_types/", features = [
+protocheck = { path = "../protocheck/" }
+proto-types = { workspace = true, features = [
+  "default",
   "serde",
   "cel",
   "all_common",
@@ -20,10 +21,6 @@ maplit = { workspace = true }
 ordered-float = { workspace = true }
 
 [build-dependencies]
-protoschema = { version = "0.1.9", path = "../../protoschema-legacy/protoschema", features = [
-  "common_types",
-  "rpc_types",
-] }
 protocheck-build = { path = "../protocheck-build/", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }

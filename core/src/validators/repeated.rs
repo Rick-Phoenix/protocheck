@@ -1,15 +1,17 @@
-use proto_types::{Duration, Timestamp};
+use std::{collections::HashSet, hash::Hash, sync::LazyLock};
 
-use super::*;
-use crate::protovalidate::violations_data::{
-  REPEATED_MAX_ITEMS_VIOLATION, REPEATED_MIN_ITEMS_VIOLATION, REPEATED_UNIQUE_VIOLATION,
+use crate::{
+  field_data::FieldContext,
+  protovalidate::{FieldPathElement, Violation},
+  validators::static_data::base_violations::create_violation,
+  ProtoType,
 };
 
 pub fn min_items<T>(
   field_context: &FieldContext,
   value: &[T],
   min_items: u64,
-  error_message: &str,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value.len() >= min_items as usize;
 
@@ -19,6 +21,7 @@ pub fn min_items<T>(
     Err(create_violation(
       field_context,
       &REPEATED_MIN_ITEMS_VIOLATION,
+      "repeated.min_items",
       error_message,
     ))
   }
@@ -28,7 +31,7 @@ pub fn max_items<T>(
   field_context: &FieldContext,
   value: &[T],
   max_items: u64,
-  error_message: &str,
+  error_message: &'static str,
 ) -> Result<(), Violation> {
   let check = value.len() <= max_items as usize;
 
@@ -38,201 +41,137 @@ pub fn max_items<T>(
     Err(create_violation(
       field_context,
       &REPEATED_MAX_ITEMS_VIOLATION,
+      "repeated.max_items",
       error_message,
     ))
   }
 }
 
-pub enum UniqueLookup<T> {
-  Vec(Vec<T>),
-  Set(HashSet<T>),
-}
-
-pub trait UniqueItem<Item = Self> {
-  type Container;
-
-  fn check_unique(container: &mut Self::Container, item: Self) -> bool;
-}
-
-macro_rules! impl_unique {
-  ($target:ty) => {
-    impl UniqueItem for $target {
-      type Container = UniqueLookup<Self>;
-
-      fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-        match container {
-          UniqueLookup::Vec(vec) => {
-            if vec.contains(&item) {
-              false
-            } else {
-              vec.push(item);
-              true
-            }
-          }
-          UniqueLookup::Set(set) => set.insert(item),
-        }
-      }
-    }
-  };
-}
-
-impl_unique!(i64);
-impl_unique!(i32);
-impl_unique!(u64);
-impl_unique!(u32);
-impl_unique!(EnumVariant);
-impl_unique!(Sint64);
-impl_unique!(Sint32);
-impl_unique!(Sfixed64);
-impl_unique!(Sfixed32);
-impl_unique!(Fixed64);
-impl_unique!(Fixed32);
-impl_unique!(Timestamp);
-impl_unique!(Duration);
-
-#[cfg(not(feature = "ordered-float"))]
-impl UniqueItem for f32 {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(_) => {
-        panic!("Cannot use set lookups for floats without the ordered-float flag")
-      }
-    }
-  }
-}
-
-#[cfg(not(feature = "ordered-float"))]
-impl UniqueItem for f64 {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(_) => {
-        panic!("Cannot use set lookups for floats without the ordered-float flag")
-      }
-    }
-  }
-}
-
-#[cfg(feature = "ordered-float")]
-impl UniqueItem<ordered_float::OrderedFloat<f32>> for f32 {
-  type Container = UniqueLookup<ordered_float::OrderedFloat<f32>>;
-
-  fn check_unique(
-    container: &mut UniqueLookup<ordered_float::OrderedFloat<f32>>,
-    item: Self,
-  ) -> bool {
-    let item = ordered_float::OrderedFloat(item);
-
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(set) => set.insert(item),
-    }
-  }
-}
-
-#[cfg(feature = "ordered-float")]
-impl UniqueItem<ordered_float::OrderedFloat<f64>> for f64 {
-  type Container = UniqueLookup<ordered_float::OrderedFloat<f64>>;
-
-  fn check_unique(
-    container: &mut UniqueLookup<ordered_float::OrderedFloat<f64>>,
-    item: Self,
-  ) -> bool {
-    let item = ordered_float::OrderedFloat(item);
-
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(set) => set.insert(item),
-    }
-  }
-}
-
-impl UniqueItem for &::bytes::Bytes {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(set) => set.insert(item),
-    }
-  }
-}
-
-impl UniqueItem for &str {
-  type Container = UniqueLookup<Self>;
-
-  fn check_unique(container: &mut UniqueLookup<Self>, item: Self) -> bool {
-    match container {
-      UniqueLookup::Vec(vec) => {
-        if vec.contains(&item) {
-          false
-        } else {
-          vec.push(item);
-          true
-        }
-      }
-      UniqueLookup::Set(set) => set.insert(item),
-    }
-  }
-}
-
-pub fn unique<T, I>(
+pub fn unique<T>(
   field_context: &FieldContext,
   value: T,
-  processed_values: &mut T::Container,
+  processed_values: &mut HashSet<T>,
 ) -> Result<(), Violation>
 where
-  T: UniqueItem<I>,
+  T: Eq + Hash + Clone,
 {
-  let is_valid = T::check_unique(processed_values, value);
+  let check = processed_values.insert(value.clone());
 
-  if is_valid {
+  if check {
     Ok(())
   } else {
     Err(create_violation(
       field_context,
       &REPEATED_UNIQUE_VIOLATION,
+      "repeated.unique",
       "must contain unique values",
     ))
   }
 }
+
+pub fn unique_f64(
+  field_context: &FieldContext,
+  value: f64,
+  processed_values: &mut HashSet<u64>,
+) -> Result<(), Violation>
+where
+{
+  let bits = value.to_bits();
+  let check = processed_values.insert(bits);
+
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &REPEATED_UNIQUE_VIOLATION,
+      "repeated.unique",
+      "must contain unique values",
+    ))
+  }
+}
+
+pub fn unique_f32(
+  field_context: &FieldContext,
+  value: f32,
+  processed_values: &mut HashSet<u32>,
+) -> Result<(), Violation>
+where
+{
+  let bits = value.to_bits();
+  let check = processed_values.insert(bits);
+
+  if check {
+    Ok(())
+  } else {
+    Err(create_violation(
+      field_context,
+      &REPEATED_UNIQUE_VIOLATION,
+      "repeated.unique",
+      "must contain unique values",
+    ))
+  }
+}
+
+static REPEATED_MIN_ITEMS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("repeated".to_string()),
+      field_number: Some(18),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("min_items".to_string()),
+      field_number: Some(1),
+      field_type: Some(ProtoType::Uint64 as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+static REPEATED_MAX_ITEMS_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("repeated".to_string()),
+      field_number: Some(18),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("max_items".to_string()),
+      field_number: Some(2),
+      field_type: Some(ProtoType::Uint64 as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});
+
+static REPEATED_UNIQUE_VIOLATION: LazyLock<Vec<FieldPathElement>> = LazyLock::new(|| {
+  vec![
+    FieldPathElement {
+      field_name: Some("repeated".to_string()),
+      field_number: Some(18),
+      field_type: Some(ProtoType::Message as i32),
+      subscript: None,
+      key_type: None,
+      value_type: None,
+    },
+    FieldPathElement {
+      field_name: Some("unique".to_string()),
+      field_number: Some(3),
+      field_type: Some(ProtoType::Uint64 as i32),
+      key_type: None,
+      value_type: None,
+      subscript: None,
+    },
+  ]
+});

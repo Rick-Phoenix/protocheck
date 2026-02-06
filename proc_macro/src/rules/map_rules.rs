@@ -1,32 +1,48 @@
-use crate::*;
+use proc_macro2::TokenStream;
+use prost_reflect::{FieldDescriptor, Kind};
+use proto_types::{protovalidate::FieldRules, FieldType};
+use protocheck_core::field_data::FieldKind;
+use syn::Error;
+
+use super::{field_rules::Type as RulesType, Ignore};
+use crate::{
+  cel_rule_template::CelRuleTemplateTarget,
+  extract_validators::field_is_message,
+  rules::{
+    cel_rules::get_cel_rules_checked,
+    core::{convert_kind_to_proto_type, get_field_error, get_field_rules, get_field_type},
+  },
+  validation_data::{MapValidator, ValidationData},
+};
 
 pub fn get_map_rules(
   map_validation_data: &mut ValidationData,
-  validation_tokens: &mut TokenStream2,
+  validation_tokens: &mut TokenStream,
+  static_defs: &mut TokenStream,
   field_rust_enum: Option<String>,
   map_field_desc: &FieldDescriptor,
   field_rules: &FieldRules,
 ) -> Result<(), Error> {
-  let mut map_level_rules = TokenStream2::new();
-  let mut keys_rules = TokenStream2::new();
-  let mut values_rules = TokenStream2::new();
+  let mut map_level_rules = TokenStream::new();
+  let mut keys_rules = TokenStream::new();
+  let mut values_rules = TokenStream::new();
 
   let field_span = map_validation_data.field_span;
   let field_name = map_validation_data.full_name;
 
-  let (key_desc, value_desc) =
-    if let ProstReflectKind::Message(map_entry_message_desc) = map_field_desc.kind() {
-      (
-        map_entry_message_desc.get_field_by_name("key"),
-        map_entry_message_desc.get_field_by_name("value"),
-      )
-    } else {
-      return Err(get_field_error(
-        field_name,
-        field_span,
-        "map field has no associated map entry message descriptor",
-      ));
-    };
+  let (key_desc, value_desc) = if let Kind::Message(map_entry_message_desc) = map_field_desc.kind()
+  {
+    (
+      map_entry_message_desc.get_field_by_name("key"),
+      map_entry_message_desc.get_field_by_name("value"),
+    )
+  } else {
+    return Err(get_field_error(
+      field_name,
+      field_span,
+      "map field has no associated map entry message descriptor",
+    ));
+  };
 
   let (key_desc, value_desc) = (
     key_desc.ok_or(get_field_error(
@@ -56,9 +72,9 @@ pub fn get_map_rules(
       &CelRuleTemplateTarget::Field {
         field_desc: map_field_desc,
         validation_data: map_validation_data,
-        field_span: map_validation_data.field_span,
       },
       &field_rules.cel,
+      static_defs,
     )?);
   }
 
@@ -79,6 +95,7 @@ pub fn get_map_rules(
 
         if let Some(ref rules) = keys_rules_descriptor.r#type {
           let key_validators_tokens = get_field_rules(
+            static_defs,
             field_rust_enum.clone(),
             &key_desc,
             &keys_validation_data,
@@ -92,9 +109,9 @@ pub fn get_map_rules(
             &CelRuleTemplateTarget::Field {
               validation_data: &keys_validation_data,
               field_desc: &key_desc,
-              field_span: map_validation_data.field_span,
             },
             &keys_rules_descriptor.cel,
+            static_defs,
           )?;
           keys_rules.extend(cel_rules);
         }
@@ -112,6 +129,7 @@ pub fn get_map_rules(
         if let Some(ref rules) = values_rules_descriptor.r#type
           && !value_is_message {
             let value_validators_tokens = get_field_rules(
+              static_defs,
               field_rust_enum,
               &value_desc,
               &values_validation_data,
@@ -125,9 +143,9 @@ pub fn get_map_rules(
             &CelRuleTemplateTarget::Field {
               validation_data: &values_validation_data,
               field_desc: &value_desc,
-              field_span: map_validation_data.field_span,
             },
             &values_rules_descriptor.cel,
+            static_defs,
           )?;
           values_rules.extend(cel_rules);
         }

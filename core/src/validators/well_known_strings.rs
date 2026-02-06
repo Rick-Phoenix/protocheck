@@ -1,11 +1,13 @@
 use std::net::{IpAddr, Ipv6Addr};
 
+#[cfg(feature = "uri")]
 pub(crate) fn is_valid_uri(s: &str) -> bool {
-  fluent_uri::Uri::parse(s).is_ok()
+  <&iri_string::types::UriStr>::try_from(s).is_ok()
 }
 
+#[cfg(feature = "uri")]
 pub(crate) fn is_valid_uri_ref(s: &str) -> bool {
-  fluent_uri::UriRef::parse(s).is_ok()
+  <&iri_string::types::UriReferenceStr>::try_from(s).is_ok()
 }
 
 #[cfg(feature = "regex")]
@@ -49,10 +51,6 @@ mod regex {
   }
 
   pub(crate) fn is_valid_http_header_value(s: &str, strict: bool) -> bool {
-    if s.is_empty() {
-      return false;
-    }
-
     let re = if strict {
       &HTTP_HEADER_VALUE_STRICT_REGEX
     } else {
@@ -70,64 +68,60 @@ mod regex {
     LazyLock::new(|| Regex::new(r"^(?i)[0-9a-f]{32}$").unwrap());
 
   pub(crate) fn is_valid_uuid(s: &str) -> bool {
-    if s.is_empty() {
-      return false;
-    }
-
     UUID_REGEX.is_match(s)
   }
 
   pub(crate) fn is_valid_tuuid(s: &str) -> bool {
-    if s.is_empty() {
-      return false;
-    }
-
     TUUID_REGEX.is_match(s)
   }
 }
 
-use std::str::FromStr;
-
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(feature = "regex")]
 pub(crate) use regex::*;
 
-pub(crate) fn is_valid_ip_prefix(s: &str) -> bool {
-  match IpNetwork::from_str(s) {
-    Ok(network) => {
-      //    Is the given IP address the same as the calculated network address?
-      //    The .network() method returns the true prefix.
-      //    The .ip() method returns the original IP from the string.
-      network.ip() == network.network()
+#[cfg(feature = "ip")]
+pub(crate) mod ip {
+  use std::str::FromStr;
+
+  use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+
+  pub(crate) fn is_valid_ip_prefix(s: &str) -> bool {
+    match IpNetwork::from_str(s) {
+      Ok(network) => {
+        //    Is the given IP address the same as the calculated network address?
+        //    The .network() method returns the true prefix.
+        //    The .ip() method returns the original IP from the string.
+        network.ip() == network.network()
+      }
+      Err(_) => false,
     }
-    Err(_) => false,
   }
-}
 
-pub(crate) fn is_valid_ipv4_prefix(s: &str) -> bool {
-  match Ipv4Network::from_str(s) {
-    Ok(network) => network.ip() == network.network(),
-    Err(_) => false,
+  pub(crate) fn is_valid_ipv4_prefix(s: &str) -> bool {
+    match Ipv4Network::from_str(s) {
+      Ok(network) => network.ip() == network.network(),
+      Err(_) => false,
+    }
   }
-}
 
-pub(crate) fn is_valid_ipv6_prefix(s: &str) -> bool {
-  match Ipv6Network::from_str(s) {
-    Ok(network) => network.ip() == network.network(),
-    Err(_) => false,
+  pub(crate) fn is_valid_ipv6_prefix(s: &str) -> bool {
+    match Ipv6Network::from_str(s) {
+      Ok(network) => network.ip() == network.network(),
+      Err(_) => false,
+    }
   }
-}
 
-pub(crate) fn is_valid_ip_with_prefixlen(s: &str) -> bool {
-  IpNetwork::from_str(s).is_ok()
-}
+  pub(crate) fn is_valid_ip_with_prefixlen(s: &str) -> bool {
+    IpNetwork::from_str(s).is_ok()
+  }
 
-pub(crate) fn is_valid_ipv4_with_prefixlen(s: &str) -> bool {
-  Ipv4Network::from_str(s).is_ok()
-}
+  pub(crate) fn is_valid_ipv4_with_prefixlen(s: &str) -> bool {
+    Ipv4Network::from_str(s).is_ok()
+  }
 
-pub(crate) fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
-  Ipv6Network::from_str(s).is_ok()
+  pub(crate) fn is_valid_ipv6_with_prefixlen(s: &str) -> bool {
+    Ipv6Network::from_str(s).is_ok()
+  }
 }
 
 pub(crate) fn is_valid_ip(s: &str) -> bool {
@@ -229,6 +223,7 @@ mod test {
     is_valid_ipv6,
   };
 
+  #[cfg(feature = "uri")]
   #[test]
   fn uris() {
     use crate::validators::well_known_strings::is_valid_uri;
@@ -242,9 +237,10 @@ mod test {
     ));
   }
 
+  #[cfg(feature = "ip")]
   #[test]
   fn name() {
-    use crate::validators::well_known_strings::{
+    use crate::validators::well_known_strings::ip::{
       is_valid_ip_prefix, is_valid_ip_with_prefixlen, is_valid_ipv4_prefix,
       is_valid_ipv4_with_prefixlen, is_valid_ipv6_prefix, is_valid_ipv6_with_prefixlen,
     };

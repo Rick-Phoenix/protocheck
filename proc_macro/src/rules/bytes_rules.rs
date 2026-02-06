@@ -1,10 +1,23 @@
-use crate::{bytes_rules::WellKnown, *};
+use proc_macro2::TokenStream;
+use proto_types::protovalidate::{bytes_rules::WellKnown, BytesRules};
+use quote::quote;
+use regex::Regex;
+use syn::Error;
+
+use crate::{
+  rules::{
+    core::{get_field_error, invalid_lists_error},
+    protovalidate::ContainingRules,
+  },
+  validation_data::{ListRule, ValidationData},
+};
 
 pub fn get_bytes_rules(
   validation_data: &ValidationData,
   rules: &BytesRules,
-) -> Result<TokenStream2, Error> {
-  let mut tokens = TokenStream2::new();
+  static_defs: &mut TokenStream,
+) -> Result<TokenStream, Error> {
+  let mut tokens = TokenStream::new();
 
   let field_span = validation_data.field_span;
   let field_name = validation_data.full_name;
@@ -15,13 +28,12 @@ pub fn get_bytes_rules(
     return Ok(tokens);
   }
 
-  let lists_rules = rules
-    .list_rules()
-    .map_err(|e| get_field_error(field_name, field_span, &e))?;
-
-  if !lists_rules.is_empty() {
-    validation_data.get_list_validators(lists_rules, &mut tokens);
-  }
+  let ContainingRules {
+    in_list_rule,
+    not_in_list_rule,
+  } = rules
+    .containing_rules(&validation_data.static_full_name())
+    .map_err(|invalid_items| invalid_lists_error(field_span, field_name, &invalid_items))?;
 
   let length_rules = rules
     .length_rules()
@@ -42,11 +54,19 @@ pub fn get_bytes_rules(
       get_field_error(
         field_name,
         field_span,
-        &format!("invalid regex pattern: {e}"),
+        &format!("invalid regex pattern: {}", e),
       )
     })?;
 
-    validation_data.get_regex_validator(&mut tokens, pattern, true);
+    validation_data.get_regex_validator(&mut tokens, static_defs, pattern);
+  }
+
+  if let Some(in_list) = in_list_rule {
+    validation_data.get_list_validator(ListRule::In, &mut tokens, in_list, static_defs);
+  }
+
+  if let Some(not_in_list) = not_in_list_rule {
+    validation_data.get_list_validator(ListRule::NotIn, &mut tokens, not_in_list, static_defs);
   }
 
   if let Some(well_known) = rules.well_known {

@@ -1,24 +1,36 @@
-use super::{well_known_strings::*, *};
-use crate::protovalidate::violations_data::string_violations::*;
+use paste::paste;
+
+#[cfg(feature = "ip")]
+use super::well_known_strings::ip::*;
+use super::well_known_strings::*;
+use crate::{
+  field_data::FieldContext,
+  protovalidate::Violation,
+  validators::static_data::{base_violations::create_violation, strings_violations::*},
+};
+
+macro_rules! create_string_violation {
+  ($check:ident, $field_context:ident, $violation_name:ident, $error_message:expr) => {
+    create_violation!(
+      string,
+      $check,
+      $field_context,
+      $violation_name,
+      $error_message
+    )
+  };
+}
 
 macro_rules! well_known_rule {
   (
     $name:ident,
     $definition:literal
   ) => {
-    paste::paste! {
+    paste! {
       pub fn $name(field_context: &FieldContext, value: &str) -> Result<(), Violation> {
-        let is_valid = [<is_valid _ $name>](value);
+        let check = [<is_valid _ $name>](value);
 
-        if is_valid {
-          Ok(())
-        } else {
-          Err(create_violation(
-            field_context,
-            &[< STRING _ $name:upper _ VIOLATION >],
-            concat!("must be a valid ", $definition)
-          ))
-        }
+        create_string_violation!(check, field_context, $name, concat!("must be a valid ", $definition))
       }
     }
   };
@@ -30,53 +42,38 @@ macro_rules! string_validator {
     $target_type:ty,
     $validation_expression:expr
   ) => {
-    paste::paste! {
-      pub fn $name(
-        field_context: &FieldContext,
-        value: &str,
-        target: $target_type,
-        error_message: &str,
-      ) -> Result<(), Violation> {
-        let is_valid = ($validation_expression)(value, target);
+    pub fn $name(
+      field_context: &FieldContext,
+      value: &str,
+      target: $target_type,
+      error_message: &'static str,
+    ) -> Result<(), Violation> {
+      let check = ($validation_expression)(value, target);
 
-        if is_valid {
-          Ok(())
-        } else {
-          Err(create_violation(
-            field_context,
-            &[< STRING _ $name:upper _ VIOLATION >],
-            error_message
-          ))
-        }
-      }
+      create_string_violation!(check, field_context, $name, error_message)
     }
   };
 }
 
 // Char length
-string_validator!(
-  max_len,
-  u64,
-  |value: &str, max_len: u64| value.chars().count() as u64 <= max_len
-);
-string_validator!(
-  min_len,
-  u64,
-  |value: &str, min_len: u64| value.chars().count() as u64 >= min_len
-);
+string_validator!(max_len, u64, |value: &str, max_len: u64| value
+  .chars()
+  .count()
+  <= max_len as usize);
+string_validator!(min_len, u64, |value: &str, min_len: u64| value
+  .chars()
+  .count()
+  >= min_len as usize);
 string_validator!(len, u64, |value: &str, max_len: u64| value.chars().count()
-  as u64
-  == max_len);
+  == max_len as usize);
 
 // Bytes length
-string_validator!(len_bytes, u64, |value: &str, len: u64| value.len() as u64
-  == len);
+string_validator!(len_bytes, u64, |value: &str, len: u64| value.len()
+  == len as usize);
 string_validator!(max_bytes, u64, |value: &str, max_bytes: u64| value.len()
-  as u64
-  <= max_bytes);
+  <= max_bytes as usize);
 string_validator!(min_bytes, u64, |value: &str, min_bytes: u64| value.len()
-  as u64
-  >= min_bytes);
+  >= min_bytes as usize);
 
 // Patterns
 #[cfg(feature = "regex")]
@@ -101,18 +98,26 @@ well_known_rule!(
 
 well_known_rule!(hostname, "hostname");
 
+#[cfg(feature = "uri")]
 well_known_rule!(uri, "uri");
+#[cfg(feature = "uri")]
 well_known_rule!(uri_ref, "URI reference");
 
 well_known_rule!(address, "hostname or ip address");
 well_known_rule!(ip, "ip address");
 well_known_rule!(ipv4, "ipv4 address");
 well_known_rule!(ipv6, "ipv6 address");
+#[cfg(feature = "ip")]
 well_known_rule!(ip_prefix, "ip prefix");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv4_prefix, "ipv4 prefix");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv6_prefix, "ipv6 prefix");
+#[cfg(feature = "ip")]
 well_known_rule!(ip_with_prefixlen, "ip address with prefix length");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv4_with_prefixlen, "ipv4 address with prefix length");
+#[cfg(feature = "ip")]
 well_known_rule!(ipv6_with_prefixlen, "ipv6 address with prefix length");
 
 #[cfg(feature = "regex")]
@@ -133,10 +138,10 @@ pub fn header_name(
   if check {
     Ok(())
   } else {
-    Err(create_violation_with_custom_id(
-      "string.well_known_regex.header_name",
+    Err(create_violation(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
+      "string.well_known_regex.header_name",
       "must be a valid HTTP header name",
     ))
   }
@@ -153,10 +158,10 @@ pub fn header_value(
   if check {
     Ok(())
   } else {
-    Err(create_violation_with_custom_id(
-      "string.well_known_regex.header_value",
+    Err(create_violation(
       field_context,
       &STRING_WELL_KNOWN_REGEX_VIOLATION,
+      "string.well_known_regex.header_value",
       "must be a valid HTTP header value",
     ))
   }

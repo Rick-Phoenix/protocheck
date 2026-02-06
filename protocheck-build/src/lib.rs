@@ -38,13 +38,19 @@ pub fn compile_protos_with_validators(
 
   for message_desc in pool.all_messages() {
     let message_name = message_desc.full_name();
-
     if packages.contains(&message_desc.package_name()) {
       let attribute_str = format!(
         r#"#[::protocheck::macros::protobuf_validate("{}")]"#,
         message_name
       );
       config.message_attribute(message_name, &attribute_str);
+
+      if cfg!(feature = "cel") {
+        config.message_attribute(
+          message_name,
+          "#[derive(::protocheck::macros::TryIntoCelValue)]",
+        );
+      }
 
       for oneof in message_desc.oneofs() {
         let oneof_name = oneof.full_name();
@@ -55,6 +61,22 @@ pub fn compile_protos_with_validators(
             oneof_name
           ),
         );
+
+        config.type_attribute(oneof_name, r#"#[derive(::protocheck::macros::Oneof)]"#);
+
+        if cfg!(feature = "cel") {
+          config.type_attribute(
+            oneof_name,
+            r#"#[derive(::protocheck::macros::OneofTryIntoCelValue)]"#,
+          );
+        }
+
+        for field in oneof.fields() {
+          config.field_attribute(
+            format!("{}.{}", oneof_name, field.name()),
+            format!(r#"#[protocheck(proto_name = "{}")]"#, field.name()),
+          );
+        }
       }
     }
   }

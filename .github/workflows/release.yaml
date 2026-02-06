@@ -40,17 +40,7 @@ jobs:
           fetch-depth: 0
 
       - uses: taiki-e/create-gh-release-action@v1
-        if: "!startsWith(github.ref_name, 'proto-types')"
         with:
           changelog: CHANGELOG.md
-          prefix: protocheck
           branch: main
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: taiki-e/create-gh-release-action@v1
-        if: startsWith(github.ref_name, 'proto-types')
-        with:
-          changelog: proto_types/CHANGELOG.md
-          branch: main
-          prefix: proto-types
           token: ${{ secrets.GITHUB_TOKEN }}

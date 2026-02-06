@@ -1,6 +1,6 @@
 use protocheck::types::{field_descriptor_proto::Type, protovalidate::Violation};
 
-use crate::myapp::v1::{repeated_tests::Person, RepeatedTests};
+use crate::myapp::v1::{repeated_tests::Person, RepeatedTests, TestEnum};
 
 #[test]
 fn repeated_tests() {
@@ -13,17 +13,19 @@ fn repeated_tests() {
   let unique_floats: Vec<f32> = vec![1.1, 1.1];
   let unique_doubles: Vec<f64> = vec![1.1, 1.1];
   let unique_strings = vec!["ignazio".to_string(), "ignazio".to_string()];
+  let unique_enums = vec![TestEnum::Active as i32, TestEnum::Active as i32];
 
   let msg = RepeatedTests {
     people,
     unique_floats,
     unique_doubles,
     unique_strings,
+    unique_enums,
   };
 
   let result = msg.validate().unwrap_err();
 
-  assert_eq!(result.violations.len(), 11);
+  assert_eq!(result.violations.len(), 12);
 
   let unique_values_violations: Vec<&Violation> = result
     .violations
@@ -41,6 +43,9 @@ fn repeated_tests() {
       }
       "unique_doubles" => {
         assert_eq!(v.last_field().unwrap().field_type(), Type::Double);
+      }
+      "unique_enums" => {
+        assert_eq!(v.last_field().unwrap().field_type(), Type::Enum);
       }
       _ => {}
     };

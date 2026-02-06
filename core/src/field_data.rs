@@ -9,7 +9,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct FieldContext<'a> {
   pub proto_name: &'a str,
-  pub tag: i32,
+  pub tag: u32,
   pub parent_elements: &'a [FieldPathElement],
   pub subscript: Option<Subscript>,
   pub key_type: Option<ProtoType>,
@@ -41,11 +41,10 @@ impl FieldKind {
   }
 
   pub fn is_copy(&self) -> bool {
-    !matches!(self, Self::Map(_) | Self::Repeated(_))
-      && !matches!(
-        self.inner_type(),
-        FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
-      )
+    !matches!(
+      self.inner_type(),
+      FieldType::String | FieldType::Message | FieldType::Bytes | FieldType::Any
+    )
   }
 
   pub fn is_map_key(&self) -> bool {

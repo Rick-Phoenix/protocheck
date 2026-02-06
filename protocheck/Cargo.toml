@@ -21,21 +21,26 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 protocheck-proc-macro = { version = "0.1.11", path = "../proc_macro/", default-features = false }
 protocheck-core = { version = "0.1.11", path = "../core/", default-features = false }
-proto-types = { version = "0.1.11", path = "../proto_types/", default-features = false, features = [
+proto-types = { version = "0.1.11", default-features = false, features = [
   "protovalidate",
 ] }
 document-features = { workspace = true }
 
 [features]
-default = ["regex", "cel", "chrono"]
-
-## Enables support for set lookups in validators involving floating point numbers
-ordered-float = [
-  "protocheck-core/ordered-float",
-  "protocheck-proc-macro/ordered-float",
-]
+## Enables serde support for protobuf well known types.
+serde = ["proto-types/serde"]
 chrono = ["proto-types/chrono"]
 ## Enables validation with custom Cel expressions.
 cel = ["proto-types/cel", "protocheck-core/cel", "protocheck-proc-macro/cel"]
+## Enables the ToTokens trait for some enums and structs.
+totokens = ["proto-types/totokens", "protocheck-core/totokens"]
+## Enables complex validation for bytes or string fields, such as checking if an ip is a network address or not. Not necessary for simpler checks like checking if a field is a valid ip.
+ip = ["protocheck-core/ip"]
+## Enables validation for URIs.
+uri = ["protocheck-core/uri"]
+## Enables validation for bytes fields.
+bytes = ["protocheck-core/bytes"]
 ## Enables the validators that use the Regex crate, such as 'pattern', or the well known strings such as 'header_name', 'email' and so on.
 regex = ["protocheck-core/regex"]
+
+default = ["ip", "uri", "bytes", "regex", "cel", "serde", "totokens", "chrono"]
