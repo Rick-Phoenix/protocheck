@@ -1,3 +1,7 @@
+## [0.1.12] - 2026-02-06
+
+- Migrated project to [`protify`](https://github.com/Rick-Phoenix/protify)
+
 ## [0.1.11] - 2025-10-10
 
 ### 📚 Documentation

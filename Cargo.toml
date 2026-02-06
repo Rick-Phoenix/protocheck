@@ -14,6 +14,7 @@ tag = false
 allow-branch = ["main"]
 enable-all-features = true
 shared-version = true
+tag-name = "v{{version}}"
 
 [workspace.package]
 version = "0.1.11"

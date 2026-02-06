@@ -1,3 +1,9 @@
+# ⚠️ Project migration notice
+
+This project has been incorporated into [protify](https://github.com/Rick-Phoenix/protify) and will no longer be maintained. 
+
+Migrating is a very simple process and it involves following the steps [described here](https://docs.rs/protify/latest/protify/guide/reflection_usage/index.html).
+
 # ✅ Protocheck
 
 Protocheck is a crate that allows you to leverage [`protovalidate`](https://github.com/bufbuild/protovalidate) annotations to automatically generate validation logic for the structs generated from your protobuf messages. 
