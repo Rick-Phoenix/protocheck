@@ -21,9 +21,7 @@ proc-macro = true
 
 [dependencies]
 proto-types = { version = "0.1.11", features = ["protocheck", "totokens"] }
-protocheck-core = { version = "0.1.11", path = "../core/", features = [
-  "totokens",
-] }
+protocheck-core = { version = "0.1.11", features = ["totokens"] }
 
 prost-reflect = { workspace = true }
 cel = { workspace = true, optional = true }

@@ -8,7 +8,7 @@ prost = { workspace = true, features = ["derive", "std"] }
 serde = { workspace = true }
 bytes = { workspace = true }
 regex = { workspace = true }
-protocheck = { path = "../protocheck/" }
+protocheck = { version = "0.1.11" }
 proto-types = { workspace = true, features = [
   "default",
   "serde",
@@ -21,6 +21,6 @@ maplit = { workspace = true }
 ordered-float = { workspace = true }
 
 [build-dependencies]
-protocheck-build = { path = "../protocheck-build/", features = ["cel"] }
+protocheck-build = { version = "0.1.11", features = ["cel"] }
 prost-build = { workspace = true }
 prost-reflect = { workspace = true }

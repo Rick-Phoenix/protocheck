@@ -708,8 +708,20 @@ version = "0.1.11"
 dependencies = [
  "document-features",
  "proto-types",
- "protocheck-core",
- "protocheck-proc-macro",
+ "protocheck-core 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protocheck-proc-macro 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "protocheck"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecf1fd17de66d6d1d1e9e4632fc73fd70d89da1516586d51f2491bbf739b6b9e"
+dependencies = [
+ "document-features",
+ "proto-types",
+ "protocheck-core 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protocheck-proc-macro 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -722,8 +734,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "protocheck-build"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb5fc97b2b211738c40128e336e30514fc6c51a93bb72e9f65a2e3b6cb447eb2"
+dependencies = [
+ "prost-build",
+ "prost-reflect",
+]
+
+[[package]]
 name = "protocheck-core"
 version = "0.1.11"
+dependencies = [
+ "bytes",
+ "cel",
+ "chrono",
+ "ipnetwork",
+ "iri-string",
+ "paste",
+ "proc-macro2",
+ "proto-types",
+ "quote",
+ "regex",
+]
+
+[[package]]
+name = "protocheck-core"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e68b03afaf411f27d8a4db222e16e4ceca38c0dc04956cb41638b5c78d30b791"
 dependencies = [
  "bytes",
  "cel",
@@ -746,7 +786,24 @@ dependencies = [
  "proc-macro2",
  "prost-reflect",
  "proto-types",
- "protocheck-core",
+ "protocheck-core 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote",
+ "regex",
+ "syn 2.0.104",
+]
+
+[[package]]
+name = "protocheck-proc-macro"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e4acc81d73083bdd947fb6a956e17ed1167560e77dddea6e4bf52c2edc36116"
+dependencies = [
+ "cel",
+ "convert_case",
+ "proc-macro2",
+ "prost-reflect",
+ "proto-types",
+ "protocheck-core 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote",
  "regex",
  "syn 2.0.104",
@@ -1075,8 +1132,8 @@ dependencies = [
  "prost-build",
  "prost-reflect",
  "proto-types",
- "protocheck",
- "protocheck-build",
+ "protocheck 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protocheck-build 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex",
  "serde",
 ]
